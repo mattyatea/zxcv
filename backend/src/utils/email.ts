@@ -15,6 +15,13 @@ export interface PasswordResetEmailData {
 	userLocale?: string;
 }
 
+export interface EmailVerificationData {
+	email: string;
+	verificationToken: string;
+	verificationUrl: string;
+	userLocale?: string;
+}
+
 export class EmailService {
 	private fromEmail: string;
 	private baseUrl: string;
@@ -72,6 +79,21 @@ export class EmailService {
 
 		// Generate content based on locale
 		const content = this.getPasswordResetContent(userLocale, fullResetUrl);
+
+		return {
+			to: email,
+			subject: content.subject,
+			html: content.html,
+			text: content.text,
+		};
+	}
+
+	generateEmailVerificationEmail(data: EmailVerificationData): EmailTemplate {
+		const { email, verificationToken, userLocale = "en" } = data;
+		const fullVerificationUrl = `${this.baseUrl}/verify-email?token=${verificationToken}`;
+
+		// Generate content based on locale
+		const content = this.getEmailVerificationContent(userLocale, fullVerificationUrl);
 
 		return {
 			to: email,
@@ -193,6 +215,125 @@ ${resetUrl}
 Note: This link expires in 1 hour.
 
 If you didn't request a password reset, please ignore this email.
+
+--
+© 2025 ZXCV. All rights reserved.
+			`.trim(),
+		};
+	}
+
+	private getEmailVerificationContent(locale: string, verificationUrl: string) {
+		const isJapanese = locale === "ja" || locale === "ja-JP";
+
+		if (isJapanese) {
+			return {
+				subject: "【ZXCV】メールアドレスの確認",
+				html: `
+					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+						<div style="text-align: center; margin-bottom: 30px;">
+							<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+							<p style="color: #666; font-size: 16px;">コーディングルール共有プラットフォーム</p>
+						</div>
+
+						<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+							<h2 style="color: #333; margin-top: 0;">メールアドレスの確認</h2>
+							<p>ZXCVへのご登録ありがとうございます。</p>
+							<p>アカウントを有効化するため、下記のボタンをクリックしてメールアドレスを確認してください。</p>
+						</div>
+
+						<div style="text-align: center; margin: 30px 0;">
+							<a href="${verificationUrl}"
+							   style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+								メールアドレスを確認
+							</a>
+						</div>
+
+						<div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+							<p style="margin: 0; color: #155724;">
+								<strong>注意:</strong> このリンクは24時間後に期限切れになります。
+							</p>
+						</div>
+
+						<div style="color: #666; font-size: 14px; margin-top: 30px;">
+							<p>もしこのアカウントを作成していない場合は、このメールを無視してください。</p>
+							<p>リンクが機能しない場合は、以下のURLをコピーしてブラウザに貼り付けてください：</p>
+							<p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${verificationUrl}</p>
+						</div>
+
+						<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
+							<p>© 2025 ZXCV. All rights reserved.</p>
+						</div>
+					</div>
+				`,
+				text: `
+ZXCV - メールアドレスの確認
+
+ZXCVへのご登録ありがとうございます。
+
+アカウントを有効化するため、下記のリンクをクリックしてメールアドレスを確認してください：
+${verificationUrl}
+
+注意: このリンクは24時間後に期限切れになります。
+
+もしこのアカウントを作成していない場合は、このメールを無視してください。
+
+--
+© 2025 ZXCV. All rights reserved.
+				`.trim(),
+			};
+		}
+
+		// English version
+		return {
+			subject: "ZXCV - Email Verification",
+			html: `
+				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+					<div style="text-align: center; margin-bottom: 30px;">
+						<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+						<p style="color: #666; font-size: 16px;">Coding Rules Sharing Platform</p>
+					</div>
+
+					<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+						<h2 style="color: #333; margin-top: 0;">Email Verification</h2>
+						<p>Thank you for signing up for ZXCV!</p>
+						<p>To activate your account, please click the button below to verify your email address.</p>
+					</div>
+
+					<div style="text-align: center; margin: 30px 0;">
+						<a href="${verificationUrl}"
+						   style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+							Verify Email Address
+						</a>
+					</div>
+
+					<div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+						<p style="margin: 0; color: #155724;">
+							<strong>Note:</strong> This link expires in 24 hours.
+						</p>
+					</div>
+
+					<div style="color: #666; font-size: 14px; margin-top: 30px;">
+						<p>If you didn't create this account, please ignore this email.</p>
+						<p>If the link doesn't work, copy and paste the following URL into your browser:</p>
+						<p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${verificationUrl}</p>
+					</div>
+
+					<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
+						<p>© 2025 ZXCV. All rights reserved.</p>
+					</div>
+				</div>
+			`,
+			text: `
+ZXCV - Email Verification
+
+Thank you for signing up for ZXCV!
+
+To activate your account, please click the following link to verify your email address:
+${verificationUrl}
+
+Note: This link expires in 24 hours.
+
+If you didn't create this account, please ignore this email.
 
 --
 © 2025 ZXCV. All rights reserved.

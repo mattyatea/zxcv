@@ -9,6 +9,7 @@ export interface AuthUser {
 	id: string;
 	email: string;
 	username: string;
+	emailVerified: boolean;
 }
 
 export interface AuthContext {
@@ -22,6 +23,7 @@ export async function createJWT(user: AuthUser, env: Env): Promise<string> {
 			sub: user.id,
 			email: user.email,
 			username: user.username,
+			emailVerified: user.emailVerified,
 		},
 		env,
 	);
@@ -37,6 +39,7 @@ export async function verifyJWT(token: string, env: Env): Promise<AuthUser | nul
 		id: payload.sub,
 		email: payload.email,
 		username: payload.username,
+		emailVerified: payload.emailVerified || false,
 	};
 }
 
@@ -73,6 +76,7 @@ async function verifyApiKey(
 					id: storedApiKey.user.id,
 					email: storedApiKey.user.email,
 					username: storedApiKey.user.username,
+					emailVerified: storedApiKey.user.emailVerified,
 				},
 				scopes,
 			};
@@ -154,4 +158,23 @@ export const requireScope = (
 
 		await next();
 	};
+};
+
+export const requireEmailVerification: MiddlewareHandler<{
+	Bindings: Env;
+	Variables: AuthContext;
+}> = async (c, next) => {
+	const user = c.get("user");
+
+	if (!user) {
+		throw new ApiException("Authentication required");
+	}
+
+	if (!user.emailVerified) {
+		throw new ApiException(
+			"Email verification required. Please verify your email address to access this resource.",
+		);
+	}
+
+	await next();
 };

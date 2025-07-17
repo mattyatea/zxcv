@@ -1,9 +1,9 @@
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
+import { EmailVerificationService } from "../../services/emailVerification";
 import type { AppContext } from "../../types";
 import type { Env } from "../../types/env";
 import { generateId, hashPassword } from "../../utils/crypto";
-import { generateToken } from "../../utils/jwt";
 import { createPrismaClient } from "../../utils/prisma";
 
 export class RegisterEndpoint extends OpenAPIRoute {
@@ -22,6 +22,7 @@ export class RegisterEndpoint extends OpenAPIRoute {
 								.max(50)
 								.regex(/^[a-zA-Z0-9_-]+$/),
 							password: z.string().min(8),
+							locale: z.string().optional(),
 						}),
 					},
 				},
@@ -29,7 +30,7 @@ export class RegisterEndpoint extends OpenAPIRoute {
 		},
 		responses: {
 			"201": {
-				description: "User registered successfully",
+				description: "User registered successfully, verification email sent",
 				content: {
 					"application/json": {
 						schema: z.object({
@@ -37,8 +38,9 @@ export class RegisterEndpoint extends OpenAPIRoute {
 								id: z.string(),
 								email: z.string(),
 								username: z.string(),
+								emailVerified: z.boolean(),
 							}),
-							token: z.string(),
+							message: z.string(),
 						}),
 					},
 				},
@@ -51,7 +53,7 @@ export class RegisterEndpoint extends OpenAPIRoute {
 
 	async handle(c: AppContext) {
 		const data = await this.getValidatedData<typeof this.schema>();
-		const { email, username, password } = data.body;
+		const { email, username, password, locale } = data.body;
 
 		const env = c.env as Env;
 		const prisma = createPrismaClient(env.DB);
@@ -81,6 +83,7 @@ export class RegisterEndpoint extends OpenAPIRoute {
 					email,
 					username,
 					passwordHash,
+					emailVerified: false,
 					createdAt: now,
 					updatedAt: now,
 				},
@@ -88,21 +91,34 @@ export class RegisterEndpoint extends OpenAPIRoute {
 					id: true,
 					email: true,
 					username: true,
+					emailVerified: true,
 				},
 			});
 
-			// Generate JWT
-			const token = await generateToken(
-				{ userId: user.id, email: user.email },
-				env.JWT_SECRET,
-				env.JWT_ALGORITHM,
-				env.JWT_EXPIRES_IN,
+			// Send verification email
+			const emailVerificationService = new EmailVerificationService(prisma, env);
+			const emailSent = await emailVerificationService.sendVerificationEmail(
+				user.id,
+				email,
+				locale,
 			);
+
+			if (!emailSent) {
+				// If email failed to send, we still return success but with a warning
+				return c.json(
+					{
+						user,
+						message:
+							"User registered successfully, but verification email could not be sent. You can request a new verification email later.",
+					},
+					201,
+				);
+			}
 
 			return c.json(
 				{
 					user,
-					token,
+					message: "User registered successfully. Please check your email to verify your account.",
 				},
 				201,
 			);

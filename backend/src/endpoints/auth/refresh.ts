@@ -65,6 +65,7 @@ export class RefreshTokenEndpoint extends OpenAPIRoute {
 					id: true,
 					email: true,
 					username: true,
+					emailVerified: true,
 				},
 			});
 
@@ -78,6 +79,7 @@ export class RefreshTokenEndpoint extends OpenAPIRoute {
 					id: user.id,
 					email: user.email,
 					username: user.username,
+					emailVerified: user.emailVerified,
 				},
 				env,
 			);

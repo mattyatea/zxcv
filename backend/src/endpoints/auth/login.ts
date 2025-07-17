@@ -32,14 +32,19 @@ export class LoginEndpoint extends OpenAPIRoute {
 								id: z.string(),
 								email: z.string(),
 								username: z.string(),
+								emailVerified: z.boolean(),
 							}),
-							token: z.string(),
+							token: z.string().optional(),
+							message: z.string().optional(),
 						}),
 					},
 				},
 			},
 			"401": {
 				description: "Invalid credentials",
+			},
+			"403": {
+				description: "Email verification required",
 			},
 		},
 	};
@@ -67,6 +72,23 @@ export class LoginEndpoint extends OpenAPIRoute {
 				return c.json({ error: "Invalid credentials" }, 401);
 			}
 
+			// Check if email is verified
+			if (!user.emailVerified) {
+				return c.json(
+					{
+						user: {
+							id: user.id,
+							email: user.email,
+							username: user.username,
+							emailVerified: user.emailVerified,
+						},
+						message:
+							"Email verification required. Please verify your email address to access your account.",
+					},
+					403,
+				);
+			}
+
 			// Generate JWT
 			const token = await generateToken(
 				{ userId: user.id, email: user.email },
@@ -80,6 +102,7 @@ export class LoginEndpoint extends OpenAPIRoute {
 					id: user.id,
 					email: user.email,
 					username: user.username,
+					emailVerified: user.emailVerified,
 				},
 				token,
 			});

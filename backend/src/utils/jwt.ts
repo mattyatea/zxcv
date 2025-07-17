@@ -5,6 +5,7 @@ export interface JWTPayload {
 	sub: string;
 	email: string;
 	username: string;
+	emailVerified?: boolean;
 	iat?: number;
 	exp?: number;
 }
@@ -37,6 +38,7 @@ export async function verifyJWT(token: string, env: Env): Promise<JWTPayload | n
 				sub: payload.sub,
 				email: payload.email,
 				username: payload.username,
+				emailVerified: payload.emailVerified as boolean,
 				iat: payload.iat,
 				exp: payload.exp,
 			};

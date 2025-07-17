@@ -1,5 +1,6 @@
 import { fromHono } from "chanfana";
 import { Hono } from "hono";
+import { requireAuth, requireEmailVerification } from "../../middleware/auth";
 import { AddTeamMemberEndpoint } from "./addMember";
 import { CreateTeamEndpoint } from "./createTeam";
 import { DeleteTeamEndpoint } from "./deleteTeam";
@@ -10,6 +11,9 @@ import { UpdateTeamMemberEndpoint } from "./updateMember";
 import { UpdateTeamEndpoint } from "./updateTeam";
 
 export const teamsRouter = fromHono(new Hono());
+
+// Apply authentication and email verification middleware to all team routes
+teamsRouter.use("*", requireAuth, requireEmailVerification);
 
 teamsRouter.post("/", CreateTeamEndpoint);
 teamsRouter.get("/", GetTeamsEndpoint);

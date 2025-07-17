@@ -27,6 +27,7 @@ model User {
   email        String   @unique
   username     String   @unique
   passwordHash String   @map("password_hash")
+  emailVerified Boolean  @default(false) @map("email_verified")
   settings     String   @default("{}") // JSON string for user settings
   createdAt    Int      @default(dbgenerated("(unixepoch())")) @map("created_at")
   updatedAt    Int      @default(dbgenerated("(unixepoch())")) @map("updated_at")
@@ -39,6 +40,7 @@ model User {
   ruleStars     RuleStar[]
   ruleDownloads RuleDownload[]
   passwordResets PasswordReset[]
+  emailVerifications EmailVerification[]
 
   @@index([email])
   @@index([username])
@@ -203,4 +205,19 @@ model PasswordReset {
   @@index([token])
   @@index([expiresAt])
   @@map("password_resets")
+}
+
+model EmailVerification {
+  id        String @id
+  userId    String @map("user_id")
+  token     String @unique
+  expiresAt Int    @map("expires_at")
+  usedAt    Int?   @map("used_at")
+  createdAt Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("email_verifications")
 }
