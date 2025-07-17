@@ -37,6 +37,8 @@ jobs:
         working-directory: ./backend
         env:
           NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-for-ci
+          REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
       
       - name: Run database migrations (staging)
         uses: cloudflare/wrangler-action@v3
@@ -99,6 +101,8 @@ jobs:
         working-directory: ./backend
         env:
           NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-for-ci
+          REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
       
       - name: Run security audit
         run: pnpm audit --audit-level moderate

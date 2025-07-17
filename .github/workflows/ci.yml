@@ -40,6 +40,8 @@ jobs:
         run: pnpm run --filter backend test
         env:
           NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-for-ci
+          REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
 
   security:
     runs-on: ubuntu-latest
