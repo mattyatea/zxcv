@@ -1,7 +1,10 @@
 name: Deploy
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches: [ main, develop ]
   workflow_dispatch:
 
@@ -9,7 +12,7 @@ jobs:
   deploy-staging:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.ref == 'refs/heads/develop'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop'
     environment: staging
     
     steps:
@@ -32,13 +35,6 @@ jobs:
         run: pnpm prisma:generate
         working-directory: ./backend
       
-      - name: Run tests
-        run: pnpm test
-        working-directory: ./backend
-        env:
-          NODE_ENV: test
-          JWT_SECRET: test-jwt-secret-for-ci
-          REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
       
       - name: Run database migrations (staging)
         uses: cloudflare/wrangler-action@v3
@@ -74,7 +70,7 @@ jobs:
   deploy-production:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.ref == 'refs/heads/main'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     environment: production
     
     steps:
@@ -83,31 +79,18 @@ jobs:
       
       - uses: pnpm/action-setup@v4
 
-      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
-      
+          
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         working-directory: ./backend
       
       - name: Generate Prisma Client
         run: pnpm prisma:generate
-        working-directory: ./backend
-      
-      - name: Run tests
-        run: pnpm test
-        working-directory: ./backend
-        env:
-          NODE_ENV: test
-          JWT_SECRET: test-jwt-secret-for-ci
-          REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
-      
-      - name: Run security audit
-        run: pnpm audit --audit-level moderate
         working-directory: ./backend
       
       - name: Run database migrations (production)
