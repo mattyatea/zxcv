@@ -39,7 +39,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply zxcv-db --remote
+          command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
           workingDirectory: ./backend
       
       - name: Deploy to Cloudflare Workers (staging)
@@ -101,7 +101,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply zxcv-db --remote
+          command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
           workingDirectory: ./backend
       
       - name: Deploy to Cloudflare Workers (production)
