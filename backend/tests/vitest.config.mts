@@ -22,6 +22,11 @@ export default defineWorkersConfig({
   optimizeDeps: {
     include: ["jose", "@prisma/client"],
   },
+  ssr: {
+    optimizeDeps: {
+      exclude: ["chai"],
+    },
+  },
   test: {
     setupFiles: ["./tests/apply-migrations.ts", "./tests/helpers/setup-env.ts"],
     poolOptions: {
@@ -44,6 +49,15 @@ export default defineWorkersConfig({
               type: "send_email",
               destinationAddresses: ["*@example.com"],
             },
+            // Add JWT_SECRET and other environment variables
+            JWT_SECRET: "test-jwt-secret-for-testing",
+            JWT_ALGORITHM: "HS256",
+            JWT_EXPIRES_IN: "1h",
+            REFRESH_TOKEN_EXPIRES_IN: "7d",
+            EMAIL_FROM: "test@example.com",
+            FRONTEND_URL: "http://localhost:3000",
+            RATE_LIMIT_AUTHENTICATED: "1000",
+            RATE_LIMIT_ANONYMOUS: "100",
           },
         },
       },
