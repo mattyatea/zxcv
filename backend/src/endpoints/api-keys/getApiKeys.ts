@@ -87,14 +87,23 @@ export class GetApiKeysEndpoint extends OpenAPIRoute {
 				},
 			});
 
-			const results = apiKeys.map((apiKey) => ({
-				id: apiKey.id,
-				name: apiKey.name,
-				scopes: apiKey.scopes ? JSON.parse(apiKey.scopes) : [],
-				expires_at: apiKey.expiresAt,
-				last_used_at: apiKey.lastUsedAt,
-				created_at: apiKey.createdAt,
-			}));
+			const results = apiKeys.map(
+				(apiKey: {
+					id: string;
+					name: string;
+					scopes: string | null;
+					expiresAt: number | null;
+					lastUsedAt: number | null;
+					createdAt: number;
+				}) => ({
+					id: apiKey.id,
+					name: apiKey.name,
+					scopes: apiKey.scopes ? JSON.parse(apiKey.scopes) : [],
+					expires_at: apiKey.expiresAt,
+					last_used_at: apiKey.lastUsedAt,
+					created_at: apiKey.createdAt,
+				}),
+			);
 
 			return c.json({
 				results,

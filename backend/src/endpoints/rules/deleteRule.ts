@@ -76,7 +76,9 @@ export class DeleteRuleEndpoint extends OpenAPIRoute {
 			}
 
 			// Delete from R2
-			const deletePromises = rule.versions.map((version) => env.R2.delete(version.r2ObjectKey));
+			const deletePromises = rule.versions.map((version: { r2ObjectKey: string }) =>
+				env.R2.delete(version.r2ObjectKey),
+			);
 			await Promise.all(deletePromises);
 
 			// Delete from database (cascade will handle versions)

@@ -19,6 +19,9 @@ export default defineWorkersConfig({
   define: {
     global: "globalThis",
   },
+  optimizeDeps: {
+    include: ["jose", "@prisma/client"],
+  },
   test: {
     setupFiles: ["./tests/apply-migrations.ts", "./tests/helpers/setup-env.ts"],
     poolOptions: {

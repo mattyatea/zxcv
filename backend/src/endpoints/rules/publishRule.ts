@@ -98,7 +98,9 @@ export class PublishRuleEndpoint extends OpenAPIRoute {
 			}
 
 			// Check if version already exists
-			const existingVersion = rule.versions.find((v) => v.versionNumber === version);
+			const existingVersion = rule.versions.find(
+				(v: { versionNumber: string }) => v.versionNumber === version,
+			);
 			if (existingVersion) {
 				return c.json({ error: "Version already exists" }, 409 as const);
 			}
