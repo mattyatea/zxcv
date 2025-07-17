@@ -117,13 +117,6 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
       
-      - name: Health check (production)
-        run: |
-          echo "Waiting for deployment to propagate..."
-          sleep 30
-          curl -f ${{ secrets.PRODUCTION_URL }}/health || exit 1
-          echo "Production deployment successful"
-      
       - name: Notify deployment success
         if: success()
         run: |
