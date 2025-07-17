@@ -47,6 +47,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
           workingDirectory: ./backend
+          packageManager: pnpm
       
       - name: Deploy to Cloudflare Workers (staging)
         uses: cloudflare/wrangler-action@v3
@@ -116,6 +117,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
           workingDirectory: ./backend
+          packageManager: pnpm
       
       - name: Deploy to Cloudflare Workers (production)
         uses: cloudflare/wrangler-action@v3
