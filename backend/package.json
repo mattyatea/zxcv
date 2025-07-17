@@ -1,5 +1,5 @@
 {
-  "name": "zxcv-backend",
+  "name": "@zxcv/backend",
   "version": "1.0.0",
   "description": "ZXCV - Coding Rules Sharing Platform Backend API",
   "scripts": {

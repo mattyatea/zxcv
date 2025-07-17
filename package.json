@@ -1,0 +1,27 @@
+{
+  "name": "zxcv",
+  "version": "1.0.0",
+  "description": "ZXCV - Coding Rules Sharing Platform",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "pnpm -r format",
+    "format:check": "pnpm -r format:check",
+    "typecheck": "pnpm -r typecheck",
+    "backend:dev": "pnpm --filter @zxcv/backend dev",
+    "backend:test": "pnpm --filter @zxcv/backend test",
+    "backend:build": "pnpm --filter @zxcv/backend build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.13.1"
+}

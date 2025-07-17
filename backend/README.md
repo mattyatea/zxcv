@@ -1,68 +1,188 @@
-# OpenAPI Template
+# zxcv - コーディングルール共有ツール
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/chanfana-openapi-template)
+組織やチームでコーディングルール（ESLint設定など）を共有・管理できるプラットフォームのバックエンドAPI。
 
-![OpenAPI Template Preview](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/91076b39-1f5b-46f6-7f14-536a6f183000/public)
+## 技術スタック
 
-<!-- dash-content-start -->
+- **ランタイム**: Cloudflare Workers
+- **フレームワーク**: Hono
+- **API仕様**: OpenAPI 3.1 (chanfana)
+- **データベース**: Cloudflare D1 (SQLite)
+- **ORM**: Prisma
+- **ストレージ**: Cloudflare R2
+- **認証**: JWT
+- **バリデーション**: Zod
+- **テスト**: Vitest
 
-This is a Cloudflare Worker with OpenAPI 3.1 Auto Generation and Validation using [chanfana](https://github.com/cloudflare/chanfana) and [Hono](https://github.com/honojs/hono).
+## プロジェクト構造
 
-This is an example project made to be used as a quick start into building OpenAPI compliant Workers that generates the
-`openapi.json` schema automatically from code and validates the incoming request to the defined parameters or request body.
-
-This template includes various endpoints, a D1 database, and integration tests using [Vitest](https://vitest.dev/) as examples. In endpoints, you will find [chanfana D1 AutoEndpoints](https://chanfana.com/endpoints/auto/d1) and a [normal endpoint](https://chanfana.com/endpoints/defining-endpoints) to serve as examples for your projects.
-
-Besides being able to see the OpenAPI schema (openapi.json) in the browser, you can also extract the schema locally no hassle by running this command `npm run schema`.
-
-<!-- dash-content-end -->
-
-> [!IMPORTANT]
-> When using C3 to create this project, select "no" when it asks if you want to deploy. You need to follow this project's [setup steps](https://github.com/cloudflare/templates/tree/main/openapi-template#setup-steps) before deploying.
-
-## Getting Started
-
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/openapi-template
+```
+backend/
+├── src/              # ソースコード
+│   ├── handlers/     # APIハンドラー
+│   ├── services/     # ビジネスロジック
+│   ├── utils/        # ユーティリティ
+│   └── types/        # 型定義
+├── prisma/           # Prismaスキーマ・マイグレーション
+├── tests/            # テストコード
+└── wrangler.toml     # Cloudflare Workers設定
 ```
 
-A live public deployment of this template is available at [https://openapi-template.templates.workers.dev](https://openapi-template.templates.workers.dev)
+## セットアップ
 
-## Setup Steps
-
-1. Install the project dependencies with a package manager of your choice:
+1. 依存関係のインストール:
    ```bash
-   npm install
-   ```
-2. Create a [D1 database](https://developers.cloudflare.com/d1/get-started/) with the name "openapi-template-db":
-   ```bash
-   npx wrangler d1 create openapi-template-db
-   ```
-   ...and update the `database_id` field in `wrangler.json` with the new database ID.
-3. Run the following db migration to initialize the database (notice the `migrations` directory in this project):
-   ```bash
-   npx wrangler d1 migrations apply DB --remote
-   ```
-4. Deploy the project!
-   ```bash
-   npx wrangler deploy
+   pnpm install
    ```
 
-## Testing
+2. D1データベースの作成:
+   ```bash
+   npx wrangler d1 create zxcv-db
+   ```
+   作成されたデータベースIDを `wrangler.toml` の `database_id` フィールドに設定
 
-This template includes integration tests using [Vitest](https://vitest.dev/). To run the tests locally:
+3. データベースマイグレーションの実行:
+   ```bash
+   pnpm migrate:local  # ローカル環境
+   pnpm migrate:prod   # 本番環境
+   ```
+
+4. 開発サーバーの起動:
+   ```bash
+   pnpm dev
+   ```
+
+## 開発コマンド
 
 ```bash
-npm run test
+# 開発サーバー起動
+pnpm dev
+
+# テスト実行
+pnpm test
+pnpm test:watch  # ウォッチモード
+
+# リント・フォーマット
+pnpm lint
+pnpm lint:fix
+pnpm format
+pnpm format:check
+
+# 型チェック
+pnpm typecheck
+
+# データベースマイグレーション
+pnpm migrate:local  # ローカル環境
+pnpm migrate:prod   # 本番環境
+
+# OpenAPIスキーマ生成
+pnpm schema
+
+# デプロイ
+npx wrangler deploy
 ```
 
-Test files are located in the `tests/` directory, with examples demonstrating how to test your endpoints and database interactions.
+## API設計
 
-## Project structure
+### エンドポイント構造
 
-1. Your main router is defined in `src/index.ts`.
-2. Each endpoint has its own file in `src/endpoints/`.
-3. Integration tests are located in the `tests/` directory.
-4. For more information read the [chanfana documentation](https://chanfana.com/), [Hono documentation](https://hono.dev/docs), and [Vitest documentation](https://vitest.dev/guide/).
+- `/auth/*` - 認証関連
+- `/rules/*` - ルール管理
+- `/rules/@:org/:rulename` - 組織ルール
+- `/rules/:id/versions` - バージョン管理
+- `/teams/*` - チーム管理
+- `/search` - 検索機能
+
+### 認証方式
+
+- JWT Bearer Token
+- リフレッシュトークン対応
+- APIキー認証（将来実装）
+
+## データベース設計
+
+主要テーブル:
+- `users` - ユーザー情報
+- `rules` - ルール基本情報
+- `rule_versions` - ルールのバージョン履歴
+- `teams` - チーム情報
+- `team_members` - チームメンバー
+- `api_keys` - APIキー
+- `rate_limits` - レート制限
+
+## 開発ガイドライン
+
+### 重要なドキュメント
+
+開発を始める前に以下のドキュメントを必ず読んでください：
+
+- **[CLAUDE.md](./CLAUDE.md)** - プロジェクトの詳細な開発ガイドライン、Linear連携ルール
+- **[CODING_GUIDELINES.md](./CODING_GUIDELINES.md)** - コーディング規約、命名規則、設計方針
+
+### コミット前チェックリスト
+
+1. 型エラーがないことを確認:
+   ```bash
+   pnpm typecheck
+   ```
+
+2. リント・フォーマットチェック:
+   ```bash
+   pnpm check
+   ```
+
+3. テストが通ることを確認:
+   ```bash
+   pnpm test
+   ```
+
+### API実装時の注意事項
+
+- 必ずOpenAPI定義を更新する
+- エラーレスポンスは統一フォーマットを使用
+- 適切なHTTPステータスコードを返す
+- 入力値は必ずZodでバリデーション
+
+### データベース変更時の手順
+
+1. Prismaスキーマを更新
+2. マイグレーションファイルを生成
+3. ローカルでテスト
+4. 本番環境に適用
+
+## セキュリティ考慮事項
+
+- 入力値は必ずZodでバリデーション
+- SQLインジェクション対策（Prisma使用）
+- XSS対策（フロントエンド実装時）
+- レート制限の実装
+- 適切な認証・認可チェック
+
+## パフォーマンス考慮事項
+
+- N+1クエリの回避
+- 適切なインデックス設計
+- キャッシュ戦略（Cloudflare Cache）
+- R2への大きなファイルの保存
+
+## 実装済み機能
+
+- ✅ データベーススキーマ（Prisma）
+- ✅ プロジェクト基本設定
+- ✅ Prisma統合（D1アダプター）
+
+## 未実装機能
+
+未実装機能はLinearで管理されています。主な機能：
+
+- JWT認証システム
+- ルール管理API
+- バージョン管理システム
+- 検索機能
+- レート制限
+- チーム機能
+- CI/CDパイプライン
+
+## ライセンス
+
+[ライセンス情報を追加]
