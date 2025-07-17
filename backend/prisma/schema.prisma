@@ -1,0 +1,206 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String
+  description String
+  completed   Int
+  dueDate     DateTime @map("due_date")
+
+  @@map("tasks")
+}
+
+model User {
+  id           String   @id
+  email        String   @unique
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  settings     String   @default("{}") // JSON string for user settings
+  createdAt    Int      @default(dbgenerated("(unixepoch())")) @map("created_at")
+  updatedAt    Int      @default(dbgenerated("(unixepoch())")) @map("updated_at")
+
+  rules         Rule[]
+  ruleVersions  RuleVersion[]
+  ownedTeams    Team[]
+  teamMembers   TeamMember[]
+  apiKeys       ApiKey[]
+  ruleStars     RuleStar[]
+  ruleDownloads RuleDownload[]
+  passwordResets PasswordReset[]
+
+  @@index([email])
+  @@index([username])
+  @@map("users")
+}
+
+model Rule {
+  id              String  @id
+  name            String
+  org             String?
+  userId          String  @map("user_id")
+  visibility      String
+  description     String?
+  tags            String? // JSON array stored as text
+  createdAt       Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
+  updatedAt       Int     @default(dbgenerated("(unixepoch())")) @map("updated_at")
+  publishedAt     Int?    @map("published_at")
+  version         String  @default("1.0.0")
+  latestVersionId String? @map("latest_version_id")
+  downloads       Int     @default(0)
+  stars           Int     @default(0)
+  teamId          String? @map("team_id")
+
+  user          User           @relation(fields: [userId], references: [id])
+  team          Team?          @relation(fields: [teamId], references: [id])
+  versions      RuleVersion[]
+  starredBy     RuleStar[]
+  downloadedBy  RuleDownload[]
+
+  @@unique([name, org])
+  @@index([userId])
+  @@index([visibility])
+  @@index([org])
+  @@index([name])
+  @@index([updatedAt])
+  @@index([teamId])
+  @@map("rules")
+}
+
+model RuleVersion {
+  id            String  @id
+  ruleId        String  @map("rule_id")
+  versionNumber String  @map("version_number")
+  changelog     String?
+  contentHash   String  @map("content_hash")
+  r2ObjectKey   String  @map("r2_object_key")
+  createdAt     Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
+  createdBy     String  @map("created_by")
+
+  rule    Rule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  creator User @relation(fields: [createdBy], references: [id])
+
+  @@unique([ruleId, versionNumber])
+  @@index([ruleId])
+  @@index([createdBy])
+  @@map("rule_versions")
+}
+
+model Team {
+  id          String  @id
+  name        String  @unique
+  displayName String  @map("display_name")
+  description String?
+  ownerId     String  @map("owner_id")
+  createdAt   Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
+  updatedAt   Int     @default(dbgenerated("(unixepoch())")) @map("updated_at")
+
+  owner   User         @relation(fields: [ownerId], references: [id])
+  members TeamMember[]
+  rules   Rule[]
+
+  @@index([name])
+  @@index([ownerId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String @id
+  teamId   String @map("team_id")
+  userId   String @map("user_id")
+  role     String
+  joinedAt Int    @default(dbgenerated("(unixepoch())")) @map("joined_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+model RateLimit {
+  key     String @id
+  count   Int    @default(0)
+  resetAt Int    @map("reset_at")
+
+  @@index([resetAt])
+  @@map("rate_limits")
+}
+
+model ApiKey {
+  id         String  @id
+  userId     String  @map("user_id")
+  name       String
+  keyHash    String  @unique @map("key_hash")
+  lastUsedAt Int?    @map("last_used_at")
+  expiresAt  Int?    @map("expires_at")
+  scopes     String? // JSON array stored as text
+  createdAt  Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([keyHash])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("api_keys")
+}
+
+model RuleStar {
+  id        String @id
+  ruleId    String @map("rule_id")
+  userId    String @map("user_id")
+  createdAt Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  rule Rule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([ruleId, userId])
+  @@index([ruleId])
+  @@index([userId])
+  @@map("rule_stars")
+}
+
+model RuleDownload {
+  id        String  @id
+  ruleId    String  @map("rule_id")
+  userId    String? @map("user_id")
+  ipAddress String  @map("ip_address")
+  userAgent String  @map("user_agent")
+  createdAt Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  rule Rule  @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([ruleId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("rule_downloads")
+}
+
+model PasswordReset {
+  id        String @id
+  userId    String @map("user_id")
+  token     String @unique
+  expiresAt Int    @map("expires_at")
+  usedAt    Int?   @map("used_at")
+  createdAt Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("password_resets")
+}
