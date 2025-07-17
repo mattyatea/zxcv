@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   workflow_dispatch:
 
 jobs:
@@ -17,33 +17,42 @@ jobs:
         uses: actions/checkout@v4
       
       - uses: pnpm/action-setup@v4
-
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: ./backend
       
       - name: Run tests
-        run: pnpm --filter backend test
+        run: pnpm test
+        working-directory: ./backend
         env:
           NODE_ENV: test
       
       - name: Run database migrations (staging)
-        run: pnpm --filter backend migrate:prod
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply zxcv-db --remote
+          workingDirectory: ./backend
       
       - name: Deploy to Cloudflare Workers (staging)
-        run: pnpm --filter backend deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env staging
+          workingDirectory: ./backend
+          secrets: |
+            JWT_SECRET
+            REFRESH_TOKEN_SECRET
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           JWT_SECRET: ${{ secrets.JWT_SECRET_STAGING }}
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET_STAGING }}
       
@@ -70,31 +79,42 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: ./backend
       
       - name: Run tests
-        run: pnpm --filter backend test
+        run: pnpm test
+        working-directory: ./backend
         env:
           NODE_ENV: test
       
       - name: Run security audit
-        run: pnpm --filter backend audit --audit-level moderate
+        run: pnpm audit --audit-level moderate
+        working-directory: ./backend
       
       - name: Run database migrations (production)
-        run: pnpm --filter backend migrate:prod
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply zxcv-db --remote
+          workingDirectory: ./backend
       
       - name: Deploy to Cloudflare Workers (production)
-        run: pnpm --filter backend deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          workingDirectory: ./backend
+          secrets: |
+            JWT_SECRET
+            REFRESH_TOKEN_SECRET
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           JWT_SECRET: ${{ secrets.JWT_SECRET_PRODUCTION }}
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET_PRODUCTION }}
       
