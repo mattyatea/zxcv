@@ -99,7 +99,7 @@ export class GetVersionsEndpoint extends OpenAPIRoute {
 			});
 
 			return c.json({
-				versions: versions.map((v) => ({
+				versions: versions.map((v: any) => ({
 					id: v.id,
 					version_number: v.versionNumber,
 					changelog: v.changelog || undefined,

@@ -28,7 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm run --filter backend prisma generate
+        run: pnpm run --filter backend prisma:generate
 
       - name: Type check
         run: pnpm run --filter backend typecheck
@@ -91,7 +91,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm run --filter backend prisma generate
+        run: pnpm run --filter backend prisma:generate
 
       - name: Generate API schema
         run: pnpm run --filter backend schema

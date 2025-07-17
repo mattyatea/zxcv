@@ -19,6 +19,7 @@
     "typecheck": "tsc --noEmit",
     "cf-typegen": "wrangler types",
     "schema": "pnpx chanfana",
+    "prisma:generate": "prisma generate",
     "migrate:local": "wrangler d1 migrations apply zxcv-db --local",
     "migrate:prod": "wrangler d1 migrations apply zxcv-db --remote",
     "predeploy": "pnpm migrate:prod"

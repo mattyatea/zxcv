@@ -29,7 +29,7 @@ jobs:
         working-directory: ./backend
       
       - name: Generate Prisma Client
-        run: pnpm prisma generate
+        run: pnpm prisma:generate
         working-directory: ./backend
       
       - name: Run tests
@@ -93,7 +93,7 @@ jobs:
         working-directory: ./backend
       
       - name: Generate Prisma Client
-        run: pnpm prisma generate
+        run: pnpm prisma:generate
         working-directory: ./backend
       
       - name: Run tests
