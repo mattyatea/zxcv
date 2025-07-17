@@ -1,14 +1,14 @@
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
-import { createJWT } from "../../middleware/auth";
 import type { AppContext } from "../../types";
 import type { Env } from "../../types/env";
 import { generateId, hashPassword } from "../../utils/crypto";
-import { createRefreshToken } from "../../utils/jwt";
+import { generateToken } from "../../utils/jwt";
+import { createPrismaClient } from "../../utils/prisma";
 
 export class RegisterEndpoint extends OpenAPIRoute {
 	schema = {
-		tags: ["Auth"],
+		tags: ["Authentication"],
 		summary: "Register a new user",
 		request: {
 			body: {
@@ -19,7 +19,7 @@ export class RegisterEndpoint extends OpenAPIRoute {
 							username: z
 								.string()
 								.min(3)
-								.max(20)
+								.max(50)
 								.regex(/^[a-zA-Z0-9_-]+$/),
 							password: z.string().min(8),
 						}),
@@ -29,17 +29,16 @@ export class RegisterEndpoint extends OpenAPIRoute {
 		},
 		responses: {
 			"201": {
-				description: "User created successfully",
+				description: "User registered successfully",
 				content: {
 					"application/json": {
 						schema: z.object({
-							token: z.string(),
-							refreshToken: z.string(),
 							user: z.object({
 								id: z.string(),
 								email: z.string(),
 								username: z.string(),
 							}),
+							token: z.string(),
 						}),
 					},
 				},
@@ -55,39 +54,61 @@ export class RegisterEndpoint extends OpenAPIRoute {
 		const { email, username, password } = data.body;
 
 		const env = c.env as Env;
+		const prisma = createPrismaClient(env.DB);
 
-		// Check if user already exists
-		const existing = await env.DB.prepare("SELECT id FROM users WHERE email = ? OR username = ?")
-			.bind(email, username)
-			.first();
+		try {
+			// Check if user exists
+			const existingUser = await prisma.user.findFirst({
+				where: {
+					OR: [{ email }, { username }],
+				},
+			});
 
-		if (existing) {
-			return c.json({ error: "User already exists" }, 409);
+			if (existingUser) {
+				return c.json({ error: "User with this email or username already exists" }, 409);
+			}
+
+			// Hash password
+			const passwordHash = await hashPassword(password);
+
+			// Create user
+			const userId = generateId();
+			const now = Math.floor(Date.now() / 1000);
+
+			const user = await prisma.user.create({
+				data: {
+					id: userId,
+					email,
+					username,
+					passwordHash,
+					createdAt: now,
+					updatedAt: now,
+				},
+				select: {
+					id: true,
+					email: true,
+					username: true,
+				},
+			});
+
+			// Generate JWT
+			const token = await generateToken(
+				{ userId: user.id, email: user.email },
+				env.JWT_SECRET,
+				env.JWT_ALGORITHM,
+				env.JWT_EXPIRES_IN,
+			);
+
+			return c.json(
+				{
+					user,
+					token,
+				},
+				201,
+			);
+		} catch (_error) {
+			// console.error("Registration error:", error);
+			return c.json({ error: "Failed to register user" }, 500);
 		}
-
-		// Create user
-		const userId = generateId();
-		const passwordHash = await hashPassword(password);
-		const now = Math.floor(Date.now() / 1000);
-
-		await env.DB.prepare(
-			"INSERT INTO users (id, email, username, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-		)
-			.bind(userId, email, username, passwordHash, now, now)
-			.run();
-
-		// Create JWT token and refresh token
-		const user = { id: userId, email, username };
-		const token = await createJWT(user, env);
-		const refreshToken = await createRefreshToken(userId, env);
-
-		return c.json(
-			{
-				token,
-				refreshToken,
-				user,
-			},
-			201,
-		);
 	}
 }
