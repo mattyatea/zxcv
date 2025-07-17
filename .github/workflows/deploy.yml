@@ -54,6 +54,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
+          packageManager: pnpm
           workingDirectory: ./backend
           secrets: |
             JWT_SECRET
@@ -122,6 +123,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
+          packageManager: pnpm
           workingDirectory: ./backend
           secrets: |
             JWT_SECRET
