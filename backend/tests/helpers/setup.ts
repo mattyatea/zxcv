@@ -4,6 +4,7 @@ import { env } from "cloudflare:test";
 // Test data cleanup
 export async function cleanupDatabase() {
   const tables = [
+    "email_verifications",
     "password_resets",
     "api_keys", 
     "team_members",
@@ -64,9 +65,14 @@ export async function createTestUser(data?: {
   email?: string;
   username?: string;
   password?: string;
+  emailVerified?: boolean;
 }) {
   // Import SELF from cloudflare:test
   const { SELF } = await import("cloudflare:test");
+  
+  const email = data?.email || `test-${Date.now()}@example.com`;
+  const username = data?.username || `user${Math.floor(Math.random() * 10000)}`;
+  const password = data?.password || "password123";
   
   const response = await SELF.fetch("http://localhost/auth/register", {
     method: "POST",
@@ -74,9 +80,9 @@ export async function createTestUser(data?: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      email: data?.email || `test-${Date.now()}@example.com`,
-      username: data?.username || `user${Math.floor(Math.random() * 10000)}`,
-      password: data?.password || "password123",
+      email,
+      username,
+      password,
     }),
   });
 
@@ -86,10 +92,71 @@ export async function createTestUser(data?: {
   }
 
   const result = await response.json();
+  
+  // If emailVerified is true or undefined (default), update the user in the database
+  if (data?.emailVerified !== false) {
+    await env.DB.prepare("UPDATE users SET email_verified = 1 WHERE email = ?")
+      .bind(email)
+      .run();
+  }
+  
+  // Login to get token
+  const loginResponse = await SELF.fetch("http://localhost/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
+
+  if (!loginResponse.ok) {
+    const error = await loginResponse.text();
+    throw new Error(`Failed to login test user: ${error}`);
+  }
+
+  const loginResult = await loginResponse.json();
+  
   return {
-    user: result.user,
-    token: result.token,
-    refreshToken: result.refreshToken,
+    user: { ...loginResult.user, emailVerified: data?.emailVerified !== false },
+    token: loginResult.token,
+    message: result.message,
+  };
+}
+
+// Create verified test user and get login token
+export async function createVerifiedTestUser(data?: {
+  email?: string;
+  username?: string;
+  password?: string;
+}) {
+  const userResult = await createTestUser({ ...data, emailVerified: true });
+  
+  // Login to get token
+  const { SELF } = await import("cloudflare:test");
+  
+  const loginResponse = await SELF.fetch("http://localhost/auth/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: userResult.user.email,
+      password: data?.password || "password123",
+    }),
+  });
+
+  if (!loginResponse.ok) {
+    const error = await loginResponse.text();
+    throw new Error(`Failed to login test user: ${error}`);
+  }
+
+  const loginResult = await loginResponse.json();
+  return {
+    user: loginResult.user,
+    token: loginResult.token,
   };
 }
 
@@ -125,6 +192,30 @@ export async function createTestTeam(authToken: string, data?: {
   }
 
   return await response.json();
+}
+
+// Create test team with verified user
+export async function createTestTeamWithUser(data?: {
+  name?: string;
+  displayName?: string;
+  description?: string;
+  userEmail?: string;
+  username?: string;
+  password?: string;
+}) {
+  const { user, token } = await createVerifiedTestUser({
+    email: data?.userEmail,
+    username: data?.username,
+    password: data?.password,
+  });
+
+  const team = await createTestTeam(token, {
+    name: data?.name,
+    displayName: data?.displayName,
+    description: data?.description,
+  });
+
+  return { user, token, team };
 }
 
 // Create test rule helper

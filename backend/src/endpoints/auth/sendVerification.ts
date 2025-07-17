@@ -1,6 +1,7 @@
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { EmailVerificationService } from "../../services/emailVerification";
+import type { AppContext } from "../../types";
 import type { Env } from "../../types/env";
 import { createPrismaClient } from "../../utils/prisma";
 
@@ -60,11 +61,12 @@ export class SendVerificationRoute extends OpenAPIRoute {
 		},
 	};
 
-	async handle(request: Request, env: Env, _ctx: any) {
+	async handle(c: AppContext) {
 		try {
-			const body = await request.json();
-			const { email, locale } = sendVerificationSchema.parse(body);
+			const data = await this.getValidatedData<typeof this.schema>();
+			const { email, locale } = data.body;
 
+			const env = c.env as Env;
 			const prisma = createPrismaClient(env.DB);
 			const emailVerificationService = new EmailVerificationService(prisma, env);
 
@@ -72,34 +74,37 @@ export class SendVerificationRoute extends OpenAPIRoute {
 			const sent = await emailVerificationService.resendVerificationEmail(email, locale);
 
 			if (sent) {
-				return {
+				return c.json({
 					success: true,
 					message:
 						"If this email address exists and is not already verified, a verification email has been sent.",
-				};
+				});
 			}
 
-			return {
-				success: false,
-				message: "Failed to send verification email. Please try again.",
-			};
+			return c.json(
+				{
+					success: false,
+					message: "Failed to send verification email. Please try again.",
+				},
+				500,
+			);
 		} catch (error) {
 			if (error instanceof z.ZodError) {
-				return new Response(
-					JSON.stringify({
+				return c.json(
+					{
 						success: false,
 						message: error.errors[0]?.message || "Invalid request data",
-					}),
-					{ status: 400, headers: { "Content-Type": "application/json" } },
+					},
+					400,
 				);
 			}
 
-			return new Response(
-				JSON.stringify({
+			return c.json(
+				{
 					success: false,
 					message: "Internal server error",
-				}),
-				{ status: 500, headers: { "Content-Type": "application/json" } },
+				},
+				500,
 			);
 		}
 	}

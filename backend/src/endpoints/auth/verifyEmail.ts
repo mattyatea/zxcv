@@ -1,6 +1,7 @@
 import { OpenAPIRoute } from "chanfana";
 import { z } from "zod";
 import { EmailVerificationService } from "../../services/emailVerification";
+import type { AppContext } from "../../types";
 import type { Env } from "../../types/env";
 import { createPrismaClient } from "../../utils/prisma";
 
@@ -60,11 +61,12 @@ export class VerifyEmailRoute extends OpenAPIRoute {
 		},
 	};
 
-	async handle(request: Request, env: Env, _ctx: any) {
+	async handle(c: AppContext) {
 		try {
-			const body = await request.json();
-			const { token } = verifyEmailSchema.parse(body);
+			const data = await this.getValidatedData<typeof this.schema>();
+			const { token } = data.body;
 
+			const env = c.env as Env;
 			const prisma = createPrismaClient(env.DB);
 			const emailVerificationService = new EmailVerificationService(prisma, env);
 
@@ -72,37 +74,37 @@ export class VerifyEmailRoute extends OpenAPIRoute {
 			const result = await emailVerificationService.verifyEmail(token);
 
 			if (result.success) {
-				return {
+				return c.json({
 					success: true,
 					message: "Email verified successfully",
 					userId: result.userId,
-				};
+				});
 			}
 
-			return new Response(
-				JSON.stringify({
+			return c.json(
+				{
 					success: false,
 					message: result.message || "Email verification failed",
-				}),
-				{ status: 400, headers: { "Content-Type": "application/json" } },
+				},
+				400,
 			);
 		} catch (error) {
 			if (error instanceof z.ZodError) {
-				return new Response(
-					JSON.stringify({
+				return c.json(
+					{
 						success: false,
 						message: error.errors[0]?.message || "Invalid request data",
-					}),
-					{ status: 400, headers: { "Content-Type": "application/json" } },
+					},
+					400,
 				);
 			}
 
-			return new Response(
-				JSON.stringify({
+			return c.json(
+				{
 					success: false,
 					message: "Internal server error",
-				}),
-				{ status: 500, headers: { "Content-Type": "application/json" } },
+				},
+				500,
 			);
 		}
 	}

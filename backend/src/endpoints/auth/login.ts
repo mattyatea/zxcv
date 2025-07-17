@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { AppContext } from "../../types";
 import type { Env } from "../../types/env";
 import { verifyPassword } from "../../utils/crypto";
-import { generateToken } from "../../utils/jwt";
+import { createJWT } from "../../utils/jwt";
 import { createPrismaClient } from "../../utils/prisma";
 
 export class LoginEndpoint extends OpenAPIRoute {
@@ -90,11 +90,14 @@ export class LoginEndpoint extends OpenAPIRoute {
 			}
 
 			// Generate JWT
-			const token = await generateToken(
-				{ userId: user.id, email: user.email },
-				env.JWT_SECRET,
-				env.JWT_ALGORITHM,
-				env.JWT_EXPIRES_IN,
+			const token = await createJWT(
+				{
+					sub: user.id,
+					email: user.email,
+					username: user.username,
+					emailVerified: user.emailVerified,
+				},
+				env,
 			);
 
 			return c.json({

@@ -3,8 +3,8 @@ import { EmailService } from "../../src/utils/email";
 
 describe("Email utilities", () => {
 	const mockEnv = {
-		EMAIL_FROM: "test@example.com",
-		FRONTEND_URL: "https://example.com",
+		EMAIL_FROM: "noreply@example.com", // Don't use test@example.com to avoid test environment detection
+		FRONTEND_URL: "https://example.com", // Don't use localhost:3000 to avoid test environment detection
 		EMAIL_SENDER: {
 			send: vi.fn(),
 		},
