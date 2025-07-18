@@ -7,10 +7,86 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@hono/zod-validator':
+        specifier: ^0.7.1
+        version: 0.7.1(hono@4.8.2)(zod@3.25.67)
+      '@nuxtjs/tailwindcss':
+        specifier: ^6.14.0
+        version: 6.14.0(magicast@0.3.5)
+      '@orpc/client':
+        specifier: ^1.7.2
+        version: 1.7.2
+      '@orpc/server':
+        specifier: ^1.7.2
+        version: 1.7.2(crossws@0.3.5)(ws@8.18.3)
+      '@prisma/adapter-d1':
+        specifier: ^6.12.0
+        version: 6.12.0
+      '@prisma/client':
+        specifier: ^6.12.0
+        version: 6.12.0(prisma@6.12.0(typescript@5.8.3))(typescript@5.8.3)
+      chanfana:
+        specifier: 2.8.1
+        version: 2.8.1
+      hono:
+        specifier: 4.8.2
+        version: 4.8.2
+      jose:
+        specifier: ^6.0.12
+        version: 6.0.12
+      mimetext:
+        specifier: ^3.0.27
+        version: 3.0.27
+      nuxt:
+        specifier: ^3.17.7
+        version: 3.17.7(@biomejs/biome@2.1.2)(@netlify/blobs@9.1.2)(@parcel/watcher@2.5.1)(@types/node@24.0.14)(@vue/compiler-sfc@3.5.17)(db0@0.3.2)(ioredis@5.6.1)(magicast@0.3.5)(rollup@4.45.1)(terser@5.43.1)(typescript@5.8.3)(vite@6.3.5(@types/node@24.0.14)(jiti@2.4.2)(terser@5.43.1)(yaml@2.8.0))(yaml@2.8.0)
+      vue:
+        specifier: ^3.5.17
+        version: 3.5.17(typescript@5.8.3)
+      vue-router:
+        specifier: ^4.5.1
+        version: 4.5.1(vue@3.5.17(typescript@5.8.3))
+      zod:
+        specifier: 3.25.67
+        version: 3.25.67
     devDependencies:
+      '@biomejs/biome':
+        specifier: ^2.1.2
+        version: 2.1.2
+      '@cloudflare/vitest-pool-workers':
+        specifier: 0.8.44
+        version: 0.8.44(@cloudflare/workers-types@4.20250715.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/node@24.0.14)(jiti@2.4.2)(terser@5.43.1)(yaml@2.8.0))
+      '@cloudflare/workers-types':
+        specifier: ^4.20250715.0
+        version: 4.20250715.0
       '@types/node':
-        specifier: ^22.0.0
-        version: 22.16.4
+        specifier: ^24.0.14
+        version: 24.0.14
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.4(vitest@3.2.4(@types/node@24.0.14)(jiti@2.4.2)(terser@5.43.1)(yaml@2.8.0))
+      h3:
+        specifier: ^1.15.3
+        version: 1.15.3
+      nitro-cloudflare-dev:
+        specifier: ^0.2.2
+        version: 0.2.2
+      nitropack:
+        specifier: ^2.12.3
+        version: 2.12.3(@netlify/blobs@9.1.2)
+      prisma:
+        specifier: ^6.12.0
+        version: 6.12.0(typescript@5.8.3)
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@24.0.14)(jiti@2.4.2)(terser@5.43.1)(yaml@2.8.0)
+      wrangler:
+        specifier: ^4.25.0
+        version: 4.25.0(@cloudflare/workers-types@4.20250715.0)
 
   backend:
     dependencies:
@@ -1685,9 +1761,6 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
-
-  '@types/node@22.16.4':
-    resolution: {integrity: sha512-PYRhNtZdm2wH/NT2k/oAJ6/f2VD2N2Dag0lGlx2vWgMSJXGNmlce5MiTQzoWAiIJtso30mjnfQCOKVH+kAQC/g==}
 
   '@types/node@24.0.14':
     resolution: {integrity: sha512-4zXMWD91vBLGRtHK3YbIoFMia+1nqEz72coM42C5ETjnNCa/heoj7NT1G67iAfOqMmcfhuCZ4uNpyz8EjlAejw==}
@@ -4524,9 +4597,6 @@ packages:
   unctx@2.4.1:
     resolution: {integrity: sha512-AbaYw0Nm4mK4qjhns67C+kgxR2YWiwlDBPzxrN8h8C6VtAdCgditAY5Dezu3IJy4XVqAnbrXt9oQJvsn3fyozg==}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-
   undici-types@7.8.0:
     resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
 
@@ -6537,10 +6607,6 @@ snapshots:
   '@types/deep-eql@4.0.2': {}
 
   '@types/estree@1.0.8': {}
-
-  '@types/node@22.16.4':
-    dependencies:
-      undici-types: 6.21.0
 
   '@types/node@24.0.14':
     dependencies:
@@ -9821,8 +9887,6 @@ snapshots:
       estree-walker: 3.0.3
       magic-string: 0.30.17
       unplugin: 2.3.5
-
-  undici-types@6.21.0: {}
 
   undici-types@7.8.0: {}
 

@@ -4,39 +4,39 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "fullstack-test",
-	"main": "./server/index.ts",
+	"name": "zxcv-backend-and-frontend",
+	"main": "./.output/server/index.mjs",
 	"compatibility_date": "2025-07-15",
 	"observability": {
-		"enabled": false
+		"enabled": true
 	},
 	"compatibility_flags": ["nodejs_compat"],
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "zxcv-db-test",
-			"database_id": "test-database-id"
+			"database_name": "zxcv-db",
+			"database_id": "ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e"
 		}
 	],
 	"r2_buckets": [
 		{
 			"binding": "R2",
-			"bucket_name": "zxcv-test"
+			"bucket_name": "zxcv"
 		}
 	],
 	"send_email": [
 		{
 			"name": "EMAIL_SENDER",
-			"destination_address": "test@example.com"
+			"destination_address": "noreply@zxcv.dev"
 		}
 	],
 	"vars": {
 		"JWT_ALGORITHM": "HS256",
-		"JWT_EXPIRES_IN": "1h",
+		"JWT_EXPIRES_IN": "7d",
 		"RATE_LIMIT_ANONYMOUS": "100",
 		"RATE_LIMIT_AUTHENTICATED": "1000",
 		"RATE_LIMIT_API_KEY": "5000",
-		"EMAIL_FROM": "test@example.com",
-		"FRONTEND_URL": "http://localhost:3000"
+		"EMAIL_FROM": "noreply@zxcv.dev",
+		"FRONTEND_URL": "https://zxcv.dev"
 	}
 }

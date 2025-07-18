@@ -1,10 +1,11 @@
 /**
+ * Staging environment configuration for Cloudflare Workers
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "fullstack",
+	"name": "zxcv-backend-and-frontend-staging",
 	"main": "./.output/server/index.mjs",
 	"compatibility_date": "2025-07-15",
 	"observability": {
@@ -14,20 +15,20 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "zxcv-db",
-			"database_id": "ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e"
+			"database_name": "zxcv-db-staging",
+			"database_id": "staging-database-id"
 		}
 	],
 	"r2_buckets": [
 		{
 			"binding": "R2",
-			"bucket_name": "zxcv"
+			"bucket_name": "zxcv-staging"
 		}
 	],
 	"send_email": [
 		{
 			"name": "EMAIL_SENDER",
-			"destination_address": "noreply@zxcv.dev"
+			"destination_address": "noreply@staging.zxcv.dev"
 		}
 	],
 	"vars": {
@@ -36,7 +37,7 @@
 		"RATE_LIMIT_ANONYMOUS": "100",
 		"RATE_LIMIT_AUTHENTICATED": "1000",
 		"RATE_LIMIT_API_KEY": "5000",
-		"EMAIL_FROM": "noreply@zxcv.dev",
-		"FRONTEND_URL": "https://zxcv.dev"
+		"EMAIL_FROM": "noreply@staging.zxcv.dev",
+		"FRONTEND_URL": "https://staging.zxcv.dev"
 	}
 }

@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["src/**/*.ts", "src/**/*.js"],
+    "includes": ["server/**/*.ts", "server/**/*.js", "pages/**/*.vue", "components/**/*.vue", "plugins/**/*.ts", "scripts/**/*.ts"],
     "experimentalScannerIgnores": [
       "node_modules/**",
       "dist/**",
@@ -161,7 +161,7 @@
       }
     },
     {
-      "includes": ["src/**/*.ts"],
+      "includes": ["server/**/*.ts"],
       "linter": {
         "rules": {
           "style": {

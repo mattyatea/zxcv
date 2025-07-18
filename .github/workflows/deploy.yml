@@ -24,17 +24,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.node-version'
           cache: 'pnpm'
       
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: ./backend
       
       - name: Generate Prisma Client
-        run: pnpm prisma:generate
-        working-directory: ./backend
+        run: pnpm run prisma:generate
       
+      - name: Generate Cloudflare types
+        run: pnpm run cf-typegen
+      
+      - name: Build Nuxt application
+        run: pnpm run build
       
       - name: Run database migrations (staging)
         uses: cloudflare/wrangler-action@v3
@@ -42,7 +45,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
-          workingDirectory: ./backend
           packageManager: pnpm
       
       - name: Deploy to Cloudflare Workers (staging)
@@ -50,9 +52,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env staging
+          command: deploy --config wrangler.staging.jsonc
           packageManager: pnpm
-          workingDirectory: ./backend
           secrets: |
             JWT_SECRET
             REFRESH_TOKEN_SECRET
@@ -64,8 +65,9 @@ jobs:
         run: |
           echo "Waiting for deployment to propagate..."
           sleep 30
-          curl -f ${{ secrets.STAGING_URL }}/health || exit 1
-          echo "Staging deployment successful"
+          STAGING_URL=${{ secrets.STAGING_URL || 'https://staging.zxcv-backend-and-frontend.workers.dev' }}
+          curl -f $STAGING_URL/api/health || exit 1
+          echo "✅ Staging deployment successful"
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -82,16 +84,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.node-version'
           cache: 'pnpm'
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: ./backend
       
       - name: Generate Prisma Client
-        run: pnpm prisma:generate
-        working-directory: ./backend
+        run: pnpm run prisma:generate
+      
+      - name: Generate Cloudflare types
+        run: pnpm run cf-typegen
+      
+      - name: Build Nuxt application
+        run: pnpm run build
       
       - name: Run database migrations (production)
         uses: cloudflare/wrangler-action@v3
@@ -99,7 +105,6 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
-          workingDirectory: ./backend
           packageManager: pnpm
       
       - name: Deploy to Cloudflare Workers (production)
@@ -109,7 +114,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
           packageManager: pnpm
-          workingDirectory: ./backend
           secrets: |
             JWT_SECRET
             REFRESH_TOKEN_SECRET
