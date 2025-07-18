@@ -60,13 +60,18 @@ export const authProcedures = {
       rememberMe: z.boolean().optional()
     }))
     .handler(async ({ input, context }) => {
-      const env = context.cloudflare.env
+      const env = context.cloudflare?.env
+      if (!env?.prisma) {
+        throw new ORPCError('Database connection not available', 'INTERNAL_SERVER_ERROR')
+      }
+      
       const { email, password } = input
-
       const prisma = env.prisma as PrismaClient
-      const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() }
-      })
+      
+      try {
+        const user = await prisma.user.findUnique({
+          where: { email: email.toLowerCase() }
+        })
 
       if (!user) {
         throw new Error('Invalid email or password')
@@ -77,24 +82,31 @@ export const authProcedures = {
         throw new Error('Invalid email or password')
       }
 
-      const authUser = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        emailVerified: user.emailVerified
-      }
+        const authUser = {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          emailVerified: user.emailVerified
+        }
 
-      const token = await createJWT({
-        sub: authUser.id,
-        email: authUser.email,
-        username: authUser.username,
-        emailVerified: authUser.emailVerified
-      }, env)
+        const token = await createJWT({
+          sub: authUser.id,
+          email: authUser.email,
+          username: authUser.username,
+          emailVerified: authUser.emailVerified
+        }, env)
 
-      return {
-        token,
-        user: authUser,
-        message: user.emailVerified ? undefined : 'Please verify your email before logging in.'
+        return {
+          token,
+          user: authUser,
+          message: user.emailVerified ? undefined : 'Please verify your email before logging in.'
+        }
+      } catch (error) {
+        console.error('Login error:', error)
+        if (error instanceof Error) {
+          throw new ORPCError(error.message, 'BAD_REQUEST')
+        }
+        throw new ORPCError('Login failed', 'INTERNAL_SERVER_ERROR')
       }
     }),
 

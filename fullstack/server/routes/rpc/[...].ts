@@ -37,26 +37,35 @@ async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
 const handler = new RPCHandler(router)
 
 export default defineEventHandler(async (event) => {
-  const context = event.context as any
-  const user = await getAuthUser(event)
+  try {
+    const context = event.context as any
+    const user = await getAuthUser(event)
 
-  const { matched } = await handler.handle(
-    event.node.req,
-    event.node.res,
-    {
-      prefix: '/rpc',
-      context: {
-        user,
-        env: context.cloudflare?.env,
-        cloudflare: context.cloudflare
+    console.log('RPC Request:', event.node.req.url)
+    console.log('Context env exists:', !!context.cloudflare?.env)
+    console.log('Prisma exists:', !!context.cloudflare?.env?.prisma)
+
+    const { matched } = await handler.handle(
+      event.node.req,
+      event.node.res,
+      {
+        prefix: '/rpc',
+        context: {
+          user,
+          env: context.cloudflare?.env,
+          cloudflare: context.cloudflare
+        }
       }
+    )
+
+    if (matched) {
+      return
     }
-  )
 
-  if (matched) {
-    return
+    setResponseStatus(event, 404, 'Not Found')
+    return 'Not found'
+  } catch (error) {
+    console.error('RPC Handler Error:', error)
+    throw error
   }
-
-  setResponseStatus(event, 404, 'Not Found')
-  return 'Not found'
 })
