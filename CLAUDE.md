@@ -491,6 +491,11 @@ Feat: チーム機能を実装
 - Test environment uses separate database configuration
 - Email sending uses Cloudflare Email Workers
 - Always run `pnpm lint` and `pnpm typecheck` before committing
+- **重要**: 型エラーがある場合は随時修正すること。特に以下に注意：
+  - ORPCError の使用方法
+  - Cloudflare bindings の型定義
+  - 非同期関数の戻り値の型
+  - null/undefined の適切な処理
 
 ## Automated Code Quality Tools
 
