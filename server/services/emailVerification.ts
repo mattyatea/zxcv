@@ -6,10 +6,12 @@ import { EmailService, type EmailVerificationData } from "~/server/utils/email";
 export class EmailVerificationService {
 	private prisma: PrismaClient;
 	private emailService: EmailService;
+	private env: Env;
 
 	constructor(prisma: PrismaClient, env: Env) {
 		this.prisma = prisma;
 		this.emailService = new EmailService(env);
+		this.env = env;
 	}
 
 	async createVerificationToken(userId: string): Promise<string> {
@@ -41,7 +43,7 @@ export class EmailVerificationService {
 			const emailData: EmailVerificationData = {
 				email,
 				verificationToken: token,
-				verificationUrl: `${process.env.FRONTEND_URL || "https://zxcv.dev"}/verify-email?token=${token}`,
+				verificationUrl: `${this.env.FRONTEND_URL || "https://zxcv.dev"}/verify-email?token=${token}`,
 				userLocale,
 			};
 
