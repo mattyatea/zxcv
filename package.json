@@ -62,7 +62,7 @@
 	},
 	"lint-staged": {
 		"*.{ts,tsx,js,jsx,vue}": [
-			"pnpm biome check --write"
+			"pnpm biome check --write　."
 		]
 	}
 }
