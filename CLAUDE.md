@@ -492,6 +492,19 @@ Feat: チーム機能を実装
 - Email sending uses Cloudflare Email Workers
 - Always run `pnpm lint` and `pnpm typecheck` before committing
 
+## Automated Code Quality Tools
+
+### Claude Code Hooks
+Claude Codeでファイルを編集すると、自動的にBiomeでフォーマットされます。`.claude/settings.json`で設定されています。
+
+### Git Hooks
+コミット前に自動的にコード品質チェックが実行されます：
+- **pre-commit**: lint-stagedが実行され、ステージングされたファイルに対して：
+  - Biomeでのフォーマット（すべての`.ts`, `.tsx`, `.js`, `.jsx`, `.vue`ファイル）
+  - TypeScriptの型チェック（`.ts`ファイルのみ）
+
+これにより、コミットされるコードは常に一貫したフォーマットと型安全性が保証されます。
+
 ## Best Practices
 
 ### 1. Performance Optimization

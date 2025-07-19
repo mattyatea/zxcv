@@ -1,0 +1,28 @@
+{
+  "tools": {
+    "Edit": {
+      "hooks": {
+        "afterRun": {
+          "command": "pnpm biome check --write ${file_path}",
+          "description": "Auto-format file after editing with Biome"
+        }
+      }
+    },
+    "MultiEdit": {
+      "hooks": {
+        "afterRun": {
+          "command": "pnpm biome check --write ${file_path}",
+          "description": "Auto-format file after multi-editing with Biome"
+        }
+      }
+    },
+    "Write": {
+      "hooks": {
+        "afterRun": {
+          "command": "pnpm biome check --write ${file_path}",
+          "description": "Auto-format file after writing with Biome"
+        }
+      }
+    }
+  }
+}
