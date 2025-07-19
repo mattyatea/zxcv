@@ -31,6 +31,7 @@ export default defineWorkersConfig({
   },
   test: {
     setupFiles: ["./tests/apply-migrations.ts", "./tests/helpers/setup-env.ts"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/tests/old/**"],
     poolOptions: {
       workers: {
         singleWorker: true,
@@ -39,18 +40,9 @@ export default defineWorkersConfig({
         },
         miniflare: {
           compatibilityFlags: ["experimental", "nodejs_compat"],
+          compatibilityDate: "2025-07-15",
           bindings: {
             MIGRATIONS: migrations,
-            // Add R2 mock
-            R2: {
-              type: "r2",
-              bucket: "test-bucket",
-            },
-            // Add email mock
-            EMAIL_SENDER: {
-              type: "send_email",
-              destinationAddresses: ["*@example.com"],
-            },
             // Add JWT_SECRET and other environment variables
             JWT_SECRET: "test-jwt-secret-for-testing",
             JWT_ALGORITHM: "HS256",
@@ -62,6 +54,14 @@ export default defineWorkersConfig({
             RATE_LIMIT_ANONYMOUS: "100",
             RATE_LIMIT_API_KEY: "5000",
           },
+          d1Databases: ["DB"],
+          r2Buckets: ["R2"],
+          sendEmail: [
+            {
+              name: "EMAIL_SENDER",
+              destAddress: "test@example.com",
+            },
+          ],
         },
       },
     },

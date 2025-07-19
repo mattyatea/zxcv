@@ -1,5 +1,6 @@
-// import { EmailMessage } from "cloudflare:email";
-import type { Env, SendEmailBinding } from "~/server/types/env";
+import { EmailMessage } from "cloudflare:email";
+import { createMimeMessage } from "mimetext";
+import type { Env } from "~/server/types/env";
 
 export interface EmailTemplate {
 	to: string;
@@ -23,14 +24,14 @@ export interface EmailVerificationData {
 }
 
 export class EmailService {
-	private fromEmail: string;
-	private baseUrl: string;
-	private emailSender: SendEmailBinding;
+	private readonly fromEmail: string;
+	private readonly baseUrl: string;
+	private readonly env: Env;
 
 	constructor(env: Env) {
-		this.fromEmail = env.EMAIL_FROM || "noreply@zxcv.dev";
+		this.fromEmail = env.EMAIL_FROM || "noreply@prism-project.net";
 		this.baseUrl = env.FRONTEND_URL || "https://zxcv.dev";
-		this.emailSender = env.EMAIL_SENDER;
+		this.env = env;
 	}
 
 	async sendEmail(template: EmailTemplate): Promise<boolean> {
@@ -42,40 +43,43 @@ export class EmailService {
 				return true;
 			}
 
-			// Create a simple MIME message manually without mimetext
-			const boundary = `----formdata-${Date.now()}`;
+			// Check if EMAIL_SENDER binding is available
+			if (!this.env.EMAIL_SENDER) {
+				console.error("EMAIL_SENDER binding is not configured");
+				return false;
+			}
 
-			const mimeMessage = [
-				`From: ZXCV <${this.fromEmail}>`,
-				`To: ${template.to}`,
-				`Subject: ${template.subject}`,
-				"MIME-Version: 1.0",
-				`Content-Type: multipart/alternative; boundary="${boundary}"`,
-				"",
-				`--${boundary}`,
-				"Content-Type: text/plain; charset=utf-8",
-				"Content-Transfer-Encoding: quoted-printable",
-				"",
-				template.text,
-				"",
-				`--${boundary}`,
-				"Content-Type: text/html; charset=utf-8",
-				"Content-Transfer-Encoding: quoted-printable",
-				"",
-				template.html,
-				"",
-				`--${boundary}--`,
-			].join("\r\n");
+			// Create MIME message using mimetext
+			const msg = createMimeMessage();
+			msg.setSender({ name: "ZXCV", addr: this.fromEmail });
+			msg.setRecipient(template.to);
+			msg.setSubject(template.subject);
+			
+			// Add plain text version
+			msg.addMessage({
+				contentType: "text/plain",
+				data: template.text,
+			});
+			
+			// Add HTML version
+			msg.addMessage({
+				contentType: "text/html",
+				data: template.html,
+			});
 
-			// Create EmailMessage
-			// const emailMessage = new EmailMessage(this.fromEmail, template.to, mimeMessage);
+			// Create EmailMessage instance
+			const emailMessage = new EmailMessage(
+				this.fromEmail,
+				template.to,
+				msg.asRaw()
+			);
 
 			// Send email using Cloudflare Email Workers
-			// await this.emailSender.send(emailMessage);
-
+			await this.env.EMAIL_SENDER.send(emailMessage);
+			
 			return true;
-		} catch (_error) {
-			// console.error("Email sending error:", error);
+		} catch (error) {
+			console.error("Email sending error:", error);
 			return false;
 		}
 	}

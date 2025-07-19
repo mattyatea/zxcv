@@ -4,8 +4,8 @@
   "compilerOptions": {
     "types": [
       "./worker-configuration.d.ts",
-      "@cloudflare/workers-types",
-      "vitest/globals"
+      "vitest/globals",
+      "./tests/types/test-env.d.ts"
     ],
     "strict": true,
     "esModuleInterop": true,

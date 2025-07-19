@@ -6,13 +6,14 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: "cloudflare_module",
+    
+    rollupConfig: {
+      external: ["@prisma/client"],
+    },
 
     cloudflare: {
       deployConfig: true,
-      nodeCompat: true,
-      wrangler: {
-        configPath: "./wrangler.jsonc"
-      }
+      nodeCompat: true
     }
   },
 

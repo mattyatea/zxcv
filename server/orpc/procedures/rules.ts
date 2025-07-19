@@ -1,36 +1,30 @@
-import { os, ORPCError } from '@orpc/server'
+import { ORPCError } from '@orpc/server'
 import * as z from 'zod'
-import type { PrismaClient } from '@prisma/client'
-import type { Context } from '../types'
-
-const authRequired = os.use<Context>().use(async ({ context, next }) => {
-  if (!context.user) {
-    throw new ORPCError('Unauthorized', 'UNAUTHORIZED')
-  }
-  return next({ context })
-})
+import { os } from '~/server/orpc'
+import { dbProvider } from '~/server/orpc/middleware/db'
+import { dbWithAuth, dbWithEmailVerification } from '~/server/orpc/middleware/combined'
 
 export const rulesProcedures = {
   search: os
-    .use<Context>()
+    .use(dbProvider)
     .input(z.object({
-      q: z.string().optional(),
-      tags: z.string().optional(),
+      query: z.string().optional(),
+      tags: z.array(z.string()).optional(),
+      author: z.string().optional(),
       visibility: z.string().optional(),
-      sort: z.string().optional(),
-      limit: z.number().default(10),
-      offset: z.number().default(0)
+      sortBy: z.string().optional(),
+      page: z.number().default(1),
+      limit: z.number().default(20)
     }))
     .handler(async ({ input, context }) => {
-      const env = context.cloudflare.env
-      const prisma = env.prisma as PrismaClient
+      const { db } = context
       
       const where: any = {}
       
-      if (input.q) {
+      if (input.query) {
         where.OR = [
-          { name: { contains: input.q } },
-          { description: { contains: input.q } }
+          { name: { contains: input.query } },
+          { description: { contains: input.query } }
         ]
       }
       
@@ -38,15 +32,23 @@ export const rulesProcedures = {
         where.visibility = input.visibility
       }
       
-      if (input.tags) {
-        const tagList = input.tags.split(',').map(t => t.trim())
+      if (input.tags && input.tags.length > 0) {
         where.tags = {
-          hasSome: tagList
+          hasSome: input.tags
+        }
+      }
+      
+      if (input.author) {
+        where.user = {
+          username: input.author
         }
       }
       
       let orderBy: any = {}
-      switch (input.sort) {
+      switch (input.sortBy) {
+        case 'downloads':
+          orderBy = { downloads: 'desc' }
+          break
         case 'created':
           orderBy = { createdAt: 'desc' }
           break
@@ -58,13 +60,13 @@ export const rulesProcedures = {
       }
       
       const [rules, total] = await Promise.all([
-        prisma.rule.findMany({
+        db.rule.findMany({
           where,
           orderBy,
-          skip: input.offset,
+          skip: (input.page - 1) * input.limit,
           take: input.limit,
           include: {
-            author: {
+            user: {
               select: {
                 id: true,
                 username: true,
@@ -73,32 +75,34 @@ export const rulesProcedures = {
             }
           }
         }),
-        prisma.rule.count({ where })
+        db.rule.count({ where })
       ])
       
       return {
-        results: rules.map(rule => ({
+        rules: rules.map((rule: any) => ({
           ...rule,
-          updated_at: Math.floor(rule.updatedAt.getTime() / 1000),
-          created_at: Math.floor(rule.createdAt.getTime() / 1000)
+          author: rule.user,
+          updated_at: rule.updatedAt,
+          created_at: rule.createdAt
         })),
-        total
+        total,
+        page: input.page,
+        limit: input.limit
       }
     }),
 
   get: os
-    .use<Context>()
+    .use(dbProvider)
     .input(z.object({
       id: z.string()
     }))
     .handler(async ({ input, context }) => {
-      const env = context.cloudflare.env
-      const prisma = env.prisma as PrismaClient
+      const { db } = context
       
-      const rule = await prisma.rule.findUnique({
+      const rule = await db.rule.findUnique({
         where: { id: input.id },
         include: {
-          author: {
+          user: {
             select: {
               id: true,
               username: true,
@@ -116,17 +120,19 @@ export const rulesProcedures = {
       })
       
       if (!rule) {
-        throw new Error('Rule not found')
+        throw new ORPCError('NOT_FOUND', { message: 'Rule not found' })
       }
       
       return {
         ...rule,
-        updated_at: Math.floor(rule.updatedAt.getTime() / 1000),
-        created_at: Math.floor(rule.createdAt.getTime() / 1000)
+        author: rule.user,
+        updated_at: rule.updatedAt,
+        created_at: rule.createdAt
       }
     }),
 
-  create: authRequired
+  create: os
+    .use(dbWithAuth)
     .input(z.object({
       name: z.string().regex(/^[a-zA-Z0-9_-]+$/),
       org: z.string().regex(/^[a-zA-Z0-9_-]*$/).optional(),
@@ -137,40 +143,42 @@ export const rulesProcedures = {
       content: z.string()
     }))
     .handler(async ({ input, context }) => {
-      const env = context.cloudflare.env
-      const prisma = env.prisma as PrismaClient
-      const user = context.user!
+      const { db, user } = context
       
       // Check if rule name already exists
-      const existingRule = await prisma.rule.findFirst({
+      const existingRule = await db.rule.findFirst({
         where: {
           name: input.name,
-          authorId: user.id
+          userId: user.id
         }
       })
       
       if (existingRule) {
-        throw new Error('A rule with this name already exists')
+        throw new ORPCError('CONFLICT', { message: 'A rule with this name already exists' })
       }
       
-      const rule = await prisma.rule.create({
+      const { generateId } = await import('~/server/utils/crypto')
+      const rule = await db.rule.create({
         data: {
+          id: generateId(),
           name: input.name,
           org: input.org,
           description: input.description,
           visibility: input.visibility,
           teamId: input.teamId,
-          tags: input.tags,
-          content: input.content,
-          version: 1,
-          authorId: user.id
+          tags: JSON.stringify(input.tags),
+          userId: user.id,
+          version: "1.0.0",
+          createdAt: Math.floor(Date.now() / 1000),
+          updatedAt: Math.floor(Date.now() / 1000)
         }
       })
       
       return { id: rule.id }
     }),
 
-  update: authRequired
+  update: os
+    .use(dbWithEmailVerification)
     .input(z.object({
       id: z.string(),
       name: z.string().regex(/^[a-zA-Z0-9_-]+$/).optional(),
@@ -181,49 +189,47 @@ export const rulesProcedures = {
       content: z.string().optional()
     }))
     .handler(async ({ input, context }) => {
-      const env = context.cloudflare.env
-      const prisma = env.prisma as PrismaClient
-      const user = context.user!
+      const { db, user } = context
       
-      const existingRule = await prisma.rule.findUnique({
+      const existingRule = await db.rule.findUnique({
         where: { id: input.id }
       })
       
-      if (!existingRule || existingRule.authorId !== user.id) {
-        throw new Error('Rule not found or unauthorized')
+      if (!existingRule || existingRule.userId !== user.id) {
+        throw new ORPCError('FORBIDDEN', { message: 'Rule not found or unauthorized' })
       }
       
-      const { id, ...updateData } = input
+      const { id, tags, ...updateData } = input
       
-      const rule = await prisma.rule.update({
+      const rule = await db.rule.update({
         where: { id },
         data: {
           ...updateData,
-          version: { increment: 1 }
+          tags: tags ? JSON.stringify(tags) : undefined,
+          updatedAt: Math.floor(Date.now() / 1000)
         }
       })
       
       return { success: true }
     }),
 
-  delete: authRequired
+  delete: os
+    .use(dbWithEmailVerification)
     .input(z.object({
       id: z.string()
     }))
     .handler(async ({ input, context }) => {
-      const env = context.cloudflare.env
-      const prisma = env.prisma as PrismaClient
-      const user = context.user!
+      const { db, user } = context
       
-      const rule = await prisma.rule.findUnique({
+      const rule = await db.rule.findUnique({
         where: { id: input.id }
       })
       
-      if (!rule || rule.authorId !== user.id) {
-        throw new Error('Rule not found or unauthorized')
+      if (!rule || rule.userId !== user.id) {
+        throw new ORPCError('FORBIDDEN', { message: 'Rule not found or unauthorized' })
       }
       
-      await prisma.rule.delete({
+      await db.rule.delete({
         where: { id: input.id }
       })
       

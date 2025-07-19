@@ -24,11 +24,13 @@ async function seedTestUser() {
 
     // テストユーザーを作成
     const hashedPassword = await hashPassword("password123");
+    const { generateId } = await import("../server/utils/crypto");
     const user = await prisma.user.create({
       data: {
+        id: generateId(),
         username: "testuser",
         email: "test@example.com",
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         emailVerified: true
       }
     });

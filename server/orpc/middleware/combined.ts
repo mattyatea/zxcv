@@ -1,0 +1,55 @@
+import { os } from "~/server/orpc/index"
+import { ORPCError } from "@orpc/server"
+import { createPrismaClient } from "~/server/utils/prisma"
+import type { AuthUser } from "~/server/utils/auth"
+
+// Combined middleware that provides both db and ensures auth
+export const dbWithAuth = os.middleware(async ({ context, next }) => {
+  const db = createPrismaClient(context.env.DB)
+  
+  if (!context.user) {
+    throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" })
+  }
+  
+  return next({
+    context: {
+      ...context,
+      db,
+      user: context.user as AuthUser, // Type assertion since we checked it exists
+    },
+  })
+})
+
+// Combined middleware that provides db and optionally has auth
+export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
+  const db = createPrismaClient(context.env.DB)
+  
+  return next({
+    context: {
+      ...context,
+      db,
+      user: context.user,
+    },
+  })
+})
+
+// Combined middleware that provides db and ensures email verification
+export const dbWithEmailVerification = os.middleware(async ({ context, next }) => {
+  const db = createPrismaClient(context.env.DB)
+  
+  if (!context.user) {
+    throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" })
+  }
+  
+  if (!context.user.emailVerified) {
+    throw new ORPCError("FORBIDDEN", { message: "Email verification required" })
+  }
+  
+  return next({
+    context: {
+      ...context,
+      db,
+      user: context.user as AuthUser, // Type assertion since we checked it exists
+    },
+  })
+})

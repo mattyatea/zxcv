@@ -26,3 +26,6 @@ logs
 # wrangler files
 .wrangler
 .dev.vars*
+
+# Test database
+test.db

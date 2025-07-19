@@ -10,6 +10,8 @@ export interface CloudflareBindings {
 	RATE_LIMIT_API_KEY: string;
 	EMAIL_FROM: string;
 	FRONTEND_URL: string;
+	KV_CACHE: KVNamespace;
+	prisma?: any;
 }
 
 export interface H3EventContext {
