@@ -131,6 +131,6 @@
 
 <script setup>
 useHead({
-  title: 'ZXCV - Coding Rules Platform'
-})
+	title: "ZXCV - Coding Rules Platform",
+});
 </script>

@@ -84,7 +84,6 @@ export class Logger {
 
 		// In production, you might want to send logs to external service
 		// For now, we'll use console with structured JSON
-		// biome-ignore lint/suspicious/noConsole: Logging is intentional here
 		console.log(JSON.stringify(entry));
 	}
 

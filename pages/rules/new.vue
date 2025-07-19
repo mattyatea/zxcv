@@ -187,110 +187,110 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from "vue";
 
 useHead({
-  title: 'Create Rule - ZXCV'
-})
+	title: "Create Rule - ZXCV",
+});
 
 const form = ref({
-  name: '',
-  org: '',
-  description: '',
-  visibility: 'public',
-  teamId: '',
-  tags: [],
-  content: ''
-})
+	name: "",
+	org: "",
+	description: "",
+	visibility: "public",
+	teamId: "",
+	tags: [],
+	content: "",
+});
 
-const tagInput = ref('')
-const selectedFormat = ref('eslint')
-const teams = ref([])
-const loading = ref(false)
-const error = ref('')
+const tagInput = ref("");
+const selectedFormat = ref("eslint");
+const teams = ref([]);
+const loading = ref(false);
+const error = ref("");
 
 const contentPlaceholder = ref(`{
   "rules": {
     "semi": ["error", "always"],
     "quotes": ["error", "double"]
   }
-}`)
+}`);
 
-const updateContentPlaceholder = () => {
-  switch (selectedFormat.value) {
-    case 'eslint':
-      contentPlaceholder.value = `{
+const _updateContentPlaceholder = () => {
+	switch (selectedFormat.value) {
+		case "eslint":
+			contentPlaceholder.value = `{
   "rules": {
     "semi": ["error", "always"],
     "quotes": ["error", "double"]
   }
-}`
-      break
-    case 'prettier':
-      contentPlaceholder.value = `{
+}`;
+			break;
+		case "prettier":
+			contentPlaceholder.value = `{
   "semi": true,
   "singleQuote": false,
   "tabWidth": 2,
   "trailingComma": "es5"
-}`
-      break
-    case 'tsconfig':
-      contentPlaceholder.value = `{
+}`;
+			break;
+		case "tsconfig":
+			contentPlaceholder.value = `{
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
     "strict": true
   }
-}`
-      break
-    default:
-      contentPlaceholder.value = '// Your custom rule content here'
-  }
-}
+}`;
+			break;
+		default:
+			contentPlaceholder.value = "// Your custom rule content here";
+	}
+};
 
-const addTag = () => {
-  const tag = tagInput.value.trim().toLowerCase()
-  if (tag && !form.value.tags.includes(tag)) {
-    form.value.tags.push(tag)
-    tagInput.value = ''
-  }
-}
+const _addTag = () => {
+	const tag = tagInput.value.trim().toLowerCase();
+	if (tag && !form.value.tags.includes(tag)) {
+		form.value.tags.push(tag);
+		tagInput.value = "";
+	}
+};
 
-const removeTag = (index) => {
-  form.value.tags.splice(index, 1)
-}
+const _removeTag = (index) => {
+	form.value.tags.splice(index, 1);
+};
 
-const { $rpc } = useNuxtApp()
+const { $rpc } = useNuxtApp();
 
-const handleSubmit = async () => {
-  loading.value = true
-  error.value = ''
-  
-  try {
-    const response = await $rpc.rules.create(form.value)
-    await navigateTo(`/rules/${response.id}`)
-  } catch (err) {
-    error.value = err.message || 'Failed to create rule'
-  } finally {
-    loading.value = false
-  }
-}
+const _handleSubmit = async () => {
+	loading.value = true;
+	error.value = "";
+
+	try {
+		const response = await $rpc.rules.create(form.value);
+		await navigateTo(`/rules/${response.id}`);
+	} catch (err) {
+		error.value = err.message || "Failed to create rule";
+	} finally {
+		loading.value = false;
+	}
+};
 
 const fetchTeams = async () => {
-  try {
-    const response = await $rpc.teams.list()
-    teams.value = response.results
-  } catch (error) {
-    console.error('Failed to fetch teams:', error)
-  }
-}
+	try {
+		const response = await $rpc.teams.list();
+		teams.value = response.results;
+	} catch (error) {
+		console.error("Failed to fetch teams:", error);
+	}
+};
 
 onMounted(() => {
-  const token = localStorage.getItem('token')
-  if (!token) {
-    navigateTo('/login')
-  } else {
-    fetchTeams()
-  }
-})
+	const token = localStorage.getItem("token");
+	if (!token) {
+		navigateTo("/login");
+	} else {
+		fetchTeams();
+	}
+});
 </script>

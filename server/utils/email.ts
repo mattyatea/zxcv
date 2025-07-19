@@ -54,13 +54,13 @@ export class EmailService {
 			msg.setSender({ name: "ZXCV", addr: this.fromEmail });
 			msg.setRecipient(template.to);
 			msg.setSubject(template.subject);
-			
+
 			// Add plain text version
 			msg.addMessage({
 				contentType: "text/plain",
 				data: template.text,
 			});
-			
+
 			// Add HTML version
 			msg.addMessage({
 				contentType: "text/html",
@@ -68,15 +68,11 @@ export class EmailService {
 			});
 
 			// Create EmailMessage instance
-			const emailMessage = new EmailMessage(
-				this.fromEmail,
-				template.to,
-				msg.asRaw()
-			);
+			const emailMessage = new EmailMessage(this.fromEmail, template.to, msg.asRaw());
 
 			// Send email using Cloudflare Email Workers
 			await this.env.EMAIL_SENDER.send(emailMessage);
-			
+
 			return true;
 		} catch (error) {
 			console.error("Email sending error:", error);

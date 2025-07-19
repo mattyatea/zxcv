@@ -183,91 +183,91 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from "vue";
 
 useHead({
-  title: 'Rules - ZXCV'
-})
+	title: "Rules - ZXCV",
+});
 
-const searchQuery = ref('')
+const searchQuery = ref("");
 const filters = ref({
-  visibility: 'all',
-  sort: 'updated'
-})
-const selectedTags = ref([])
-const popularTags = ref(['eslint', 'prettier', 'typescript', 'react', 'vue'])
+	visibility: "all",
+	sort: "updated",
+});
+const selectedTags = ref([]);
+const _popularTags = ref(["eslint", "prettier", "typescript", "react", "vue"]);
 
-const rules = ref([])
-const loading = ref(false)
-const currentPage = ref(1)
-const limit = 12
-const total = ref(0)
+const rules = ref([]);
+const loading = ref(false);
+const currentPage = ref(1);
+const limit = 12;
+const total = ref(0);
 
-const totalPages = computed(() => Math.ceil(total.value / limit))
-const visiblePages = computed(() => {
-  const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, start + 4)
-  
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  
-  return pages
-})
+const totalPages = computed(() => Math.ceil(total.value / limit));
+const _visiblePages = computed(() => {
+	const pages = [];
+	const start = Math.max(1, currentPage.value - 2);
+	const end = Math.min(totalPages.value, start + 4);
 
-const { $rpc } = useNuxtApp()
+	for (let i = start; i <= end; i++) {
+		pages.push(i);
+	}
+
+	return pages;
+});
+
+const { $rpc } = useNuxtApp();
 
 const fetchRules = async () => {
-  loading.value = true
-  
-  try {
-    const response = await $rpc.rules.search({
-      limit,
-      offset: (currentPage.value - 1) * limit,
-      sort: filters.value.sort,
-      visibility: filters.value.visibility,
-      q: searchQuery.value || undefined,
-      tags: selectedTags.value.length > 0 ? selectedTags.value.join(',') : undefined
-    })
-    
-    rules.value = response.results
-    total.value = response.total
-  } catch (error) {
-    console.error('Failed to fetch rules:', error)
-  } finally {
-    loading.value = false
-  }
-}
+	loading.value = true;
 
-const toggleTag = (tag) => {
-  const index = selectedTags.value.indexOf(tag)
-  if (index > -1) {
-    selectedTags.value.splice(index, 1)
-  } else {
-    selectedTags.value.push(tag)
-  }
-  fetchRules()
-}
+	try {
+		const response = await $rpc.rules.search({
+			limit,
+			offset: (currentPage.value - 1) * limit,
+			sort: filters.value.sort,
+			visibility: filters.value.visibility,
+			q: searchQuery.value || undefined,
+			tags: selectedTags.value.length > 0 ? selectedTags.value.join(",") : undefined,
+		});
 
-const formatDate = (timestamp) => {
-  return new Date(timestamp * 1000).toLocaleDateString()
-}
+		rules.value = response.results;
+		total.value = response.total;
+	} catch (error) {
+		console.error("Failed to fetch rules:", error);
+	} finally {
+		loading.value = false;
+	}
+};
 
-let searchTimeout
-const debouncedSearch = () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    currentPage.value = 1
-    fetchRules()
-  }, 300)
-}
+const _toggleTag = (tag) => {
+	const index = selectedTags.value.indexOf(tag);
+	if (index > -1) {
+		selectedTags.value.splice(index, 1);
+	} else {
+		selectedTags.value.push(tag);
+	}
+	fetchRules();
+};
 
-watch(currentPage, fetchRules)
+const _formatDate = (timestamp) => {
+	return new Date(timestamp * 1000).toLocaleDateString();
+};
+
+let searchTimeout;
+const _debouncedSearch = () => {
+	clearTimeout(searchTimeout);
+	searchTimeout = setTimeout(() => {
+		currentPage.value = 1;
+		fetchRules();
+	}, 300);
+};
+
+watch(currentPage, fetchRules);
 
 onMounted(() => {
-  fetchRules()
-})
+	fetchRules();
+});
 </script>
 
 <style scoped>

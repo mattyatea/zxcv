@@ -1,5 +1,6 @@
-import { H3Event, createError, getHeader } from "h3";
+import { createError, getHeader, type H3Event } from "h3";
 import type { H3EventContext } from "~/server/types/bindings";
+import type { Env } from "~/server/types/env";
 import { verifyPassword } from "./crypto";
 import { createJWT as createJWTUtil, verifyJWT as verifyJWTUtil } from "./jwt";
 import { createPrismaClient } from "./prisma";
@@ -16,7 +17,7 @@ export interface AuthContext {
 	apiKeyScopes?: string[];
 }
 
-async function createJWT(user: AuthUser, env: any): Promise<string> {
+async function _createJWT(user: AuthUser, env: Env): Promise<string> {
 	return createJWTUtil(
 		{
 			sub: user.id,
@@ -28,7 +29,7 @@ async function createJWT(user: AuthUser, env: any): Promise<string> {
 	);
 }
 
-async function verifyJWT(token: string, env: any): Promise<AuthUser | null> {
+async function verifyJWT(token: string, env: Env): Promise<AuthUser | null> {
 	const payload = await verifyJWTUtil(token, env);
 	if (!payload) {
 		return null;
@@ -44,7 +45,7 @@ async function verifyJWT(token: string, env: any): Promise<AuthUser | null> {
 
 async function verifyApiKey(
 	apiKey: string,
-	env: any,
+	env: Env,
 ): Promise<{ user: AuthUser; scopes: string[] } | null> {
 	const prisma = createPrismaClient(env.DB);
 	const now = Math.floor(Date.now() / 1000);
@@ -123,11 +124,11 @@ export async function getAuthFromEvent(event: H3Event): Promise<AuthContext> {
 
 export async function requireAuth(event: H3Event): Promise<AuthUser> {
 	const auth = await getAuthFromEvent(event);
-	
+
 	if (!auth.user) {
 		throw createError({
 			statusCode: 401,
-			statusMessage: "Authentication required"
+			statusMessage: "Authentication required",
 		});
 	}
 
@@ -140,7 +141,8 @@ export async function requireEmailVerification(event: H3Event): Promise<AuthUser
 	if (!user.emailVerified) {
 		throw createError({
 			statusCode: 403,
-			statusMessage: "Email verification required. Please verify your email address to access this resource."
+			statusMessage:
+				"Email verification required. Please verify your email address to access this resource.",
 		});
 	}
 
@@ -149,11 +151,11 @@ export async function requireEmailVerification(event: H3Event): Promise<AuthUser
 
 export async function requireScope(event: H3Event, requiredScope: string): Promise<void> {
 	const auth = await getAuthFromEvent(event);
-	
+
 	if (!auth.user) {
 		throw createError({
 			statusCode: 401,
-			statusMessage: "Authentication required"
+			statusMessage: "Authentication required",
 		});
 	}
 
@@ -167,7 +169,7 @@ export async function requireScope(event: H3Event, requiredScope: string): Promi
 	if (!auth.apiKeyScopes.includes(requiredScope)) {
 		throw createError({
 			statusCode: 403,
-			statusMessage: "Insufficient scope"
+			statusMessage: "Insufficient scope",
 		});
 	}
 }

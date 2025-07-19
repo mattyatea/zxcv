@@ -2,7 +2,8 @@ import { RPCHandler } from "@orpc/server/fetch";
 import type { H3Event } from "h3";
 import { defineEventHandler, getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
 import { router } from "~/server/orpc/router";
-import type { CloudflareBindings, H3EventContext } from "~/server/types/bindings";
+import type { H3EventContext } from "~/server/types/bindings";
+import type { Env } from "~/server/types/env";
 import type { AuthUser } from "~/server/utils/auth";
 import { verifyJWT } from "~/server/utils/jwt";
 
@@ -70,7 +71,7 @@ export default defineEventHandler(async (event) => {
 			RATE_LIMIT_ANONYMOUS: "100",
 			RATE_LIMIT_AUTHENTICATED: "1000",
 			RATE_LIMIT_API_KEY: "5000",
-		} as CloudflareBindings;
+		} as Env;
 
 		context.cloudflare = {
 			env: testEnv,

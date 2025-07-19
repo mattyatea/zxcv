@@ -126,64 +126,64 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 
 useHead({
-  title: 'Register - ZXCV'
-})
+	title: "Register - ZXCV",
+});
 
 const form = ref({
-  username: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-  agreeToTerms: false
-})
+	username: "",
+	email: "",
+	password: "",
+	confirmPassword: "",
+	agreeToTerms: false,
+});
 
-const loading = ref(false)
-const error = ref('')
-const success = ref(false)
+const loading = ref(false);
+const error = ref("");
+const success = ref(false);
 
-const { $rpc } = useNuxtApp()
+const { $rpc } = useNuxtApp();
 
-const handleRegister = async () => {
-  loading.value = true
-  error.value = ''
-  success.value = false
-  
-  // Validate passwords match
-  if (form.value.password !== form.value.confirmPassword) {
-    error.value = 'Passwords do not match'
-    loading.value = false
-    return
-  }
-  
-  try {
-    const response = await $rpc.auth.register({
-      username: form.value.username,
-      email: form.value.email,
-      password: form.value.password
-    })
-    
-    success.value = true
-    
-    // Clear form
-    form.value = {
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      agreeToTerms: false
-    }
-    
-    // Redirect to login after a delay
-    setTimeout(() => {
-      navigateTo('/login')
-    }, 3000)
-  } catch (err) {
-    error.value = err.message || 'Failed to create account'
-  } finally {
-    loading.value = false
-  }
-}
+const _handleRegister = async () => {
+	loading.value = true;
+	error.value = "";
+	success.value = false;
+
+	// Validate passwords match
+	if (form.value.password !== form.value.confirmPassword) {
+		error.value = "Passwords do not match";
+		loading.value = false;
+		return;
+	}
+
+	try {
+		const _response = await $rpc.auth.register({
+			username: form.value.username,
+			email: form.value.email,
+			password: form.value.password,
+		});
+
+		success.value = true;
+
+		// Clear form
+		form.value = {
+			username: "",
+			email: "",
+			password: "",
+			confirmPassword: "",
+			agreeToTerms: false,
+		};
+
+		// Redirect to login after a delay
+		setTimeout(() => {
+			navigateTo("/login");
+		}, 3000);
+	} catch (err) {
+		error.value = err.message || "Failed to create account";
+	} finally {
+		loading.value = false;
+	}
+};
 </script>

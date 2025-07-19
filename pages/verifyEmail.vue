@@ -104,76 +104,76 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { onMounted, ref } from "vue";
 
 useHead({
-  title: 'メールアドレスの確認 - ZXCV'
-})
+	title: "メールアドレスの確認 - ZXCV",
+});
 
-const route = useRoute()
-const { $rpc } = useNuxtApp()
+const route = useRoute();
+const { $rpc } = useNuxtApp();
 
-const loading = ref(true)
-const success = ref(false)
-const error = ref(false)
-const errorMessage = ref('')
-const resending = ref(false)
+const loading = ref(true);
+const success = ref(false);
+const error = ref(false);
+const errorMessage = ref("");
+const resending = ref(false);
 
 const verifyEmail = async () => {
-  const token = route.query.token
-  
-  if (!token) {
-    loading.value = false
-    return
-  }
-  
-  try {
-    const response = await $rpc.auth.verifyEmail({ token })
-    
-    if (response.success) {
-      success.value = true
-    } else {
-      error.value = true
-      errorMessage.value = response.message || 'メールアドレスの確認に失敗しました。'
-    }
-  } catch (err) {
-    error.value = true
-    errorMessage.value = err.message || '無効または期限切れの確認トークンです。'
-  } finally {
-    loading.value = false
-  }
-}
+	const token = route.query.token;
 
-const resendVerification = async () => {
-  resending.value = true
-  
-  // Get email from query parameter or prompt user
-  const email = route.query.email || prompt('メールアドレスを入力してください:')
-  
-  if (!email) {
-    resending.value = false
-    return
-  }
-  
-  try {
-    const response = await $rpc.auth.sendVerification({ 
-      email,
-      locale: 'ja'
-    })
-    
-    if (response.success) {
-      alert('確認メールを送信しました。メールをご確認ください。')
-    } else {
-      alert(response.message || '確認メールの送信に失敗しました。')
-    }
-  } catch (err) {
-    alert(err.message || 'エラーが発生しました。')
-  } finally {
-    resending.value = false
-  }
-}
+	if (!token) {
+		loading.value = false;
+		return;
+	}
+
+	try {
+		const response = await $rpc.auth.verifyEmail({ token });
+
+		if (response.success) {
+			success.value = true;
+		} else {
+			error.value = true;
+			errorMessage.value = response.message || "メールアドレスの確認に失敗しました。";
+		}
+	} catch (err) {
+		error.value = true;
+		errorMessage.value = err.message || "無効または期限切れの確認トークンです。";
+	} finally {
+		loading.value = false;
+	}
+};
+
+const _resendVerification = async () => {
+	resending.value = true;
+
+	// Get email from query parameter or prompt user
+	const email = route.query.email || prompt("メールアドレスを入力してください:");
+
+	if (!email) {
+		resending.value = false;
+		return;
+	}
+
+	try {
+		const response = await $rpc.auth.sendVerification({
+			email,
+			locale: "ja",
+		});
+
+		if (response.success) {
+			alert("確認メールを送信しました。メールをご確認ください。");
+		} else {
+			alert(response.message || "確認メールの送信に失敗しました。");
+		}
+	} catch (err) {
+		alert(err.message || "エラーが発生しました。");
+	} finally {
+		resending.value = false;
+	}
+};
 
 onMounted(() => {
-  verifyEmail()
-})
+	verifyEmail();
+});
 </script>

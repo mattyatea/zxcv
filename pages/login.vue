@@ -93,47 +93,47 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
 
 useHead({
-  title: 'Login - ZXCV'
-})
+	title: "Login - ZXCV",
+});
 
 const form = ref({
-  email: '',
-  password: '',
-  rememberMe: false
-})
+	email: "",
+	password: "",
+	rememberMe: false,
+});
 
-const loading = ref(false)
-const error = ref('')
-const message = ref('')
+const loading = ref(false);
+const error = ref("");
+const message = ref("");
 
-const { $rpc } = useNuxtApp()
+const { $rpc } = useNuxtApp();
 
-const handleLogin = async () => {
-  loading.value = true
-  error.value = ''
-  message.value = ''
-  
-  try {
-    const response = await $rpc.auth.login(form.value)
-    
-    if (response.user && !response.user.emailVerified) {
-      message.value = response.message || 'Please verify your email before logging in.'
-      return
-    }
-    
-    // Store token
-    // TODO: Implement proper auth state management
-    localStorage.setItem('token', response.token)
-    
-    // Redirect to dashboard or previous page
-    await navigateTo('/rules')
-  } catch (err) {
-    error.value = err.message || 'Invalid email or password'
-  } finally {
-    loading.value = false
-  }
-}
+const _handleLogin = async () => {
+	loading.value = true;
+	error.value = "";
+	message.value = "";
+
+	try {
+		const response = await $rpc.auth.login(form.value);
+
+		if (response.user && !response.user.emailVerified) {
+			message.value = response.message || "Please verify your email before logging in.";
+			return;
+		}
+
+		// Store token
+		// TODO: Implement proper auth state management
+		localStorage.setItem("token", response.token);
+
+		// Redirect to dashboard or previous page
+		await navigateTo("/rules");
+	} catch (err) {
+		error.value = err.message || "Invalid email or password";
+	} finally {
+		loading.value = false;
+	}
+};
 </script>
