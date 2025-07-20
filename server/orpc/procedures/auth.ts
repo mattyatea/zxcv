@@ -720,7 +720,18 @@ export const authProcedures = {
 				if (error instanceof ORPCError) {
 					throw error;
 				}
-				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "OAuth authentication failed" });
+
+				// Provide more detailed error information for debugging
+				const errorMessage = error instanceof Error ? error.message : "Unknown error";
+				console.error("Detailed error:", {
+					message: errorMessage,
+					stack: error instanceof Error ? error.stack : undefined,
+					error: error,
+				});
+
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: `OAuth authentication failed: ${errorMessage}`,
+				});
 			}
 		}),
 };

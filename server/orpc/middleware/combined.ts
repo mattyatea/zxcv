@@ -3,6 +3,18 @@ import { os } from "~/server/orpc/index";
 import type { AuthUser } from "~/server/utils/auth";
 import { createPrismaClient } from "~/server/utils/prisma";
 
+// Database provider middleware (no auth required)
+export const dbProvider = os.middleware(async ({ context, next }) => {
+	const db = createPrismaClient(context.env.DB);
+
+	return next({
+		context: {
+			...context,
+			db,
+		},
+	});
+});
+
 // Combined middleware that provides both db and ensures auth
 export const dbWithAuth = os.middleware(async ({ context, next }) => {
 	const db = createPrismaClient(context.env.DB);

@@ -1,10 +1,90 @@
 import { ORPCError } from "@orpc/server";
 import * as z from "zod";
 import { os } from "~/server/orpc/index";
-import { dbWithAuth } from "~/server/orpc/middleware/combined";
+import { dbProvider, dbWithAuth } from "~/server/orpc/middleware/combined";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 
 export const usersProcedures = {
+	// Get user profile by username
+	getProfile: os
+		.use(dbProvider)
+		.input(
+			z.object({
+				username: z.string().min(1),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { username } = input;
+			const { db } = context;
+
+			// Get user profile
+			const user = await db.user.findUnique({
+				where: { username: username.toLowerCase() },
+				select: {
+					id: true,
+					email: true,
+					username: true,
+					emailVerified: true,
+					createdAt: true,
+					updatedAt: true,
+				},
+			});
+
+			if (!user) {
+				throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			}
+
+			// Get user statistics
+			const [rulesCount, teamsCount] = await Promise.all([
+				db.rule.count({
+					where: {
+						userId: user.id,
+						visibility: "public", // Only count public rules
+					},
+				}),
+				db.teamMember.count({
+					where: {
+						userId: user.id,
+					},
+				}),
+			]);
+
+			// Get recent public rules
+			const recentRules = await db.rule.findMany({
+				where: {
+					userId: user.id,
+					visibility: "public",
+				},
+				select: {
+					id: true,
+					name: true,
+					description: true,
+					visibility: true,
+					createdAt: true,
+					updatedAt: true,
+				},
+				orderBy: {
+					updatedAt: "desc",
+				},
+				take: 5,
+			});
+
+			return {
+				user: {
+					id: user.id,
+					email: user.email,
+					username: user.username,
+					emailVerified: user.emailVerified,
+					createdAt: user.createdAt,
+					updatedAt: user.updatedAt,
+				},
+				stats: {
+					rulesCount,
+					teamsCount,
+				},
+				recentRules,
+			};
+		}),
 	profile: os.use(dbWithAuth).handler(async ({ context }) => {
 		const { db, user } = context;
 
@@ -81,11 +161,14 @@ export const usersProcedures = {
 			});
 
 			return {
-				id: updatedUser.id,
-				email: updatedUser.email,
-				username: updatedUser.username,
-				created_at: updatedUser.createdAt,
-				updated_at: updatedUser.updatedAt,
+				user: {
+					id: updatedUser.id,
+					email: updatedUser.email,
+					username: updatedUser.username,
+					emailVerified: updatedUser.emailVerified,
+					createdAt: updatedUser.createdAt,
+					updatedAt: updatedUser.updatedAt,
+				},
 			};
 		}),
 
