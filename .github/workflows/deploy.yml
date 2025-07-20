@@ -1,134 +1,65 @@
-name: Deploy
+name: Deploy to Cloudflare Workers
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches: [ main, dev ]
+  push:
+    branches:
+      - main
+      - dev
   workflow_dispatch:
 
 jobs:
-  deploy-staging:
+  deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev'
-    environment: staging
+    name: Deploy
+    # 環境に応じて production または staging を使用
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-      
-      - uses: pnpm/action-setup@v4
-      
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10.12.1
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.node-version'
+          node-version: 24
           cache: 'pnpm'
-      
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: Generate Prisma Client
-        run: pnpm run prisma:generate
-      
-      - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
-      
-      - name: Build Nuxt application
-        run: pnpm run build
-      
-      - name: Run database migrations (staging)
+        run: pnpm prisma:generate
+
+      - name: Build
+        run: pnpm build
+
+      - name: Run migrations
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
-          packageManager: pnpm
-      
-      - name: Deploy to Cloudflare Workers (staging)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --config wrangler.staging.jsonc
-          packageManager: pnpm
-          secrets: |
-            JWT_SECRET
-            REFRESH_TOKEN_SECRET
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-      
-      - name: Health check (staging)
-        run: |
-          echo "Waiting for deployment to propagate..."
-          sleep 30
-          STAGING_URL=${{ secrets.STAGING_URL || 'https://zxcv-backend-and-frontend-stanging.workers.dev' }}
-          curl -f $STAGING_URL/api/health || exit 1
-          echo "✅ Staging deployment successful"
-
-  deploy-production:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
-    environment: production
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.node-version'
-          cache: 'pnpm'
+          command: d1 migrations apply zxcv-db --remote
           
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Generate Prisma Client
-        run: pnpm run prisma:generate
-      
-      - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
-      
-      - name: Build Nuxt application
-        run: pnpm run build
-      
-      - name: Run database migrations (production)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply ${{ secrets.D1_DATABASE_NAME || 'zxcv-db' }} --remote
-          packageManager: pnpm
-      
-      - name: Deploy to Cloudflare Workers (production)
+      - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-          packageManager: pnpm
           secrets: |
             JWT_SECRET
-            REFRESH_TOKEN_SECRET
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GH_OAUTH_CLIENT_ID
+            GH_OAUTH_CLIENT_SECRET
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-      
-      - name: Notify deployment success
-        if: success()
-        run: |
-          echo "🎉 Production deployment successful!"
-          echo "Deployment completed at $(date)"
-      
-      - name: Notify deployment failure
-        if: failure()
-        run: |
-          echo "❌ Production deployment failed!"
-          echo "Please check the logs and fix the issues"
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}

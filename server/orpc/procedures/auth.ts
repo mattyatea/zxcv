@@ -4,6 +4,7 @@ import { os } from "~/server/orpc";
 import { dbProvider } from "~/server/orpc/middleware/db";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 import { createJWT } from "~/server/utils/jwt";
+import { createOAuthProviders, generateCodeVerifier, generateState } from "~/server/utils/oauth";
 
 export const authProcedures = {
 	register: os
@@ -110,6 +111,9 @@ export const authProcedures = {
 					throw new ORPCError("UNAUTHORIZED", { message: "Invalid email or password" });
 				}
 
+				if (!user.passwordHash) {
+					throw new ORPCError("UNAUTHORIZED", { message: "Invalid email or password" });
+				}
 				const isValidPassword = await verifyPassword(password, user.passwordHash);
 				if (!isValidPassword) {
 					throw new ORPCError("UNAUTHORIZED", { message: "Invalid email or password" });
@@ -418,6 +422,276 @@ export const authProcedures = {
 					throw error;
 				}
 				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Logout failed" });
+			}
+		}),
+
+	// OAuth initialization endpoints
+	oauthInitialize: os
+		.use(dbProvider)
+		.input(
+			z.object({
+				provider: z.enum(["google", "github"]),
+				redirectUrl: z.string().optional(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { provider, redirectUrl } = input;
+			const { db, env } = context;
+			const providers = createOAuthProviders(env);
+
+			// Generate state for CSRF protection
+			const state = generateState();
+			const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
+
+			// Store state in database
+			const { generateId } = await import("~/server/utils/crypto");
+			const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+
+			await db.oAuthState.create({
+				data: {
+					id: generateId(),
+					state,
+					provider,
+					codeVerifier,
+					redirectUrl: redirectUrl || "/",
+					expiresAt,
+				},
+			});
+
+			// Generate authorization URL
+			let authorizationUrl: string;
+			if (provider === "google") {
+				const url = providers.google.createAuthorizationURL(state, codeVerifier || "", [
+					"openid",
+					"email",
+					"profile",
+				]);
+				url.searchParams.set("access_type", "offline");
+				authorizationUrl = url.toString();
+			} else {
+				const url = providers.github.createAuthorizationURL(state, ["user:email"]);
+				authorizationUrl = url.toString();
+			}
+
+			return {
+				authorizationUrl,
+			};
+		}),
+
+	// OAuth callback handler
+	oauthCallback: os
+		.use(dbProvider)
+		.input(
+			z.object({
+				provider: z.enum(["google", "github"]),
+				code: z.string(),
+				state: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { provider, code, state } = input;
+			const { db, env } = context;
+			const providers = createOAuthProviders(env);
+
+			// Verify state
+			const stateRecord = await db.oAuthState.findUnique({
+				where: { state },
+			});
+
+			if (
+				!stateRecord ||
+				stateRecord.provider !== provider ||
+				stateRecord.expiresAt < Math.floor(Date.now() / 1000)
+			) {
+				throw new ORPCError("BAD_REQUEST", { message: "Invalid or expired state" });
+			}
+
+			// Clean up state
+			await db.oAuthState.delete({ where: { id: stateRecord.id } });
+
+			try {
+				let tokens: { accessToken: () => string };
+				let userInfo: { id: string; email: string; username?: string };
+
+				if (provider === "google") {
+					if (!stateRecord.codeVerifier) {
+						throw new ORPCError("BAD_REQUEST", { message: "Missing code verifier" });
+					}
+					tokens = await providers.google.validateAuthorizationCode(code, stateRecord.codeVerifier);
+
+					// Fetch user info from Google
+					const response = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+						headers: {
+							Authorization: `Bearer ${tokens.accessToken()}`,
+						},
+					});
+
+					if (!response.ok) {
+						throw new ORPCError("INTERNAL_SERVER_ERROR", {
+							message: "Failed to fetch user info from Google",
+						});
+					}
+
+					const googleUser = (await response.json()) as {
+						id: string;
+						email: string;
+						name?: string;
+					};
+					userInfo = {
+						id: googleUser.id,
+						email: googleUser.email,
+						username: googleUser.email.split("@")[0],
+					};
+				} else {
+					tokens = await providers.github.validateAuthorizationCode(code);
+
+					// Fetch user info from GitHub
+					const [userResponse, emailResponse] = await Promise.all([
+						fetch("https://api.github.com/user", {
+							headers: {
+								Authorization: `Bearer ${tokens.accessToken()}`,
+								"User-Agent": "zxcv-app",
+							},
+						}),
+						fetch("https://api.github.com/user/emails", {
+							headers: {
+								Authorization: `Bearer ${tokens.accessToken()}`,
+								"User-Agent": "zxcv-app",
+							},
+						}),
+					]);
+
+					if (!userResponse.ok || !emailResponse.ok) {
+						throw new ORPCError("INTERNAL_SERVER_ERROR", {
+							message: "Failed to fetch user info from GitHub",
+						});
+					}
+
+					const githubUser = (await userResponse.json()) as {
+						id: number;
+						login: string;
+						name?: string;
+					};
+					const emails = (await emailResponse.json()) as Array<{
+						email: string;
+						primary: boolean;
+						verified: boolean;
+					}>;
+					const primaryEmail = emails.find((e) => e.primary)?.email || emails[0]?.email;
+
+					if (!primaryEmail) {
+						throw new ORPCError("BAD_REQUEST", {
+							message: "No email address found in GitHub account",
+						});
+					}
+
+					userInfo = {
+						id: githubUser.id.toString(),
+						email: primaryEmail,
+						username: githubUser.login,
+					};
+				}
+
+				// Check if OAuth account already exists
+				const existingOAuth = await db.oAuthAccount.findUnique({
+					where: {
+						// biome-ignore lint/style/useNamingConvention: Prisma composite key format
+						provider_providerId: {
+							provider,
+							providerId: userInfo.id,
+						},
+					},
+					include: { user: true },
+				});
+
+				// biome-ignore lint/suspicious/noExplicitAny: User type varies based on OAuth provider
+				let user: any;
+				if (existingOAuth) {
+					// User already linked this OAuth account
+					user = existingOAuth.user;
+				} else {
+					// Check if user with this email already exists
+					const existingUser = await db.user.findUnique({
+						where: { email: userInfo.email.toLowerCase() },
+					});
+
+					if (existingUser) {
+						// Link OAuth account to existing user
+						const { generateId } = await import("~/server/utils/crypto");
+						await db.oAuthAccount.create({
+							data: {
+								id: generateId(),
+								userId: existingUser.id,
+								provider,
+								providerId: userInfo.id,
+								email: userInfo.email,
+								username: userInfo.username,
+							},
+						});
+						user = existingUser;
+					} else {
+						// Create new user with OAuth
+						const { generateId } = await import("~/server/utils/crypto");
+
+						// Generate unique username if needed
+						let username = (userInfo.username || userInfo.email.split("@")[0]).toLowerCase();
+						let usernameCounter = 0;
+						while (await db.user.findUnique({ where: { username } })) {
+							usernameCounter++;
+							username = `${(userInfo.username || userInfo.email.split("@")[0]).toLowerCase()}${usernameCounter}`;
+						}
+
+						user = await db.user.create({
+							data: {
+								id: generateId(),
+								email: userInfo.email.toLowerCase(),
+								username,
+								passwordHash: null, // OAuth users don't have passwords
+								emailVerified: true, // OAuth providers verify emails
+								oauthAccounts: {
+									create: {
+										id: generateId(),
+										provider,
+										providerId: userInfo.id,
+										email: userInfo.email,
+										username: userInfo.username,
+									},
+								},
+							},
+						});
+					}
+				}
+
+				// Generate JWT tokens
+				const { createRefreshToken } = await import("~/server/utils/jwt");
+				const accessToken = await createJWT(
+					{
+						sub: user.id,
+						email: user.email,
+						username: user.username,
+						emailVerified: user.emailVerified,
+					},
+					env,
+				);
+				const refreshToken = await createRefreshToken(user.id, env);
+
+				return {
+					accessToken,
+					refreshToken,
+					user: {
+						id: user.id,
+						email: user.email,
+						username: user.username,
+						emailVerified: user.emailVerified,
+					},
+					redirectUrl: stateRecord.redirectUrl || "/",
+				};
+			} catch (error) {
+				console.error("OAuth callback error:", error);
+				if (error instanceof ORPCError) {
+					throw error;
+				}
+				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "OAuth authentication failed" });
 			}
 		}),
 };

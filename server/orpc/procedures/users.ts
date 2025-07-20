@@ -148,7 +148,7 @@ export const usersProcedures = {
 
 				const isValidPassword = await verifyPassword(
 					currentPassword,
-					userWithPassword.passwordHash,
+					userWithPassword.passwordHash || "",
 				);
 				if (!isValidPassword) {
 					throw new ORPCError("UNAUTHORIZED", { message: "Invalid current password" });

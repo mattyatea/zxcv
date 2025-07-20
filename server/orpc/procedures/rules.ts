@@ -251,4 +251,177 @@ export const rulesProcedures = {
 
 			return { success: true };
 		}),
+
+	getContent: os
+		.use(dbProvider)
+		.input(
+			z.object({
+				id: z.string(),
+				version: z.string().optional(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, env } = context;
+
+			// First get the rule to determine the version
+			const baseRule = await db.rule.findUnique({
+				where: { id: input.id },
+			});
+
+			if (!baseRule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Now get the rule with the appropriate version
+			const rule = await db.rule.findUnique({
+				where: { id: input.id },
+				include: {
+					versions: {
+						where: {
+							versionNumber: input.version || baseRule.version,
+						},
+						take: 1,
+					},
+				},
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// TODO: Check visibility permissions
+			// if (rule.visibility === "private" && rule.userId !== user?.id) {
+			//   throw new ORPCError("FORBIDDEN", { message: "Access denied" });
+			// }
+
+			const version = rule.versions[0];
+			if (!version) {
+				throw new ORPCError("NOT_FOUND", { message: "Version not found" });
+			}
+
+			// Fetch content from R2
+			try {
+				const object = await env.R2.get(version.r2ObjectKey);
+				if (!object) {
+					throw new ORPCError("NOT_FOUND", { message: "Content not found" });
+				}
+
+				const content = await object.text();
+				return {
+					id: rule.id,
+					name: rule.name,
+					version: version.versionNumber,
+					content,
+				};
+			} catch (error) {
+				console.error("Failed to fetch content from R2:", error);
+				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to fetch content" });
+			}
+		}),
+
+	versions: os
+		.use(dbProvider)
+		.input(
+			z.object({
+				id: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db } = context;
+
+			const rule = await db.rule.findUnique({
+				where: { id: input.id },
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			const versions = await db.ruleVersion.findMany({
+				where: { ruleId: input.id },
+				include: {
+					creator: {
+						select: {
+							id: true,
+							username: true,
+						},
+					},
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			});
+
+			return versions.map((version) => ({
+				version: version.versionNumber,
+				changelog: version.changelog || "",
+				created_at: version.createdAt,
+				createdBy: version.creator,
+			}));
+		}),
+
+	related: os
+		.use(dbProvider)
+		.input(
+			z.object({
+				id: z.string(),
+				limit: z.number().min(1).max(10).default(5),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db } = context;
+
+			// Get the current rule to find related rules
+			const rule = await db.rule.findUnique({
+				where: { id: input.id },
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Find related rules based on tags or author
+			const tags = rule.tags ? JSON.parse(rule.tags) : [];
+			const relatedRules = await db.rule.findMany({
+				where: {
+					AND: [
+						{ id: { not: input.id } },
+						{ visibility: "public" },
+						{
+							OR: [
+								// Same author
+								{ userId: rule.userId },
+								// Similar tags
+								...(tags.length > 0
+									? tags.map((tag: string) => ({
+											tags: { contains: tag },
+										}))
+									: []),
+							],
+						},
+					],
+				},
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+						},
+					},
+				},
+				take: input.limit,
+				orderBy: [{ downloads: "desc" }, { updatedAt: "desc" }],
+			});
+
+			return relatedRules.map((rule) => ({
+				id: rule.id,
+				name: rule.name,
+				description: rule.description,
+				author: rule.user,
+				visibility: rule.visibility as "public" | "private" | "team",
+				tags: rule.tags ? JSON.parse(rule.tags) : [],
+				version: rule.version,
+				updated_at: rule.updatedAt,
+			}));
+		}),
 };

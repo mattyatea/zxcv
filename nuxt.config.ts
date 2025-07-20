@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     preset: "cloudflare_module",
     
     rollupConfig: {
-      external: ["@prisma/client"],
+      external: ["@prisma/client", "cloudflare:email"],
     },
 
     cloudflare: {
@@ -28,7 +28,10 @@ export default defineNuxtConfig({
         { name: 'description', content: 'Share and manage coding rules with your team' }
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=M+PLUS+1:wght@100;200;300;400;500;600;700;800;900&display=swap' }
       ]
     }
   }

@@ -26,7 +26,7 @@ model User {
   id           String   @id
   email        String   @unique
   username     String   @unique
-  passwordHash String   @map("password_hash")
+  passwordHash String?  @map("password_hash") // Nullable for OAuth users
   emailVerified Boolean  @default(false) @map("email_verified")
   settings     String   @default("{}") // JSON string for user settings
   createdAt    Int      @default(dbgenerated("(unixepoch())")) @map("created_at")
@@ -41,6 +41,7 @@ model User {
   ruleDownloads RuleDownload[]
   passwordResets PasswordReset[]
   emailVerifications EmailVerification[]
+  oauthAccounts OAuthAccount[]
 
   @@index([email])
   @@index([username])
@@ -220,4 +221,36 @@ model EmailVerification {
   @@index([token])
   @@index([expiresAt])
   @@map("email_verifications")
+}
+
+model OAuthAccount {
+  id          String @id
+  userId      String @map("user_id")
+  provider    String // google, github
+  providerId  String @map("provider_id") // ID from OAuth provider
+  email       String? // Email from OAuth provider
+  username    String? // Username from OAuth provider (GitHub)
+  createdAt   Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
+  updatedAt   Int    @default(dbgenerated("(unixepoch())")) @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
+  @@map("oauth_accounts")
+}
+
+model OAuthState {
+  id        String @id
+  state     String @unique
+  provider  String
+  codeVerifier String? @map("code_verifier") // For PKCE
+  redirectUrl String? @map("redirect_url")
+  expiresAt Int    @map("expires_at")
+  createdAt Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  @@index([state])
+  @@index([expiresAt])
+  @@map("oauth_states")
 }

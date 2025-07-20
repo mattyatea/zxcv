@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**zxcv** is a full-stack application for managing and sharing AI coding rules. This is a Nuxt.js application with Cloudflare Workers integration that provides a platform for sharing and managing coding rules within teams. The application uses:
+**zxcv** is a full-stack application for managing and sharing AI coding rules. This is a Nuxt.js application with Cloudflare Workers integration that provides a platform for sharing and managing coding rules within teams. 
+
+**重要**: ここでいう「ルール」とは、AIに指示するためのプロンプトやコーディング指示のことを指します（Prettierなどのフォーマッターのルールではありません）。
+
+The application uses:
 - **Frontend**: Nuxt 3 with Vue 3, Tailwind CSS, Pinia (for state management)
 - **Backend**: oRPC (OpenAPI-based RPC framework) running on Cloudflare Workers
 - **Database**: SQLite via Cloudflare D1 with Prisma ORM
