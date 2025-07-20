@@ -7,13 +7,13 @@ export function createOAuthProviders(env: CloudflareEnv) {
 	const google = new Google(
 		env.GOOGLE_CLIENT_ID || "",
 		env.GOOGLE_CLIENT_SECRET || "",
-		`${baseUrl}/api/auth/callback/google`,
+		`${baseUrl}/auth/callback/google`,
 	);
 
 	const github = new GitHub(
 		env.GH_OAUTH_CLIENT_ID || "",
 		env.GH_OAUTH_CLIENT_SECRET || "",
-		`${baseUrl}/api/auth/callback/github`,
+		`${baseUrl}/auth/callback/github`,
 	);
 
 	return { google, github };

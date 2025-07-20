@@ -493,6 +493,13 @@ export const authProcedures = {
 		.handler(async ({ input, context }) => {
 			const { provider, code, state } = input;
 			const { db, env } = context;
+
+			console.log("OAuth callback started:", {
+				provider,
+				code: `${code?.substring(0, 10)}...`,
+				state,
+			});
+
 			const providers = createOAuthProviders(env);
 
 			// Verify state
@@ -500,11 +507,18 @@ export const authProcedures = {
 				where: { state },
 			});
 
+			console.log("State record found:", stateRecord);
+
 			if (
 				!stateRecord ||
 				stateRecord.provider !== provider ||
 				stateRecord.expiresAt < Math.floor(Date.now() / 1000)
 			) {
+				console.error("State validation failed:", {
+					stateRecord,
+					provider,
+					currentTime: Math.floor(Date.now() / 1000),
+				});
 				throw new ORPCError("BAD_REQUEST", { message: "Invalid or expired state" });
 			}
 
@@ -545,7 +559,9 @@ export const authProcedures = {
 						username: googleUser.email.split("@")[0],
 					};
 				} else {
+					console.log("Validating GitHub authorization code...");
 					tokens = await providers.github.validateAuthorizationCode(code);
+					console.log("GitHub token obtained");
 
 					// Fetch user info from GitHub
 					const [userResponse, emailResponse] = await Promise.all([
@@ -563,7 +579,18 @@ export const authProcedures = {
 						}),
 					]);
 
+					console.log("GitHub API responses:", {
+						userStatus: userResponse.status,
+						emailStatus: emailResponse.status,
+					});
+
 					if (!userResponse.ok || !emailResponse.ok) {
+						console.error("GitHub API error:", {
+							userStatus: userResponse.status,
+							userText: await userResponse.text(),
+							emailStatus: emailResponse.status,
+							emailText: await emailResponse.text(),
+						});
 						throw new ORPCError("INTERNAL_SERVER_ERROR", {
 							message: "Failed to fetch user info from GitHub",
 						});
