@@ -173,6 +173,21 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 	};
 
+	const updateUser = (updatedUser: Partial<User>) => {
+		if (!user.value) return;
+
+		// Update user data
+		user.value = {
+			...user.value,
+			...updatedUser,
+		};
+
+		// Update localStorage
+		if (process.client) {
+			localStorage.setItem("user", JSON.stringify(user.value));
+		}
+	};
+
 	// Initialize on store creation
 	initializeAuth();
 
@@ -190,6 +205,7 @@ export const useAuthStore = defineStore("auth", () => {
 		logout,
 		refreshAccessToken,
 		fetchCurrentUser,
+		updateUser,
 		initializeAuth,
 	};
 });

@@ -130,7 +130,7 @@
 
           <!-- Login/Signup buttons -->
           <div v-else class="flex items-center space-x-2">
-            <NuxtLink to="/auth?tab=login">
+            <NuxtLink to="/login">
               <CommonButton
                 variant="ghost"
                 size="sm"
@@ -138,7 +138,7 @@
                 ログイン
               </CommonButton>
             </NuxtLink>
-            <NuxtLink to="/auth?tab=register">
+            <NuxtLink to="/register">
               <CommonButton
                 variant="primary"
                 size="sm"

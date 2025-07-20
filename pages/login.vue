@@ -9,38 +9,20 @@
           </div>
         </div>
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-          アカウントを作成
+          アカウントにログイン
         </h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          すでにアカウントをお持ちの方は
-          <NuxtLink to="/login" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
-            ログイン
+          まだアカウントをお持ちでない方は
+          <NuxtLink to="/register" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+            新規登録
           </NuxtLink>
         </p>
       </div>
 
-      <!-- Register Form -->
+      <!-- Login Form -->
       <CommonCard padding="lg" class="shadow-xl border-0">
-        <form class="space-y-6" @submit="handleRegister">
+        <form class="space-y-6" @submit="handleLogin">
           <div class="space-y-4">
-            <CommonInput
-              v-model="form.username"
-              type="text"
-              label="ユーザー名"
-              placeholder="johndoe"
-              hint="英数字、アンダースコア、ハイフンのみ"
-              required
-              pattern="[a-zA-Z0-9_-]+"
-              size="lg"
-              :error="errors.username"
-            >
-              <template #prefix>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </template>
-            </CommonInput>
-
             <CommonInput
               v-model="form.email"
               type="email"
@@ -62,42 +44,9 @@
               type="password"
               label="パスワード"
               placeholder="••••••••"
-              hint="8文字以上"
               required
               size="lg"
               :error="errors.password"
-              @input="checkPasswordStrength"
-            >
-              <template #prefix>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </template>
-            </CommonInput>
-
-            <!-- Password Strength Indicator -->
-            <div v-if="form.password" class="space-y-1">
-              <div class="flex gap-1">
-                <div 
-                  v-for="i in 4" 
-                  :key="i"
-                  class="flex-1 h-1 rounded-full transition-all duration-300"
-                  :class="i <= passwordStrength ? strengthColors[passwordStrength] : 'bg-gray-200 dark:bg-gray-700'"
-                />
-              </div>
-              <p class="text-xs" :class="strengthTextColors[passwordStrength]">
-                {{ strengthTexts[passwordStrength] }}
-              </p>
-            </div>
-
-            <CommonInput
-              v-model="form.confirmPassword"
-              type="password"
-              label="パスワード（確認）"
-              placeholder="••••••••"
-              required
-              size="lg"
-              :error="errors.confirmPassword"
             >
               <template #prefix>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,20 +56,22 @@
             </CommonInput>
           </div>
 
-          <label class="flex items-start">
-            <input
-              v-model="form.agreeToTerms"
-              type="checkbox"
-              required
-              class="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
-            />
-            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
-              <a href="/terms" target="_blank" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">利用規約</a>
-              および
-              <a href="/privacy" target="_blank" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">プライバシーポリシー</a>
-              に同意します
-            </span>
-          </label>
+          <div class="flex items-center justify-between">
+            <label class="flex items-center">
+              <input
+                v-model="form.rememberMe"
+                type="checkbox"
+                class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+              />
+              <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                ログイン状態を保持
+              </span>
+            </label>
+
+            <NuxtLink to="/forgot-password" class="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+              パスワードを忘れた方
+            </NuxtLink>
+          </div>
 
           <CommonButton
             type="submit"
@@ -128,9 +79,8 @@
             size="lg"
             fullWidth
             :loading="loading"
-            :disabled="!form.agreeToTerms || loading"
           >
-            {{ loading ? 'アカウント作成中...' : 'アカウントを作成' }}
+            {{ loading ? 'ログイン中...' : 'ログイン' }}
           </CommonButton>
         </form>
 
@@ -203,65 +153,36 @@
 
 <script setup lang="ts">
 import { useToast } from "~/composables/useToast";
+import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({
 	layout: "default",
 });
 
 useHead({
-	title: "アカウント作成 - ZXCV",
+	title: "ログイン - ZXCV",
 });
 
+const authStore = useAuthStore();
 const { error: toastError, success: toastSuccess } = useToast();
 const { $rpc } = useNuxtApp();
 
 // Form state
 const form = ref({
-	username: "",
 	email: "",
 	password: "",
-	confirmPassword: "",
-	agreeToTerms: false,
+	rememberMe: false,
 });
 
 // Error state
 const errors = ref({
-	username: "",
 	email: "",
 	password: "",
-	confirmPassword: "",
 });
 
 const loading = ref(false);
 const error = ref("");
 const message = ref("");
-
-// Password strength
-const passwordStrength = ref(0);
-const _strengthColors = ["", "bg-danger", "bg-warning", "bg-info", "bg-success"];
-const _strengthTextColors = ["", "text-danger", "text-warning", "text-info", "text-success"];
-const _strengthTexts = ["", "弱い", "普通", "強い", "とても強い"];
-
-// Check password strength
-const _checkPasswordStrength = () => {
-	const password = form.value.password;
-	let strength = 0;
-
-	if (password.length >= 8) {
-		strength++;
-	}
-	if (password.length >= 12) {
-		strength++;
-	}
-	if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
-		strength++;
-	}
-	if (/[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password)) {
-		strength++;
-	}
-
-	passwordStrength.value = strength;
-};
 
 // Clear error for specific field
 const clearError = (field: keyof typeof errors.value) => {
@@ -270,10 +191,6 @@ const clearError = (field: keyof typeof errors.value) => {
 
 // Watch form changes to clear errors
 watch(
-	() => form.value.username,
-	() => clearError("username"),
-);
-watch(
 	() => form.value.email,
 	() => clearError("email"),
 );
@@ -281,34 +198,12 @@ watch(
 	() => form.value.password,
 	() => clearError("password"),
 );
-watch(
-	() => form.value.confirmPassword,
-	() => clearError("confirmPassword"),
-);
 
 // Validate form
 const validateForm = () => {
 	let isValid = true;
-	errors.value = {
-		username: "",
-		email: "",
-		password: "",
-		confirmPassword: "",
-	};
+	errors.value = { email: "", password: "" };
 
-	// Username validation
-	if (!form.value.username) {
-		errors.value.username = "ユーザー名を入力してください";
-		isValid = false;
-	} else if (!/^[a-zA-Z0-9_-]+$/.test(form.value.username)) {
-		errors.value.username = "英数字、アンダースコア、ハイフンのみ使用できます";
-		isValid = false;
-	} else if (form.value.username.length < 3) {
-		errors.value.username = "ユーザー名は3文字以上で入力してください";
-		isValid = false;
-	}
-
-	// Email validation
 	if (!form.value.email) {
 		errors.value.email = "メールアドレスを入力してください";
 		isValid = false;
@@ -317,28 +212,15 @@ const validateForm = () => {
 		isValid = false;
 	}
 
-	// Password validation
 	if (!form.value.password) {
 		errors.value.password = "パスワードを入力してください";
-		isValid = false;
-	} else if (form.value.password.length < 8) {
-		errors.value.password = "パスワードは8文字以上で入力してください";
-		isValid = false;
-	}
-
-	// Confirm password validation
-	if (!form.value.confirmPassword) {
-		errors.value.confirmPassword = "パスワードを再入力してください";
-		isValid = false;
-	} else if (form.value.password !== form.value.confirmPassword) {
-		errors.value.confirmPassword = "パスワードが一致しません";
 		isValid = false;
 	}
 
 	return isValid;
 };
 
-const _handleRegister = async (event: Event) => {
+const _handleLogin = async (event: Event) => {
 	event.preventDefault();
 
 	if (!validateForm()) {
@@ -350,31 +232,18 @@ const _handleRegister = async (event: Event) => {
 	message.value = "";
 
 	try {
-		await $rpc.auth.register({
-			username: form.value.username,
-			email: form.value.email,
-			password: form.value.password,
-		});
+		const response = await authStore.login(form.value);
 
-		message.value = "アカウントが作成されました！メールを確認してアカウントを有効化してください。";
-		toastSuccess("アカウントを作成しました");
+		if (response.user && !response.user.emailVerified) {
+			message.value = response.message || "メールアドレスを確認してからログインしてください。";
+			return;
+		}
 
-		// Clear form
-		form.value = {
-			username: "",
-			email: "",
-			password: "",
-			confirmPassword: "",
-			agreeToTerms: false,
-		};
-
-		// Redirect to login after 3 seconds
-		setTimeout(() => {
-			navigateTo("/login");
-		}, 3000);
+		toastSuccess("ログインしました");
+		await navigateTo("/rules");
 	} catch (err: any) {
-		error.value = err.message || "アカウントの作成に失敗しました";
-		toastError(err.message || "アカウントの作成に失敗しました");
+		error.value = err.message || "メールアドレスまたはパスワードが正しくありません";
+		toastError(err.message || "ログインに失敗しました");
 	} finally {
 		loading.value = false;
 	}
@@ -396,6 +265,13 @@ const _handleSocialLogin = async (provider: string) => {
 		loading.value = false;
 	}
 };
+
+// Check if already logged in
+onMounted(() => {
+	if (authStore.isAuthenticated) {
+		navigateTo("/rules");
+	}
+});
 </script>
 
 <style scoped>
