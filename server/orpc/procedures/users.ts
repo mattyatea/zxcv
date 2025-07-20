@@ -172,6 +172,52 @@ export const usersProcedures = {
 			};
 		}),
 
+	changePassword: os
+		.use(dbWithAuth)
+		.input(
+			z.object({
+				currentPassword: z.string(),
+				newPassword: z.string().min(8),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { currentPassword, newPassword } = input;
+			const { db, user } = context;
+
+			// Get user with password hash
+			const dbUser = await db.user.findUnique({
+				where: { id: user.id },
+				select: { passwordHash: true },
+			});
+
+			if (!dbUser || !dbUser.passwordHash) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Password change not available for OAuth accounts",
+				});
+			}
+
+			// Verify current password
+			const { verifyPassword, hashPassword } = await import("~/server/utils/crypto");
+			const isValid = await verifyPassword(currentPassword, dbUser.passwordHash);
+			if (!isValid) {
+				throw new ORPCError("UNAUTHORIZED", {
+					message: "Current password is incorrect",
+				});
+			}
+
+			// Hash and update new password
+			const newPasswordHash = await hashPassword(newPassword);
+			await db.user.update({
+				where: { id: user.id },
+				data: {
+					passwordHash: newPasswordHash,
+					updatedAt: Math.floor(Date.now() / 1000),
+				},
+			});
+
+			return { success: true };
+		}),
+
 	settings: os.use(dbWithAuth).handler(async ({ context }) => {
 		const { db, user } = context;
 

@@ -26,7 +26,7 @@
             <CommonInput
               v-model="searchQuery"
               placeholder="ルールを検索..."
-              @input="_debouncedSearch"
+              @input="debouncedSearch"
             >
               <template #prefix>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,12 +57,12 @@
         </div>
 
         <!-- タグフィルター -->
-        <div v-if="_popularTags.length > 0" class="flex flex-wrap items-center gap-2">
+        <div v-if="popularTags.length > 0" class="flex flex-wrap items-center gap-2">
           <span class="text-sm text-gray-600 dark:text-gray-400">人気のタグ:</span>
           <button
-            v-for="tag in _popularTags"
+            v-for="tag in popularTags"
             :key="tag"
-            @click="_toggleTag(tag)"
+            @click="toggleTag(tag)"
             :class="[
               'px-3 py-1 rounded-full text-sm transition-colors',
               selectedTags.includes(tag)
@@ -130,7 +130,7 @@
           
           <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
             <span>v{{ rule.version }}</span>
-            <span>{{ _formatDate(rule.updated_at) }}</span>
+            <span>{{ formatDate(rule.updated_at) }}</span>
           </div>
         </NuxtLink>
       </div>
@@ -167,7 +167,7 @@
           </button>
           
           <button
-            v-for="page in _visiblePages"
+            v-for="page in visiblePages"
             :key="page"
             @click="currentPage = page"
             :class="[

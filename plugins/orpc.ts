@@ -13,7 +13,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
 	const link = new RPCLink({
 		url: `${baseURL}/rpc`,
 		headers: () => {
-			const token = process.client ? localStorage.getItem("token") : null;
+			const token = process.client ? localStorage.getItem("access_token") : null;
 			return token ? { Authorization: `Bearer ${token}` } : {};
 		},
 	});

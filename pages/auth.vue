@@ -90,7 +90,7 @@
 				<CommonCard padding="lg" class="shadow-xl border-0">
 					<!-- Login Form -->
 					<Transition name="seamless-form" mode="out-in">
-						<form v-if="activeTab === 'login'" key="login" class="space-y-6" @submit.prevent="handleLogin">
+						<form v-if="activeTab === 'login'" key="login" class="space-y-6" @submit="handleLogin">
 							<div class="space-y-4">
 								<CommonInput
 									v-model="loginForm.email"
@@ -155,7 +155,7 @@
 						</form>
 
 						<!-- Register Form -->
-						<form v-else key="register" class="space-y-6" @submit.prevent="handleRegister">
+						<form v-else key="register" class="space-y-6" @submit="handleRegister">
 							<div class="space-y-4">
 								<CommonInput
 									v-model="registerForm.username"
@@ -319,9 +319,7 @@
 	</div>
 </template>
 
-<script setup>
-import { ref, watch } from "vue";
-import { useRoute } from "vue-router";
+<script setup lang="ts">
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 
@@ -348,7 +346,7 @@ watch(activeTab, (newTab) => {
 });
 
 // Smooth tab switching
-const _switchTab = (tab) => {
+const _switchTab = (tab: string) => {
 	if (isTransitioning.value || activeTab.value === tab) {
 		return;
 	}
@@ -380,7 +378,8 @@ const loading = ref(false);
 const error = ref("");
 const message = ref("");
 
-const _handleLogin = async () => {
+const _handleLogin = async (event: Event) => {
+	event.preventDefault();
 	loading.value = true;
 	error.value = "";
 	message.value = "";
@@ -395,7 +394,7 @@ const _handleLogin = async () => {
 
 		toastSuccess("ログインしました");
 		await navigateTo("/rules");
-	} catch (err) {
+	} catch (err: any) {
 		error.value = err.message || "メールアドレスまたはパスワードが正しくありません";
 		toastError(err.message || "ログインに失敗しました");
 	} finally {
@@ -403,7 +402,8 @@ const _handleLogin = async () => {
 	}
 };
 
-const _handleRegister = async () => {
+const _handleRegister = async (event: Event) => {
+	event.preventDefault();
 	loading.value = true;
 	error.value = "";
 	message.value = "";
@@ -437,7 +437,7 @@ const _handleRegister = async () => {
 		setTimeout(() => {
 			activeTab.value = "login";
 		}, 2000);
-	} catch (err) {
+	} catch (err: any) {
 		error.value = err.message || "アカウントの作成に失敗しました";
 		toastError(err.message || "アカウントの作成に失敗しました");
 	} finally {
@@ -445,7 +445,7 @@ const _handleRegister = async () => {
 	}
 };
 
-const _handleSocialLogin = async (provider) => {
+const _handleSocialLogin = async (provider: string) => {
 	loading.value = true;
 	error.value = "";
 
@@ -456,7 +456,7 @@ const _handleSocialLogin = async (provider) => {
 		});
 
 		window.location.href = response.authorizationUrl;
-	} catch (err) {
+	} catch (err: any) {
 		error.value = err.message || `${provider}でのログインに失敗しました`;
 		loading.value = false;
 	}

@@ -27,7 +27,7 @@
                   {{ rule.author.username }}
                 </span>
                 <span>v{{ rule.version }}</span>
-                <span>{{ _formatDate(rule.updated_at) }}</span>
+                <span>{{ formatDate(rule.updated_at) }}</span>
                 <span
                   :class="[
                     'px-2 py-1 text-xs rounded-full',
@@ -123,7 +123,7 @@
                 <span class="text-sm text-gray-600 dark:text-gray-400 ml-3">{{ version.changelog }}</span>
               </div>
               <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ _formatDate(version.created_at) }}
+                {{ formatDate(version.created_at) }}
               </span>
             </div>
           </div>

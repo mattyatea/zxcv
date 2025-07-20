@@ -1,6 +1,6 @@
 <template>
   <div class="form-group">
-    <label v-if="label" :for="_inputId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+    <label v-if="label" :for="inputId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
       {{ label }}
       <span v-if="required" class="text-danger ml-0.5">*</span>
     </label>
@@ -11,23 +11,23 @@
       </div>
       
       <input
-        :id="_inputId"
-        v-model="_internalValue"
-        :type="_actualType"
+        :id="inputId"
+        v-model="internalValue"
+        :type="actualType"
         :placeholder="placeholder"
         :disabled="disabled"
         :readonly="readonly"
         :required="required"
         :pattern="pattern"
-        :class="_inputClasses"
+        :class="inputClasses"
         v-bind="$attrs"
       />
       
       <div v-if="$slots.suffix || showPasswordToggle || clearable" class="absolute inset-y-0 right-0 pr-3 flex items-center space-x-1">
         <button
-          v-if="clearable && _internalValue && !disabled && !readonly"
+          v-if="clearable && internalValue && !disabled && !readonly"
           type="button"
-          @click="_internalValue = ''"
+          @click="internalValue = ''"
           class="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@
         <button
           v-if="showPasswordToggle"
           type="button"
-          @click="_togglePasswordVisibility"
+          @click="togglePasswordVisibility"
           class="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

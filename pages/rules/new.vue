@@ -188,6 +188,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+import { useAuthStore } from "~/stores/auth";
 
 useHead({
 	title: "Create Rule - zxcv",
@@ -286,8 +287,8 @@ const fetchTeams = async () => {
 };
 
 onMounted(() => {
-	const token = localStorage.getItem("token");
-	if (!token) {
+	const authStore = useAuthStore();
+	if (!authStore.isAuthenticated) {
 		navigateTo("/login");
 	} else {
 		fetchTeams();

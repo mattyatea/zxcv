@@ -17,7 +17,7 @@
           
           <nav class="hidden md:ml-8 md:flex md:items-center md:space-x-1">
             <NuxtLink
-              v-for="item in _navigation"
+              v-for="item in navigation"
               :key="item.name"
               :to="item.href"
               class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
@@ -42,7 +42,7 @@
 
           <!-- Dark mode toggle -->
           <button
-            @click="_toggleDark"
+            @click="toggleDark"
             class="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group"
           >
             <svg v-if="!isDark" class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@
           </button>
 
           <!-- User menu -->
-          <div v-if="_user" class="flex items-center space-x-3">
+          <div v-if="user" class="flex items-center space-x-3">
             <NuxtLink to="/rules/new">
               <CommonButton
                 size="sm"
@@ -74,7 +74,7 @@
                 class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group"
               >
                 <div class="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-medium group-hover:scale-105 transition-transform">
-                  {{ _user.username[0].toUpperCase() }}
+                  {{ user.username[0].toUpperCase() }}
                 </div>
                 <svg class="w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform" :class="showUserMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -96,12 +96,12 @@
                 >
                   <div class="px-4 py-3">
                     <p class="text-sm text-gray-600 dark:text-gray-400">サインイン中</p>
-                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ _user.email }}</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ user.email }}</p>
                   </div>
                   
                   <div class="py-1">
                     <NuxtLink
-                      v-for="item in _userMenuItems"
+                      v-for="item in userMenuItems"
                       :key="item.name"
                       :to="item.href"
                       @click="showUserMenu = false"
@@ -114,7 +114,7 @@
                   
                   <div class="py-1">
                     <button
-                      @click="_handleLogout"
+                      @click="handleLogout"
                       class="flex items-center w-full px-4 py-2 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
                       <svg class="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,10 +150,10 @@
 
           <!-- Mobile menu button -->
           <button
-            @click="_showMobileMenu = !_showMobileMenu"
+            @click="showMobileMenu = !showMobileMenu"
             class="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
           >
-            <svg v-if="!_showMobileMenu" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg v-if="!showMobileMenu" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
             <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,13 +173,13 @@
       leave-from-class="opacity-100 translate-y-0"
       leave-to-class="opacity-0 -translate-y-1"
     >
-      <div v-if="_showMobileMenu" class="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div v-if="showMobileMenu" class="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <nav class="px-4 py-2 space-y-1">
           <NuxtLink
-            v-for="item in _navigation"
+            v-for="item in navigation"
             :key="item.name"
             :to="item.href"
-            @click="_showMobileMenu = false"
+            @click="showMobileMenu = false"
             class="block px-3 py-2 rounded-lg text-base font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             active-class="bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold"
           >
@@ -194,7 +194,7 @@
       <CommonInput
         v-model="searchQuery"
         placeholder="ルールを検索..."
-        @keyup.enter="_handleSearch"
+        @keyup.enter="handleSearch"
       >
         <template #prefix>
           <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,13 +212,13 @@ import { useAuthStore } from "~/stores/auth";
 import { useThemeStore } from "~/stores/theme";
 
 const authStore = useAuthStore();
-const { user: _user } = storeToRefs(authStore);
+const { user } = storeToRefs(authStore);
 const showUserMenu = ref(false);
 const _showMobileMenu = ref(false);
 const showSearch = ref(false);
 const searchQuery = ref("");
 const themeStore = useThemeStore();
-// const { isDark } = storeToRefs(themeStore); // TODO: Use this for theme toggle
+const { isDark } = storeToRefs(themeStore);
 
 const _navigation = [
 	{ name: "ルール", href: "/rules" },
@@ -226,10 +226,10 @@ const _navigation = [
 	{ name: "ドキュメント", href: "/docs" },
 ];
 
-const _userMenuItems = [
+const _userMenuItems = computed(() => [
 	{
 		name: "プロフィール",
-		href: "/profile",
+		href: authStore.user ? `/profile/${authStore.user.username}` : "/profile",
 		icon: "svg", // TODO: Add proper icon component
 	},
 	{
@@ -242,7 +242,7 @@ const _userMenuItems = [
 		href: "/api-keys",
 		icon: "svg",
 	},
-];
+]);
 
 const _toggleDark = () => {
 	themeStore.toggleTheme();

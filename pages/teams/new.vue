@@ -8,7 +8,7 @@
         </p>
       </div>
 
-      <form @submit.prevent="_handleSubmit" class="card max-w-2xl">
+      <form @submit.prevent="handleSubmit" class="card max-w-2xl">
         <div class="space-y-6">
           <CommonInput
             v-model="form.name"
@@ -41,7 +41,7 @@
                 />
                 <CommonButton
                   v-if="inviteEmails.length > 1"
-                  @click="_removeEmail(index)"
+                  @click="removeEmail(index)"
                   variant="ghost"
                   size="sm"
                 >
@@ -51,7 +51,7 @@
                 </CommonButton>
               </div>
               <CommonButton
-                @click="_addEmail"
+                @click="addEmail"
                 variant="ghost"
                 size="sm"
                 type="button"

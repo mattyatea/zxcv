@@ -246,7 +246,7 @@ export const rulesProcedures = {
 
 			const { id, tags, ...updateData } = input;
 
-			const _rule = await db.rule.update({
+			await db.rule.update({
 				where: { id },
 				data: {
 					...updateData,
