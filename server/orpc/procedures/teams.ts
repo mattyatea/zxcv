@@ -50,7 +50,6 @@ export const teamsProcedures = {
 				name: z.string().min(1).max(50),
 				displayName: z.string().min(1).max(100).optional(),
 				description: z.string().max(500).optional(),
-				visibility: z.enum(["private", "public"]).default("private"),
 				inviteEmails: z.array(z.string().email()).optional(),
 			}),
 		)

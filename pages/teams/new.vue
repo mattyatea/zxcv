@@ -28,39 +28,6 @@
             ></textarea>
           </div>
 
-          <div class="form-group">
-            <label class="label">プライバシー設定</label>
-            <div class="space-y-3">
-              <label class="flex items-start cursor-pointer">
-                <input
-                  v-model="form.visibility"
-                  type="radio"
-                  value="private"
-                  class="mt-1 text-primary-500 focus:ring-primary-500"
-                />
-                <div class="ml-3">
-                  <div class="font-medium text-gray-900 dark:text-gray-100">プライベート</div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400">
-                    招待されたメンバーのみがチームとルールにアクセスできます
-                  </div>
-                </div>
-              </label>
-              <label class="flex items-start cursor-pointer">
-                <input
-                  v-model="form.visibility"
-                  type="radio"
-                  value="public"
-                  class="mt-1 text-primary-500 focus:ring-primary-500"
-                />
-                <div class="ml-3">
-                  <div class="font-medium text-gray-900 dark:text-gray-100">パブリック</div>
-                  <div class="text-sm text-gray-600 dark:text-gray-400">
-                    誰でもチームを表示できますが、参加には承認が必要です
-                  </div>
-                </div>
-              </label>
-            </div>
-          </div>
 
           <div class="form-group">
             <label class="label">初期メンバーを招待（オプション）</label>
@@ -124,13 +91,11 @@ import { useToast } from "~/composables/useToast";
 interface TeamForm {
 	name: string;
 	description: string;
-	visibility: "private" | "public";
 }
 
 const form = ref<TeamForm>({
 	name: "",
 	description: "",
-	visibility: "private",
 });
 
 const inviteEmails = ref<string[]>([""]);
@@ -176,7 +141,6 @@ const _handleSubmit = async () => {
 		const data = await $rpc.teams.create({
 			name: form.value.name,
 			description: form.value.description,
-			visibility: form.value.visibility,
 			inviteEmails: inviteEmails.value.filter((email) => email.trim()),
 		});
 
