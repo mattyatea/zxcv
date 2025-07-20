@@ -26,7 +26,7 @@ describe("Crypto Utils", () => {
       const password = "testPassword123";
       const hash = await hashPassword(password);
 
-      const isValid = awaitx verifyPassword(password, hash);
+      const isValid = await verifyPassword(password, hash);
       expect(isValid).toBe(true);
     });
 
