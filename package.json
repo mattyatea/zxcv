@@ -24,6 +24,7 @@
 		"format:check": "biome format .",
 		"check": "biome check .",
 		"check:fix": "biome check --write .",
+		"check:fix:hard": "biome check --write --unsafe .",
 		"typecheck": "tsc --noEmit",
 		"prepare": "husky"
 	},
@@ -34,6 +35,7 @@
 		"@nuxtjs/tailwindcss": "^6.14.0",
 		"@orpc/client": "^1.7.2",
 		"@orpc/server": "^1.7.2",
+		"@pinia/nuxt": "^0.11.2",
 		"@prisma/adapter-d1": "^6.12.0",
 		"@prisma/client": "^6.12.0",
 		"arctic": "^3.7.0",
@@ -43,6 +45,7 @@
 		"mimetext": "^3.0.27",
 		"nanoid": "^5.1.5",
 		"nuxt": "^3.17.7",
+		"pinia": "^3.0.3",
 		"vue": "^3.5.17",
 		"vue-router": "^4.5.1",
 		"zod": "3.25.67"
@@ -50,6 +53,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.1.2",
 		"@cloudflare/vitest-pool-workers": "0.8.44",
+		"@nuxtjs/icon": "2.6.0",
 		"@tailwindcss/forms": "^0.5.10",
 		"@tailwindcss/typography": "^0.5.16",
 		"@types/node": "^24.0.14",

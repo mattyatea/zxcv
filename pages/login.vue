@@ -40,7 +40,7 @@
         </div>
       
         <CommonCard padding="lg" class="shadow-xl border-0">
-          <form class="space-y-6" @submit.prevent="handleLogin">
+          <form class="space-y-6" @submit.prevent="_handleLogin">
             <div class="space-y-4">
               <CommonInput
                 v-model="form.email"
@@ -121,7 +121,7 @@
               <button
                 type="button"
                 class="btn btn-secondary btn-md justify-center"
-                @click="handleSocialLogin('google')"
+                @click="_handleSocialLogin('google')"
                 :disabled="loading"
               >
                 <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
               <button
                 type="button"
                 class="btn btn-secondary btn-md justify-center"
-                @click="handleSocialLogin('github')"
+                @click="_handleSocialLogin('github')"
                 :disabled="loading"
               >
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -153,10 +153,15 @@
 
 <script setup>
 import { ref } from "vue";
+import { useToast } from "~/composables/useToast";
+import { useAuthStore } from "~/stores/auth";
 
 useHead({
 	title: "Login - ZXCV",
 });
+
+const authStore = useAuthStore();
+const { error: toastError, success: toastSuccess } = useToast();
 
 const form = ref({
 	email: "",
@@ -176,22 +181,21 @@ const _handleLogin = async () => {
 	message.value = "";
 
 	try {
-		const response = await $rpc.auth.login(form.value);
+		const response = await authStore.login(form.value);
 
 		if (response.user && !response.user.emailVerified) {
 			message.value = response.message || "Please verify your email before logging in.";
 			return;
 		}
 
-		// Store tokens
-		// TODO: Implement proper auth state management
-		localStorage.setItem("accessToken", response.accessToken);
-		localStorage.setItem("refreshToken", response.refreshToken);
+		// Show success toast
+		toastSuccess("ログインしました");
 
 		// Redirect to dashboard or previous page
 		await navigateTo("/rules");
 	} catch (err) {
 		error.value = err.message || "Invalid email or password";
+		toastError(err.message || "ログインに失敗しました");
 	} finally {
 		loading.value = false;
 	}

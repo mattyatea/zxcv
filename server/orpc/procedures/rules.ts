@@ -1,7 +1,11 @@
 import { ORPCError } from "@orpc/server";
 import * as z from "zod";
 import { os } from "~/server/orpc";
-import { dbWithAuth, dbWithEmailVerification } from "~/server/orpc/middleware/combined";
+import {
+	dbWithAuth,
+	dbWithEmailVerification,
+	dbWithOptionalAuth,
+} from "~/server/orpc/middleware/combined";
 import { dbProvider } from "~/server/orpc/middleware/db";
 
 export const rulesProcedures = {
@@ -94,14 +98,14 @@ export const rulesProcedures = {
 		}),
 
 	get: os
-		.use(dbProvider)
+		.use(dbWithOptionalAuth)
 		.input(
 			z.object({
 				id: z.string(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db } = context;
+			const { db, user } = context;
 
 			const rule = await db.rule.findUnique({
 				where: { id: input.id },
@@ -126,6 +130,33 @@ export const rulesProcedures = {
 			if (!rule) {
 				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
 			}
+
+			// Check visibility permissions
+			if (rule.visibility === "private") {
+				// Private rules can only be accessed by the owner
+				if (!user || rule.userId !== user.id) {
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
+				}
+			} else if (rule.visibility === "team" && rule.teamId) {
+				// Team rules can only be accessed by team members or the owner
+				if (!user) {
+					throw new ORPCError("UNAUTHORIZED", {
+						message: "Authentication required for team rules",
+					});
+				}
+
+				const isMember = await db.teamMember.findFirst({
+					where: {
+						teamId: rule.teamId,
+						userId: user.id,
+					},
+				});
+
+				if (!isMember && rule.userId !== user.id) {
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to team rule" });
+				}
+			}
+			// Public rules can be accessed by anyone
 
 			return {
 				...rule,
@@ -253,7 +284,7 @@ export const rulesProcedures = {
 		}),
 
 	getContent: os
-		.use(dbProvider)
+		.use(dbWithOptionalAuth)
 		.input(
 			z.object({
 				id: z.string(),
@@ -261,7 +292,7 @@ export const rulesProcedures = {
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db, env } = context;
+			const { db, env, user } = context;
 
 			// First get the rule to determine the version
 			const baseRule = await db.rule.findUnique({
@@ -289,10 +320,32 @@ export const rulesProcedures = {
 				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
 			}
 
-			// TODO: Check visibility permissions
-			// if (rule.visibility === "private" && rule.userId !== user?.id) {
-			//   throw new ORPCError("FORBIDDEN", { message: "Access denied" });
-			// }
+			// Check visibility permissions
+			if (rule.visibility === "private") {
+				// Private rules can only be accessed by the owner
+				if (!user || rule.userId !== user.id) {
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
+				}
+			} else if (rule.visibility === "team" && rule.teamId) {
+				// Team rules can only be accessed by team members
+				if (!user) {
+					throw new ORPCError("UNAUTHORIZED", {
+						message: "Authentication required for team rules",
+					});
+				}
+
+				const isMember = await db.teamMember.findFirst({
+					where: {
+						teamId: rule.teamId,
+						userId: user.id,
+					},
+				});
+
+				if (!isMember && rule.userId !== user.id) {
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to team rule" });
+				}
+			}
+			// Public rules can be accessed by anyone
 
 			const version = rule.versions[0];
 			if (!version) {

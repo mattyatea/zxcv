@@ -22,6 +22,14 @@ export interface EmailVerificationData {
 	userLocale?: string;
 }
 
+export interface TeamInvitationData {
+	email: string;
+	teamName: string;
+	inviterName: string;
+	invitationToken: string;
+	userLocale?: string;
+}
+
 export class EmailService {
 	private readonly fromEmail: string;
 	private readonly baseUrl: string;
@@ -123,6 +131,21 @@ export class EmailService {
 
 		// Generate content based on locale
 		const content = this.getEmailVerificationContent(userLocale, fullVerificationUrl);
+
+		return {
+			to: email,
+			subject: content.subject,
+			html: content.html,
+			text: content.text,
+		};
+	}
+
+	generateTeamInvitationEmail(data: TeamInvitationData): EmailTemplate {
+		const { email, teamName, inviterName, invitationToken, userLocale = "ja" } = data;
+		const invitationUrl = `${this.baseUrl}/teams/join?token=${invitationToken}`;
+
+		// Generate content based on locale
+		const content = this.getTeamInvitationContent(userLocale, teamName, inviterName, invitationUrl);
 
 		return {
 			to: email,
@@ -363,6 +386,130 @@ ${verificationUrl}
 Note: This link expires in 24 hours.
 
 If you didn't create this account, please ignore this email.
+
+--
+© 2025 ZXCV. All rights reserved.
+			`.trim(),
+		};
+	}
+
+	private getTeamInvitationContent(
+		locale: string,
+		teamName: string,
+		inviterName: string,
+		invitationUrl: string,
+	) {
+		const isJapanese = locale === "ja" || locale === "ja-JP";
+
+		if (isJapanese) {
+			return {
+				subject: `【ZXCV】${teamName}への招待`,
+				html: `
+					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+						<div style="text-align: center; margin-bottom: 30px;">
+							<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+							<p style="color: #666; font-size: 16px;">コーディングルール共有プラットフォーム</p>
+						</div>
+
+						<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+							<h2 style="color: #333; margin-top: 0;">チームへの招待</h2>
+							<p>${inviterName}さんから「${teamName}」チームへの招待が届きました。</p>
+							<p>下記のボタンをクリックしてチームに参加してください。</p>
+						</div>
+
+						<div style="text-align: center; margin: 30px 0;">
+							<a href="${invitationUrl}"
+							   style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+								チームに参加
+							</a>
+						</div>
+
+						<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+							<p style="margin: 0; color: #856404;">
+								<strong>注意:</strong> このリンクは7日後に期限切れになります。
+							</p>
+						</div>
+
+						<div style="color: #666; font-size: 14px; margin-top: 30px;">
+							<p>もし心当たりがない場合は、このメールを無視してください。</p>
+							<p>リンクが機能しない場合は、以下のURLをコピーしてブラウザに貼り付けてください：</p>
+							<p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${invitationUrl}</p>
+						</div>
+
+						<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
+							<p>© 2025 ZXCV. All rights reserved.</p>
+						</div>
+					</div>
+				`,
+				text: `
+ZXCV - チームへの招待
+
+${inviterName}さんから「${teamName}」チームへの招待が届きました。
+
+下記のリンクをクリックしてチームに参加してください：
+${invitationUrl}
+
+注意: このリンクは7日後に期限切れになります。
+
+もし心当たりがない場合は、このメールを無視してください。
+
+--
+© 2025 ZXCV. All rights reserved.
+				`.trim(),
+			};
+		}
+
+		// English version
+		return {
+			subject: `ZXCV - Invitation to ${teamName}`,
+			html: `
+				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
+					<div style="text-align: center; margin-bottom: 30px;">
+						<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+						<p style="color: #666; font-size: 16px;">Coding Rules Sharing Platform</p>
+					</div>
+
+					<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+						<h2 style="color: #333; margin-top: 0;">Team Invitation</h2>
+						<p>${inviterName} has invited you to join the "${teamName}" team.</p>
+						<p>Click the button below to join the team.</p>
+					</div>
+
+					<div style="text-align: center; margin: 30px 0;">
+						<a href="${invitationUrl}"
+						   style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+							Join Team
+						</a>
+					</div>
+
+					<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+						<p style="margin: 0; color: #856404;">
+							<strong>Note:</strong> This link expires in 7 days.
+						</p>
+					</div>
+
+					<div style="color: #666; font-size: 14px; margin-top: 30px;">
+						<p>If you didn't expect this invitation, please ignore this email.</p>
+						<p>If the link doesn't work, copy and paste the following URL into your browser:</p>
+						<p style="word-break: break-all; background: #f5f5f5; padding: 10px; border-radius: 3px;">${invitationUrl}</p>
+					</div>
+
+					<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
+						<p>© 2025 ZXCV. All rights reserved.</p>
+					</div>
+				</div>
+			`,
+			text: `
+ZXCV - Team Invitation
+
+${inviterName} has invited you to join the "${teamName}" team.
+
+Click the following link to join the team:
+${invitationUrl}
+
+Note: This link expires in 7 days.
+
+If you didn't expect this invitation, please ignore this email.
 
 --
 © 2025 ZXCV. All rights reserved.

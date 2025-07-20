@@ -93,6 +93,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useToast } from "~/composables/useToast";
+import { useAuthStore } from "~/stores/auth";
 
 interface Team {
 	id: string;
@@ -106,7 +108,10 @@ interface Team {
 
 const loading = ref(false);
 const teams = ref<Team[]>([]);
-const user = ref(null); // TODO: 認証ストアから取得
+
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
+const { error: toastError } = useToast();
 
 const { $rpc } = useNuxtApp();
 
@@ -120,14 +125,16 @@ const fetchTeams = async () => {
 			id: team.id,
 			name: team.displayName || team.name,
 			description: "", // APIにdescriptionフィールドがないため空文字
-			role: team.owner.id === user.value?.id ? "owner" : "member", // TODO: ユーザー情報の取得
+			role: team.owner.id === user.value?.id ? "owner" : "member",
 			memberCount: team.memberCount,
-			ruleCount: 0, // TODO: ルール数のAPIを追加
-			createdAt: new Date().toISOString(), // TODO: createdAtフィールドの追加
+			ruleCount: team.ruleCount || 0,
+			createdAt: team.createdAt
+				? new Date(team.createdAt * 1000).toISOString()
+				: new Date().toISOString(),
 		}));
 	} catch (error) {
 		console.error("Failed to fetch teams:", error);
-		// TODO: エラーハンドリングの改善（トースト通知など）
+		toastError("チーム一覧の取得に失敗しました");
 	} finally {
 		loading.value = false;
 	}

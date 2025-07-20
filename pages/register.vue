@@ -16,7 +16,7 @@
         </div>
       
         <CommonCard padding="lg" class="shadow-xl border-0">
-          <form class="space-y-6" @submit.prevent="handleRegister">
+          <form class="space-y-6" @submit.prevent="_handleRegister">
             <div class="space-y-4">
               <CommonInput
                 v-model="form.username"

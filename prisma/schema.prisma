@@ -42,6 +42,7 @@ model User {
   passwordResets PasswordReset[]
   emailVerifications EmailVerification[]
   oauthAccounts OAuthAccount[]
+  teamInvitations TeamInvitation[] @relation("inviter")
 
   @@index([email])
   @@index([username])
@@ -112,6 +113,7 @@ model Team {
   owner   User         @relation(fields: [ownerId], references: [id])
   members TeamMember[]
   rules   Rule[]
+  invitations TeamInvitation[]
 
   @@index([name])
   @@index([ownerId])
@@ -253,4 +255,23 @@ model OAuthState {
   @@index([state])
   @@index([expiresAt])
   @@map("oauth_states")
+}
+
+model TeamInvitation {
+  id         String @id
+  teamId     String @map("team_id")
+  email      String
+  token      String @unique
+  invitedBy  String @map("invited_by")
+  expiresAt  Int    @map("expires_at")
+  createdAt  Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  inviter User @relation("inviter", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([teamId])
+  @@index([email])
+  @@index([expiresAt])
+  @@map("team_invitations")
 }

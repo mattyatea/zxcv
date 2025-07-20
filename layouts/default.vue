@@ -8,6 +8,9 @@
     </main>
     
     <LayoutFooter />
+    
+    <!-- Toast notifications -->
+    <CommonToast />
   </div>
 </template>
 

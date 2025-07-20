@@ -27,7 +27,7 @@
                   {{ rule.author.username }}
                 </span>
                 <span>v{{ rule.version }}</span>
-                <span>{{ formatDate(rule.updated_at) }}</span>
+                <span>{{ _formatDate(rule.updated_at) }}</span>
                 <span
                   :class="[
                     'px-2 py-1 text-xs rounded-full',
@@ -55,7 +55,7 @@
               <CommonButton
                 variant="primary"
                 size="sm"
-                @click="copyRule"
+                @click="_copyRule"
               >
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -97,7 +97,7 @@
             <CommonButton
               variant="ghost"
               size="xs"
-              @click="copyContent"
+              @click="_copyContent"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -123,7 +123,7 @@
                 <span class="text-sm text-gray-600 dark:text-gray-400 ml-3">{{ version.changelog }}</span>
               </div>
               <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ formatDate(version.created_at) }}
+                {{ _formatDate(version.created_at) }}
               </span>
             </div>
           </div>
@@ -160,7 +160,10 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
 import { onMounted, ref } from "vue";
+import { useToast } from "~/composables/useToast";
+import { useAuthStore } from "~/stores/auth";
 
 interface Author {
 	id: string;
@@ -193,7 +196,9 @@ const versions = ref<Version[]>([]);
 const relatedRules = ref<Rule[]>([]);
 const isOwner = ref(false);
 const copied = ref(false);
-const user = ref(null); // TODO: 認証ストアから取得
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
+const { success: toastSuccess, error: toastError } = useToast();
 
 const fetchRuleDetails = async () => {
 	loading.value = true;
@@ -259,11 +264,13 @@ const _copyRule = async () => {
 	try {
 		await navigator.clipboard.writeText(rule.value.content);
 		copied.value = true;
+		toastSuccess("ルールをコピーしました");
 		setTimeout(() => {
 			copied.value = false;
 		}, 2000);
 	} catch (error) {
 		console.error("Failed to copy:", error);
+		toastError("コピーに失敗しました");
 	}
 };
 
@@ -274,9 +281,10 @@ const _copyContent = async () => {
 
 	try {
 		await navigator.clipboard.writeText(rule.value.content);
-		// TODO: トースト通知を表示
+		toastSuccess("ルール内容をコピーしました");
 	} catch (error) {
 		console.error("Failed to copy content:", error);
+		toastError("コピーに失敗しました");
 	}
 };
 

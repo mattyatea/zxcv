@@ -27,6 +27,7 @@ export const teamsProcedures = {
 				_count: {
 					select: {
 						members: true,
+						rules: true,
 					},
 				},
 			},
@@ -38,6 +39,7 @@ export const teamsProcedures = {
 			displayName: team.displayName,
 			owner: team.owner,
 			memberCount: team._count.members,
+			ruleCount: team._count.rules,
 		}));
 	}),
 
@@ -95,9 +97,45 @@ export const teamsProcedures = {
 				},
 			});
 
-			// TODO: Send invite emails if provided
+			// Send invite emails if provided
 			if (input.inviteEmails && input.inviteEmails.length > 0) {
-				// Implementation for sending invites
+				const { EmailService } = await import("~/server/utils/email");
+				const emailService = new EmailService(context.env);
+				const { generateId } = await import("~/server/utils/crypto");
+
+				// Create invitation records and send emails
+				for (const email of input.inviteEmails) {
+					const invitationToken = generateId();
+					const expiresAt = Math.floor(Date.now() / 1000) + 604800; // 7 days
+
+					// Create invitation record
+					await db.teamInvitation.create({
+						data: {
+							id: generateId(),
+							teamId: team.id,
+							email: email.toLowerCase(),
+							token: invitationToken,
+							invitedBy: user.id,
+							expiresAt,
+						},
+					});
+
+					// Send invitation email
+					const emailTemplate = emailService.generateTeamInvitationEmail({
+						email,
+						teamName: team.displayName || team.name,
+						inviterName: user.username,
+						invitationToken,
+						userLocale: "ja", // Default to Japanese for now
+					});
+
+					try {
+						await emailService.sendEmail(emailTemplate);
+					} catch (error) {
+						console.error("Failed to send invitation email:", error);
+						// Continue with other invitations even if one fails
+					}
+				}
 			}
 
 			return {
@@ -106,6 +144,7 @@ export const teamsProcedures = {
 				displayName: team.displayName,
 				description: team.description,
 				owner: team.owner,
+				createdAt: team.createdAt,
 			};
 		}),
 
@@ -266,5 +305,92 @@ export const teamsProcedures = {
 				updatedAt: rule.updatedAt,
 				author: rule.user,
 			}));
+		}),
+
+	acceptInvitation: os
+		.use(dbWithAuth)
+		.input(
+			z.object({
+				token: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+			const now = Math.floor(Date.now() / 1000);
+
+			// Find valid invitation
+			const invitation = await db.teamInvitation.findUnique({
+				where: { token: input.token },
+				include: {
+					team: {
+						include: {
+							owner: {
+								select: {
+									id: true,
+									username: true,
+									email: true,
+								},
+							},
+						},
+					},
+				},
+			});
+
+			if (!invitation || invitation.expiresAt < now) {
+				throw new ORPCError("BAD_REQUEST", { message: "Invalid or expired invitation" });
+			}
+
+			// Check if user's email matches the invitation email
+			if (user.email.toLowerCase() !== invitation.email.toLowerCase()) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "This invitation was sent to a different email address",
+				});
+			}
+
+			// Check if user is already a member
+			const existingMember = await db.teamMember.findUnique({
+				where: {
+					// biome-ignore lint/style/useNamingConvention: Prismaの命名規則に従うしかない
+					teamId_userId: {
+						teamId: invitation.teamId,
+						userId: user.id,
+					},
+				},
+			});
+
+			if (existingMember) {
+				// Delete the invitation since they're already a member
+				await db.teamInvitation.delete({
+					where: { id: invitation.id },
+				});
+
+				return {
+					success: true,
+					message: "You are already a member of this team",
+					team: invitation.team,
+				};
+			}
+
+			// Create team membership
+			const { generateId } = await import("~/server/utils/crypto");
+			await db.teamMember.create({
+				data: {
+					id: generateId(),
+					teamId: invitation.teamId,
+					userId: user.id,
+					role: "member",
+				},
+			});
+
+			// Delete the invitation
+			await db.teamInvitation.delete({
+				where: { id: invitation.id },
+			});
+
+			return {
+				success: true,
+				message: "Successfully joined the team",
+				team: invitation.team,
+			};
 		}),
 };

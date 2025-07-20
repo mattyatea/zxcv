@@ -8,7 +8,7 @@
         </p>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="card max-w-2xl">
+      <form @submit.prevent="_handleSubmit" class="card max-w-2xl">
         <div class="space-y-6">
           <CommonInput
             v-model="form.name"
@@ -74,7 +74,7 @@
                 />
                 <CommonButton
                   v-if="inviteEmails.length > 1"
-                  @click="removeEmail(index)"
+                  @click="_removeEmail(index)"
                   variant="ghost"
                   size="sm"
                 >
@@ -84,7 +84,7 @@
                 </CommonButton>
               </div>
               <CommonButton
-                @click="addEmail"
+                @click="_addEmail"
                 variant="ghost"
                 size="sm"
                 type="button"
@@ -119,6 +119,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useToast } from "~/composables/useToast";
 
 interface TeamForm {
 	name: string;
@@ -135,6 +136,8 @@ const form = ref<TeamForm>({
 const inviteEmails = ref<string[]>([""]);
 const errors = ref<Record<string, string>>({});
 const submitting = ref(false);
+
+const { success: toastSuccess, error: toastError } = useToast();
 
 const _addEmail = () => {
 	inviteEmails.value.push("");
@@ -177,10 +180,11 @@ const _handleSubmit = async () => {
 			inviteEmails: inviteEmails.value.filter((email) => email.trim()),
 		});
 
+		toastSuccess("チームを作成しました");
 		await navigateTo(`/teams/${data.id}`);
 	} catch (error) {
 		console.error("Failed to create team:", error);
-		// TODO: エラー表示（トースト通知など）
+		toastError("チームの作成に失敗しました");
 	} finally {
 		submitting.value = false;
 	}

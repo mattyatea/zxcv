@@ -126,7 +126,8 @@ export const authProcedures = {
 					emailVerified: user.emailVerified,
 				};
 
-				const token = await createJWT(
+				const { createRefreshToken } = await import("~/server/utils/jwt");
+				const accessToken = await createJWT(
 					{
 						sub: authUser.id,
 						email: authUser.email,
@@ -135,10 +136,11 @@ export const authProcedures = {
 					},
 					env,
 				);
+				const refreshToken = await createRefreshToken(authUser.id, env);
 
 				return {
-					accessToken: token,
-					refreshToken: token, // TODO: Implement proper refresh token
+					accessToken,
+					refreshToken,
 					user: authUser,
 					message: user.emailVerified ? undefined : "Please verify your email before logging in.",
 				};
@@ -162,17 +164,16 @@ export const authProcedures = {
 			const { refreshToken } = input;
 			const { db, env } = context;
 
-			// TODO: Implement proper refresh token validation
-			// For now, just decode the token to get user info
-			const verifyJWT = (await import("~/server/utils/jwt")).verifyJWT;
-			const payload = await verifyJWT(refreshToken, env);
+			// Verify refresh token
+			const { verifyRefreshToken, createRefreshToken } = await import("~/server/utils/jwt");
+			const userId = await verifyRefreshToken(refreshToken, env);
 
-			if (!payload || !payload.sub) {
+			if (!userId) {
 				throw new ORPCError("UNAUTHORIZED", { message: "Invalid refresh token" });
 			}
 
 			const user = await db.user.findUnique({
-				where: { id: payload.sub },
+				where: { id: userId },
 			});
 
 			if (!user) {
@@ -186,7 +187,7 @@ export const authProcedures = {
 				emailVerified: user.emailVerified,
 			};
 
-			const token = await createJWT(
+			const accessToken = await createJWT(
 				{
 					sub: authUser.id,
 					email: authUser.email,
@@ -195,8 +196,9 @@ export const authProcedures = {
 				},
 				env,
 			);
+			const newRefreshToken = await createRefreshToken(authUser.id, env);
 
-			return { accessToken: token, refreshToken: token, user: authUser };
+			return { accessToken, refreshToken: newRefreshToken, user: authUser };
 		}),
 
 	verifyEmail: os
