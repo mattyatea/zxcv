@@ -5,14 +5,14 @@ on:
     workflows: ["CI"]
     types:
       - completed
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   workflow_dispatch:
 
 jobs:
   deploy-staging:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev'
     environment: staging
     
     steps:
