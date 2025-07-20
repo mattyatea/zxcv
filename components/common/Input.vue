@@ -100,17 +100,17 @@ const emit = defineEmits<Emits>();
 
 const attrs = useAttrs();
 const slots = useSlots();
-const _inputId = computed(
+const inputId = computed(
 	() => (attrs.id as string) || `input-${Math.random().toString(36).substring(2, 11)}`,
 );
 const showPassword = ref(false);
 
-const _internalValue = computed({
+const internalValue = computed({
 	get: () => props.modelValue ?? "",
 	set: (value) => emit("update:modelValue", value),
 });
 
-const _actualType = computed(() => {
+const actualType = computed(() => {
 	if (props.type === "password" && showPassword.value) {
 		return "text";
 	}
@@ -121,7 +121,7 @@ const showPasswordToggle = computed(() => {
 	return props.type === "password" && !props.disabled && !props.readonly;
 });
 
-const _inputClasses = computed(() => {
+const inputClasses = computed(() => {
 	const base =
 		"w-full text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 transition-all duration-200 focus:outline-none";
 
@@ -175,7 +175,7 @@ const _inputClasses = computed(() => {
 		.join(" ");
 });
 
-const _togglePasswordVisibility = () => {
+const togglePasswordVisibility = () => {
 	showPassword.value = !showPassword.value;
 };
 </script>
