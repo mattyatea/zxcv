@@ -209,8 +209,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
+import { useToast } from "~/composables/useToast";
 
 useHead({
 	title: "Register - ZXCV",
@@ -228,7 +229,8 @@ const loading = ref(false);
 const error = ref("");
 const success = ref(false);
 
-const { $rpc } = useNuxtApp();
+const { $rpc } = useNuxtApp() as any;
+const { success: toastSuccess, error: toastError } = useToast();
 
 const _handleRegister = async () => {
 	loading.value = true;
