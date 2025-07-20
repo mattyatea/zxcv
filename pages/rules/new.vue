@@ -190,7 +190,7 @@
 import { onMounted, ref } from "vue";
 
 useHead({
-	title: "Create Rule - ZXCV",
+	title: "Create Rule - zxcv",
 });
 
 const form = ref({

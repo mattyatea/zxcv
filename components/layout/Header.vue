@@ -10,7 +10,7 @@
                 <span class="text-white font-bold text-lg">Z</span>
               </div>
               <span class="text-2xl font-bold text-gray-900 dark:text-gray-100 hidden sm:block">
-                ZXCV
+                zxcv
               </span>
             </div>
           </NuxtLink>
@@ -130,7 +130,7 @@
 
           <!-- Login/Signup buttons -->
           <div v-else class="flex items-center space-x-2">
-            <NuxtLink to="/login">
+            <NuxtLink to="/auth?tab=login">
               <CommonButton
                 variant="ghost"
                 size="sm"
@@ -138,7 +138,7 @@
                 ログイン
               </CommonButton>
             </NuxtLink>
-            <NuxtLink to="/register">
+            <NuxtLink to="/auth?tab=register">
               <CommonButton
                 variant="primary"
                 size="sm"
@@ -209,6 +209,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
+import { useThemeStore } from "~/stores/theme";
 
 const authStore = useAuthStore();
 const { user: _user } = storeToRefs(authStore);
@@ -216,7 +217,8 @@ const showUserMenu = ref(false);
 const _showMobileMenu = ref(false);
 const showSearch = ref(false);
 const searchQuery = ref("");
-const isDark = ref(false);
+const themeStore = useThemeStore();
+// const { isDark } = storeToRefs(themeStore); // TODO: Use this for theme toggle
 
 const _navigation = [
 	{ name: "ルール", href: "/rules" },
@@ -243,14 +245,7 @@ const _userMenuItems = [
 ];
 
 const _toggleDark = () => {
-	isDark.value = !isDark.value;
-	if (isDark.value) {
-		document.documentElement.classList.add("dark");
-		localStorage.setItem("theme", "dark");
-	} else {
-		document.documentElement.classList.remove("dark");
-		localStorage.setItem("theme", "light");
-	}
+	themeStore.toggleTheme();
 };
 
 const _handleLogout = async () => {
@@ -266,14 +261,5 @@ const _handleSearch = () => {
 	}
 };
 
-onMounted(() => {
-	const savedTheme = localStorage.getItem("theme");
-	if (
-		savedTheme === "dark" ||
-		(!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-	) {
-		isDark.value = true;
-		document.documentElement.classList.add("dark");
-	}
-});
+// Theme is now handled by the theme store and plugin
 </script>

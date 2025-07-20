@@ -58,7 +58,7 @@ export class EmailService {
 
 			// Create MIME message using mimetext
 			const msg = createMimeMessage();
-			msg.setSender({ name: "ZXCV", addr: this.fromEmail });
+			msg.setSender({ name: "zxcv", addr: this.fromEmail });
 			msg.setRecipient(template.to);
 			msg.setSubject(template.subject);
 
@@ -160,11 +160,11 @@ export class EmailService {
 
 		if (isJapanese) {
 			return {
-				subject: "【ZXCV】パスワードリセットのお知らせ",
+				subject: "【zxcv】パスワードリセットのお知らせ",
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
-							<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+							<h1 style="color: #333; margin-bottom: 10px;">zxcv</h1>
 							<p style="color: #666; font-size: 16px;">コーディングルール共有プラットフォーム</p>
 						</div>
 
@@ -194,12 +194,12 @@ export class EmailService {
 						</div>
 
 						<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
-							<p>© 2025 ZXCV. All rights reserved.</p>
+							<p>© 2025 zxcv. All rights reserved.</p>
 						</div>
 					</div>
 				`,
 				text: `
-ZXCV - パスワードリセット
+zxcv - パスワードリセット
 
 パスワードリセットのリクエストを受け付けました。
 
@@ -211,18 +211,18 @@ ${resetUrl}
 もしパスワードリセットを依頼していない場合は、このメールを無視してください。
 
 --
-© 2025 ZXCV. All rights reserved.
+© 2025 zxcv. All rights reserved.
 				`.trim(),
 			};
 		}
 
 		// English version
 		return {
-			subject: "ZXCV - Password Reset",
+			subject: "zxcv - Password Reset",
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+						<h1 style="color: #333; margin-bottom: 10px;">zxcv</h1>
 						<p style="color: #666; font-size: 16px;">Coding Rules Sharing Platform</p>
 					</div>
 
@@ -252,12 +252,12 @@ ${resetUrl}
 					</div>
 
 					<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
-						<p>© 2025 ZXCV. All rights reserved.</p>
+						<p>© 2025 zxcv. All rights reserved.</p>
 					</div>
 				</div>
 			`,
 			text: `
-ZXCV - Password Reset
+zxcv - Password Reset
 
 We received a request to reset your password.
 
@@ -269,7 +269,7 @@ Note: This link expires in 1 hour.
 If you didn't request a password reset, please ignore this email.
 
 --
-© 2025 ZXCV. All rights reserved.
+© 2025 zxcv. All rights reserved.
 			`.trim(),
 		};
 	}
@@ -279,17 +279,17 @@ If you didn't request a password reset, please ignore this email.
 
 		if (isJapanese) {
 			return {
-				subject: "【ZXCV】メールアドレスの確認",
+				subject: "【zxcv】メールアドレスの確認",
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
-							<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+							<h1 style="color: #333; margin-bottom: 10px;">zxcv</h1>
 							<p style="color: #666; font-size: 16px;">コーディングルール共有プラットフォーム</p>
 						</div>
 
 						<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
 							<h2 style="color: #333; margin-top: 0;">メールアドレスの確認</h2>
-							<p>ZXCVへのご登録ありがとうございます。</p>
+							<p>zxcvへのご登録ありがとうございます。</p>
 							<p>アカウントを有効化するため、下記のボタンをクリックしてメールアドレスを確認してください。</p>
 						</div>
 
@@ -313,14 +313,14 @@ If you didn't request a password reset, please ignore this email.
 						</div>
 
 						<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
-							<p>© 2025 ZXCV. All rights reserved.</p>
+							<p>© 2025 zxcv. All rights reserved.</p>
 						</div>
 					</div>
 				`,
 				text: `
-ZXCV - メールアドレスの確認
+zxcv - メールアドレスの確認
 
-ZXCVへのご登録ありがとうございます。
+zxcvへのご登録ありがとうございます。
 
 アカウントを有効化するため、下記のリンクをクリックしてメールアドレスを確認してください：
 ${verificationUrl}
@@ -330,24 +330,24 @@ ${verificationUrl}
 もしこのアカウントを作成していない場合は、このメールを無視してください。
 
 --
-© 2025 ZXCV. All rights reserved.
+© 2025 zxcv. All rights reserved.
 				`.trim(),
 			};
 		}
 
 		// English version
 		return {
-			subject: "ZXCV - Email Verification",
+			subject: "zxcv - Email Verification",
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+						<h1 style="color: #333; margin-bottom: 10px;">zxcv</h1>
 						<p style="color: #666; font-size: 16px;">Coding Rules Sharing Platform</p>
 					</div>
 
 					<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
 						<h2 style="color: #333; margin-top: 0;">Email Verification</h2>
-						<p>Thank you for signing up for ZXCV!</p>
+						<p>Thank you for signing up for zxcv!</p>
 						<p>To activate your account, please click the button below to verify your email address.</p>
 					</div>
 
@@ -371,14 +371,14 @@ ${verificationUrl}
 					</div>
 
 					<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
-						<p>© 2025 ZXCV. All rights reserved.</p>
+						<p>© 2025 zxcv. All rights reserved.</p>
 					</div>
 				</div>
 			`,
 			text: `
-ZXCV - Email Verification
+zxcv - Email Verification
 
-Thank you for signing up for ZXCV!
+Thank you for signing up for zxcv!
 
 To activate your account, please click the following link to verify your email address:
 ${verificationUrl}
@@ -388,7 +388,7 @@ Note: This link expires in 24 hours.
 If you didn't create this account, please ignore this email.
 
 --
-© 2025 ZXCV. All rights reserved.
+© 2025 zxcv. All rights reserved.
 			`.trim(),
 		};
 	}
@@ -403,11 +403,11 @@ If you didn't create this account, please ignore this email.
 
 		if (isJapanese) {
 			return {
-				subject: `【ZXCV】${teamName}への招待`,
+				subject: `【zxcv】${teamName}への招待`,
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
-							<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+							<h1 style="color: #333; margin-bottom: 10px;">zxcv</h1>
 							<p style="color: #666; font-size: 16px;">コーディングルール共有プラットフォーム</p>
 						</div>
 
@@ -437,12 +437,12 @@ If you didn't create this account, please ignore this email.
 						</div>
 
 						<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
-							<p>© 2025 ZXCV. All rights reserved.</p>
+							<p>© 2025 zxcv. All rights reserved.</p>
 						</div>
 					</div>
 				`,
 				text: `
-ZXCV - チームへの招待
+zxcv - チームへの招待
 
 ${inviterName}さんから「${teamName}」チームへの招待が届きました。
 
@@ -454,18 +454,18 @@ ${invitationUrl}
 もし心当たりがない場合は、このメールを無視してください。
 
 --
-© 2025 ZXCV. All rights reserved.
+© 2025 zxcv. All rights reserved.
 				`.trim(),
 			};
 		}
 
 		// English version
 		return {
-			subject: `ZXCV - Invitation to ${teamName}`,
+			subject: `zxcv - Invitation to ${teamName}`,
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">
-						<h1 style="color: #333; margin-bottom: 10px;">ZXCV</h1>
+						<h1 style="color: #333; margin-bottom: 10px;">zxcv</h1>
 						<p style="color: #666; font-size: 16px;">Coding Rules Sharing Platform</p>
 					</div>
 
@@ -495,12 +495,12 @@ ${invitationUrl}
 					</div>
 
 					<div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #888; font-size: 12px;">
-						<p>© 2025 ZXCV. All rights reserved.</p>
+						<p>© 2025 zxcv. All rights reserved.</p>
 					</div>
 				</div>
 			`,
 			text: `
-ZXCV - Team Invitation
+zxcv - Team Invitation
 
 ${inviterName} has invited you to join the "${teamName}" team.
 
@@ -512,7 +512,7 @@ Note: This link expires in 7 days.
 If you didn't expect this invitation, please ignore this email.
 
 --
-© 2025 ZXCV. All rights reserved.
+© 2025 zxcv. All rights reserved.
 			`.trim(),
 		};
 	}

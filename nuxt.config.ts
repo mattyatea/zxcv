@@ -20,8 +20,10 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   app: {
+    pageTransition: { name: 'slide', mode: 'out-in' },
+    layoutTransition: { name: 'slide', mode: 'out-in' },
     head: {
-      title: 'ZXCV - Coding Rules Platform',
+      title: 'zxcv - Coding Rules Platform',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

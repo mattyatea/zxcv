@@ -1,0 +1,456 @@
+/* Page transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(30px) scale(0.98);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.98);
+}
+
+/* Slide transition for page navigation */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* Slide transition for auth pages (login/register) */
+.slide-auth-enter-active,
+.slide-auth-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-auth-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.slide-auth-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+/* Fade transition for auth pages */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+/* Slide up transition */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Slide fade transition for forms */
+.slide-fade-enter-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-fade-leave-active {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-fade-enter-from {
+  transform: translateX(-10px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateX(10px);
+  opacity: 0;
+}
+
+/* Auth form transitions */
+.auth-form-enter-active,
+.auth-form-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-form-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.auth-form-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* Tab content slide */
+.tab-slide-enter-active,
+.tab-slide-leave-active {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tab-slide-enter-from {
+  opacity: 0;
+  transform: translateX(100px) scale(0.95);
+}
+
+.tab-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-100px) scale(0.95);
+}
+
+/* Reverse slide for register */
+.tab-slide-reverse-enter-from {
+  opacity: 0;
+  transform: translateX(-100px) scale(0.95);
+}
+
+.tab-slide-reverse-leave-to {
+  opacity: 0;
+  transform: translateX(100px) scale(0.95);
+}
+
+/* 3D flip animation for forms */
+.form-flip-enter-active,
+.form-flip-leave-active {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  width: 100%;
+  backface-visibility: hidden;
+}
+
+.form-flip-enter-from {
+  transform: rotateY(-180deg);
+  opacity: 0;
+}
+
+.form-flip-leave-to {
+  transform: rotateY(180deg);
+  opacity: 0;
+}
+
+/* Seamless form transition - optimized for auth forms */
+.seamless-form-enter-active {
+  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.seamless-form-leave-active {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.seamless-form-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+}
+
+.seamless-form-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+}
+
+/* Form container perspective */
+.form-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* Auth page specific animations */
+.auth-enter-active {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.auth-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-enter-from {
+  opacity: 0;
+  transform: translateY(100px) scale(0.9);
+}
+
+.auth-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Stagger animation for form elements */
+.stagger-item {
+  animation: staggerIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes staggerIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.stagger-5 {
+  animation-delay: 0.25s;
+}
+
+/* Smooth background gradient animation */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+}
+
+/* Theme transition */
+.theme-transition * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* Floating animation for decorative elements */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(5px) rotate(-1deg);
+  }
+}
+
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Pulse animation for focus states */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.pulse-on-focus:focus {
+  animation: pulse 2s infinite;
+}
+
+/* Pulse animation for elements */
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pulse-animation {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+/* Smooth height transition */
+.height-transition {
+  transition: height 0.3s ease;
+}
+
+/* Modern glassmorphism effect for auth cards */
+@keyframes glassmorph {
+  0% {
+    backdrop-filter: blur(0px);
+    background-color: rgba(255, 255, 255, 0);
+  }
+  100% {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.glass-enter {
+  animation: glassmorph 0.6s ease-out forwards;
+}
+
+/* Smooth input focus transitions */
+.input-focus-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-focus-transition:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -5px rgba(59, 130, 246, 0.15);
+}
+
+/* Button hover effects */
+@keyframes buttonHover {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.button-hover:hover {
+  animation: buttonHover 0.3s ease-out;
+}
+
+/* Loading spinner for auth */
+@keyframes authSpinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-spinner {
+  animation: authSpinner 1s linear infinite;
+}
+
+/* Success checkmark animation */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 50;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.checkmark-draw {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: checkmark 0.5s ease-out 0.2s forwards;
+}
+
+/* Error shake animation */
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+.error-shake {
+  animation: errorShake 0.5s ease-in-out;
+}
+
+/* Slide and fade for messages */
+@keyframes messageFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.message-fade-in {
+  animation: messageFadeIn 0.3s ease-out forwards;
+}
+
+/* Background pattern animation */
+@keyframes patternMove {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate(30px, 30px) rotate(1deg);
+  }
+}
+
+.pattern-animation {
+  animation: patternMove 30s linear infinite alternate;
+}
+
+/* Tab indicator smooth transition */
+.tab-indicator {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card entrance animation */
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) rotateX(-10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
+}
+
+.card-entrance {
+  animation: cardEntrance 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}

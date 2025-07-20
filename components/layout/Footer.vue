@@ -9,7 +9,7 @@
             <div class="w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center">
               <span class="text-white font-bold text-lg">Z</span>
             </div>
-            <span class="text-2xl font-bold text-gray-900 dark:text-white">ZXCV</span>
+            <span class="text-2xl font-bold text-gray-900 dark:text-white">zxcv</span>
           </div>
           <p class="text-gray-600 dark:text-gray-400 text-sm">
             AIコーディングルールを共有・管理・活用するプラットフォーム
@@ -139,7 +139,7 @@
       <div class="pt-8 border-t border-gray-200 dark:border-gray-800">
         <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div class="text-sm text-gray-600 dark:text-gray-400">
-            © 2024 ZXCV. All rights reserved.
+            © 2024 zxcv. All rights reserved.
           </div>
           
           <div class="flex items-center space-x-6 text-sm">

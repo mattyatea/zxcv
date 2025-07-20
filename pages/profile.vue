@@ -69,7 +69,7 @@
 				</div>
 				<div class="bg-white rounded-lg shadow-md p-6">
 					<h3 class="text-lg font-semibold text-gray-900 mb-2">登録日</h3>
-					<p class="text-lg text-gray-600">{{ formatDate(user.createdAt) }}</p>
+					<p class="text-lg text-gray-600">{{ _formatDate(user.createdAt) }}</p>
 				</div>
 			</div>
 
@@ -88,7 +88,7 @@
 								</NuxtLink>
 								<p class="text-sm text-gray-600 mt-1">{{ rule.description }}</p>
 							</div>
-							<span class="text-sm text-gray-500">{{ formatDate(rule.updatedAt) }}</span>
+							<span class="text-sm text-gray-500">{{ _formatDate(rule.updatedAt) }}</span>
 						</div>
 					</div>
 				</div>
@@ -229,7 +229,7 @@ const loadProfile = async () => {
 		}
 
 		// Load user profile
-		const profileData = await ($rpc as any).users.getProfile({
+		const profileData = await $rpc.users.getProfile({
 			username,
 		});
 
@@ -256,7 +256,7 @@ const _updateProfile = async () => {
 	try {
 		updating.value = true;
 
-		const result = await ($rpc as any).users.updateProfile({
+		const result = await $rpc.users.updateProfile({
 			username: editForm.value.username,
 			email: editForm.value.email,
 		});

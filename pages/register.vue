@@ -158,8 +158,7 @@
     </div>
     
     <!-- Right panel with features -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 to-primary-700 relative overflow-hidden">
-      <div class="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]" />
+    <div class="hidden lg:flex lg:w-1/2 relative">
       <div class="relative z-10 flex flex-col justify-center px-12 xl:px-20 text-white">
         <h2 class="text-3xl font-bold mb-8">無料で始められる機能</h2>
         
@@ -200,10 +199,6 @@
             </div>
           </div>
         </div>
-        
-        <!-- Floating elements -->
-        <div class="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-float" />
-        <div class="absolute bottom-20 left-10 w-24 h-24 bg-white/10 rounded-full blur-xl animate-float delay-1000" />
       </div>
     </div>
   </div>
@@ -211,10 +206,13 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useToast } from "~/composables/useToast";
+
+definePageMeta({
+	layout: "auth",
+});
 
 useHead({
-	title: "Register - ZXCV",
+	title: "Register - zxcv",
 });
 
 const form = ref({
@@ -229,8 +227,7 @@ const loading = ref(false);
 const error = ref("");
 const success = ref(false);
 
-const { $rpc } = useNuxtApp() as any;
-const { success: toastSuccess, error: toastError } = useToast();
+const { $rpc } = useNuxtApp();
 
 const _handleRegister = async () => {
 	loading.value = true;

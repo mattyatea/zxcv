@@ -215,7 +215,7 @@ interface Rule {
 }
 
 useHead({
-	title: "ルール一覧 - ZXCV",
+	title: "ルール一覧 - zxcv",
 });
 
 const searchQuery = ref("");
@@ -261,7 +261,7 @@ const fetchRules = async () => {
 		});
 
 		// Ensure each rule has all required properties
-		rules.value = response.rules.map((rule: any) => ({
+		rules.value = response.rules.map((rule) => ({
 			...rule,
 			tags: rule.tags || [],
 			description: rule.description || "",
