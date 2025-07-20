@@ -65,7 +65,7 @@ jobs:
         run: |
           echo "Waiting for deployment to propagate..."
           sleep 30
-          STAGING_URL=${{ secrets.STAGING_URL || 'https://staging.zxcv-backend-and-frontend.workers.dev' }}
+          STAGING_URL=${{ secrets.STAGING_URL || 'https://zxcv-backend-and-frontend-stanging.workers.dev' }}
           curl -f $STAGING_URL/api/health || exit 1
           echo "✅ Staging deployment successful"
 
