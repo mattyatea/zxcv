@@ -35,10 +35,12 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+import { useAuthStore } from "~/stores/auth";
 
 const route = useRoute();
 const _router = useRouter();
 const { $rpc } = useNuxtApp();
+const authStore = useAuthStore();
 
 const provider = ref(route.params.provider);
 const loading = ref(true);
@@ -66,9 +68,16 @@ onMounted(async () => {
 			state,
 		});
 
-		// Store tokens
-		localStorage.setItem("accessToken", response.accessToken);
-		localStorage.setItem("refreshToken", response.refreshToken);
+		// Store tokens and user data directly
+		// The auth store handles reactivity internally
+		if (process.client) {
+			localStorage.setItem("access_token", response.accessToken);
+			localStorage.setItem("refresh_token", response.refreshToken);
+			localStorage.setItem("user", JSON.stringify(response.user));
+
+			// Initialize auth store with the stored data
+			authStore.initializeAuth();
+		}
 
 		// Redirect to the intended page or rules
 		await navigateTo(response.redirectUrl || "/rules");
