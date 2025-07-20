@@ -220,7 +220,7 @@ const validateForm = () => {
 	return isValid;
 };
 
-const _handleLogin = async (event: Event) => {
+const handleLogin = async (event: Event) => {
 	event.preventDefault();
 
 	if (!validateForm()) {
@@ -249,7 +249,7 @@ const _handleLogin = async (event: Event) => {
 	}
 };
 
-const _handleSocialLogin = async (provider: string) => {
+const handleSocialLogin = async (provider: string) => {
 	loading.value = true;
 	error.value = "";
 
