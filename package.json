@@ -62,7 +62,10 @@
 	},
 	"lint-staged": {
 		"*.{ts,tsx,js,jsx,vue}": [
-			"pnpm biome check --write　."
+			"pnpm biome check --write --no-errors-on-unmatched"
+		],
+		"*.{ts,tsx}": [
+			"bash -c 'pnpm typecheck'"
 		]
 	}
 }
