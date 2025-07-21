@@ -217,7 +217,7 @@ const contentPlaceholder = ref(`{
   }
 }`);
 
-const _updateContentPlaceholder = () => {
+const updateContentPlaceholder = () => {
 	switch (selectedFormat.value) {
 		case "eslint":
 			contentPlaceholder.value = `{
@@ -249,7 +249,7 @@ const _updateContentPlaceholder = () => {
 	}
 };
 
-const _addTag = () => {
+const addTag = () => {
 	const tag = tagInput.value.trim().toLowerCase();
 	if (tag && !form.value.tags.includes(tag)) {
 		form.value.tags.push(tag);
@@ -257,13 +257,13 @@ const _addTag = () => {
 	}
 };
 
-const _removeTag = (index) => {
+const removeTag = (index) => {
 	form.value.tags.splice(index, 1);
 };
 
 const { $rpc } = useNuxtApp();
 
-const _handleSubmit = async () => {
+const handleSubmit = async () => {
 	loading.value = true;
 	error.value = "";
 

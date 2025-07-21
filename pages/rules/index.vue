@@ -224,7 +224,7 @@ const filters = ref({
 	sort: "updated",
 });
 const selectedTags = ref<string[]>([]);
-const _popularTags = ref(["eslint", "prettier", "typescript", "react", "vue", "nuxt", "tailwind"]);
+const popularTags = ref(["eslint", "prettier", "typescript", "react", "vue", "nuxt", "tailwind"]);
 
 const rules = ref<Rule[]>([]);
 const loading = ref(false);
@@ -233,7 +233,7 @@ const limit = 12;
 const total = ref(0);
 
 const totalPages = computed(() => Math.ceil(total.value / limit));
-const _visiblePages = computed(() => {
+const visiblePages = computed(() => {
 	const pages: number[] = [];
 	const start = Math.max(1, currentPage.value - 2);
 	const end = Math.min(totalPages.value, start + 4);
@@ -274,7 +274,7 @@ const fetchRules = async () => {
 	}
 };
 
-const _toggleTag = (tag: string) => {
+const toggleTag = (tag: string) => {
 	const index = selectedTags.value.indexOf(tag);
 	if (index > -1) {
 		selectedTags.value.splice(index, 1);
@@ -285,12 +285,12 @@ const _toggleTag = (tag: string) => {
 	fetchRules();
 };
 
-const _formatDate = (timestamp: number) => {
+const formatDate = (timestamp: number) => {
 	return new Date(timestamp * 1000).toLocaleDateString("ja-JP");
 };
 
 let searchTimeout: NodeJS.Timeout;
-const _debouncedSearch = () => {
+const debouncedSearch = () => {
 	clearTimeout(searchTimeout);
 	searchTimeout = setTimeout(() => {
 		currentPage.value = 1;

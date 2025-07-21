@@ -238,12 +238,12 @@ const message = ref("");
 
 // Password strength
 const passwordStrength = ref(0);
-const _strengthColors = ["", "bg-danger", "bg-warning", "bg-info", "bg-success"];
-const _strengthTextColors = ["", "text-danger", "text-warning", "text-info", "text-success"];
-const _strengthTexts = ["", "弱い", "普通", "強い", "とても強い"];
+const strengthColors = ["", "bg-danger", "bg-warning", "bg-info", "bg-success"];
+const strengthTextColors = ["", "text-danger", "text-warning", "text-info", "text-success"];
+const strengthTexts = ["", "弱い", "普通", "強い", "とても強い"];
 
 // Check password strength
-const _checkPasswordStrength = () => {
+const checkPasswordStrength = () => {
 	const password = form.value.password;
 	let strength = 0;
 
@@ -338,7 +338,7 @@ const validateForm = () => {
 	return isValid;
 };
 
-const _handleRegister = async (event: Event) => {
+const handleRegister = async (event: Event) => {
 	event.preventDefault();
 
 	if (!validateForm()) {
@@ -380,7 +380,7 @@ const _handleRegister = async (event: Event) => {
 	}
 };
 
-const _handleSocialLogin = async (provider: string) => {
+const handleSocialLogin = async (provider: string) => {
 	loading.value = true;
 	error.value = "";
 

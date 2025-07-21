@@ -17,7 +17,7 @@ export interface AuthContext {
 	apiKeyScopes?: string[];
 }
 
-async function _createJWT(user: AuthUser, env: Env): Promise<string> {
+async function createJWT(user: AuthUser, env: Env): Promise<string> {
 	return createJWTUtil(
 		{
 			sub: user.id,

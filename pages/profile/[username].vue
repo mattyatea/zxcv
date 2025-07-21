@@ -314,7 +314,7 @@ const passwordForm = ref({
 const passwordErrors = ref<Record<string, string>>({});
 
 // Avatar upload state
-const _showAvatarUpload = ref(false);
+const showAvatarUpload = ref(false);
 
 // Computed
 const isOwnProfile = computed(() => {
@@ -339,7 +339,7 @@ const isPasswordFormValid = computed(() => {
 });
 
 // Methods
-const _formatDate = (timestamp: number) => {
+const formatDate = (timestamp: number) => {
 	const date = new Date(timestamp * 1000);
 	return date.toLocaleDateString("ja-JP", {
 		year: "numeric",
@@ -424,7 +424,7 @@ const validatePasswordConfirm = () => {
 	}
 };
 
-const _updateProfile = async () => {
+const updateProfile = async () => {
 	try {
 		updating.value = true;
 		updateError.value = null;
@@ -471,7 +471,7 @@ const _updateProfile = async () => {
 	}
 };
 
-const _cancelEdit = () => {
+const cancelEdit = () => {
 	isEditing.value = false;
 	updateError.value = null;
 	errors.value = {};
@@ -484,7 +484,7 @@ const _cancelEdit = () => {
 	}
 };
 
-const _changePassword = async () => {
+const changePassword = async () => {
 	try {
 		changingPassword.value = true;
 		passwordError.value = null;

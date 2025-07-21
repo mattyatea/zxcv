@@ -104,11 +104,11 @@ const submitting = ref(false);
 
 const { success: toastSuccess, error: toastError } = useToast();
 
-const _addEmail = () => {
+const addEmail = () => {
 	inviteEmails.value.push("");
 };
 
-const _removeEmail = (index: number) => {
+const removeEmail = (index: number) => {
 	inviteEmails.value.splice(index, 1);
 };
 
@@ -130,7 +130,7 @@ const validateForm = (): boolean => {
 	return Object.keys(errors.value).length === 0;
 };
 
-const _handleSubmit = async () => {
+const handleSubmit = async () => {
 	if (!validateForm()) {
 		return;
 	}

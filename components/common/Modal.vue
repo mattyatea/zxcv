@@ -86,7 +86,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
-const _modalClasses = computed(() => {
+const modalClasses = computed(() => {
 	const base =
 		"relative transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left shadow-2xl transition-all";
 
@@ -101,7 +101,7 @@ const _modalClasses = computed(() => {
 	return [base, sizes[props.size]].join(" ");
 });
 
-const _handleClose = () => {
+const handleClose = () => {
 	if (!props.preventClose) {
 		emit("update:modelValue", false);
 	}

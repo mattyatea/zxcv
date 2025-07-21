@@ -252,11 +252,11 @@ const fetchRuleDetails = async () => {
 	}
 };
 
-const _formatDate = (timestamp: number) => {
+const formatDate = (timestamp: number) => {
 	return new Date(timestamp * 1000).toLocaleDateString("ja-JP");
 };
 
-const _copyRule = async () => {
+const copyRule = async () => {
 	if (!rule.value) {
 		return;
 	}
@@ -274,7 +274,7 @@ const _copyRule = async () => {
 	}
 };
 
-const _copyContent = async () => {
+const copyContent = async () => {
 	if (!rule.value) {
 		return;
 	}

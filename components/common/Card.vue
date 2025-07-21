@@ -42,7 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
 	hover: false,
 });
 
-const _cardClasses = computed(() => {
+const cardClasses = computed(() => {
 	const base = "card block w-full transition-all duration-200";
 
 	const variants = {
@@ -87,7 +87,7 @@ const _cardClasses = computed(() => {
 		.join(" ");
 });
 
-const _headerClasses = computed(() => {
+const headerClasses = computed(() => {
 	const paddingMap = {
 		none: "",
 		sm: "-m-4 mb-4 p-4",
@@ -104,7 +104,7 @@ const _headerClasses = computed(() => {
 		.join(" ");
 });
 
-const _footerClasses = computed(() => {
+const footerClasses = computed(() => {
 	const paddingMap = {
 		none: "",
 		sm: "-m-4 mt-4 p-4",

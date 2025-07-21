@@ -218,7 +218,7 @@ const rules = ref<Rule[]>([]);
 const members = ref<Member[]>([]);
 const activeTab = ref("rules");
 
-const _tabs = [
+const tabs = [
 	{ id: "rules", label: "ルール" },
 	{ id: "members", label: "メンバー" },
 ];

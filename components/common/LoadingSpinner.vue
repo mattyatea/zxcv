@@ -42,7 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
 	overlay: false,
 });
 
-const _containerClasses = computed(() => {
+const containerClasses = computed(() => {
 	const base = "flex items-center justify-center";
 
 	if (props.fullscreen) {
@@ -56,7 +56,7 @@ const _containerClasses = computed(() => {
 	return `${base} ${props.text ? "flex-col space-y-2" : ""}`;
 });
 
-const _spinnerClasses = computed(() => {
+const spinnerClasses = computed(() => {
 	const base = "spinner animate-spin";
 
 	const sizes = {
@@ -77,7 +77,7 @@ const _spinnerClasses = computed(() => {
 	return [base, sizes[props.size], colors[props.color]].join(" ");
 });
 
-const _textClasses = computed(() => {
+const textClasses = computed(() => {
 	const sizes = {
 		xs: "text-xs",
 		sm: "text-sm",

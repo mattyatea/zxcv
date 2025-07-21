@@ -46,7 +46,7 @@ const toastStore = useToastStore();
 const { toasts } = storeToRefs(toastStore);
 const { removeToast } = toastStore;
 
-const _toastClasses = {
+const toastClasses = {
 	success: "bg-green-600 text-white",
 	error: "bg-red-600 text-white",
 	warning: "bg-yellow-500 text-white",

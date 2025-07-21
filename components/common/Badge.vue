@@ -44,7 +44,7 @@ defineEmits<{
 	close: [];
 }>();
 
-const _badgeClasses = computed(() => {
+const badgeClasses = computed(() => {
 	const base = "badge inline-flex items-center font-medium transition-all duration-200";
 
 	const variants = {

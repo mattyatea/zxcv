@@ -38,7 +38,7 @@ import { onMounted, ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 
 const route = useRoute();
-const _router = useRouter();
+const router = useRouter();
 const { $rpc } = useNuxtApp();
 const authStore = useAuthStore();
 

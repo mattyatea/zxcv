@@ -85,11 +85,11 @@ definePageMeta({
 // const { $rpc } = useNuxtApp(); // TODO: Uncomment when implementing password reset
 const toast = useToast();
 
-const _email = ref("");
+const email = ref("");
 const loading = ref(false);
 const submitted = ref(false);
 
-const _handleSubmit = async () => {
+const handleSubmit = async () => {
 	loading.value = true;
 	try {
 		// TODO: Implement password reset API call

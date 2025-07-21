@@ -214,19 +214,19 @@ import { useThemeStore } from "~/stores/theme";
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const showUserMenu = ref(false);
-const _showMobileMenu = ref(false);
+const showMobileMenu = ref(false);
 const showSearch = ref(false);
 const searchQuery = ref("");
 const themeStore = useThemeStore();
 const { isDark } = storeToRefs(themeStore);
 
-const _navigation = [
+const navigation = [
 	{ name: "ルール", href: "/rules" },
 	{ name: "チーム", href: "/teams" },
 	{ name: "ドキュメント", href: "/docs" },
 ];
 
-const _userMenuItems = computed(() => [
+const userMenuItems = computed(() => [
 	{
 		name: "プロフィール",
 		href: authStore.user ? `/profile/${authStore.user.username}` : "/profile",
@@ -244,16 +244,16 @@ const _userMenuItems = computed(() => [
 	},
 ]);
 
-const _toggleDark = () => {
+const toggleDark = () => {
 	themeStore.toggleTheme();
 };
 
-const _handleLogout = async () => {
+const handleLogout = async () => {
 	showUserMenu.value = false;
 	await authStore.logout();
 };
 
-const _handleSearch = () => {
+const handleSearch = () => {
 	if (searchQuery.value) {
 		showSearch.value = false;
 		navigateTo(`/rules?q=${encodeURIComponent(searchQuery.value)}`);

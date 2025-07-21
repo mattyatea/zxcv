@@ -2,7 +2,7 @@ import { hashPassword } from "../server/utils/crypto";
 import { createPrismaClient } from "../server/utils/prisma";
 
 // ローカル開発用のテストユーザーを作成
-async function _seedTestUser() {
+async function seedTestUser() {
 	// これはローカル開発環境でのみ実行する想定
 	const env = {
 		DB: {} as D1Database, // 実際のD1インスタンスが必要

@@ -346,7 +346,7 @@ watch(activeTab, (newTab) => {
 });
 
 // Smooth tab switching
-const _switchTab = (tab: string) => {
+const switchTab = (tab: string) => {
 	if (isTransitioning.value || activeTab.value === tab) {
 		return;
 	}
@@ -378,7 +378,7 @@ const loading = ref(false);
 const error = ref("");
 const message = ref("");
 
-const _handleLogin = async (event: Event) => {
+const handleLogin = async (event: Event) => {
 	event.preventDefault();
 	loading.value = true;
 	error.value = "";
@@ -402,7 +402,7 @@ const _handleLogin = async (event: Event) => {
 	}
 };
 
-const _handleRegister = async (event: Event) => {
+const handleRegister = async (event: Event) => {
 	event.preventDefault();
 	loading.value = true;
 	error.value = "";
@@ -445,7 +445,7 @@ const _handleRegister = async (event: Event) => {
 	}
 };
 
-const _handleSocialLogin = async (provider: string) => {
+const handleSocialLogin = async (provider: string) => {
 	loading.value = true;
 	error.value = "";
 

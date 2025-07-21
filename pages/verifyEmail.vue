@@ -150,7 +150,7 @@ const verifyEmail = async () => {
 	}
 };
 
-const _resendVerification = async () => {
+const resendVerification = async () => {
 	resending.value = true;
 
 	// Get email from query parameter or prompt user

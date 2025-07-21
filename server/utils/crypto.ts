@@ -1,4 +1,4 @@
-const _SALT_ROUNDS = 10;
+const SALT_ROUNDS = 10;
 
 export async function hashPassword(password: string): Promise<string> {
 	// Use PBKDF2 for password hashing (more secure than SHA-256)
