@@ -50,6 +50,8 @@
             <div class="flex items-center gap-2">
               <CommonButton
                 v-if="isOwner"
+                :tag="NuxtLink"
+                :to="`/rules/${rule.id}/edit`"
                 variant="ghost"
                 size="sm"
               >
