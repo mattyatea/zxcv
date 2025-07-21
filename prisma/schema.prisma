@@ -52,7 +52,6 @@ model User {
 model Rule {
   id              String  @id
   name            String
-  org             String?
   userId          String  @map("user_id")
   visibility      String
   description     String?
@@ -72,10 +71,9 @@ model Rule {
   starredBy     RuleStar[]
   downloadedBy  RuleDownload[]
 
-  @@unique([name, org])
+  // Unique constraint removed - will be handled at application level
   @@index([userId])
   @@index([visibility])
-  @@index([org])
   @@index([name])
   @@index([updatedAt])
   @@index([organizationId])
@@ -275,3 +273,4 @@ model OrganizationInvitation {
   @@index([expiresAt])
   @@map("organization_invitations")
 }
+

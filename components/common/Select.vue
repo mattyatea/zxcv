@@ -2,7 +2,7 @@
   <div class="relative">
     <select
       :id="id"
-      v-model="modelValue"
+      :value="modelValue"
       :disabled="disabled"
       :required="required"
       :class="selectClasses"

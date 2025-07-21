@@ -355,6 +355,7 @@
     "form": {
       "name": "ルール名",
       "nameHint": "英数字、アンダースコア、ハイフンのみ使用可能",
+      "namePlaceholder": "my-coding-rules",
       "organization": "投稿先の組織 (オプション)",
       "urlPreview": "ルールのURLは以下になります：",
       "description": "説明",
@@ -375,7 +376,8 @@
       },
       "organization": "組織",
       "selectOrganization": "組織を選択",
-      "format": "フォーマット"
+      "format": "フォーマット",
+      "basicInfo": "基本情報"
     },
     "messages": {
       "created": "ルールを作成しました",
@@ -383,6 +385,8 @@
       "deleted": "ルールを削除しました",
       "deleteConfirm": "このルールを削除してもよろしいですか？",
       "createError": "ルールの作成に失敗しました",
+      "updateSuccess": "ルールを更新しました",
+      "updateError": "ルールの更新に失敗しました",
       "copied": "ルールをコピーしました",
       "copyError": "コピーに失敗しました",
       "contentCopied": "ルール内容をコピーしました",
@@ -400,6 +404,17 @@
       "backToList": "ルール一覧に戻る",
       "versionHistory": "バージョン履歴",
       "relatedRules": "関連するルール"
+    },
+    "edit": {
+      "title": "ルールを編集",
+      "notOwner": "このルールを編集する権限がありません",
+      "fetchError": "ルールの取得に失敗しました",
+      "changeLog": "変更履歴",
+      "changeLogPlaceholder": "何を変更したか説明してください（例：誤字修正、新しい例を追加）",
+      "showPreview": "プレビュー表示",
+      "hidePreview": "プレビューを隠す",
+      "update": "ルールを更新",
+      "unsavedChanges": "未保存の変更があります"
     }
   },
   "organizations": {

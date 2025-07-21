@@ -42,7 +42,7 @@
             </div>
             
             <div class="flex items-center gap-2">
-              <NuxtLink v-if="isOwner" :to="`/rules/${rule.id}/edit`">
+              <NuxtLink v-if="isOwner" :to="`/rules/@${rule.organization ? rule.organization.name : rule.author.username}/${rule.name}/edit`">
                 <CommonButton
                   variant="ghost"
                   size="sm"
@@ -137,11 +137,11 @@
             <NuxtLink
               v-for="related in relatedRules"
               :key="related.id"
-              :to="`/rules/${related.id}`"
+              :to="getRuleUrl(related)"
               class="card-hover"
             >
               <h3 class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ related.name }}</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">by {{ related.author.username }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">by {{ related.organization ? '@' + related.organization.name : related.author.username }}</p>
             </NuxtLink>
           </div>
         </div>
@@ -191,6 +191,13 @@ interface Version {
 
 const route = useRoute();
 const { $rpc } = useNuxtApp();
+
+// Get custom route params if provided by parent
+interface CustomRouteParams {
+	id?: string;
+}
+const customParams = inject<CustomRouteParams | null>("customRouteParams", null);
+const ruleId = computed(() => customParams?.id || route.params.id);
 const { t } = useI18n();
 const loading = ref(false);
 const rule = ref<Rule | null>(null);
@@ -205,13 +212,13 @@ const { success: toastSuccess, error: toastError } = useToast();
 const fetchRuleDetails = async () => {
 	loading.value = true;
 	try {
-		const ruleId = route.params.id as string;
+		const id = ruleId.value as string;
 
 		// Fetch rule details
-		const data = await $rpc.rules.get({ id: ruleId });
+		const data = await $rpc.rules.get({ id });
 
 		// Fetch content
-		const contentData = await $rpc.rules.getContent({ id: ruleId });
+		const contentData = await $rpc.rules.getContent({ id });
 
 		rule.value = {
 			id: data.id,
@@ -233,7 +240,7 @@ const fetchRuleDetails = async () => {
 
 		// Fetch version history
 		try {
-			const versionsData = await $rpc.rules.versions({ id: ruleId });
+			const versionsData = await $rpc.rules.versions({ id });
 			versions.value = versionsData;
 		} catch (error) {
 			console.error("Failed to fetch versions:", error);
@@ -241,7 +248,7 @@ const fetchRuleDetails = async () => {
 
 		// Fetch related rules
 		try {
-			const relatedData = await $rpc.rules.related({ id: ruleId });
+			const relatedData = await $rpc.rules.related({ id });
 			relatedRules.value = relatedData;
 		} catch (error) {
 			console.error("Failed to fetch related rules:", error);
@@ -290,6 +297,14 @@ const copyContent = async () => {
 		console.error("Failed to copy content:", error);
 		toastError(t("rules.messages.copyError"));
 	}
+};
+
+const getRuleUrl = (rule: { name: string; author: Author; organization?: Organization }) => {
+	if (rule.organization) {
+		return `/rules/@${rule.organization.name}/${rule.name}`;
+	}
+	// User rules
+	return `/rules/@${rule.author.username}/${rule.name}`;
 };
 
 onMounted(() => {

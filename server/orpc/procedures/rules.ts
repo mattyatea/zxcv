@@ -6,25 +6,39 @@ import {
 	dbWithEmailVerification,
 	dbWithOptionalAuth,
 } from "~/server/orpc/middleware/combined";
+import { parseRulePath, validateRuleOwnership } from "~/server/utils/namespace";
 
 export const rulesProcedures = {
-	getByOrgAndName: os
+	getByPath: os
 		.use(dbWithOptionalAuth)
 		.input(
 			z.object({
-				organizationName: z.string(),
-				ruleName: z.string(),
+				path: z.string(), // Format: @owner/rulename
 			}),
 		)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
+			// Parse the path
+			const parsed = parseRulePath(input.path);
+			if (!parsed) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Invalid rule path format. Expected @owner/rulename",
+				});
+			}
+
+			const { owner, ruleName } = parsed;
+
+			// Validate ownership and get the owner info
+			const ownerInfo = await validateRuleOwnership(db, owner);
+
+			// Find the rule
 			const rule = await db.rule.findFirst({
 				where: {
-					name: input.ruleName,
-					organization: {
-						name: input.organizationName,
-					},
+					name: ruleName,
+					...(ownerInfo.userId
+						? { userId: ownerInfo.userId, organizationId: null }
+						: { organizationId: ownerInfo.organizationId }),
 				},
 				include: {
 					user: {
@@ -45,14 +59,13 @@ export const rulesProcedures = {
 			});
 
 			if (!rule) {
-				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+				throw new ORPCError("NOT_FOUND", {
+					message: "Rule not found",
+				});
 			}
 
 			// Check access permissions
 			if (rule.visibility === "private") {
-				// Private rules can only be accessed by:
-				// 1. The owner
-				// 2. Organization members if it's an organization rule
 				if (!user) {
 					throw new ORPCError("UNAUTHORIZED", {
 						message: "Authentication required for private rules",
@@ -78,7 +91,9 @@ export const rulesProcedures = {
 					}
 				} else {
 					// Not owner and not an organization rule
-					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
+					throw new ORPCError("FORBIDDEN", {
+						message: "Access denied to private rule",
+					});
 				}
 			}
 
@@ -312,10 +327,6 @@ export const rulesProcedures = {
 		.input(
 			z.object({
 				name: z.string().regex(/^[a-zA-Z0-9_-]+$/),
-				org: z
-					.string()
-					.regex(/^[a-zA-Z0-9_-]*$/)
-					.optional(),
 				description: z.string().optional(),
 				visibility: z.enum(["public", "private"]),
 				organizationId: z.string().optional(),
@@ -327,29 +338,13 @@ export const rulesProcedures = {
 			const { db, user, env } = context;
 
 			// Validate organization settings
-			let organizationId = input.organizationId;
+			let organizationId = input.organizationId ?? null;
 
 			// If posting to an organization, validate the organization and membership
-			if (input.org || input.organizationId) {
-				let organization: {
-					id: string;
-					name: string;
-					displayName: string;
-					description: string | null;
-					ownerId: string;
-					createdAt: number;
-					updatedAt: number;
-				} | null = null;
-
-				if (input.org) {
-					organization = await db.organization.findFirst({
-						where: { name: input.org },
-					});
-				} else if (input.organizationId) {
-					organization = await db.organization.findUnique({
-						where: { id: input.organizationId },
-					});
-				}
+			if (input.organizationId) {
+				const organization = await db.organization.findUnique({
+					where: { id: input.organizationId },
+				});
 
 				if (!organization) {
 					throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
@@ -372,7 +367,7 @@ export const rulesProcedures = {
 				organizationId = organization.id;
 			} else {
 				// If no organization is specified, set organizationId to null
-				organizationId = undefined;
+				organizationId = null;
 			}
 
 			// Check if rule name already exists in the same context (user or organization)
@@ -425,7 +420,6 @@ export const rulesProcedures = {
 				console.log("Rule data:", {
 					id: ruleId,
 					name: input.name,
-					org: input.org,
 					visibility: input.visibility,
 					organizationId: organizationId,
 					userId: user.id,
@@ -436,10 +430,9 @@ export const rulesProcedures = {
 					data: {
 						id: ruleId,
 						name: input.name,
-						org: input.org,
 						description: input.description,
 						visibility: input.visibility,
-						organizationId: organizationId,
+						organizationId: organizationId || null,
 						tags: JSON.stringify(input.tags),
 						userId: user.id,
 						version: "1.0.0",
@@ -508,10 +501,11 @@ export const rulesProcedures = {
 				organizationId: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				content: z.string().optional(),
+				changelog: z.string().optional(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db, user } = context;
+			const { db, user, env } = context;
 
 			const existingRule = await db.rule.findUnique({
 				where: { id: input.id },
@@ -548,16 +542,131 @@ export const rulesProcedures = {
 				});
 			}
 
-			const { id, tags, ...updateData } = input;
+			const { id, tags, content, changelog, ...updateData } = input;
 
-			await db.rule.update({
-				where: { id },
-				data: {
-					...updateData,
-					tags: tags ? JSON.stringify(tags) : undefined,
-					updatedAt: Math.floor(Date.now() / 1000),
-				},
-			});
+			// ルール名が変更される場合、一意性をチェック
+			if (updateData.name && updateData.name !== existingRule.name) {
+				const nameExists = await db.rule.findFirst({
+					where: {
+						name: updateData.name,
+						id: { not: id },
+						...(existingRule.organizationId
+							? { organizationId: existingRule.organizationId }
+							: { userId: existingRule.userId, organizationId: null }),
+					},
+				});
+
+				if (nameExists) {
+					throw new ORPCError("CONFLICT", {
+						message: "A rule with this name already exists",
+					});
+				}
+			}
+
+			// コンテンツの更新がある場合は新しいバージョンを作成
+			if (content) {
+				const { generateId, hashContent } = await import("~/server/utils/crypto");
+
+				// 現在のバージョンを取得
+				const currentVersion = await db.ruleVersion.findFirst({
+					where: {
+						ruleId: id,
+						versionNumber: existingRule.version,
+					},
+				});
+
+				if (!currentVersion) {
+					throw new ORPCError("NOT_FOUND", { message: "Current version not found" });
+				}
+
+				// 現在のコンテンツを取得して比較
+				let currentContent = "";
+				try {
+					const object = await env.R2.get(currentVersion.r2ObjectKey);
+					if (object) {
+						currentContent = await object.text();
+					}
+				} catch (error) {
+					console.error("Failed to fetch current content:", error);
+				}
+
+				// コンテンツが変更されていない場合はメタデータのみ更新
+				if (content === currentContent) {
+					await db.rule.update({
+						where: { id },
+						data: {
+							...updateData,
+							tags: tags ? JSON.stringify(tags) : undefined,
+							updatedAt: Math.floor(Date.now() / 1000),
+						},
+					});
+					return { success: true };
+				}
+
+				// 新しいバージョン番号を生成（簡易的な実装）
+				const versionParts = existingRule.version.split(".");
+				const patchVersion = Number.parseInt(versionParts[2]) + 1;
+				const newVersionNumber = `${versionParts[0]}.${versionParts[1]}.${patchVersion}`;
+
+				// 新しいバージョンのIDとコンテンツハッシュを生成
+				const versionId = generateId();
+				const contentHash = await hashContent(content);
+				const r2ObjectKey = `rules/${id}/versions/${versionId}/content.md`;
+
+				// R2にコンテンツを保存
+				try {
+					await env.R2.put(r2ObjectKey, content);
+				} catch (error) {
+					console.error("Failed to store content in R2:", error);
+					throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to store content" });
+				}
+
+				// 新しいバージョンを作成
+				try {
+					await db.ruleVersion.create({
+						data: {
+							id: versionId,
+							ruleId: id,
+							versionNumber: newVersionNumber,
+							changelog: changelog || "Updated content",
+							contentHash,
+							r2ObjectKey,
+							createdBy: user.id,
+							createdAt: Math.floor(Date.now() / 1000),
+						},
+					});
+
+					// ルールのバージョンとlatestVersionIdを更新
+					await db.rule.update({
+						where: { id },
+						data: {
+							...updateData,
+							version: newVersionNumber,
+							latestVersionId: versionId,
+							tags: tags ? JSON.stringify(tags) : undefined,
+							updatedAt: Math.floor(Date.now() / 1000),
+						},
+					});
+				} catch (dbError) {
+					// R2のクリーンアップ
+					try {
+						await env.R2.delete(r2ObjectKey);
+					} catch (cleanupError) {
+						console.error("Failed to clean up R2:", cleanupError);
+					}
+					throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to create new version" });
+				}
+			} else {
+				// コンテンツの更新がない場合は、メタデータのみ更新
+				await db.rule.update({
+					where: { id },
+					data: {
+						...updateData,
+						tags: tags ? JSON.stringify(tags) : undefined,
+						updatedAt: Math.floor(Date.now() / 1000),
+					},
+				});
+			}
 
 			return { success: true };
 		}),

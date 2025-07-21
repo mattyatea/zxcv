@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/server";
 import * as z from "zod";
 import { os } from "~/server/orpc";
 import { dbWithAuth } from "~/server/orpc/middleware/combined";
+import { checkNamespaceAvailable } from "~/server/utils/namespace";
 
 export const organizationsProcedures = {
 	list: os.use(dbWithAuth).handler(async ({ context }) => {
@@ -74,6 +75,14 @@ export const organizationsProcedures = {
 			if (existingOrganization) {
 				throw new ORPCError("CONFLICT", {
 					message: "A organization with this name already exists",
+				});
+			}
+
+			// Check if name is available (not taken by user or organization)
+			const isAvailable = await checkNamespaceAvailable(db, input.name);
+			if (!isAvailable) {
+				throw new ORPCError("CONFLICT", {
+					message: "Organization name is already taken",
 				});
 			}
 

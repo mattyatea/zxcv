@@ -126,7 +126,7 @@
           <NuxtLink
             v-for="rule in rules"
             :key="rule.id"
-            :to="`/rules/${rule.id}`"
+            :to="`/rules/@${organization.name}/${rule.name}`"
             class="card-hover"
           >
             <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ rule.name }}</h3>

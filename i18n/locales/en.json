@@ -355,6 +355,7 @@
     "form": {
       "name": "Rule name",
       "nameHint": "Only letters, numbers, underscores, and hyphens allowed",
+      "namePlaceholder": "my-coding-rules",
       "organization": "Organization to post to (optional)",
       "urlPreview": "Your rule will be available at:",
       "description": "Description",
@@ -375,7 +376,8 @@
       },
       "organization": "Organization",
       "selectOrganization": "Select an organization",
-      "format": "Format"
+      "format": "Format",
+      "basicInfo": "Basic Information"
     },
     "messages": {
       "created": "Rule created successfully",
@@ -383,6 +385,8 @@
       "deleted": "Rule deleted successfully",
       "deleteConfirm": "Are you sure you want to delete this rule?",
       "createError": "Failed to create rule",
+      "updateSuccess": "Rule updated successfully",
+      "updateError": "Failed to update rule",
       "copied": "Rule copied",
       "copyError": "Failed to copy",
       "contentCopied": "Rule content copied",
@@ -400,6 +404,17 @@
       "backToList": "Back to rules",
       "versionHistory": "Version History",
       "relatedRules": "Related Rules"
+    },
+    "edit": {
+      "title": "Edit Rule",
+      "notOwner": "You don't have permission to edit this rule",
+      "fetchError": "Failed to fetch rule",
+      "changeLog": "Change Log",
+      "changeLogPlaceholder": "Describe what you changed (e.g., Fixed typos, Added new examples)",
+      "showPreview": "Show Preview",
+      "hidePreview": "Hide Preview",
+      "update": "Update Rule",
+      "unsavedChanges": "You have unsaved changes"
     }
   },
   "organizations": {

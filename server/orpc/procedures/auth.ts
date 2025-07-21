@@ -4,6 +4,7 @@ import { os } from "~/server/orpc";
 import { dbProvider } from "~/server/orpc/middleware/db";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 import { createJWT } from "~/server/utils/jwt";
+import { checkNamespaceAvailable } from "~/server/utils/namespace";
 import { createOAuthProviders, generateCodeVerifier, generateState } from "~/server/utils/oauth";
 
 export const authProcedures = {
@@ -32,11 +33,21 @@ export const authProcedures = {
 				throw new ORPCError("CONFLICT", { message: "User already exists" });
 			}
 
+			// Check if username is available (not taken by user or organization)
+			const isAvailable = await checkNamespaceAvailable(db, username.toLowerCase());
+			if (!isAvailable) {
+				throw new ORPCError("CONFLICT", {
+					message: "Username is already taken",
+				});
+			}
+
 			const hashedPassword = await hashPassword(password);
 			const { generateId } = await import("~/server/utils/crypto");
+			const userId = generateId();
+
 			const user = await db.user.create({
 				data: {
-					id: generateId(),
+					id: userId,
 					username: username.toLowerCase(),
 					email: email.toLowerCase(),
 					passwordHash: hashedPassword,

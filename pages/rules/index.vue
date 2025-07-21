@@ -304,7 +304,8 @@ const getRuleUrl = (rule: Rule) => {
 	if (rule.organization) {
 		return `/rules/@${rule.organization.name}/${rule.name}`;
 	}
-	return `/rules/${rule.id}`;
+	// User rules
+	return `/rules/@${rule.author.username}/${rule.name}`;
 };
 
 let searchTimeout: NodeJS.Timeout;

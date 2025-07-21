@@ -1,7 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <div class="container-lg py-8">
-      
       <!-- ローディング -->
       <div v-if="loading" class="max-w-4xl mx-auto">
         <div class="skeleton h-10 w-2/3 mb-4"></div>
@@ -16,7 +15,7 @@
       <!-- エラー -->
       <div v-else-if="error" class="text-center py-12">
         <p class="text-danger mb-4">{{ error }}</p>
-        <NuxtLink :to="`/rules/${ruleId}`">
+        <NuxtLink :to="getRuleUrl()">
           <CommonButton variant="ghost">
             {{ $t('common.back') }}
           </CommonButton>
@@ -120,7 +119,7 @@
           </CommonCard>
 
           <div class="flex justify-end gap-3 mt-8">
-            <NuxtLink :to="`/rules/${ruleId}`">
+            <NuxtLink :to="getRuleUrl()">
               <CommonButton type="button" variant="ghost">
                 {{ $t('common.cancel') }}
               </CommonButton>
@@ -147,7 +146,8 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 
-console.log("Edit Rule Page Loaded");
+console.log("Edit page loaded - /rules/@[owner]/[name]/edit.vue");
+
 interface Rule {
 	id: string;
 	name: string;
@@ -175,12 +175,22 @@ const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const { success: toastSuccess, error: toastError } = useToast();
 
-// Get custom route params if provided by parent
+// Get route params from parent component or custom provider
 interface CustomRouteParams {
+	owner?: string;
+	name?: string;
 	id?: string;
 }
 const customParams = inject<CustomRouteParams | null>("customRouteParams", null);
-const ruleId = computed(() => customParams?.id || route.params.id);
+const routeParams = computed(() => {
+	if (customParams) {
+		return customParams;
+	}
+	return {
+		owner: route.params.owner,
+		name: route.params.name,
+	};
+});
 
 const loading = ref(false);
 const submitting = ref(false);
@@ -240,24 +250,50 @@ const contentChanged = computed(() => {
 	return rule.value && form.content !== rule.value.content;
 });
 
+const getRuleUrl = () => {
+	if (!rule.value) {
+		return "/rules";
+	}
+
+	if (rule.value.organization) {
+		return `/rules/@${rule.value.organization.name}/${rule.value.name}`;
+	}
+	return `/rules/@${rule.value.author.username}/${rule.value.name}`;
+};
+
 const fetchRule = async () => {
 	loading.value = true;
 	error.value = "";
 
 	try {
-		const id = ruleId.value as string;
+		const owner = routeParams.value.owner as string;
+		const ruleName = routeParams.value.name as string;
 
-		// ルールの詳細を取得
-		const data = await $rpc.rules.get({ id });
+		// Fetch rule by path (@owner/rulename format)
+		const path = `@${owner}/${ruleName}`;
+		const data = await $rpc.rules.getByPath({ path });
 
 		// オーナーでない場合はアクセス拒否
 		if (data.author.id !== user.value?.id) {
-			error.value = t("rules.edit.notOwner");
-			return;
+			// 組織のルールの場合、メンバーかどうかチェック
+			if (data.organization) {
+				const isMember = await $rpc.organizations
+					.members({ organizationId: data.organization.id })
+					.then((members) => members.some((m) => m.id === user.value?.id))
+					.catch(() => false);
+
+				if (!isMember) {
+					error.value = t("rules.edit.notOwner");
+					return;
+				}
+			} else {
+				error.value = t("rules.edit.notOwner");
+				return;
+			}
 		}
 
 		// コンテンツを取得
-		const contentData = await $rpc.rules.getContent({ id });
+		const contentData = await $rpc.rules.getContent({ id: data.id });
 
 		rule.value = {
 			id: data.id,
@@ -331,12 +367,7 @@ const handleSubmit = async () => {
 		});
 
 		toastSuccess(t("rules.messages.updateSuccess"));
-
-		// Redirect to the rule detail page
-		const redirectUrl = rule.value.organization
-			? `/rules/@${rule.value.organization.name}/${form.name}`
-			: `/rules/@${rule.value.author.username}/${form.name}`;
-		await router.push(redirectUrl);
+		await router.push(getRuleUrl());
 	} catch (error) {
 		console.error("Failed to update rule:", error);
 		toastError(t("rules.messages.updateError"));
@@ -346,6 +377,8 @@ const handleSubmit = async () => {
 };
 
 onMounted(() => {
+	console.log("Edit page mounted with params:", routeParams.value);
+
 	if (!user.value) {
 		router.push("/login");
 		return;

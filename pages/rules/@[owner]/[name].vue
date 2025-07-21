@@ -26,12 +26,6 @@
                   </svg>
                   {{ rule.author.username }}
                 </span>
-                <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  @{{ rule.organization.name }}
-                </span>
                 <span>v{{ rule.version }}</span>
                 <span>{{ formatDate(rule.updated_at) }}</span>
                 <span
@@ -48,18 +42,17 @@
             </div>
             
             <div class="flex items-center gap-2">
-              <CommonButton
-                v-if="isOwner"
-                :tag="NuxtLink"
-                :to="`/rules/${rule.id}/edit`"
-                variant="ghost"
-                size="sm"
-              >
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                {{ $t('rules.actions.edit') }}
-              </CommonButton>
+              <NuxtLink v-if="isOwner" :to="`/rules/@${owner}/${name}/edit`">
+                <CommonButton
+                  variant="ghost"
+                  size="sm"
+                >
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  {{ $t('rules.actions.edit') }}
+                </CommonButton>
+              </NuxtLink>
               <CommonButton
                 variant="primary"
                 size="sm"
@@ -144,11 +137,11 @@
             <NuxtLink
               v-for="related in relatedRules"
               :key="related.id"
-              :to="getRelatedRuleUrl(related)"
+              :to="getRuleUrl(related)"
               class="card-hover"
             >
               <h3 class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ related.name }}</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">by {{ related.author.username }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">by {{ related.organization ? '@' + related.organization.name : related.author.username }}</p>
             </NuxtLink>
           </div>
         </div>
@@ -169,7 +162,7 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 
@@ -191,7 +184,7 @@ interface Rule {
 	content: string;
 	visibility: "public" | "private" | "organization";
 	author: Author;
-	organization: Organization;
+	organization?: Organization;
 	tags: string[];
 	version: string;
 	updated_at: number;
@@ -216,20 +209,22 @@ const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const { success: toastSuccess, error: toastError } = useToast();
 
+// Get route params from parent component or directly from route
+interface CustomRouteParams {
+	owner?: string;
+	name?: string;
+}
+const customParams = inject<CustomRouteParams | null>("customRouteParams", null);
+const owner = computed(() => customParams?.owner || route.params.owner);
+const name = computed(() => customParams?.name || route.params.name);
+
 const fetchRuleDetails = async () => {
 	loading.value = true;
 	try {
-		const orgName = route.params.org as string;
-		const ruleName = route.params.rule as string;
+		const path = `@${owner.value}/${name.value}`;
 
-		// Remove @ prefix if present
-		const cleanOrgName = orgName.startsWith("@") ? orgName.substring(1) : orgName;
-
-		// Fetch rule by organization and rule name
-		const data = await $rpc.rules.getByOrgAndName({
-			organizationName: cleanOrgName,
-			ruleName,
-		});
+		// Fetch rule details by path
+		const data = await $rpc.rules.getByPath({ path });
 
 		// Fetch content
 		const contentData = await $rpc.rules.getContent({ id: data.id });
@@ -314,11 +309,12 @@ const copyContent = async () => {
 	}
 };
 
-const getRelatedRuleUrl = (related: Rule) => {
-	if (related.organization) {
-		return `/@${related.organization.name}/${related.name}`;
+const getRuleUrl = (rule: { name: string; author: Author; organization?: Organization }) => {
+	if (rule.organization) {
+		return `/rules/@${rule.organization.name}/${rule.name}`;
 	}
-	return `/rules/${related.id}`;
+	// User rules
+	return `/rules/@${rule.author.username}/${rule.name}`;
 };
 
 onMounted(() => {

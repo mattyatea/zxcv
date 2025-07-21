@@ -7,7 +7,7 @@
     <div class="relative">
       <textarea
         :id="id"
-        v-model="modelValue"
+        :value="modelValue"
         :placeholder="placeholder"
         :rows="rows"
         :disabled="disabled"
