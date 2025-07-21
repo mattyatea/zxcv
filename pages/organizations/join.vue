@@ -4,7 +4,7 @@
       <!-- ローディング -->
       <div v-if="loading" class="text-center">
         <CommonLoadingSpinner size="lg" />
-        <p class="mt-4 text-gray-600 dark:text-gray-400">招待を確認しています...</p>
+        <p class="mt-4 text-gray-600 dark:text-gray-400">{{ $t('organizations.join.verifying') }}</p>
       </div>
 
       <!-- エラー -->
@@ -15,12 +15,12 @@
           </svg>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          招待の確認に失敗しました
+          {{ $t('organizations.join.failed') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">{{ error }}</p>
-        <NuxtLink to="/teams">
+        <NuxtLink to="/organizations">
           <CommonButton variant="primary">
-            チーム一覧へ
+            {{ $t('organizations.join.backToOrganizations') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -33,14 +33,14 @@
           </svg>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          チームに参加しました！
+          {{ $t('organizations.join.joined') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
-          {{ team?.displayName || team?.name }}チームへようこそ
+          {{ organization?.displayName || organization?.name }} {{ $t('organizations.join.welcome') }}
         </p>
-        <NuxtLink :to="`/teams/${team?.id}`">
+        <NuxtLink :to="`/organizations/${organization?.id}`">
           <CommonButton variant="primary">
-            チームページへ
+            {{ $t('organizations.join.goToOrganization') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -53,14 +53,14 @@
           </svg>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          ログインが必要です
+          {{ $t('organizations.join.loginRequired') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
-          チームに参加するにはログインが必要です
+          {{ $t('organizations.join.loginToJoin') }}
         </p>
-        <NuxtLink :to="`/login?redirect=/teams/join?token=${token}`">
+        <NuxtLink :to="`/login?redirect=/organizations/join?token=${token}`">
           <CommonButton variant="primary">
-            ログイン
+            {{ $t('organizations.join.login') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -73,12 +73,13 @@ import { onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 
-interface Team {
+interface Organization {
 	id: string;
 	name: string;
 	displayName?: string;
 }
 
+const { t } = useI18n();
 const route = useRoute();
 const { $rpc } = useNuxtApp();
 const authStore = useAuthStore();
@@ -88,12 +89,12 @@ const { error: toastError } = useToast();
 const loading = ref(false);
 const error = ref("");
 const success = ref(false);
-const team = ref<Team | null>(null);
+const organization = ref<Organization | null>(null);
 const token = computed(() => route.query.token as string);
 
 const acceptInvitation = async () => {
 	if (!token.value) {
-		error.value = "招待トークンが見つかりません";
+		error.value = t("organizations.join.noToken");
 		return;
 	}
 
@@ -101,14 +102,14 @@ const acceptInvitation = async () => {
 	error.value = "";
 
 	try {
-		const response = await $rpc.teams.acceptInvitation({
+		const response = await $rpc.organizations.acceptInvitation({
 			token: token.value,
 		});
 
 		success.value = true;
-		team.value = response.team;
+		organization.value = response.organization;
 	} catch (err) {
-		const errorMessage = err instanceof Error ? err.message : "招待の確認に失敗しました";
+		const errorMessage = err instanceof Error ? err.message : t("organizations.join.failed");
 		error.value = errorMessage;
 		toastError(errorMessage);
 	} finally {

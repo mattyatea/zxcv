@@ -210,25 +210,17 @@ export const authProcedures = {
 		)
 		.handler(async ({ input, context }) => {
 			const { token } = input;
-			const { db } = context;
+			const { db, env } = context;
+			const { EmailVerificationService } = await import("~/server/services/emailVerification");
 
-			const verificationToken = await db.emailVerification.findUnique({
-				where: { token },
-				include: { user: true },
-			});
+			const emailVerificationService = new EmailVerificationService(db, env);
+			const result = await emailVerificationService.verifyEmail(token);
 
-			if (!verificationToken || verificationToken.expiresAt < Date.now()) {
-				throw new ORPCError("BAD_REQUEST", { message: "Invalid or expired verification token" });
+			if (!result.success) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: result.message || "Invalid or expired verification token",
+				});
 			}
-
-			await db.user.update({
-				where: { id: verificationToken.user.id },
-				data: { emailVerified: true },
-			});
-
-			await db.emailVerification.delete({
-				where: { token },
-			});
 
 			return {
 				success: true,

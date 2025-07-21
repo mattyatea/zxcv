@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS rules (
     name TEXT NOT NULL,
     org TEXT,
     user_id TEXT NOT NULL,
-    visibility TEXT NOT NULL CHECK (visibility IN ('public', 'private', 'team')),
+    visibility TEXT NOT NULL CHECK (visibility IN ('public', 'private', 'organization')),
     description TEXT,
     tags TEXT, -- JSON array stored as text
     created_at INTEGER NOT NULL DEFAULT (unixepoch()),

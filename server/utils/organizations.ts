@@ -1,23 +1,23 @@
 import type { PrismaClient } from "@prisma/client";
 
-export interface TeamMember {
+export interface OrganizationMember {
 	id: string;
-	teamId: string;
+	organizationId: string;
 	userId: string;
 	role: "owner" | "admin" | "member" | "viewer";
 	joinedAt: number;
 }
 
-export async function checkTeamMembership(
+export async function checkOrganizationMembership(
 	prisma: PrismaClient,
 	userId: string,
-	teamId: string,
-): Promise<TeamMember | null> {
-	const member = await prisma.teamMember.findUnique({
+	organizationId: string,
+): Promise<OrganizationMember | null> {
+	const member = await prisma.organizationMember.findUnique({
 		where: {
 			// biome-ignore lint/style/useNamingConvention: Prisma generated composite key
-			teamId_userId: {
-				teamId,
+			organizationId_userId: {
+				organizationId,
 				userId,
 			},
 		},
@@ -29,45 +29,45 @@ export async function checkTeamMembership(
 
 	return {
 		id: member.id,
-		teamId: member.teamId,
+		organizationId: member.organizationId,
 		userId: member.userId,
 		role: member.role as "owner" | "admin" | "member" | "viewer",
 		joinedAt: member.joinedAt,
 	};
 }
 
-export async function canViewTeamRule(
+export async function canViewOrganizationRule(
 	prisma: PrismaClient,
 	userId: string,
-	teamId: string,
+	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkTeamMembership(prisma, userId, teamId);
+	const member = await checkOrganizationMembership(prisma, userId, organizationId);
 	return member !== null;
 }
 
-export async function canEditTeamRule(
+export async function canEditOrganizationRule(
 	prisma: PrismaClient,
 	userId: string,
-	teamId: string,
+	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkTeamMembership(prisma, userId, teamId);
+	const member = await checkOrganizationMembership(prisma, userId, organizationId);
 	return member !== null && ["owner", "admin", "member"].includes(member.role);
 }
 
-export async function canDeleteTeamRule(
+export async function canDeleteOrganizationRule(
 	prisma: PrismaClient,
 	userId: string,
-	teamId: string,
+	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkTeamMembership(prisma, userId, teamId);
+	const member = await checkOrganizationMembership(prisma, userId, organizationId);
 	return member !== null && ["owner", "admin"].includes(member.role);
 }
 
-export async function isTeamOwner(
+export async function isOrganizationOwner(
 	prisma: PrismaClient,
 	userId: string,
-	teamId: string,
+	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkTeamMembership(prisma, userId, teamId);
+	const member = await checkOrganizationMembership(prisma, userId, organizationId);
 	return member !== null && member.role === "owner";
 }

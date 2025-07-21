@@ -19,18 +19,18 @@
       </div>
 
       <!-- チーム詳細 -->
-      <div v-else-if="team">
+      <div v-else-if="organization">
         <!-- ヘッダー -->
         <div class="flex items-start justify-between mb-8">
           <div>
             <div class="flex items-center gap-3 mb-2">
               <div class="w-16 h-16 bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl">
-                {{ team.name[0].toUpperCase() }}
+                {{ organization.name[0].toUpperCase() }}
               </div>
               <div>
-                <h1 class="heading-1">{{ team.name }}</h1>
+                <h1 class="heading-1">{{ organization.name }}</h1>
                 <p class="text-gray-600 dark:text-gray-400">
-                  {{ team.description || 'チームの説明はありません' }}
+                  {{ organization.description || $t('organizations.noDescription') }}
                 </p>
               </div>
             </div>
@@ -38,7 +38,7 @@
           
           <div class="flex items-center gap-2">
             <CommonButton
-              v-if="team.role === 'owner'"
+              v-if="organization.role === 'owner'"
               variant="ghost"
               size="sm"
             >
@@ -46,14 +46,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              設定
+              {{ $t('organizations.detail.settings') }}
             </CommonButton>
             <CommonButton
-              v-if="team.role === 'member'"
+              v-if="organization.role === 'member'"
               variant="danger"
               size="sm"
             >
-              チームを離れる
+              {{ $t('organizations.detail.leaveOrganization') }}
             </CommonButton>
           </div>
         </div>
@@ -63,8 +63,8 @@
           <div class="card">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">メンバー</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ team.memberCount }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.members') }}</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ organization.memberCount }}</p>
               </div>
               <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -75,8 +75,8 @@
           <div class="card">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">ルール</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ team.ruleCount }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.rules') }}</p>
+                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ organization.ruleCount }}</p>
               </div>
               <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -87,9 +87,9 @@
           <div class="card">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">作成日</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.createdAt') }}</p>
                 <p class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                  {{ new Date(team.createdAt).toLocaleDateString('ja-JP') }}
+                  {{ new Date(organization.createdAt).toLocaleDateString('ja-JP') }}
                 </p>
               </div>
               <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@
         <!-- タブコンテンツ -->
         <div v-if="activeTab === 'rules'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div v-if="rules.length === 0" class="col-span-full text-center py-12">
-            <p class="text-gray-600 dark:text-gray-400">まだルールがありません</p>
+            <p class="text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.noRules') }}</p>
           </div>
           <NuxtLink
             v-for="rule in rules"
@@ -154,16 +154,16 @@
               </div>
             </div>
             <span class="badge" :class="member.role === 'owner' ? 'badge-primary' : 'badge-gray'">
-              {{ member.role === 'owner' ? 'オーナー' : 'メンバー' }}
+              {{ member.role === 'owner' ? $t('organizations.owner') : $t('organizations.member') }}
             </span>
           </div>
           
-          <div v-if="team.role === 'owner'" class="mt-6">
+          <div v-if="organization.role === 'owner'" class="mt-6">
             <CommonButton variant="ghost" class="w-full">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
-              メンバーを招待
+              {{ $t('organizations.detail.inviteMembers') }}
             </CommonButton>
           </div>
         </div>
@@ -171,10 +171,10 @@
 
       <!-- エラー -->
       <div v-else class="text-center py-12">
-        <p class="text-gray-600 dark:text-gray-400">チームが見つかりませんでした</p>
-        <NuxtLink to="/teams">
+        <p class="text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.notFound') }}</p>
+        <NuxtLink to="/organizations">
           <CommonButton variant="ghost" class="mt-4">
-            チーム一覧に戻る
+            {{ $t('organizations.detail.backToList') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -185,7 +185,11 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 
-interface Team {
+definePageMeta({
+	middleware: "auth",
+});
+
+interface Organization {
 	id: string;
 	name: string;
 	description?: string;
@@ -210,56 +214,57 @@ interface Member {
 	role: "owner" | "member";
 }
 
+const { t } = useI18n();
 const route = useRoute();
 const { $rpc } = useNuxtApp();
 const loading = ref(false);
-const team = ref<Team | null>(null);
+const organization = ref<Organization | null>(null);
 const rules = ref<Rule[]>([]);
 const members = ref<Member[]>([]);
 const activeTab = ref("rules");
 
 const tabs = [
-	{ id: "rules", label: "ルール" },
-	{ id: "members", label: "メンバー" },
+	{ id: "rules", label: t("organizations.detail.rules") },
+	{ id: "members", label: t("organizations.detail.members") },
 ];
 
-const fetchTeamDetails = async () => {
+const fetchOrganizationDetails = async () => {
 	loading.value = true;
 	try {
-		const teamId = route.params.id as string;
+		const organizationId = route.params.id as string;
 
-		// Fetch team details
-		const teamData = await $rpc.teams.get({ id: teamId });
-		team.value = teamData;
+		// Fetch organization details
+		const organizationData = await $rpc.organizations.get({ id: organizationId });
+		organization.value = organizationData;
 
 		// Fetch rules if on rules tab
 		if (activeTab.value === "rules") {
-			const rulesData = await $rpc.teams.rules({ teamId });
+			const rulesData = await $rpc.organizations.rules({ organizationId });
 			rules.value = rulesData;
 		}
 
 		// Fetch members if on members tab
 		if (activeTab.value === "members") {
-			const membersData = await $rpc.teams.members({ teamId });
+			const membersData = await $rpc.organizations.members({ organizationId });
 			members.value = membersData;
 		}
 	} catch (error) {
-		console.error("Failed to fetch team details:", error);
-		team.value = null;
+		console.error("Failed to fetch organization details:", error);
+		organization.value = null;
 	} finally {
 		loading.value = false;
 	}
 };
 
 const fetchTabData = async (tab: string) => {
-	const teamId = route.params.id as string;
+	const organizationId = route.params.id as string;
 
 	try {
 		if (tab === "rules" && rules.value.length === 0) {
-			const rulesData = await $rpc.teams.rules({ teamId });
+			const rulesData = await $rpc.organizations.rules({ organizationId });
 			rules.value = rulesData;
 		} else if (tab === "members" && members.value.length === 0) {
-			const membersData = await $rpc.teams.members({ teamId });
+			const membersData = await $rpc.organizations.members({ organizationId });
 			members.value = membersData;
 		}
 	} catch (error) {
@@ -272,6 +277,6 @@ watch(activeTab, (newTab) => {
 });
 
 onMounted(() => {
-	fetchTeamDetails();
+	fetchOrganizationDetails();
 });
 </script>

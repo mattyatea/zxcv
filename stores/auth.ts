@@ -1,8 +1,18 @@
+import type { createORPCClient } from "@orpc/client";
 import { defineStore } from "pinia";
-import type { User } from "~/server/types/models";
+import type { Router } from "~/server/orpc/router";
+
+type RPCClient = ReturnType<typeof createORPCClient<Router>>;
+
+interface AuthUser {
+	id: string;
+	email: string;
+	username: string;
+	emailVerified: boolean;
+}
 
 interface AuthState {
-	user: User | null;
+	user: AuthUser | null;
 	accessToken: string | null;
 	refreshToken: string | null;
 	isLoading: boolean;
@@ -22,7 +32,7 @@ interface RegisterData {
 
 export const useAuthStore = defineStore("auth", () => {
 	// State
-	const user = ref<User | null>(null);
+	const user = ref<AuthUser | null>(null);
 	const accessToken = ref<string | null>(null);
 	const refreshToken = ref<string | null>(null);
 	const isLoading = ref(false);
@@ -57,7 +67,8 @@ export const useAuthStore = defineStore("auth", () => {
 	const login = async (credentials: LoginCredentials) => {
 		isLoading.value = true;
 		try {
-			const { $rpc } = useNuxtApp() as any;
+			const nuxtApp = useNuxtApp();
+			const $rpc = nuxtApp.$rpc as RPCClient;
 			const response = await $rpc.auth.login({
 				email: credentials.email,
 				password: credentials.password,
@@ -88,7 +99,8 @@ export const useAuthStore = defineStore("auth", () => {
 	const register = async (data: RegisterData) => {
 		isLoading.value = true;
 		try {
-			const { $rpc } = useNuxtApp() as any;
+			const nuxtApp = useNuxtApp();
+			const $rpc = nuxtApp.$rpc as RPCClient;
 			const response = await $rpc.auth.register(data);
 
 			// After successful registration, log the user in
@@ -98,8 +110,6 @@ export const useAuthStore = defineStore("auth", () => {
 			});
 
 			return response;
-		} catch (error) {
-			throw error;
 		} finally {
 			isLoading.value = false;
 		}
@@ -128,8 +138,9 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 
 		try {
-			const { $rpc } = useNuxtApp() as any;
-			const response = await $rpc.auth.refreshToken({
+			const nuxtApp = useNuxtApp();
+			const $rpc = nuxtApp.$rpc as RPCClient;
+			const response = await $rpc.auth.refresh({
 				refreshToken: refreshToken.value,
 			});
 
@@ -157,9 +168,15 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 
 		try {
-			const { $rpc } = useNuxtApp() as any;
-			const response = await $rpc.users.me();
-			user.value = response;
+			const nuxtApp = useNuxtApp();
+			const $rpc = nuxtApp.$rpc as RPCClient;
+			const response = await $rpc.users.settings();
+			user.value = {
+				id: response.id,
+				email: response.email,
+				username: response.username,
+				emailVerified: response.email_verified,
+			};
 
 			// Update localStorage
 			if (process.client) {
@@ -173,8 +190,10 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 	};
 
-	const updateUser = (updatedUser: Partial<User>) => {
-		if (!user.value) return;
+	const updateUser = (updatedUser: Partial<AuthUser>) => {
+		if (!user.value) {
+			return;
+		}
 
 		// Update user data
 		user.value = {
@@ -191,7 +210,7 @@ export const useAuthStore = defineStore("auth", () => {
 	const setAuthData = async (data: {
 		accessToken: string;
 		refreshToken: string;
-		user: User;
+		user: AuthUser;
 	}) => {
 		// Update state
 		accessToken.value = data.accessToken;

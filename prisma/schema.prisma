@@ -34,15 +34,15 @@ model User {
 
   rules         Rule[]
   ruleVersions  RuleVersion[]
-  ownedTeams    Team[]
-  teamMembers   TeamMember[]
+  ownedOrganizations    Organization[]
+  organizationMembers   OrganizationMember[]
   apiKeys       ApiKey[]
   ruleStars     RuleStar[]
   ruleDownloads RuleDownload[]
   passwordResets PasswordReset[]
   emailVerifications EmailVerification[]
   oauthAccounts OAuthAccount[]
-  teamInvitations TeamInvitation[] @relation("inviter")
+  organizationInvitations OrganizationInvitation[] @relation("inviter")
 
   @@index([email])
   @@index([username])
@@ -64,10 +64,10 @@ model Rule {
   latestVersionId String? @map("latest_version_id")
   downloads       Int     @default(0)
   stars           Int     @default(0)
-  teamId          String? @map("team_id")
+  organizationId  String? @map("organization_id")
 
   user          User           @relation(fields: [userId], references: [id])
-  team          Team?          @relation(fields: [teamId], references: [id])
+  organization  Organization?  @relation(fields: [organizationId], references: [id])
   versions      RuleVersion[]
   starredBy     RuleStar[]
   downloadedBy  RuleDownload[]
@@ -78,7 +78,7 @@ model Rule {
   @@index([org])
   @@index([name])
   @@index([updatedAt])
-  @@index([teamId])
+  @@index([organizationId])
   @@map("rules")
 }
 
@@ -101,7 +101,7 @@ model RuleVersion {
   @@map("rule_versions")
 }
 
-model Team {
+model Organization {
   id          String  @id
   name        String  @unique
   displayName String  @map("display_name")
@@ -111,29 +111,29 @@ model Team {
   updatedAt   Int     @default(dbgenerated("(unixepoch())")) @map("updated_at")
 
   owner   User         @relation(fields: [ownerId], references: [id])
-  members TeamMember[]
+  members OrganizationMember[]
   rules   Rule[]
-  invitations TeamInvitation[]
+  invitations OrganizationInvitation[]
 
   @@index([name])
   @@index([ownerId])
-  @@map("teams")
+  @@map("organizations")
 }
 
-model TeamMember {
+model OrganizationMember {
   id       String @id
-  teamId   String @map("team_id")
+  organizationId   String @map("organization_id")
   userId   String @map("user_id")
   role     String
   joinedAt Int    @default(dbgenerated("(unixepoch())")) @map("joined_at")
 
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
 
-  @@unique([teamId, userId])
-  @@index([teamId])
+  @@unique([organizationId, userId])
+  @@index([organizationId])
   @@index([userId])
-  @@map("team_members")
+  @@map("organization_members")
 }
 
 model RateLimit {
@@ -257,21 +257,21 @@ model OAuthState {
   @@map("oauth_states")
 }
 
-model TeamInvitation {
+model OrganizationInvitation {
   id         String @id
-  teamId     String @map("team_id")
+  organizationId     String @map("organization_id")
   email      String
   token      String @unique
   invitedBy  String @map("invited_by")
   expiresAt  Int    @map("expires_at")
   createdAt  Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
 
-  team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   inviter User @relation("inviter", fields: [invitedBy], references: [id], onDelete: Cascade)
 
   @@index([token])
-  @@index([teamId])
+  @@index([organizationId])
   @@index([email])
   @@index([expiresAt])
-  @@map("team_invitations")
+  @@map("organization_invitations")
 }

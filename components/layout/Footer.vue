@@ -12,7 +12,7 @@
             <span class="text-2xl font-bold text-gray-900 dark:text-white">zxcv</span>
           </div>
           <p class="text-gray-600 dark:text-gray-400 text-sm">
-            AIコーディングルールを共有・管理・活用するプラットフォーム
+            {{ $t('footer.tagline') }}
           </p>
           
           <!-- Social links -->
@@ -50,87 +50,93 @@
         <!-- Product -->
         <div>
           <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-            プロダクト
+            {{ $t('footer.product') }}
           </h3>
           <ul class="space-y-3">
+            <!-- TODO: 以下のページを実装後に有効化
             <li>
               <NuxtLink to="/features" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                機能
+                {{ $t('footer.features') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/pricing" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                料金
+                {{ $t('footer.pricing') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/enterprise" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                エンタープライズ
+                {{ $t('footer.enterprise') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/changelog" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                更新履歴
+                {{ $t('footer.changelog') }}
               </NuxtLink>
             </li>
+            -->
           </ul>
         </div>
         
         <!-- Resources -->
         <div>
           <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-            リソース
+            {{ $t('footer.resources') }}
           </h3>
           <ul class="space-y-3">
+            <!-- TODO: 以下のページを実装後に有効化
             <li>
               <NuxtLink to="/docs" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                ドキュメント
+                {{ $t('footer.docs') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/api" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                API
+                {{ $t('footer.api') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/guides" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                ガイド
+                {{ $t('nav.guides') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/blog" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                ブログ
+                {{ $t('footer.blog') }}
               </NuxtLink>
             </li>
+            -->
           </ul>
         </div>
         
         <!-- Company -->
         <div>
           <h3 class="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-            会社情報
+            {{ $t('footer.company') }}
           </h3>
           <ul class="space-y-3">
+            <!-- TODO: 以下のページを実装後に有効化
             <li>
               <NuxtLink to="/about" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                会社概要
+                {{ $t('footer.aboutUs') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/careers" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                採用情報
+                {{ $t('footer.careers') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/contact" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                お問い合わせ
+                {{ $t('footer.contact') }}
               </NuxtLink>
             </li>
             <li>
               <NuxtLink to="/partners" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-                パートナー
+                {{ $t('footer.partners') }}
               </NuxtLink>
             </li>
+            -->
           </ul>
         </div>
       </div>
@@ -139,19 +145,21 @@
       <div class="pt-8 border-t border-gray-200 dark:border-gray-800">
         <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div class="text-sm text-gray-600 dark:text-gray-400">
-            © 2024 zxcv. All rights reserved.
+            {{ $t('footer.copyright') }}
           </div>
           
           <div class="flex items-center space-x-6 text-sm">
+            <!-- TODO: 以下のページを実装後に有効化
             <NuxtLink to="/privacy" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-              プライバシーポリシー
+              {{ $t('footer.privacy') }}
             </NuxtLink>
             <NuxtLink to="/terms" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-              利用規約
+              {{ $t('footer.terms') }}
             </NuxtLink>
             <NuxtLink to="/security" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
-              セキュリティ
+              {{ $t('footer.security') }}
             </NuxtLink>
+            -->
           </div>
         </div>
       </div>

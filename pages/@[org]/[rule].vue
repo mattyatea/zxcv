@@ -26,6 +26,12 @@
                   </svg>
                   {{ rule.author.username }}
                 </span>
+                <span class="flex items-center">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  @{{ rule.organization.name }}
+                </span>
                 <span>v{{ rule.version }}</span>
                 <span>{{ formatDate(rule.updated_at) }}</span>
                 <span
@@ -136,7 +142,7 @@
             <NuxtLink
               v-for="related in relatedRules"
               :key="related.id"
-              :to="`/rules/${related.id}`"
+              :to="getRelatedRuleUrl(related)"
               class="card-hover"
             >
               <h3 class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ related.name }}</h3>
@@ -170,6 +176,12 @@ interface Author {
 	username: string;
 }
 
+interface Organization {
+	id: string;
+	name: string;
+	displayName: string;
+}
+
 interface Rule {
 	id: string;
 	name: string;
@@ -177,6 +189,7 @@ interface Rule {
 	content: string;
 	visibility: "public" | "private" | "organization";
 	author: Author;
+	organization: Organization;
 	tags: string[];
 	version: string;
 	updated_at: number;
@@ -204,13 +217,20 @@ const { success: toastSuccess, error: toastError } = useToast();
 const fetchRuleDetails = async () => {
 	loading.value = true;
 	try {
-		const ruleId = route.params.id as string;
+		const orgName = route.params.org as string;
+		const ruleName = route.params.rule as string;
 
-		// Fetch rule details
-		const data = await $rpc.rules.get({ id: ruleId });
+		// Remove @ prefix if present
+		const cleanOrgName = orgName.startsWith("@") ? orgName.substring(1) : orgName;
+
+		// Fetch rule by organization and rule name
+		const data = await $rpc.rules.getByOrgAndName({
+			organizationName: cleanOrgName,
+			ruleName,
+		});
 
 		// Fetch content
-		const contentData = await $rpc.rules.getContent({ id: ruleId });
+		const contentData = await $rpc.rules.getContent({ id: data.id });
 
 		rule.value = {
 			id: data.id,
@@ -219,6 +239,7 @@ const fetchRuleDetails = async () => {
 			content: contentData.content,
 			visibility: data.visibility as "public" | "private" | "organization",
 			author: data.author,
+			organization: data.organization,
 			tags: data.tags || [],
 			version: data.version,
 			updated_at:
@@ -232,7 +253,7 @@ const fetchRuleDetails = async () => {
 
 		// Fetch version history
 		try {
-			const versionsData = await $rpc.rules.versions({ id: ruleId });
+			const versionsData = await $rpc.rules.versions({ id: data.id });
 			versions.value = versionsData;
 		} catch (error) {
 			console.error("Failed to fetch versions:", error);
@@ -240,7 +261,7 @@ const fetchRuleDetails = async () => {
 
 		// Fetch related rules
 		try {
-			const relatedData = await $rpc.rules.related({ id: ruleId });
+			const relatedData = await $rpc.rules.related({ id: data.id });
 			relatedRules.value = relatedData;
 		} catch (error) {
 			console.error("Failed to fetch related rules:", error);
@@ -289,6 +310,13 @@ const copyContent = async () => {
 		console.error("Failed to copy content:", error);
 		toastError(t("rules.messages.copyError"));
 	}
+};
+
+const getRelatedRuleUrl = (related: Rule) => {
+	if (related.organization) {
+		return `/@${related.organization.name}/${related.name}`;
+	}
+	return `/rules/${related.id}`;
 };
 
 onMounted(() => {

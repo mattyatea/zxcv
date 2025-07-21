@@ -2,9 +2,9 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <div class="container-sm py-8">
       <div class="mb-8">
-        <h1 class="heading-1 mb-2">新しいチームを作成</h1>
+        <h1 class="heading-1 mb-2">{{ $t('organizations.createNewTeam') }}</h1>
         <p class="text-gray-600 dark:text-gray-400">
-          チームを作成してメンバーを招待しましょう
+          {{ $t('organizations.inviteAndCollaborate') }}
         </p>
       </div>
 
@@ -12,25 +12,25 @@
         <div class="space-y-6">
           <CommonInput
             v-model="form.name"
-            label="チーム名"
-            placeholder="例: Frontend Team"
+            :label="$t('organizations.form.name')"
+            :placeholder="$t('organizations.form.namePlaceholder')"
             required
             :error="errors.name"
           />
 
           <div class="form-group">
-            <label class="label">説明</label>
+            <label class="label">{{ $t('organizations.form.description') }}</label>
             <textarea
               v-model="form.description"
               class="input min-h-[100px]"
-              placeholder="チームの目的や活動内容を記載してください"
+              :placeholder="$t('organizations.form.descriptionPlaceholder')"
               rows="4"
             ></textarea>
           </div>
 
 
           <div class="form-group">
-            <label class="label">初期メンバーを招待（オプション）</label>
+            <label class="label">{{ $t('organizations.form.inviteMembers') }}</label>
             <div class="space-y-2">
               <div v-for="(email, index) in inviteEmails" :key="index" class="flex gap-2">
                 <CommonInput
@@ -59,16 +59,16 @@
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                メンバーを追加
+                {{ $t('organizations.form.addMember') }}
               </CommonButton>
             </div>
           </div>
         </div>
 
         <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
-          <NuxtLink to="/teams">
+          <NuxtLink to="/organizations">
             <CommonButton variant="ghost">
-              キャンセル
+              {{ $t('common.cancel') }}
             </CommonButton>
           </NuxtLink>
           <CommonButton
@@ -76,7 +76,7 @@
             variant="primary"
             :loading="submitting"
           >
-            チームを作成
+            {{ $t('organizations.createTeam') }}
           </CommonButton>
         </div>
       </form>
@@ -88,16 +88,21 @@
 import { ref } from "vue";
 import { useToast } from "~/composables/useToast";
 
-interface TeamForm {
+definePageMeta({
+	middleware: "auth",
+});
+
+interface OrganizationForm {
 	name: string;
 	description: string;
 }
 
-const form = ref<TeamForm>({
+const form = ref<OrganizationForm>({
 	name: "",
 	description: "",
 });
 
+const { t } = useI18n();
 const inviteEmails = ref<string[]>([""]);
 const errors = ref<Record<string, string>>({});
 const submitting = ref(false);
@@ -116,14 +121,20 @@ const validateForm = (): boolean => {
 	errors.value = {};
 
 	if (!form.value.name.trim()) {
-		errors.value.name = "チーム名は必須です";
+		errors.value.name = t("organizations.validation.nameRequired");
+		return false;
+	}
+
+	// Validate organization name format
+	if (!/^[a-zA-Z0-9-]+$/.test(form.value.name)) {
+		errors.value.name = t("organizations.validation.nameFormat");
 		return false;
 	}
 
 	// Validate emails
 	inviteEmails.value.forEach((email, index) => {
 		if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-			errors.value[`email_${index}`] = "有効なメールアドレスを入力してください";
+			errors.value[`email_${index}`] = t("organizations.validation.invalidEmail");
 		}
 	});
 
@@ -138,17 +149,17 @@ const handleSubmit = async () => {
 	submitting.value = true;
 	try {
 		const { $rpc } = useNuxtApp();
-		const data = await $rpc.teams.create({
+		const data = await $rpc.organizations.create({
 			name: form.value.name,
 			description: form.value.description,
 			inviteEmails: inviteEmails.value.filter((email) => email.trim()),
 		});
 
-		toastSuccess("チームを作成しました");
-		await navigateTo(`/teams/${data.id}`);
+		toastSuccess(t("organizations.messages.created"));
+		await navigateTo(`/organizations/${data.id}`);
 	} catch (error) {
-		console.error("Failed to create team:", error);
-		toastError("チームの作成に失敗しました");
+		console.error("Failed to create organization:", error);
+		toastError(t("organizations.messages.createError"));
 	} finally {
 		submitting.value = false;
 	}

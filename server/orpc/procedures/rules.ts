@@ -6,11 +6,91 @@ import {
 	dbWithEmailVerification,
 	dbWithOptionalAuth,
 } from "~/server/orpc/middleware/combined";
-import { dbProvider } from "~/server/orpc/middleware/db";
 
 export const rulesProcedures = {
+	getByOrgAndName: os
+		.use(dbWithOptionalAuth)
+		.input(
+			z.object({
+				organizationName: z.string(),
+				ruleName: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+
+			const rule = await db.rule.findFirst({
+				where: {
+					name: input.ruleName,
+					organization: {
+						name: input.organizationName,
+					},
+				},
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
+					},
+					organization: {
+						select: {
+							id: true,
+							name: true,
+							displayName: true,
+						},
+					},
+				},
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Check access permissions
+			if (rule.visibility === "private") {
+				// Private rules can only be accessed by:
+				// 1. The owner
+				// 2. Organization members if it's an organization rule
+				if (!user) {
+					throw new ORPCError("UNAUTHORIZED", {
+						message: "Authentication required for private rules",
+					});
+				}
+
+				// Check if user is the owner
+				if (rule.userId === user.id) {
+					// Owner can always access
+				} else if (rule.organizationId) {
+					// Check if user is a member of the organization
+					const isMember = await db.organizationMember.findFirst({
+						where: {
+							organizationId: rule.organizationId,
+							userId: user.id,
+						},
+					});
+
+					if (!isMember) {
+						throw new ORPCError("FORBIDDEN", {
+							message: "Access denied to private organization rule",
+						});
+					}
+				} else {
+					// Not owner and not an organization rule
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
+				}
+			}
+
+			return {
+				...rule,
+				author: rule.user,
+				tags: rule.tags ? JSON.parse(rule.tags) : [],
+			};
+		}),
+
 	search: os
-		.use(dbProvider)
+		.use(dbWithOptionalAuth)
 		.input(
 			z.object({
 				query: z.string().optional(),
@@ -23,18 +103,62 @@ export const rulesProcedures = {
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db } = context;
+			const { db, user } = context;
 
 			const where: Record<string, unknown> = {};
 
-			if (input.query) {
-				where.OR = [
-					{ name: { contains: input.query } },
-					{ description: { contains: input.query } },
+			// Filter out private rules unless user is logged in and searching for their own rules
+			if (!user) {
+				// Anonymous users can only see public rules
+				where.visibility = "public";
+			} else {
+				// Logged-in users can see:
+				// 1. Public rules
+				// 2. Their own private rules
+				// 3. Private rules from organizations they belong to
+				const orConditions: Record<string, unknown>[] = [
+					{ visibility: "public" },
+					{ AND: [{ visibility: "private" }, { userId: user.id }] },
 				];
+
+				// Get user's organizations
+				const userOrganizations = await db.organizationMember.findMany({
+					where: { userId: user.id },
+					select: { organizationId: true },
+				});
+
+				if (userOrganizations.length > 0) {
+					orConditions.push({
+						AND: [
+							{ visibility: "private" },
+							{ organizationId: { in: userOrganizations.map((org) => org.organizationId) } },
+						],
+					});
+				}
+
+				where.OR = orConditions;
+			}
+
+			if (input.query) {
+				// Add query conditions to existing OR conditions
+				if (where.OR) {
+					where.AND = [
+						{ OR: where.OR },
+						{
+							OR: [{ name: { contains: input.query } }, { description: { contains: input.query } }],
+						},
+					];
+					delete where.OR;
+				} else {
+					where.OR = [
+						{ name: { contains: input.query } },
+						{ description: { contains: input.query } },
+					];
+				}
 			}
 
 			if (input.visibility && input.visibility !== "all") {
+				// Override the visibility filter if explicitly requested
 				where.visibility = input.visibility;
 			}
 
@@ -79,6 +203,13 @@ export const rulesProcedures = {
 								email: true,
 							},
 						},
+						organization: {
+							select: {
+								id: true,
+								name: true,
+								displayName: true,
+							},
+						},
 					},
 				}),
 				db.rule.count({ where }),
@@ -90,6 +221,7 @@ export const rulesProcedures = {
 					author: rule.user,
 					updated_at: rule.updatedAt,
 					created_at: rule.createdAt,
+					tags: rule.tags ? JSON.parse(rule.tags) : [],
 				})),
 				total,
 				page: input.page,
@@ -117,7 +249,7 @@ export const rulesProcedures = {
 							email: true,
 						},
 					},
-					team: {
+					organization: {
 						select: {
 							id: true,
 							name: true,
@@ -133,27 +265,35 @@ export const rulesProcedures = {
 
 			// Check visibility permissions
 			if (rule.visibility === "private") {
-				// Private rules can only be accessed by the owner
-				if (!user || rule.userId !== user.id) {
-					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
-				}
-			} else if (rule.visibility === "team" && rule.teamId) {
-				// Team rules can only be accessed by team members or the owner
+				// Private rules can only be accessed by:
+				// 1. The owner
+				// 2. Organization members if it's an organization rule
 				if (!user) {
 					throw new ORPCError("UNAUTHORIZED", {
-						message: "Authentication required for team rules",
+						message: "Authentication required for private rules",
 					});
 				}
 
-				const isMember = await db.teamMember.findFirst({
-					where: {
-						teamId: rule.teamId,
-						userId: user.id,
-					},
-				});
+				// Check if user is the owner
+				if (rule.userId === user.id) {
+					// Owner can always access
+				} else if (rule.organizationId) {
+					// Check if user is a member of the organization
+					const isMember = await db.organizationMember.findFirst({
+						where: {
+							organizationId: rule.organizationId,
+							userId: user.id,
+						},
+					});
 
-				if (!isMember && rule.userId !== user.id) {
-					throw new ORPCError("FORBIDDEN", { message: "Access denied to team rule" });
+					if (!isMember) {
+						throw new ORPCError("FORBIDDEN", {
+							message: "Access denied to private organization rule",
+						});
+					}
+				} else {
+					// Not owner and not an organization rule
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
 				}
 			}
 			// Public rules can be accessed by anyone
@@ -163,6 +303,7 @@ export const rulesProcedures = {
 				author: rule.user,
 				updated_at: rule.updatedAt,
 				created_at: rule.createdAt,
+				tags: rule.tags ? JSON.parse(rule.tags) : [],
 			};
 		}),
 
@@ -176,45 +317,181 @@ export const rulesProcedures = {
 					.regex(/^[a-zA-Z0-9_-]*$/)
 					.optional(),
 				description: z.string().optional(),
-				visibility: z.enum(["public", "private", "team"]),
-				teamId: z.string().optional(),
+				visibility: z.enum(["public", "private"]),
+				organizationId: z.string().optional(),
 				tags: z.array(z.string()),
 				content: z.string(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db, user } = context;
+			const { db, user, env } = context;
 
-			// Check if rule name already exists
+			// Validate organization settings
+			let organizationId = input.organizationId;
+
+			// If posting to an organization, validate the organization and membership
+			if (input.org || input.organizationId) {
+				let organization: {
+					id: string;
+					name: string;
+					displayName: string;
+					description: string | null;
+					ownerId: string;
+					createdAt: number;
+					updatedAt: number;
+				} | null = null;
+
+				if (input.org) {
+					organization = await db.organization.findFirst({
+						where: { name: input.org },
+					});
+				} else if (input.organizationId) {
+					organization = await db.organization.findUnique({
+						where: { id: input.organizationId },
+					});
+				}
+
+				if (!organization) {
+					throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
+				}
+
+				// Check if user is a member of the organization
+				const isMember = await db.organizationMember.findFirst({
+					where: {
+						organizationId: organization.id,
+						userId: user.id,
+					},
+				});
+
+				if (!isMember) {
+					throw new ORPCError("FORBIDDEN", {
+						message: "You must be a member of the organization to post rules",
+					});
+				}
+
+				organizationId = organization.id;
+			} else {
+				// If no organization is specified, set organizationId to null
+				organizationId = undefined;
+			}
+
+			// Check if rule name already exists in the same context (user or organization)
 			const existingRule = await db.rule.findFirst({
-				where: {
-					name: input.name,
-					userId: user.id,
-				},
+				where: organizationId
+					? {
+							name: input.name,
+							organizationId: organizationId,
+						}
+					: {
+							name: input.name,
+							userId: user.id,
+							organizationId: null,
+						},
 			});
 
 			if (existingRule) {
 				throw new ORPCError("CONFLICT", { message: "A rule with this name already exists" });
 			}
 
-			const { generateId } = await import("~/server/utils/crypto");
-			const rule = await db.rule.create({
-				data: {
-					id: generateId(),
+			const { generateId, hashContent } = await import("~/server/utils/crypto");
+
+			// Generate IDs and hash content
+			const ruleId = generateId();
+			const versionId = generateId();
+			const contentHash = await hashContent(input.content);
+			const r2ObjectKey = `rules/${ruleId}/versions/${versionId}/content.md`;
+
+			// Store content in R2
+			try {
+				console.log("Attempting to store content in R2...");
+				console.log("R2 Object Key:", r2ObjectKey);
+				console.log("R2 Binding exists:", !!env.R2);
+
+				if (!env.R2) {
+					throw new Error("R2 binding not available");
+				}
+
+				await env.R2.put(r2ObjectKey, input.content);
+				console.log("Successfully stored content in R2");
+			} catch (error) {
+				console.error("Failed to store content in R2:", error);
+				console.error("Error details:", error instanceof Error ? error.message : error);
+				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to store content" });
+			}
+
+			// Create rule and version records
+			try {
+				console.log("Creating rule and version records...");
+				console.log("Rule data:", {
+					id: ruleId,
 					name: input.name,
 					org: input.org,
-					description: input.description,
 					visibility: input.visibility,
-					teamId: input.teamId,
-					tags: JSON.stringify(input.tags),
+					organizationId: organizationId,
 					userId: user.id,
-					version: "1.0.0",
-					createdAt: Math.floor(Date.now() / 1000),
-					updatedAt: Math.floor(Date.now() / 1000),
-				},
-			});
+				});
 
-			return { id: rule.id };
+				// Create the rule first (without latestVersionId to avoid foreign key constraint)
+				const rule = await db.rule.create({
+					data: {
+						id: ruleId,
+						name: input.name,
+						org: input.org,
+						description: input.description,
+						visibility: input.visibility,
+						organizationId: organizationId,
+						tags: JSON.stringify(input.tags),
+						userId: user.id,
+						version: "1.0.0",
+						latestVersionId: null,
+						createdAt: Math.floor(Date.now() / 1000),
+						updatedAt: Math.floor(Date.now() / 1000),
+					},
+				});
+
+				try {
+					// Create the initial version
+					const version = await db.ruleVersion.create({
+						data: {
+							id: versionId,
+							ruleId: ruleId,
+							versionNumber: "1.0.0",
+							contentHash,
+							r2ObjectKey,
+							createdBy: user.id,
+							changelog: null,
+							createdAt: Math.floor(Date.now() / 1000),
+						},
+					});
+
+					// Update the rule with the latestVersionId
+					await db.rule.update({
+						where: { id: ruleId },
+						data: { latestVersionId: versionId },
+					});
+
+					console.log("Rule and version created successfully");
+					return { id: rule.id };
+				} catch (versionError) {
+					// If version creation fails, delete the rule
+					console.error("Failed to create version, rolling back rule:", versionError);
+					await db.rule.delete({ where: { id: ruleId } });
+					throw versionError;
+				}
+			} catch (dbError) {
+				console.error("Database operation failed:", dbError);
+				console.error("Error details:", dbError instanceof Error ? dbError.message : dbError);
+
+				// Try to clean up R2 if database failed
+				try {
+					await env.R2.delete(r2ObjectKey);
+					console.log("Cleaned up R2 object after database failure");
+				} catch (cleanupError) {
+					console.error("Failed to clean up R2:", cleanupError);
+				}
+
+				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to create rule" });
+			}
 		}),
 
 	update: os
@@ -227,8 +504,8 @@ export const rulesProcedures = {
 					.regex(/^[a-zA-Z0-9_-]+$/)
 					.optional(),
 				description: z.string().optional(),
-				visibility: z.enum(["public", "private", "team"]).optional(),
-				teamId: z.string().optional(),
+				visibility: z.enum(["public", "private"]).optional(),
+				organizationId: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				content: z.string().optional(),
 			}),
@@ -238,10 +515,37 @@ export const rulesProcedures = {
 
 			const existingRule = await db.rule.findUnique({
 				where: { id: input.id },
+				include: {
+					organization: true,
+				},
 			});
 
-			if (!existingRule || existingRule.userId !== user.id) {
-				throw new ORPCError("FORBIDDEN", { message: "Rule not found or unauthorized" });
+			if (!existingRule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Check if user has permission to update
+			// 1. Owner can always update
+			// 2. Organization members can update organization rules
+			let canUpdate = false;
+
+			if (existingRule.userId === user.id) {
+				canUpdate = true;
+			} else if (existingRule.organizationId) {
+				const isMember = await db.organizationMember.findFirst({
+					where: {
+						organizationId: existingRule.organizationId,
+						userId: user.id,
+						role: { in: ["owner", "member"] }, // Allow both owners and members to update
+					},
+				});
+				canUpdate = !!isMember;
+			}
+
+			if (!canUpdate) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "You don't have permission to update this rule",
+				});
 			}
 
 			const { id, tags, ...updateData } = input;
@@ -272,8 +576,32 @@ export const rulesProcedures = {
 				where: { id: input.id },
 			});
 
-			if (!rule || rule.userId !== user.id) {
-				throw new ORPCError("FORBIDDEN", { message: "Rule not found or unauthorized" });
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Check if user has permission to delete
+			// 1. Owner can always delete
+			// 2. Organization owners can delete organization rules
+			let canDelete = false;
+
+			if (rule.userId === user.id) {
+				canDelete = true;
+			} else if (rule.organizationId) {
+				const isMember = await db.organizationMember.findFirst({
+					where: {
+						organizationId: rule.organizationId,
+						userId: user.id,
+						role: "owner", // Only organization owners can delete
+					},
+				});
+				canDelete = !!isMember;
+			}
+
+			if (!canDelete) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "You don't have permission to delete this rule",
+				});
 			}
 
 			await db.rule.delete({
@@ -293,6 +621,7 @@ export const rulesProcedures = {
 		)
 		.handler(async ({ input, context }) => {
 			const { db, env, user } = context;
+			console.log("getContent called with:", { id: input.id, version: input.version });
 
 			// First get the rule to determine the version
 			const baseRule = await db.rule.findUnique({
@@ -322,38 +651,49 @@ export const rulesProcedures = {
 
 			// Check visibility permissions
 			if (rule.visibility === "private") {
-				// Private rules can only be accessed by the owner
-				if (!user || rule.userId !== user.id) {
-					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
-				}
-			} else if (rule.visibility === "team" && rule.teamId) {
-				// Team rules can only be accessed by team members
+				// Private rules can only be accessed by:
+				// 1. The owner
+				// 2. Organization members if it's an organization rule
 				if (!user) {
 					throw new ORPCError("UNAUTHORIZED", {
-						message: "Authentication required for team rules",
+						message: "Authentication required for private rules",
 					});
 				}
 
-				const isMember = await db.teamMember.findFirst({
-					where: {
-						teamId: rule.teamId,
-						userId: user.id,
-					},
-				});
+				// Check if user is the owner
+				if (rule.userId === user.id) {
+					// Owner can always access
+				} else if (rule.organizationId) {
+					// Check if user is a member of the organization
+					const isMember = await db.organizationMember.findFirst({
+						where: {
+							organizationId: rule.organizationId,
+							userId: user.id,
+						},
+					});
 
-				if (!isMember && rule.userId !== user.id) {
-					throw new ORPCError("FORBIDDEN", { message: "Access denied to team rule" });
+					if (!isMember) {
+						throw new ORPCError("FORBIDDEN", {
+							message: "Access denied to private organization rule",
+						});
+					}
+				} else {
+					// Not owner and not an organization rule
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
 				}
 			}
 			// Public rules can be accessed by anyone
 
 			const version = rule.versions[0];
+			console.log("Found versions:", rule.versions.length, version);
 			if (!version) {
 				throw new ORPCError("NOT_FOUND", { message: "Version not found" });
 			}
 
 			// Fetch content from R2
 			try {
+				console.log("Fetching from R2 with key:", version.r2ObjectKey);
+				console.log("R2 binding:", env.R2);
 				const object = await env.R2.get(version.r2ObjectKey);
 				if (!object) {
 					throw new ORPCError("NOT_FOUND", { message: "Content not found" });
@@ -368,19 +708,22 @@ export const rulesProcedures = {
 				};
 			} catch (error) {
 				console.error("Failed to fetch content from R2:", error);
+				if (error instanceof ORPCError) {
+					throw error;
+				}
 				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to fetch content" });
 			}
 		}),
 
 	versions: os
-		.use(dbProvider)
+		.use(dbWithOptionalAuth)
 		.input(
 			z.object({
 				id: z.string(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db } = context;
+			const { db, user } = context;
 
 			const rule = await db.rule.findUnique({
 				where: { id: input.id },
@@ -388,6 +731,35 @@ export const rulesProcedures = {
 
 			if (!rule) {
 				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Check visibility permissions for versions
+			if (rule.visibility === "private") {
+				if (!user) {
+					throw new ORPCError("UNAUTHORIZED", {
+						message: "Authentication required for private rules",
+					});
+				}
+
+				// Check if user is the owner or organization member
+				if (rule.userId === user.id) {
+					// Owner can access
+				} else if (rule.organizationId) {
+					const isMember = await db.organizationMember.findFirst({
+						where: {
+							organizationId: rule.organizationId,
+							userId: user.id,
+						},
+					});
+
+					if (!isMember) {
+						throw new ORPCError("FORBIDDEN", {
+							message: "Access denied to private organization rule",
+						});
+					}
+				} else {
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
+				}
 			}
 
 			const versions = await db.ruleVersion.findMany({
@@ -414,7 +786,7 @@ export const rulesProcedures = {
 		}),
 
 	related: os
-		.use(dbProvider)
+		.use(dbWithOptionalAuth)
 		.input(
 			z.object({
 				id: z.string(),
@@ -422,7 +794,7 @@ export const rulesProcedures = {
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db } = context;
+			const { db, user } = context;
 
 			// Get the current rule to find related rules
 			const rule = await db.rule.findUnique({
@@ -435,11 +807,38 @@ export const rulesProcedures = {
 
 			// Find related rules based on tags or author
 			const tags = rule.tags ? JSON.parse(rule.tags) : [];
+
+			// Build visibility conditions based on user
+			const visibilityConditions: Record<string, unknown>[] = [{ visibility: "public" }];
+
+			if (user) {
+				// If logged in, also include:
+				// 1. User's own private rules
+				visibilityConditions.push({
+					AND: [{ visibility: "private" }, { userId: user.id }],
+				});
+
+				// 2. Private rules from user's organizations
+				const userOrganizations = await db.organizationMember.findMany({
+					where: { userId: user.id },
+					select: { organizationId: true },
+				});
+
+				if (userOrganizations.length > 0) {
+					visibilityConditions.push({
+						AND: [
+							{ visibility: "private" },
+							{ organizationId: { in: userOrganizations.map((org) => org.organizationId) } },
+						],
+					});
+				}
+			}
+
 			const relatedRules = await db.rule.findMany({
 				where: {
 					AND: [
 						{ id: { not: input.id } },
-						{ visibility: "public" },
+						{ OR: visibilityConditions },
 						{
 							OR: [
 								// Same author
@@ -471,7 +870,7 @@ export const rulesProcedures = {
 				name: rule.name,
 				description: rule.description,
 				author: rule.user,
-				visibility: rule.visibility as "public" | "private" | "team",
+				visibility: rule.visibility as "public" | "private" | "organization",
 				tags: rule.tags ? JSON.parse(rule.tags) : [],
 				version: rule.version,
 				updated_at: rule.updatedAt,

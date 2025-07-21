@@ -64,8 +64,8 @@
 					<p class="text-3xl font-bold text-blue-600">{{ stats.rulesCount || 0 }}</p>
 				</div>
 				<div class="bg-white rounded-lg shadow-md p-6">
-					<h3 class="text-lg font-semibold text-gray-900 mb-2">所属チーム</h3>
-					<p class="text-3xl font-bold text-green-600">{{ stats.teamsCount || 0 }}</p>
+					<h3 class="text-lg font-semibold text-gray-900 mb-2">所属組織</h3>
+					<p class="text-3xl font-bold text-green-600">{{ stats.organizationsCount || 0 }}</p>
 				</div>
 				<div class="bg-white rounded-lg shadow-md p-6">
 					<h3 class="text-lg font-semibold text-gray-900 mb-2">登録日</h3>
@@ -290,7 +290,7 @@ const error = ref<string | null>(null);
 const user = ref<UserProfile | null>(null);
 const stats = ref({
 	rulesCount: 0,
-	teamsCount: 0,
+	organizationsCount: 0,
 });
 const recentRules = ref<Rule[]>([]);
 const isEditing = ref(false);

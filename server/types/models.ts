@@ -12,7 +12,7 @@ export interface Rule {
 	name: string;
 	org?: string;
 	user_id: string;
-	visibility: "public" | "private" | "team";
+	visibility: "public" | "private" | "organization";
 	description?: string;
 	tags?: string[];
 	created_at: number;
@@ -33,7 +33,7 @@ export interface RuleVersion {
 	created_by: string;
 }
 
-export interface Team {
+export interface Organization {
 	id: string;
 	name: string;
 	display_name: string;
@@ -43,9 +43,9 @@ export interface Team {
 	updated_at: number;
 }
 
-export interface TeamMember {
+export interface OrganizationMember {
 	id: string;
-	team_id: string;
+	organization_id: string;
 	user_id: string;
 	role: "owner" | "admin" | "member" | "viewer";
 	joined_at: number;

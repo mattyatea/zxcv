@@ -143,7 +143,7 @@ const processOAuthCallback = async () => {
 		setTimeout(() => {
 			router.push(response.redirectUrl || "/rules");
 		}, 1500);
-	} catch (err: any) {
+	} catch (err) {
 		console.error("OAuth callback error:", err);
 
 		// エラーメッセージの設定

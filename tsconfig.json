@@ -6,7 +6,8 @@
       "./worker-configuration.d.ts",
       "vitest/globals",
       "./tests/types/test-env.d.ts",
-      "./tests/types/cloudflare-test.d.ts"
+      "./tests/types/cloudflare-test.d.ts",
+      "./types/nuxtApp.d.ts"
     ],
     "strict": true,
     "esModuleInterop": true,

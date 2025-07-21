@@ -53,6 +53,9 @@
             </svg>
           </button>
 
+          <!-- Language Switcher -->
+          <CommonLanguageSwitcher />
+
           <!-- User menu -->
           <div v-if="user" class="flex items-center space-x-3">
             <NuxtLink to="/rules/new">
@@ -64,7 +67,7 @@
               <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-                新規ルール
+                {{ $t('rules.createRule') }}
               </CommonButton>
             </NuxtLink>
 
@@ -95,7 +98,7 @@
                   class="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-800 animate-in"
                 >
                   <div class="px-4 py-3">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">サインイン中</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('auth.login.loggingIn') }}</p>
                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ user.email }}</p>
                   </div>
                   
@@ -120,7 +123,7 @@
                       <svg class="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
-                      ログアウト
+                      {{ $t('nav.logout') }}
                     </button>
                   </div>
                 </div>
@@ -135,7 +138,7 @@
                 variant="ghost"
                 size="sm"
               >
-                ログイン
+                {{ $t('nav.login') }}
               </CommonButton>
             </NuxtLink>
             <NuxtLink to="/register">
@@ -143,7 +146,7 @@
                 variant="primary"
                 size="sm"
               >
-                アカウント作成
+                {{ $t('nav.register') }}
               </CommonButton>
             </NuxtLink>
           </div>
@@ -190,10 +193,10 @@
     </Transition>
 
     <!-- Search Modal -->
-    <CommonModal v-model="showSearch" title="検索" size="lg">
+    <CommonModal v-model="showSearch" :title="$t('common.search')" size="lg">
       <CommonInput
         v-model="searchQuery"
-        placeholder="ルールを検索..."
+        :placeholder="$t('rules.searchPlaceholder')"
         @keyup.enter="handleSearch"
       >
         <template #prefix>
@@ -207,7 +210,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { storeToRefs } from "pinia";
+import { computed, ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { useThemeStore } from "~/stores/theme";
 
@@ -220,25 +224,35 @@ const searchQuery = ref("");
 const themeStore = useThemeStore();
 const { isDark } = storeToRefs(themeStore);
 
-const navigation = [
-	{ name: "ルール", href: "/rules" },
-	{ name: "チーム", href: "/teams" },
-	{ name: "ドキュメント", href: "/docs" },
-];
+const { t } = useI18n();
+
+const navigation = computed(() => {
+	const items = [
+		{ name: t("nav.home"), href: "/" },
+		{ name: t("nav.rules"), href: "/rules" },
+	];
+
+	// Only show organizations navigation if user is authenticated
+	if (user.value) {
+		items.push({ name: t("nav.organizations"), href: "/organizations" });
+	}
+
+	return items;
+});
 
 const userMenuItems = computed(() => [
 	{
-		name: "プロフィール",
+		name: t("nav.profile"),
 		href: authStore.user ? `/profile/${authStore.user.username}` : "/profile",
 		icon: "svg", // TODO: Add proper icon component
 	},
 	{
-		name: "設定",
+		name: t("nav.settings"),
 		href: "/settings",
 		icon: "svg",
 	},
 	{
-		name: "APIキー",
+		name: t("settings.apiKeys"),
 		href: "/api-keys",
 		icon: "svg",
 	},

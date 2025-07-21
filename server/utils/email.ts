@@ -22,9 +22,9 @@ export interface EmailVerificationData {
 	userLocale?: string;
 }
 
-export interface TeamInvitationData {
+export interface OrganizationInvitationData {
 	email: string;
-	teamName: string;
+	organizationName: string;
 	inviterName: string;
 	invitationToken: string;
 	userLocale?: string;
@@ -37,7 +37,7 @@ export class EmailService {
 
 	constructor(env: Env) {
 		this.fromEmail = env.EMAIL_FROM || "noreply@prism-project.net";
-		this.baseUrl = env.FRONTEND_URL || "https://zxcv.dev";
+		this.baseUrl = env.APP_URL || env.FRONTEND_URL || "https://zxcv.dev";
 		this.env = env;
 	}
 
@@ -47,12 +47,16 @@ export class EmailService {
 			if (this.isTestEnvironment()) {
 				console.log(`[TEST] Email would be sent to: ${template.to}`);
 				console.log(`[TEST] Subject: ${template.subject}`);
+				console.log(`[DEV] Text content: ${template.text}`);
 				return true;
 			}
 
 			// Check if EMAIL_SENDER binding is available
 			if (!this.env.EMAIL_SENDER) {
 				console.error("EMAIL_SENDER binding is not configured");
+				console.log(`[DEV] Email would be sent to: ${template.to}`);
+				console.log(`[DEV] Subject: ${template.subject}`);
+				console.log(`[DEV] Text content: ${template.text}`);
 				return false;
 			}
 
@@ -127,7 +131,7 @@ export class EmailService {
 
 	generateEmailVerificationEmail(data: EmailVerificationData): EmailTemplate {
 		const { email, verificationToken, userLocale = "en" } = data;
-		const fullVerificationUrl = `${this.baseUrl}/verify-email?token=${verificationToken}`;
+		const fullVerificationUrl = `${this.baseUrl}/verifyemail?token=${verificationToken}`;
 
 		// Generate content based on locale
 		const content = this.getEmailVerificationContent(userLocale, fullVerificationUrl);
@@ -140,12 +144,17 @@ export class EmailService {
 		};
 	}
 
-	generateTeamInvitationEmail(data: TeamInvitationData): EmailTemplate {
-		const { email, teamName, inviterName, invitationToken, userLocale = "ja" } = data;
-		const invitationUrl = `${this.baseUrl}/teams/join?token=${invitationToken}`;
+	generateOrganizationInvitationEmail(data: OrganizationInvitationData): EmailTemplate {
+		const { email, organizationName, inviterName, invitationToken, userLocale = "ja" } = data;
+		const invitationUrl = `${this.baseUrl}/organizations/join?token=${invitationToken}`;
 
 		// Generate content based on locale
-		const content = this.getTeamInvitationContent(userLocale, teamName, inviterName, invitationUrl);
+		const content = this.getOrganizationInvitationContent(
+			userLocale,
+			organizationName,
+			inviterName,
+			invitationUrl,
+		);
 
 		return {
 			to: email,
@@ -393,9 +402,9 @@ If you didn't create this account, please ignore this email.
 		};
 	}
 
-	private getTeamInvitationContent(
+	private getOrganizationInvitationContent(
 		locale: string,
-		teamName: string,
+		organizationName: string,
 		inviterName: string,
 		invitationUrl: string,
 	) {
@@ -403,7 +412,7 @@ If you didn't create this account, please ignore this email.
 
 		if (isJapanese) {
 			return {
-				subject: `【zxcv】${teamName}への招待`,
+				subject: `【zxcv】${organizationName}への招待`,
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
@@ -412,15 +421,15 @@ If you didn't create this account, please ignore this email.
 						</div>
 
 						<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-							<h2 style="color: #333; margin-top: 0;">チームへの招待</h2>
-							<p>${inviterName}さんから「${teamName}」チームへの招待が届きました。</p>
-							<p>下記のボタンをクリックしてチームに参加してください。</p>
+							<h2 style="color: #333; margin-top: 0;">組織への招待</h2>
+							<p>${inviterName}さんから「${organizationName}」組織への招待が届きました。</p>
+							<p>下記のボタンをクリックして組織に参加してください。</p>
 						</div>
 
 						<div style="text-align: center; margin: 30px 0;">
 							<a href="${invitationUrl}"
 							   style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-								チームに参加
+								組織に参加
 							</a>
 						</div>
 
@@ -442,11 +451,11 @@ If you didn't create this account, please ignore this email.
 					</div>
 				`,
 				text: `
-zxcv - チームへの招待
+zxcv - 組織への招待
 
-${inviterName}さんから「${teamName}」チームへの招待が届きました。
+${inviterName}さんから「${organizationName}」組織への招待が届きました。
 
-下記のリンクをクリックしてチームに参加してください：
+下記のリンクをクリックして組織に参加してください：
 ${invitationUrl}
 
 注意: このリンクは7日後に期限切れになります。
@@ -461,7 +470,7 @@ ${invitationUrl}
 
 		// English version
 		return {
-			subject: `zxcv - Invitation to ${teamName}`,
+			subject: `zxcv - Invitation to ${organizationName}`,
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">
@@ -470,15 +479,15 @@ ${invitationUrl}
 					</div>
 
 					<div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-						<h2 style="color: #333; margin-top: 0;">Team Invitation</h2>
-						<p>${inviterName} has invited you to join the "${teamName}" team.</p>
-						<p>Click the button below to join the team.</p>
+						<h2 style="color: #333; margin-top: 0;">Organization Invitation</h2>
+						<p>${inviterName} has invited you to join the "${organizationName}" organization.</p>
+						<p>Click the button below to join the organization.</p>
 					</div>
 
 					<div style="text-align: center; margin: 30px 0;">
 						<a href="${invitationUrl}"
 						   style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-							Join Team
+							Join Organization
 						</a>
 					</div>
 
@@ -500,11 +509,11 @@ ${invitationUrl}
 				</div>
 			`,
 			text: `
-zxcv - Team Invitation
+zxcv - Organization Invitation
 
-${inviterName} has invited you to join the "${teamName}" team.
+${inviterName} has invited you to join the "${organizationName}" organization.
 
-Click the following link to join the team:
+Click the following link to join the organization:
 ${invitationUrl}
 
 Note: This link expires in 7 days.

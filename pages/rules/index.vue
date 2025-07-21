@@ -4,9 +4,9 @@
       <!-- ヘッダー -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="heading-1 mb-2">コーディングルール</h1>
+          <h1 class="heading-1 mb-2">{{ $t('rules.title') }}</h1>
           <p class="text-gray-600 dark:text-gray-400">
-            AIコーディングルールを探索・共有しましょう
+            {{ $t('rules.subtitle') }}
           </p>
         </div>
         <NuxtLink to="/rules/new">
@@ -14,7 +14,7 @@
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            新規ルール
+            {{ $t('rules.createRule') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -25,7 +25,7 @@
           <div class="flex-1">
             <CommonInput
               v-model="searchQuery"
-              placeholder="ルールを検索..."
+              :placeholder="$t('rules.searchPlaceholder')"
               @input="debouncedSearch"
             >
               <template #prefix>
@@ -40,25 +40,25 @@
             class="input sm:w-48"
             @change="fetchRules"
           >
-            <option value="all">すべての公開設定</option>
-            <option value="public">パブリック</option>
-            <option value="private">プライベート</option>
-            <option value="team">チーム</option>
+            <option value="all">{{ $t('rules.visibility.all') }}</option>
+            <option value="public">{{ $t('rules.visibility.public') }}</option>
+            <option value="private">{{ $t('rules.visibility.private') }}</option>
+            <option value="organization">{{ $t('rules.visibility.organization') }}</option>
           </select>
           <select
             v-model="filters.sort"
             class="input sm:w-48"
             @change="fetchRules"
           >
-            <option value="updated">最近更新</option>
-            <option value="created">最近作成</option>
-            <option value="name">名前順</option>
+            <option value="updated">{{ $t('rules.sort.recentlyUpdated') }}</option>
+            <option value="created">{{ $t('rules.sort.recentlyCreated') }}</option>
+            <option value="name">{{ $t('rules.sort.alphabetical') }}</option>
           </select>
         </div>
 
         <!-- タグフィルター -->
         <div v-if="popularTags.length > 0" class="flex flex-wrap items-center gap-2">
-          <span class="text-sm text-gray-600 dark:text-gray-400">人気のタグ:</span>
+          <span class="text-sm text-gray-600 dark:text-gray-400">{{ $t('rules.popularTags') }}</span>
           <button
             v-for="tag in popularTags"
             :key="tag"
@@ -90,7 +90,7 @@
         <NuxtLink
           v-for="rule in rules"
           :key="rule.id"
-          :to="`/rules/${rule.id}`"
+          :to="getRuleUrl(rule)"
           class="card-hover group"
         >
           <div class="flex items-start justify-between mb-3">
@@ -99,7 +99,7 @@
                 {{ rule.name }}
               </h3>
               <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                by {{ rule.author.username }}
+                by {{ rule.organization ? '@' + rule.organization.name : rule.author.username }}
               </p>
             </div>
             <span
@@ -110,7 +110,7 @@
                 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
               ]"
             >
-              {{ rule.visibility === 'public' ? 'パブリック' : rule.visibility === 'private' ? 'プライベート' : 'チーム' }}
+              {{ $t(`rules.visibility.${rule.visibility}`) }}
             </span>
           </div>
           
@@ -141,14 +141,14 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
         <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          ルールが見つかりません
+          {{ $t('rules.noRulesFound') }}
         </h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
-          最初のルールを作成してみましょう
+          {{ $t('rules.createFirstRule') }}
         </p>
         <NuxtLink to="/rules/new">
           <CommonButton variant="primary">
-            新規ルールを作成
+            {{ $t('rules.createRule') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -203,19 +203,28 @@ interface Author {
 	username: string;
 }
 
+interface Organization {
+	id: string;
+	name: string;
+	displayName: string;
+}
+
 interface Rule {
 	id: string;
 	name: string;
 	description?: string;
-	visibility: "public" | "private" | "team";
+	visibility: "public" | "private" | "organization";
 	author: Author;
+	organization?: Organization;
 	tags: string[];
 	version: string;
 	updated_at: number;
 }
 
+const { t } = useI18n();
+
 useHead({
-	title: "ルール一覧 - zxcv",
+	title: t("rules.pageTitle"),
 });
 
 const searchQuery = ref("");
@@ -285,8 +294,17 @@ const toggleTag = (tag: string) => {
 	fetchRules();
 };
 
+const { locale } = useI18n();
+
 const formatDate = (timestamp: number) => {
-	return new Date(timestamp * 1000).toLocaleDateString("ja-JP");
+	return new Date(timestamp * 1000).toLocaleDateString(locale.value === "ja" ? "ja-JP" : "en-US");
+};
+
+const getRuleUrl = (rule: Rule) => {
+	if (rule.organization) {
+		return `/rules/@${rule.organization.name}/${rule.name}`;
+	}
+	return `/rules/${rule.id}`;
 };
 
 let searchTimeout: NodeJS.Timeout;

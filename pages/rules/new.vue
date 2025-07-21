@@ -1,20 +1,20 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create New Rule</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $t('rules.createNewRule') }}</h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        Share your coding standards with the community
+        {{ $t('rules.shareWithCommunity') }}
       </p>
     </div>
 
     <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Basic Information -->
       <div class="card">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Basic Information</h2>
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ $t('rules.basicInfo') }}</h2>
         
         <div class="space-y-4">
           <div>
-            <label for="name" class="label">Rule Name</label>
+            <label for="name" class="label">{{ $t('rules.form.name') }}</label>
             <input
               id="name"
               v-model="form.name"
@@ -25,81 +25,73 @@
               placeholder="my-awesome-rule"
             />
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Only letters, numbers, underscores, and hyphens allowed
+              {{ $t('rules.form.nameHint') }}
             </p>
           </div>
 
-          <div>
-            <label for="org" class="label">Organization (optional)</label>
-            <input
-              id="org"
-              v-model="form.org"
-              type="text"
-              pattern="[a-zA-Z0-9_-]*"
-              class="input"
-              placeholder="my-org"
-            />
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Your rule will be available at @{{ form.org || 'org' }}/{{ form.name || 'rule-name' }}
-            </p>
-          </div>
 
           <div>
-            <label for="description" class="label">Description</label>
+            <label for="description" class="label">{{ $t('rules.form.description') }}</label>
             <textarea
               id="description"
               v-model="form.description"
               rows="3"
               class="input"
-              placeholder="Describe what this rule does and when to use it"
+              :placeholder="$t('rules.form.descriptionPlaceholder')"
             />
           </div>
 
           <div>
-            <label for="visibility" class="label">Visibility</label>
+            <label for="visibility" class="label">{{ $t('rules.form.visibility') }}</label>
             <select
               id="visibility"
               v-model="form.visibility"
               class="input"
             >
-              <option value="public">Public - Anyone can view</option>
-              <option value="private">Private - Only you can view</option>
-              <option value="team">Team - Only team members can view</option>
-            </select>
-          </div>
-
-          <div v-if="form.visibility === 'team'">
-            <label for="team" class="label">Team</label>
-            <select
-              id="team"
-              v-model="form.teamId"
-              required
-              class="input"
-            >
-              <option value="">Select a team</option>
-              <option v-for="team in teams" :key="team.id" :value="team.id">
-                {{ team.displayName }}
-              </option>
+              <option value="public">{{ $t('rules.form.visibilityOptions.public') }}</option>
+              <option value="private">{{ $t('rules.form.visibilityOptions.private') }}</option>
             </select>
           </div>
 
           <div>
-            <label for="tags" class="label">Tags</label>
+            <label for="organization" class="label">{{ $t('rules.form.organization') }} ({{ $t('common.optional') }})</label>
+            <select
+              id="organization"
+              v-model="selectedOrganizationId"
+              class="input"
+              @change="updateOrganization"
+            >
+              <option value="">{{ $t('rules.form.noOrganization') }}</option>
+              <option v-for="organization in organizations" :key="organization.id" :value="organization.id">
+                {{ organization.displayName }}
+              </option>
+            </select>
+            <p v-if="form.org" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ $t('rules.form.urlPreview') }} @{{ form.org }}/{{ form.name || 'rule-name' }}
+            </p>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ $t('rules.form.organizationHint') }}
+            </p>
+          </div>
+
+          <div>
+            <label for="tags" class="label">{{ $t('rules.form.tags') }}</label>
             <div class="flex gap-2 mb-2">
               <input
                 v-model="tagInput"
                 type="text"
                 class="input flex-1"
-                placeholder="Add a tag and press Enter"
+                :placeholder="$t('rules.form.tagsPlaceholder')"
                 @keydown.enter.prevent="addTag"
               />
-              <button
+              <Button
                 type="button"
                 @click="addTag"
-                class="btn btn-secondary"
+                variant="secondary"
+                size="sm"
               >
-                Add
-              </button>
+                {{ $t('rules.form.addTag') }}
+              </Button>
             </div>
             <div class="flex flex-wrap gap-2">
               <span
@@ -123,60 +115,69 @@
 
       <!-- Rule Content -->
       <div class="card">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Rule Content</h2>
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ $t('rules.ruleContent') }}</h2>
         
         <div class="space-y-4">
           <div>
-            <label for="format" class="label">Format</label>
-            <select
-              id="format"
-              v-model="selectedFormat"
-              class="input"
-              @change="updateContentPlaceholder"
-            >
-              <option value="eslint">ESLint</option>
-              <option value="prettier">Prettier</option>
-              <option value="tsconfig">TypeScript Config</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="content" class="label">Content</label>
+            <label for="content" class="label">{{ $t('rules.form.content') }}</label>
+            <div class="mb-2">
+              <Button
+                type="button"
+                @click="showFileUpload = !showFileUpload"
+                variant="ghost"
+                size="sm"
+              >
+                {{ showFileUpload ? $t('rules.form.writeDirectly') : $t('rules.form.uploadMarkdown') }}
+              </Button>
+            </div>
+            
+            <div v-if="showFileUpload" class="mb-4">
+              <input
+                type="file"
+                accept=".md,.markdown"
+                @change="handleFileUpload"
+                class="block w-full text-sm text-gray-500 dark:text-gray-400
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  dark:file:bg-blue-900 dark:file:text-blue-200
+                  hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
+              />
+            </div>
+            
             <textarea
               id="content"
               v-model="form.content"
               rows="15"
               required
               class="input font-mono text-sm"
-              :placeholder="contentPlaceholder"
+              :placeholder="$t('rules.form.contentPlaceholder')"
             />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ $t('rules.form.markdownSupported') }}
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Actions -->
       <div class="flex justify-end gap-4">
-        <NuxtLink
+        <Button
+          :tag="NuxtLink"
           to="/rules"
-          class="btn btn-secondary"
+          variant="secondary"
         >
-          Cancel
-        </NuxtLink>
-        <button
+          {{ $t('common.cancel') }}
+        </Button>
+        <Button
           type="submit"
+          :loading="loading"
           :disabled="loading"
-          class="btn btn-primary"
+          variant="primary"
         >
-          <span v-if="loading" class="flex items-center">
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Creating...
-          </span>
-          <span v-else>Create Rule</span>
-        </button>
+          {{ loading ? $t('rules.creating') : $t('rules.createRule') }}
+        </Button>
       </div>
 
       <div v-if="error" class="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
@@ -188,10 +189,15 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { useAuthStore } from "~/stores/auth";
+
+definePageMeta({
+	middleware: "auth",
+});
+
+const { t } = useI18n();
 
 useHead({
-	title: "Create Rule - zxcv",
+	title: t("rules.newRuleTitle"),
 });
 
 const form = ref({
@@ -199,53 +205,28 @@ const form = ref({
 	org: "",
 	description: "",
 	visibility: "public",
-	teamId: "",
+	organizationId: "",
 	tags: [],
 	content: "",
 });
 
 const tagInput = ref("");
-const selectedFormat = ref("eslint");
-const teams = ref([]);
+const organizations = ref([]);
 const loading = ref(false);
 const error = ref("");
+const selectedOrganizationId = ref("");
+const showFileUpload = ref(false);
 
-const contentPlaceholder = ref(`{
-  "rules": {
-    "semi": ["error", "always"],
-    "quotes": ["error", "double"]
-  }
-}`);
-
-const updateContentPlaceholder = () => {
-	switch (selectedFormat.value) {
-		case "eslint":
-			contentPlaceholder.value = `{
-  "rules": {
-    "semi": ["error", "always"],
-    "quotes": ["error", "double"]
-  }
-}`;
-			break;
-		case "prettier":
-			contentPlaceholder.value = `{
-  "semi": true,
-  "singleQuote": false,
-  "tabWidth": 2,
-  "trailingComma": "es5"
-}`;
-			break;
-		case "tsconfig":
-			contentPlaceholder.value = `{
-  "compilerOptions": {
-    "target": "es2020",
-    "module": "commonjs",
-    "strict": true
-  }
-}`;
-			break;
-		default:
-			contentPlaceholder.value = "// Your custom rule content here";
+const handleFileUpload = (event) => {
+	const file = event.target.files[0];
+	if (file && (file.name.endsWith(".md") || file.name.endsWith(".markdown"))) {
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			form.value.content = e.target.result;
+		};
+		reader.readAsText(file);
+	} else {
+		error.value = t("rules.messages.invalidFileType");
 	}
 };
 
@@ -261,6 +242,17 @@ const removeTag = (index) => {
 	form.value.tags.splice(index, 1);
 };
 
+const updateOrganization = () => {
+	const selected = organizations.value.find((org) => org.id === selectedOrganizationId.value);
+	if (selected) {
+		form.value.org = selected.name;
+		form.value.organizationId = selected.id;
+	} else {
+		form.value.org = "";
+		form.value.organizationId = "";
+	}
+};
+
 const { $rpc } = useNuxtApp();
 
 const handleSubmit = async () => {
@@ -269,29 +261,29 @@ const handleSubmit = async () => {
 
 	try {
 		const response = await $rpc.rules.create(form.value);
-		await navigateTo(`/rules/${response.id}`);
+		// If posted to an organization, redirect to the organization-scoped URL
+		if (form.value.org) {
+			await navigateTo(`/rules/@${form.value.org}/${form.value.name}`);
+		} else {
+			await navigateTo(`/rules/${response.id}`);
+		}
 	} catch (err) {
-		error.value = err.message || "Failed to create rule";
+		error.value = err.message || t("rules.messages.createError");
 	} finally {
 		loading.value = false;
 	}
 };
 
-const fetchTeams = async () => {
+const fetchOrganizations = async () => {
 	try {
-		const response = await $rpc.teams.list();
-		teams.value = response.results;
+		const response = await $rpc.organizations.list();
+		organizations.value = response;
 	} catch (error) {
-		console.error("Failed to fetch teams:", error);
+		console.error("Failed to fetch organizations:", error);
 	}
 };
 
 onMounted(() => {
-	const authStore = useAuthStore();
-	if (!authStore.isAuthenticated) {
-		navigateTo("/login");
-	} else {
-		fetchTeams();
-	}
+	fetchOrganizations();
 });
 </script>

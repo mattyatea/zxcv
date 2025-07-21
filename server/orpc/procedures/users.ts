@@ -35,14 +35,14 @@ export const usersProcedures = {
 			}
 
 			// Get user statistics
-			const [rulesCount, teamsCount] = await Promise.all([
+			const [rulesCount, organizationsCount] = await Promise.all([
 				db.rule.count({
 					where: {
 						userId: user.id,
 						visibility: "public", // Only count public rules
 					},
 				}),
-				db.teamMember.count({
+				db.organizationMember.count({
 					where: {
 						userId: user.id,
 					},
@@ -80,7 +80,7 @@ export const usersProcedures = {
 				},
 				stats: {
 					rulesCount,
-					teamsCount,
+					organizationsCount,
 				},
 				recentRules,
 			};
@@ -154,11 +154,21 @@ export const usersProcedures = {
 			const updatedUser = await db.user.update({
 				where: { id: user.id },
 				data: {
-					...(email && { email: email.toLowerCase() }),
+					...(email && {
+						email: email.toLowerCase(),
+						emailVerified: false, // Reset email verification when email changes
+					}),
 					...(username && { username: username.toLowerCase() }),
 					updatedAt: Math.floor(Date.now() / 1000),
 				},
 			});
+
+			// If email changed, send verification email
+			if (email && email.toLowerCase() !== user.email.toLowerCase()) {
+				const { EmailVerificationService } = await import("~/server/services/emailVerification");
+				const emailService = new EmailVerificationService(db, context.env);
+				await emailService.sendVerificationEmail(user.id, email.toLowerCase());
+			}
 
 			return {
 				user: {
@@ -299,6 +309,82 @@ export const usersProcedures = {
 			return {
 				success: true,
 				message: "Settings updated successfully",
+			};
+		}),
+
+	deleteAccount: os
+		.use(dbWithAuth)
+		.input(
+			z.object({
+				password: z.string(),
+				confirmation: z.literal("DELETE"),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { password, confirmation } = input;
+			const { db, user } = context;
+
+			// Verify confirmation text
+			if (confirmation !== "DELETE") {
+				throw new ORPCError("BAD_REQUEST", { message: "Invalid confirmation" });
+			}
+
+			// Get user with password hash and organization memberships
+			const dbUser = await db.user.findUnique({
+				where: { id: user.id },
+				select: {
+					passwordHash: true,
+					organizationMembers: {
+						where: { role: "owner" },
+						include: { organization: true },
+					},
+				},
+			});
+
+			if (!dbUser) {
+				throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			}
+
+			// Verify password
+			if (dbUser.passwordHash) {
+				const isValid = await verifyPassword(password, dbUser.passwordHash);
+				if (!isValid) {
+					throw new ORPCError("UNAUTHORIZED", { message: "Invalid password" });
+				}
+			} else {
+				// OAuth users might not have a password
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Please use your OAuth provider to delete your account",
+				});
+			}
+
+			// Check if user is the only owner of any organizations
+			if (dbUser.organizationMembers.length > 0) {
+				for (const membership of dbUser.organizationMembers) {
+					const ownerCount = await db.organizationMember.count({
+						where: {
+							organizationId: membership.organizationId,
+							role: "owner",
+						},
+					});
+
+					if (ownerCount <= 1) {
+						throw new ORPCError("BAD_REQUEST", {
+							message:
+								"You must transfer ownership of your organizations before deleting your account",
+						});
+					}
+				}
+			}
+
+			// Delete user account (cascade will handle related records)
+			await db.user.delete({
+				where: { id: user.id },
+			});
+
+			return {
+				success: true,
+				message: "Account deleted successfully",
 			};
 		}),
 };

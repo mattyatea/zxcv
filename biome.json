@@ -13,14 +13,23 @@
 			"pages/**/*.vue",
 			"components/**/*.vue",
 			"plugins/**/*.ts",
-			"scripts/**/*.ts"
+			"scripts/**/*.ts",
+			"composables/**/*.ts",
+			"stores/**/*.ts",
+			"middleware/**/*.ts",
+			"utils/**/*.ts",
+			"types/**/*.ts"
 		],
 		"experimentalScannerIgnores": [
 			"node_modules/**",
 			"dist/**",
 			"build/**",
 			"coverage/**",
-			"*.d.ts"
+			"*.d.ts",
+			".nuxt/**",
+			".output/**",
+			"public/**",
+			"migrations/**"
 		]
 	},
 	"formatter": {
@@ -63,7 +72,7 @@
 				"noUnsafeFinally": "error",
 				"noUnsafeOptionalChaining": "error",
 				"noUnusedLabels": "error",
-				"noUnusedVariables": "warn",
+				"noUnusedVariables": "off",
 				"useIsNan": "error",
 				"useValidForDirection": "error",
 				"useYield": "error"

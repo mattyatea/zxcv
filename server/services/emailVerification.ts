@@ -43,7 +43,7 @@ export class EmailVerificationService {
 			const emailData: EmailVerificationData = {
 				email,
 				verificationToken: token,
-				verificationUrl: `${this.env.FRONTEND_URL || "https://zxcv.dev"}/verify-email?token=${token}`,
+				verificationUrl: `${this.env.APP_URL || this.env.FRONTEND_URL || "https://zxcv.dev"}/verifyemail?token=${token}`,
 				userLocale,
 			};
 
@@ -84,16 +84,16 @@ export class EmailVerificationService {
 			}
 
 			// Mark token as used and update user email verification status
-			await this.prisma.$transaction([
-				this.prisma.emailVerification.update({
-					where: { id: verification.id },
-					data: { usedAt: now },
-				}),
-				this.prisma.user.update({
-					where: { id: verification.userId },
-					data: { emailVerified: true },
-				}),
-			]);
+			// Execute updates sequentially instead of transaction
+			await this.prisma.emailVerification.update({
+				where: { id: verification.id },
+				data: { usedAt: now },
+			});
+
+			await this.prisma.user.update({
+				where: { id: verification.userId },
+				data: { emailVerified: true },
+			});
 
 			return { success: true, userId: verification.userId };
 		} catch (_error) {

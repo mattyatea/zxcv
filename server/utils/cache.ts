@@ -82,14 +82,14 @@ export class Cache {
 		return `search:${JSON.stringify(normalized)}`;
 	}
 
-	// Generate cache key for team membership
-	static generateTeamMembershipKey(userId: string, teamId: string): string {
-		return `team_membership:${userId}:${teamId}`;
+	// Generate cache key for organization membership
+	static generateOrganizationMembershipKey(userId: string, organizationId: string): string {
+		return `organization_membership:${userId}:${organizationId}`;
 	}
 
-	// Generate cache key for user teams
-	static generateUserTeamsKey(userId: string): string {
-		return `user_teams:${userId}`;
+	// Generate cache key for user organizations
+	static generateUserOrganizationsKey(userId: string): string {
+		return `user_organizations:${userId}`;
 	}
 }
 
