@@ -388,11 +388,12 @@ const handleSocialLogin = async (provider: string) => {
 		const response = await $rpc.auth.oauthInitialize({
 			provider,
 			redirectUrl: "/rules",
+			action: "register",
 		});
 
 		window.location.href = response.authorizationUrl;
 	} catch (err: any) {
-		error.value = err.message || `${provider}でのログインに失敗しました`;
+		error.value = err.message || `${provider}でのアカウント作成に失敗しました`;
 		loading.value = false;
 	}
 };

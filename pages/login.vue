@@ -257,6 +257,7 @@ const handleSocialLogin = async (provider: string) => {
 		const response = await $rpc.auth.oauthInitialize({
 			provider,
 			redirectUrl: "/rules",
+			action: "login",
 		});
 
 		window.location.href = response.authorizationUrl;

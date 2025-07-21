@@ -434,15 +434,20 @@ export const authProcedures = {
 			z.object({
 				provider: z.enum(["google", "github"]),
 				redirectUrl: z.string().optional(),
+				action: z.enum(["login", "register"]).optional().default("login"),
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { provider, redirectUrl } = input;
+			const { provider, redirectUrl, action } = input;
 			const { db, env } = context;
 			const providers = createOAuthProviders(env);
 
-			// Generate state for CSRF protection
-			const state = generateState();
+			// Generate state for CSRF protection with action encoded
+			const stateData = {
+				random: generateState(),
+				action,
+			};
+			const state = Buffer.from(JSON.stringify(stateData)).toString("base64url");
 			const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
 
 			// Store state in database
@@ -452,7 +457,7 @@ export const authProcedures = {
 			await db.oAuthState.create({
 				data: {
 					id: generateId(),
-					state,
+					state: stateData.random, // Store the random part, not the encoded state
 					provider,
 					codeVerifier,
 					redirectUrl: redirectUrl || "/",
@@ -502,12 +507,22 @@ export const authProcedures = {
 
 			const providers = createOAuthProviders(env);
 
+			// Decode state to extract action
+			let stateData: { random: string; action: string };
+			try {
+				stateData = JSON.parse(Buffer.from(state, "base64url").toString());
+			} catch (e) {
+				console.error("Failed to decode state:", e);
+				throw new ORPCError("BAD_REQUEST", { message: "Invalid state format" });
+			}
+
 			// Verify state
 			const stateRecord = await db.oAuthState.findUnique({
-				where: { state },
+				where: { state: stateData.random },
 			});
 
 			console.log("State record found:", stateRecord);
+			console.log("Action from state:", stateData.action);
 
 			if (
 				!stateRecord ||

@@ -188,6 +188,24 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 	};
 
+	const setAuthData = async (data: {
+		accessToken: string;
+		refreshToken: string;
+		user: User;
+	}) => {
+		// Update state
+		accessToken.value = data.accessToken;
+		refreshToken.value = data.refreshToken;
+		user.value = data.user;
+
+		// Persist to localStorage
+		if (process.client) {
+			localStorage.setItem("access_token", data.accessToken);
+			localStorage.setItem("refresh_token", data.refreshToken);
+			localStorage.setItem("user", JSON.stringify(data.user));
+		}
+	};
+
 	// Initialize on store creation
 	initializeAuth();
 
@@ -206,6 +224,7 @@ export const useAuthStore = defineStore("auth", () => {
 		refreshAccessToken,
 		fetchCurrentUser,
 		updateUser,
+		setAuthData,
 		initializeAuth,
 	};
 });
