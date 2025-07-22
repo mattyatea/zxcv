@@ -14,7 +14,12 @@ vi.mock("~/server/services/emailVerification", () => {
 		}
 		
 		sendVerificationEmail = vi.fn().mockResolvedValue(true);
-		verifyEmail = vi.fn().mockResolvedValue({ success: true });
+		verifyEmail = vi.fn().mockImplementation(async (token: string) => {
+			if (token === "expired_token") {
+				throw new Error("Token expired");
+			}
+			return { success: true };
+		});
 		resendVerificationEmail = vi.fn().mockResolvedValue(true);
 	}
 	
@@ -27,15 +32,19 @@ vi.mock("~/server/utils/jwt", async () => {
 		...actual,
 		createJWT: vi.fn().mockImplementation(async (payload: any, env: any) => {
 			console.log("[TEST] createJWT called with payload:", payload);
-			return "mock_jwt_token";
+			console.log("[TEST] createJWT env:", env);
+			const token = "mock_access_token";
+			console.log("[TEST] createJWT returning:", token);
+			return token;
 		}),
 		verifyJWT: vi.fn().mockImplementation(async (token: string) => {
-			if (token === "mock_jwt_token") {
+			if (token === "mock_access_token" || token === "mock_jwt_token") {
 				return { sub: "user_123", email: "test@example.com", username: "testuser" };
 			}
 			return null;
 		}),
-		verifyRefreshToken: vi.fn().mockImplementation((token: string) => {
+		verifyRefreshToken: vi.fn().mockImplementation((token: string, env?: any) => {
+			console.log("[TEST] verifyRefreshToken called with token:", token);
 			// Mock implementation that returns userId for valid tokens
 			if (token.includes("user_123") || token === "valid_refresh_token") {
 				return Promise.resolve("user_123");
@@ -44,6 +53,7 @@ vi.mock("~/server/utils/jwt", async () => {
 		}),
 		createRefreshToken: vi.fn().mockImplementation((userId: string, env?: any) => {
 			console.log("[TEST] createRefreshToken called with userId:", userId);
+			console.log("[TEST] createRefreshToken returning:", `refresh_token_${userId}`);
 			return Promise.resolve(`refresh_token_${userId}`);
 		}),
 	};
@@ -144,6 +154,30 @@ describe("Auth Integration Tests", () => {
 		
 		// Apply common setup mocks after clearing
 		setupCommonMocks(mockDb);
+
+		// Setup JWT mocks for dynamic imports
+		const setupJWTMocks = async () => {
+			try {
+				const jwtModule = await import("~/server/utils/jwt");
+				vi.mocked(jwtModule.createJWT).mockResolvedValue("mock_access_token");
+				vi.mocked(jwtModule.createRefreshToken).mockResolvedValue("refresh_token_user_123");
+				vi.mocked(jwtModule.verifyJWT).mockResolvedValue({
+					sub: "user_123",
+					email: "test@example.com",
+					username: "testuser",
+					emailVerified: true
+				});
+				vi.mocked(jwtModule.verifyRefreshToken).mockImplementation(async (token: string, env?: any) => {
+					if (token.includes("user_123") || token === "valid_refresh_token") {
+						return "user_123";
+					}
+					return null;
+				});
+			} catch (error) {
+				console.log("[TEST] Failed to setup JWT mocks:", error);
+			}
+		};
+		await setupJWTMocks();
 
 		// Mock environment
 		mockEnv = {
@@ -476,11 +510,7 @@ describe("Auth Integration Tests", () => {
 		it("should reject expired verification token", async () => {
 			const token = "expired_token";
 
-			// Setup beforeEach to override the mock for this specific case
-			const mockEmailService = {
-				verifyEmail: vi.fn().mockRejectedValue(new Error("Token expired"))
-			};
-			vi.mocked(EmailVerificationService as any).mockImplementation(() => mockEmailService);
+			// The EmailVerificationService mock will throw for "expired_token"
 
 			await expect(
 				client.auth.verifyEmail({ token })
@@ -540,15 +570,28 @@ describe("Auth Integration Tests", () => {
 		});
 
 		it("should reset password with valid token", async () => {
+			const now = Math.floor(Date.now() / 1000);
 			const resetToken = {
 				id: "reset_123",
 				userId: "user_123",
 				token: "valid_reset_token",
-				expiresAt: new Date(Date.now() + 3600000),
-				createdAt: new Date(),
+				expiresAt: now + 3600, // 1 hour from now in Unix seconds
+				createdAt: now,
+				usedAt: null,
 			};
 
-			vi.mocked(mockDb.passwordReset.findUnique).mockResolvedValue(resetToken);
+			vi.mocked(mockDb.passwordReset.findFirst).mockResolvedValue(resetToken);
+			vi.mocked(mockDb.passwordReset.update).mockResolvedValue({
+				...resetToken,
+				usedAt: now,
+			});
+
+			// Ensure crypto mocks work for dynamic imports
+			const cryptoModule = await import("~/server/utils/crypto");
+			vi.mocked(cryptoModule.hashPassword).mockImplementation(async (password: string) => {
+				console.log("[TEST] hashPassword called with:", password);
+				return `hashed_${password}`;
+			});
 			
 			const newPasswordHash = await hashPassword("newpassword123");
 			vi.mocked(mockDb.user.update).mockResolvedValue({
@@ -557,8 +600,8 @@ describe("Auth Integration Tests", () => {
 				email: "test@example.com",
 				passwordHash: newPasswordHash,
 				emailVerified: true,
-				createdAt: new Date(),
-				updatedAt: new Date(),
+				createdAt: now,
+				updatedAt: now,
 				name: null,
 				avatarUrl: null,
 				bio: null,
@@ -580,12 +623,16 @@ describe("Auth Integration Tests", () => {
 			// Verify password was updated
 			expect(mockDb.user.update).toHaveBeenCalledWith({
 				where: { id: "user_123" },
-				data: { passwordHash: expect.any(String) },
+				data: expect.objectContaining({
+					passwordHash: expect.any(String),
+					updatedAt: expect.any(Number),
+				}),
 			});
 
-			// Verify reset token was deleted
-			expect(mockDb.passwordReset.delete).toHaveBeenCalledWith({
-				where: { token: "valid_reset_token" },
+			// Verify reset token was marked as used
+			expect(mockDb.passwordReset.update).toHaveBeenCalledWith({
+				where: { id: "reset_123" },
+				data: { usedAt: expect.any(Number) },
 			});
 		});
 	});
