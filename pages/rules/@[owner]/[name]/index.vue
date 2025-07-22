@@ -91,6 +91,22 @@
           </div>
         </div>
 
+        <!-- バージョン表示中の通知 -->
+        <div v-if="rule.version !== originalVersion" class="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-yellow-800 dark:text-yellow-200">
+              {{ $t('rules.detail.viewingOldVersion', { version: `v${rule.version}` }) }}
+            </p>
+            <CommonButton
+              size="sm"
+              variant="primary"
+              @click="fetchRuleDetails"
+            >
+              {{ $t('rules.detail.viewLatestVersion') }}
+            </CommonButton>
+          </div>
+        </div>
+
         <!-- ルール内容 -->
         <div class="card mb-6">
           <div class="flex items-center justify-between mb-4">
@@ -117,15 +133,26 @@
             <div
               v-for="version in versions"
               :key="version.version"
-              class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              class="group flex items-center justify-between p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+              @click="version.version !== rule.version && showVersion(version.version)"
             >
-              <div>
-                <span class="font-medium text-gray-900 dark:text-gray-100">v{{ version.version }}</span>
+              <div class="flex-1">
+                <span class="font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  v{{ version.version }}
+                  <span v-if="version.version === originalVersion" class="ml-2 text-xs text-green-600 dark:text-green-400">
+                    ({{ $t('rules.detail.latest') }})
+                  </span>
+                </span>
                 <span class="text-sm text-gray-600 dark:text-gray-400 ml-3">{{ version.changelog }}</span>
               </div>
-              <span class="text-sm text-gray-600 dark:text-gray-400">
-                {{ formatDate(version.created_at) }}
-              </span>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ formatDate(version.created_at) }}
+                </span>
+                <span v-if="version.version === rule.version" class="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  {{ $t('rules.detail.currentlyViewing') }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -205,6 +232,7 @@ const versions = ref<Version[]>([]);
 const relatedRules = ref<Rule[]>([]);
 const isOwner = ref(false);
 const copied = ref(false);
+const originalVersion = ref<string>("");
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const { success: toastSuccess, error: toastError } = useToast();
@@ -247,6 +275,9 @@ const fetchRuleDetails = async () => {
 
 		// オーナーかどうかを判定
 		isOwner.value = user.value?.id === data.author.id;
+
+		// 元のバージョンを保存
+		originalVersion.value = data.version;
 
 		// Fetch version history
 		try {
@@ -315,6 +346,43 @@ const getRuleUrl = (rule: { name: string; author: Author; organization?: Organiz
 	}
 	// User rules
 	return `/rules/@${rule.author.username}/${rule.name}`;
+};
+
+const showVersion = async (versionNumber: string) => {
+	console.log("Showing version:", versionNumber);
+	loading.value = true;
+
+	try {
+		// まず現在のルールのIDを取得
+		const path = `@${owner.value}/${name.value}`;
+		const ruleData = await $rpc.rules.getByPath({ path });
+		const id = ruleData.id;
+
+		// 特定のバージョンを取得
+		const versionData = await $rpc.rules.getVersion({ id, version: versionNumber });
+
+		// 特定バージョンの内容を表示
+		rule.value = {
+			id: versionData.id,
+			name: versionData.name,
+			description: versionData.description || "",
+			content: versionData.content,
+			visibility: versionData.visibility as "public" | "private" | "organization",
+			author: versionData.author,
+			organization: versionData.organization,
+			tags: versionData.tags,
+			version: versionData.version,
+			updated_at: versionData.createdAt,
+		};
+
+		// バージョン表示中であることを示すメッセージ
+		toastSuccess(t("rules.messages.viewingVersion", { version: `v${versionNumber}` }));
+	} catch (error) {
+		console.error("Failed to fetch version:", error);
+		toastError(t("rules.messages.versionFetchError"));
+	} finally {
+		loading.value = false;
+	}
 };
 
 onMounted(() => {

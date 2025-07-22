@@ -189,6 +189,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({
 	middleware: "auth",
@@ -265,7 +266,14 @@ const handleSubmit = async () => {
 		if (form.value.org) {
 			await navigateTo(`/rules/@${form.value.org}/${form.value.name}`);
 		} else {
-			await navigateTo(`/rules/${response.id}`);
+			// Get the current user's username from auth store
+			const authStore = useAuthStore();
+			if (authStore.user?.username) {
+				await navigateTo(`/rules/@${authStore.user.username}/${form.value.name}`);
+			} else {
+				// Fallback: If username is not available, show error
+				error.value = t("rules.messages.createError");
+			}
 		}
 	} catch (err) {
 		error.value = err.message || t("rules.messages.createError");

@@ -390,7 +390,9 @@
       "copied": "Rule copied",
       "copyError": "Failed to copy",
       "contentCopied": "Rule content copied",
-      "invalidFileType": "Only Markdown files (.md, .markdown) can be uploaded"
+      "invalidFileType": "Only Markdown files (.md, .markdown) can be uploaded",
+      "viewingVersion": "Viewing version {{version}}",
+      "versionFetchError": "Failed to fetch version"
     },
     "pageTitle": "Rules - zxcv",
     "newRuleTitle": "Create New Rule - zxcv",
@@ -403,7 +405,12 @@
       "notFound": "Rule not found",
       "backToList": "Back to rules",
       "versionHistory": "Version History",
-      "relatedRules": "Related Rules"
+      "relatedRules": "Related Rules",
+      "currentVersion": "Current",
+      "viewingOldVersion": "Viewing version {{version}}",
+      "viewLatestVersion": "View Latest Version",
+      "latest": "Latest",
+      "currentlyViewing": "Currently Viewing"
     },
     "edit": {
       "title": "Edit Rule",
@@ -414,7 +421,8 @@
       "showPreview": "Show Preview",
       "hidePreview": "Hide Preview",
       "update": "Update Rule",
-      "unsavedChanges": "You have unsaved changes"
+      "unsavedChanges": "You have unsaved changes",
+      "incrementMajorVersion": "Major version update"
     }
   },
   "organizations": {

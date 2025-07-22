@@ -390,7 +390,9 @@
       "copied": "ルールをコピーしました",
       "copyError": "コピーに失敗しました",
       "contentCopied": "ルール内容をコピーしました",
-      "invalidFileType": "Markdownファイル（.md、.markdown）のみアップロード可能です"
+      "invalidFileType": "Markdownファイル（.md、.markdown）のみアップロード可能です",
+      "viewingVersion": "バージョン {{version}} を表示中",
+      "versionFetchError": "バージョンの取得に失敗しました"
     },
     "pageTitle": "ルール一覧 - zxcv",
     "newRuleTitle": "新規ルール作成 - zxcv",
@@ -403,7 +405,12 @@
       "notFound": "ルールが見つかりませんでした",
       "backToList": "ルール一覧に戻る",
       "versionHistory": "バージョン履歴",
-      "relatedRules": "関連するルール"
+      "relatedRules": "関連するルール",
+      "currentVersion": "現在",
+      "viewingOldVersion": "バージョン {{version}} を表示中",
+      "viewLatestVersion": "最新版を表示",
+      "latest": "最新",
+      "currentlyViewing": "表示中"
     },
     "edit": {
       "title": "ルールを編集",
@@ -414,7 +421,8 @@
       "showPreview": "プレビュー表示",
       "hidePreview": "プレビューを隠す",
       "update": "ルールを更新",
-      "unsavedChanges": "未保存の変更があります"
+      "unsavedChanges": "未保存の変更があります",
+      "incrementMajorVersion": "メジャーバージョンアップ"
     }
   },
   "organizations": {

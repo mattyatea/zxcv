@@ -44,6 +44,7 @@
                 :label="$t('rules.form.name')"
                 :placeholder="$t('rules.form.namePlaceholder')"
                 required
+                disabled
                 :error="errors.name"
               />
 
@@ -116,6 +117,19 @@
               required
               :error="errors.changelog"
             />
+
+            <div class="mt-4">
+              <label class="flex items-center gap-2">
+                <input
+                  v-model="form.isMajorVersionUp"
+                  type="checkbox"
+                  class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span class="text-sm text-gray-700 dark:text-gray-300">
+                  {{ $t('rules.edit.incrementMajorVersion') }} ({{ currentVersion }} → {{ nextVersion }})
+                </span>
+              </label>
+            </div>
           </CommonCard>
 
           <div class="flex justify-end gap-3 mt-8">
@@ -205,6 +219,7 @@ const form = reactive({
 	visibility: "private" as "public" | "private",
 	tags: [] as string[],
 	changelog: "",
+	isMajorVersionUp: false,
 });
 
 const errors = reactive({
@@ -248,6 +263,30 @@ const hasChanges = computed(() => {
 // コンテンツが変更されたかどうか
 const contentChanged = computed(() => {
 	return rule.value && form.content !== rule.value.content;
+});
+
+// 現在のバージョン
+const currentVersion = computed(() => {
+	if (!rule.value) {
+		return "1.0";
+	}
+	return `v${rule.value.version}`;
+});
+
+// 次のバージョン
+const nextVersion = computed(() => {
+	if (!rule.value) {
+		return "v1.0";
+	}
+	const versionParts = rule.value.version.split(".");
+	const majorVersion = Number.parseInt(versionParts[0]) || 1;
+	const minorVersion = Number.parseInt(versionParts[1]) || 0;
+
+	if (form.isMajorVersionUp) {
+		return `v${majorVersion + 1}.0`;
+	} else {
+		return `v${majorVersion}.${minorVersion + 1}`;
+	}
 });
 
 const getRuleUrl = () => {
@@ -358,12 +397,12 @@ const handleSubmit = async () => {
 	try {
 		await $rpc.rules.update({
 			id: rule.value.id,
-			name: form.name,
 			description: form.description,
 			content: form.content,
 			visibility: form.visibility,
 			tags: form.tags,
 			changelog: form.changelog,
+			isMajorVersionUp: form.isMajorVersionUp,
 		});
 
 		toastSuccess(t("rules.messages.updateSuccess"));

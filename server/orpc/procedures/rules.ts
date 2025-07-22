@@ -435,7 +435,7 @@ export const rulesProcedures = {
 						organizationId: organizationId || null,
 						tags: JSON.stringify(input.tags),
 						userId: user.id,
-						version: "1.0.0",
+						version: "1.0",
 						latestVersionId: null,
 						createdAt: Math.floor(Date.now() / 1000),
 						updatedAt: Math.floor(Date.now() / 1000),
@@ -448,7 +448,7 @@ export const rulesProcedures = {
 						data: {
 							id: versionId,
 							ruleId: ruleId,
-							versionNumber: "1.0.0",
+							versionNumber: "1.0",
 							contentHash,
 							r2ObjectKey,
 							createdBy: user.id,
@@ -502,6 +502,7 @@ export const rulesProcedures = {
 				tags: z.array(z.string()).optional(),
 				content: z.string().optional(),
 				changelog: z.string().optional(),
+				isMajorVersionUp: z.boolean().optional(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
@@ -542,25 +543,13 @@ export const rulesProcedures = {
 				});
 			}
 
-			const { id, tags, content, changelog, ...updateData } = input;
+			const { id, tags, content, changelog, isMajorVersionUp, name, ...updateData } = input;
 
-			// ルール名が変更される場合、一意性をチェック
-			if (updateData.name && updateData.name !== existingRule.name) {
-				const nameExists = await db.rule.findFirst({
-					where: {
-						name: updateData.name,
-						id: { not: id },
-						...(existingRule.organizationId
-							? { organizationId: existingRule.organizationId }
-							: { userId: existingRule.userId, organizationId: null }),
-					},
+			// ルール名の変更は禁止
+			if (name && name !== existingRule.name) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Rule name cannot be changed",
 				});
-
-				if (nameExists) {
-					throw new ORPCError("CONFLICT", {
-						message: "A rule with this name already exists",
-					});
-				}
 			}
 
 			// コンテンツの更新がある場合は新しいバージョンを作成
@@ -603,10 +592,90 @@ export const rulesProcedures = {
 					return { success: true };
 				}
 
-				// 新しいバージョン番号を生成（簡易的な実装）
-				const versionParts = existingRule.version.split(".");
-				const patchVersion = Number.parseInt(versionParts[2]) + 1;
-				const newVersionNumber = `${versionParts[0]}.${versionParts[1]}.${patchVersion}`;
+				// 既存のバージョンを取得して最新バージョンを特定
+				const existingVersions = await db.ruleVersion.findMany({
+					where: { ruleId: id },
+					select: { versionNumber: true },
+					orderBy: { createdAt: "desc" },
+				});
+
+				console.log(
+					"Existing versions:",
+					existingVersions.map((v) => v.versionNumber),
+				);
+
+				// バージョン番号を正規化する関数（1.0.0 -> 1.0）
+				const normalizeVersion = (version: string): string => {
+					const parts = version.split(".");
+					const major = Number.parseInt(parts[0]) || 1;
+					const minor = Number.parseInt(parts[1]) || 0;
+					return `${major}.${minor}`;
+				};
+
+				// バージョン番号の比較関数
+				const compareVersions = (v1: string, v2: string): number => {
+					const norm1 = normalizeVersion(v1);
+					const norm2 = normalizeVersion(v2);
+					const [major1, minor1] = norm1.split(".").map((n) => Number.parseInt(n) || 0);
+					const [major2, minor2] = norm2.split(".").map((n) => Number.parseInt(n) || 0);
+
+					if (major1 !== major2) {
+						return major1 - major2;
+					}
+					return minor1 - minor2;
+				};
+
+				// 最新バージョンを取得
+				let latestVersion = existingRule.version;
+				if (existingVersions.length > 0) {
+					latestVersion = existingVersions.reduce((latest, current) => {
+						return compareVersions(current.versionNumber, latest) > 0
+							? current.versionNumber
+							: latest;
+					}, existingVersions[0].versionNumber);
+				}
+
+				// 新しいバージョン番号を生成
+				console.log("Latest version:", latestVersion);
+				console.log("isMajorVersionUp:", input.isMajorVersionUp);
+
+				const versionParts = latestVersion.split(".");
+				const currentMajorVersion = Number.parseInt(versionParts[0]) || 1;
+				const currentMinorVersion = Number.parseInt(versionParts[1]) || 0;
+
+				let newVersionNumber: string;
+				if (input.isMajorVersionUp) {
+					// メジャーバージョンを手動でインクリメント
+					newVersionNumber = `${currentMajorVersion + 1}.0`;
+				} else {
+					// マイナーバージョンを自動でインクリメント
+					newVersionNumber = `${currentMajorVersion}.${currentMinorVersion + 1}`;
+				}
+
+				console.log("New version number:", newVersionNumber);
+
+				// 新しいバージョンが既存のバージョンより大きいことを確認
+				const versionExists = existingVersions.some((v) => v.versionNumber === newVersionNumber);
+				if (versionExists) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: `バージョン ${newVersionNumber} は既に存在します。`,
+					});
+				}
+
+				// 最新バージョンより大きいことを確認（バージョンが存在する場合のみ）
+				if (existingVersions.length > 0) {
+					const latestVersion = existingVersions.reduce((latest, current) => {
+						return compareVersions(current.versionNumber, latest.versionNumber) > 0
+							? current
+							: latest;
+					}, existingVersions[0]);
+
+					if (compareVersions(newVersionNumber, latestVersion.versionNumber) <= 0) {
+						throw new ORPCError("BAD_REQUEST", {
+							message: `新しいバージョン ${newVersionNumber} は最新バージョン ${latestVersion.versionNumber} より大きくなければなりません。`,
+						});
+					}
+				}
 
 				// 新しいバージョンのIDとコンテンツハッシュを生成
 				const versionId = generateId();
@@ -623,12 +692,23 @@ export const rulesProcedures = {
 
 				// 新しいバージョンを作成
 				try {
+					console.log("Creating new version with data:", {
+						id: versionId,
+						ruleId: id,
+						versionNumber: newVersionNumber,
+						changelog: changelog || null,
+						contentHash,
+						r2ObjectKey,
+						createdBy: user.id,
+						createdAt: Math.floor(Date.now() / 1000),
+					});
+
 					await db.ruleVersion.create({
 						data: {
 							id: versionId,
 							ruleId: id,
 							versionNumber: newVersionNumber,
-							changelog: changelog || "Updated content",
+							changelog: changelog || null,
 							contentHash,
 							r2ObjectKey,
 							createdBy: user.id,
@@ -648,13 +728,22 @@ export const rulesProcedures = {
 						},
 					});
 				} catch (dbError) {
+					console.error("Database error creating version:", dbError);
+					console.error("Error details:", dbError instanceof Error ? dbError.message : dbError);
+
 					// R2のクリーンアップ
 					try {
 						await env.R2.delete(r2ObjectKey);
 					} catch (cleanupError) {
 						console.error("Failed to clean up R2:", cleanupError);
 					}
-					throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to create new version" });
+
+					// エラーメッセージを詳細に
+					const errorMessage =
+						dbError instanceof Error
+							? `Failed to create new version: ${dbError.message}`
+							: "Failed to create new version";
+					throw new ORPCError("INTERNAL_SERVER_ERROR", { message: errorMessage });
 				}
 			} else {
 				// コンテンツの更新がない場合は、メタデータのみ更新
@@ -892,6 +981,125 @@ export const rulesProcedures = {
 				created_at: version.createdAt,
 				createdBy: version.creator,
 			}));
+		}),
+
+	getVersion: os
+		.use(dbWithOptionalAuth)
+		.input(
+			z.object({
+				id: z.string(),
+				version: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, env, user } = context;
+			const { id, version: versionNumber } = input;
+
+			// ルールの基本情報を取得
+			const rule = await db.rule.findUnique({
+				where: { id },
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+						},
+					},
+					organization: {
+						select: {
+							id: true,
+							name: true,
+							displayName: true,
+						},
+					},
+				},
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// アクセス権限のチェック
+			if (rule.visibility === "private") {
+				if (!user) {
+					throw new ORPCError("UNAUTHORIZED", {
+						message: "Authentication required for private rules",
+					});
+				}
+
+				if (rule.userId === user.id) {
+					// オーナーは常にアクセス可能
+				} else if (rule.organizationId) {
+					const isMember = await db.organizationMember.findFirst({
+						where: {
+							organizationId: rule.organizationId,
+							userId: user.id,
+						},
+					});
+
+					if (!isMember) {
+						throw new ORPCError("FORBIDDEN", {
+							message: "Access denied to private organization rule",
+						});
+					}
+				} else {
+					throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
+				}
+			}
+
+			// 指定されたバージョンを取得
+			const ruleVersion = await db.ruleVersion.findFirst({
+				where: {
+					ruleId: id,
+					versionNumber,
+				},
+				include: {
+					creator: {
+						select: {
+							id: true,
+							username: true,
+						},
+					},
+				},
+			});
+
+			if (!ruleVersion) {
+				throw new ORPCError("NOT_FOUND", { message: `Version ${versionNumber} not found` });
+			}
+
+			// R2からコンテンツを取得
+			try {
+				const object = await env.R2.get(ruleVersion.r2ObjectKey);
+				if (!object) {
+					throw new ORPCError("NOT_FOUND", { message: "Version content not found" });
+				}
+
+				const content = await object.text();
+
+				return {
+					id: rule.id,
+					name: rule.name,
+					description: rule.description,
+					version: ruleVersion.versionNumber,
+					content,
+					changelog: ruleVersion.changelog || "",
+					visibility: rule.visibility,
+					tags: rule.tags ? JSON.parse(rule.tags) : [],
+					author: rule.user,
+					organization: rule.organization,
+					createdAt: ruleVersion.createdAt,
+					createdBy: ruleVersion.creator,
+					isLatest: rule.version === ruleVersion.versionNumber,
+				};
+			} catch (error) {
+				console.error("Failed to fetch version content from R2:", error);
+				if (error instanceof ORPCError) {
+					throw error;
+				}
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Failed to fetch version content",
+				});
+			}
 		}),
 
 	related: os
