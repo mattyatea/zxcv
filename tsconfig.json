@@ -22,13 +22,21 @@
       "~/*": ["./*"],
       "@/*": ["./*"],
       "~/server/*": ["./server/*"]
-    },
+    }
   },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.vue",
+    ".nuxt/types/**/*.ts",
+    ".nuxt/nuxt.d.ts",
+    ".nuxt/imports.d.ts",
+    ".nuxt/components.d.ts"
+  ],
   "exclude": [
     "node_modules",
-    ".nuxt",
     "dist",
     "coverage",
-    "tests/",
-  ],
+    "tests/"
+  ]
 }
