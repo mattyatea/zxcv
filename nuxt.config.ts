@@ -17,11 +17,15 @@ export default defineNuxtConfig({
     }
   },
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    '~/assets/css/animations.css',
+    '~/assets/css/transitions.css'
+  ],
 
   app: {
-    pageTransition: { name: 'slide', mode: 'out-in' },
-    layoutTransition: { name: 'slide', mode: 'out-in' },
+    pageTransition: { name: 'page', mode: 'out-in' },
+    layoutTransition: { name: 'layout', mode: 'out-in' },
     head: {
       title: 'zxcv - Coding Rules Platform',
       meta: [

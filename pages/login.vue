@@ -3,24 +3,24 @@
     <div class="max-w-md w-full space-y-8">
       <!-- Logo and Title -->
       <div class="text-center">
-        <div class="flex justify-center mb-6">
-          <div class="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-2xl flex items-center justify-center">
+        <div class="flex justify-center mb-6 stagger-item stagger-1">
+          <div class="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-2xl flex items-center justify-center hover:scale-110 transition-transform duration-300">
             <span class="text-3xl font-bold text-white">Z</span>
           </div>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white stagger-item stagger-2">
           {{ $t('auth.login.title') }}
         </h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 stagger-item stagger-3">
           {{ $t('auth.login.subtitle') }}
-          <NuxtLink to="/register" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+          <NuxtLink to="/register" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200">
             {{ $t('nav.register') }}
           </NuxtLink>
         </p>
       </div>
 
       <!-- Login Form -->
-      <CommonCard padding="lg" class="shadow-xl border-0">
+      <CommonCard padding="lg" class="shadow-xl border-0 stagger-item stagger-4">
         <form class="space-y-6" @submit="handleLogin">
           <div class="space-y-4">
             <CommonInput
@@ -31,6 +31,7 @@
               required
               size="lg"
               :error="errors.email"
+              class="stagger-item stagger-5"
             >
               <template #prefix>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,6 +48,7 @@
               required
               size="lg"
               :error="errors.password"
+              class="stagger-item stagger-6"
             >
               <template #prefix>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,19 +58,19 @@
             </CommonInput>
           </div>
 
-          <div class="flex items-center justify-between">
-            <label class="flex items-center">
+          <div class="flex items-center justify-between stagger-item stagger-7">
+            <label class="flex items-center group cursor-pointer">
               <input
                 v-model="form.rememberMe"
                 type="checkbox"
-                class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+                class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 transition-all duration-200 group-hover:scale-110"
               />
-              <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+              <span class="ml-2 text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors duration-200">
                 {{ $t('auth.login.rememberMe') }}
               </span>
             </label>
 
-            <NuxtLink to="/forgot-password" class="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+            <NuxtLink to="/forgot-password" class="text-sm font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200 hover:underline">
               {{ $t('auth.login.forgotPassword') }}
             </NuxtLink>
           </div>
@@ -79,6 +81,7 @@
             size="lg"
             fullWidth
             :loading="loading"
+            class="stagger-item stagger-8 hover-lift"
           >
             {{ loading ? $t('auth.login.loggingIn') : $t('auth.login.loginButton') }}
           </CommonButton>

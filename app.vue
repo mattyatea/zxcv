@@ -10,11 +10,14 @@
 import { useThemeStore } from '~/stores/theme';
 import { useSettingsStore } from '~/stores/settings';
 import { useI18n } from '~/composables/useI18n';
+import { usePageTransition, useViewTransition } from '~/composables/useAnimation';
 
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const { locale, setLocale } = useI18n();
 const themeTransition = ref(false);
+const { transitionName, transitionMode } = usePageTransition();
+const { startTransition } = useViewTransition();
 
 // Enable theme transition after initial load
 onMounted(() => {

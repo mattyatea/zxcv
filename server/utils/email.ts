@@ -1,4 +1,3 @@
-import { EmailMessage } from "cloudflare:email";
 import type { Env } from "~/server/types/env";
 
 export interface EmailTemplate {
