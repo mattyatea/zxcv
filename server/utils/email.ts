@@ -1,5 +1,4 @@
 import { EmailMessage } from "cloudflare:email";
-import { createMimeMessage } from "mimetext";
 import type { Env } from "~/server/types/env";
 
 export interface EmailTemplate {
@@ -60,6 +59,9 @@ export class EmailService {
 				console.log(`[DEV] Text content: ${template.text}`);
 				return false;
 			}
+
+			// Dynamically import mimetext only when needed
+			const { createMimeMessage } = await import("mimetext");
 
 			// Create MIME message using mimetext
 			const msg = createMimeMessage();

@@ -59,18 +59,9 @@ describe("Auth Integration Tests with Real DB", () => {
 	});
 	
 	afterEach(async () => {
-		// Clean up test data
-		const { createPrismaClient } = await import("~/server/utils/prisma");
-		const db = createPrismaClient(env.DB);
-		
-		// Delete all test data
-		await db.user.deleteMany();
-		await db.emailVerification.deleteMany();
-		await db.passwordReset.deleteMany();
-		await db.ruleStar.deleteMany();
-		await db.ruleDownload.deleteMany();
-		await db.rule.deleteMany();
-		await db.organization.deleteMany();
+		// Clean up test data using the test utilities
+		const db = createTestPrismaClient(env.DB);
+		await cleanupTestData(db);
 	});
 
 	describe("User Registration Flow", () => {
