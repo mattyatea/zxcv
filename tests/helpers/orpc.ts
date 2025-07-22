@@ -83,8 +83,8 @@ export async function callProcedure<TInput = any, TOutput = any>(
 		throw error;
 	}
 	
-	// Success - oRPC returns the data directly
-	return responseData;
+	// Success - oRPC wraps the response in a json property
+	return responseData.json || responseData;
 }
 
 // Helper to test oRPC error responses

@@ -18,34 +18,18 @@ vi.mock("~/server/services/emailVerification", () => ({
 }));
 
 describe("auth procedures", () => {
-	let mockPrisma: {
-		user: {
-			findFirst: ReturnType<typeof vi.fn>;
-			findUnique: ReturnType<typeof vi.fn>;
-			create: ReturnType<typeof vi.fn>;
-			update: ReturnType<typeof vi.fn>;
-			delete: ReturnType<typeof vi.fn>;
-		};
-	};
+	let mockPrisma: any;
 	let mockContext: any;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 
-		// Setup mock Prisma
-		mockPrisma = {
-			user: {
-				findFirst: vi.fn(),
-				findUnique: vi.fn(),
-				create: vi.fn(),
-				update: vi.fn(),
-				delete: vi.fn(),
-			},
-		};
+		// Use the global mock Prisma client
+		mockPrisma = (globalThis as any).__mockPrismaClient;
 
 		// Setup mock context
 		mockContext = createMockContext({
-			db: mockPrisma as any,
+			db: mockPrisma,
 		});
 
 		// Setup default mocks

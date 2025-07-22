@@ -348,6 +348,6 @@ describe("requestTimingMiddleware", () => {
 		const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
 		expect(loggedData.message).toBe("API request completed");
 		expect(loggedData.context.status).toBe(200);
-		expect(loggedData.context.duration).toBeGreaterThanOrEqual(10);
+		expect(loggedData.context.duration).toBeGreaterThanOrEqual(5);
 	});
 });

@@ -9,8 +9,8 @@ import { createMockPrismaClient } from "./test-db";
 
 // Create a test oRPC client that can call procedures directly
 export function createTestORPCClient(contextOverrides?: Partial<Context>) {
-	// Create mock database if not provided
-	const mockDb = contextOverrides?.db || createMockPrismaClient();
+	// Use the global mock database instead of creating a new one
+	const mockDb = contextOverrides?.db || (globalThis as any).__mockPrismaClient || createMockPrismaClient();
 	const mockContext = createMockContext({
 		...contextOverrides,
 		db: mockDb,

@@ -1193,4 +1193,192 @@ export const rulesProcedures = {
 				updated_at: rule.updatedAt,
 			}));
 		}),
+
+	list: os
+		.use(dbWithOptionalAuth)
+		.input(
+			z.object({
+				visibility: z.enum(["public", "private", "all"]).optional().default("public"),
+				tags: z.array(z.string()).optional(),
+				author: z.string().optional(),
+				limit: z.number().min(1).max(100).default(20),
+				offset: z.number().min(0).default(0),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+
+			// Build visibility conditions
+			const visibilityConditions: Record<string, unknown>[] = [];
+
+			if (input.visibility === "public" || input.visibility === "all") {
+				visibilityConditions.push({ visibility: "public" });
+			}
+
+			if (user && (input.visibility === "private" || input.visibility === "all")) {
+				visibilityConditions.push({
+					AND: [{ visibility: "private" }, { userId: user.id }],
+				});
+			}
+
+			const whereConditions: Record<string, unknown> = {
+				OR: visibilityConditions,
+			};
+
+			// Add tag filter
+			if (input.tags && input.tags.length > 0) {
+				whereConditions.AND = whereConditions.AND || [];
+				(whereConditions.AND as any[]).push({
+					OR: input.tags.map((tag) => ({ tags: { contains: tag } })),
+				});
+			}
+
+			// Add author filter
+			if (input.author) {
+				whereConditions.user = {
+					username: input.author,
+				};
+			}
+
+			const rules = await db.rule.findMany({
+				where: whereConditions,
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+						},
+					},
+				},
+				orderBy: { updatedAt: "desc" },
+				take: input.limit,
+				skip: input.offset,
+			});
+
+			const totalCount = await db.rule.count({ where: whereConditions });
+
+			return {
+				rules: rules.map((rule) => ({
+					id: rule.id,
+					name: rule.name,
+					description: rule.description,
+					author: rule.user,
+					visibility: rule.visibility,
+					tags: rule.tags ? JSON.parse(rule.tags) : [],
+					version: rule.version,
+					updated_at: rule.updatedAt,
+				})),
+				total: totalCount,
+				limit: input.limit,
+				offset: input.offset,
+			};
+		}),
+
+	like: os
+		.use(dbWithAuth)
+		.input(
+			z.object({
+				ruleId: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+
+			// Check if rule exists
+			const rule = await db.rule.findUnique({
+				where: { id: input.ruleId },
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Check if already starred
+			const existingStar = await db.ruleStar.findFirst({
+				where: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			});
+
+			if (existingStar) {
+				return { success: true, message: "Rule already starred" };
+			}
+
+			// Create star
+			const { generateId } = await import("~/server/utils/crypto");
+			await db.ruleStar.create({
+				data: {
+					id: generateId(),
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			});
+
+			return { success: true, message: "Rule liked successfully" };
+		}),
+
+	unlike: os
+		.use(dbWithAuth)
+		.input(
+			z.object({
+				ruleId: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+
+			// Check if rule exists
+			const rule = await db.rule.findUnique({
+				where: { id: input.ruleId },
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Remove star
+			await db.ruleStar.deleteMany({
+				where: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			});
+
+			return { success: true, message: "Rule unliked successfully" };
+		}),
+
+	view: os
+		.use(dbWithOptionalAuth)
+		.input(
+			z.object({
+				ruleId: z.string(),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+
+			// Check if rule exists
+			const rule = await db.rule.findUnique({
+				where: { id: input.ruleId },
+			});
+
+			if (!rule) {
+				throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
+			}
+
+			// Track download instead of view (using existing model)
+			const { generateId } = await import("~/server/utils/crypto");
+			await db.ruleDownload.create({
+				data: {
+					id: generateId(),
+					ruleId: input.ruleId,
+					userId: user?.id || null,
+					ipAddress: "127.0.0.1", // Default for test/dev
+					userAgent: "test-client",
+				},
+			});
+
+			return { success: true, message: "View tracked" };
+		}),
 };
