@@ -569,6 +569,141 @@ export const organizationsProcedures = {
 			return { success: true };
 		}),
 
+	inviteMember: os
+		.use(dbWithAuth)
+		.input(
+			z.object({
+				organizationId: z.string(),
+				username: z.string().min(1),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+			const { organizationId, username } = input;
+
+			// Check if user is an owner of the organization
+			const membership = await db.organizationMember.findFirst({
+				where: {
+					organizationId,
+					userId: user.id,
+					role: "owner",
+				},
+			});
+
+			if (!membership) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "Only organization owners can invite members",
+				});
+			}
+
+			// Find user by username
+			const invitedUser = await db.user.findUnique({
+				where: { username: username.toLowerCase() },
+				select: {
+					id: true,
+					email: true,
+					username: true,
+				},
+			});
+
+			if (!invitedUser) {
+				throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			}
+
+			// Check if user is already a member
+			const existingMember = await db.organizationMember.findUnique({
+				where: {
+					// biome-ignore lint/style/useNamingConvention: Prismaの命名規則に従うしかない
+					organizationId_userId: {
+						organizationId,
+						userId: invitedUser.id,
+					},
+				},
+			});
+
+			if (existingMember) {
+				throw new ORPCError("CONFLICT", {
+					message: "User is already a member of this organization",
+				});
+			}
+
+			// Check if invitation already exists
+			const existingInvitation = await db.organizationInvitation.findFirst({
+				where: {
+					organizationId,
+					email: invitedUser.email.toLowerCase(),
+					expiresAt: {
+						gte: Math.floor(Date.now() / 1000),
+					},
+				},
+			});
+
+			if (existingInvitation) {
+				throw new ORPCError("CONFLICT", {
+					message: "An invitation has already been sent to this user",
+				});
+			}
+
+			// Get organization details
+			const organization = await db.organization.findUnique({
+				where: { id: organizationId },
+				select: {
+					name: true,
+					displayName: true,
+				},
+			});
+
+			if (!organization) {
+				throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
+			}
+
+			// Create invitation
+			const { generateId } = await import("~/server/utils/crypto");
+			const invitationToken = generateId();
+			const expiresAt = Math.floor(Date.now() / 1000) + 604800; // 7 days
+
+			await db.organizationInvitation.create({
+				data: {
+					id: generateId(),
+					organizationId,
+					email: invitedUser.email.toLowerCase(),
+					token: invitationToken,
+					invitedBy: user.id,
+					expiresAt,
+				},
+			});
+
+			// Send invitation email
+			const { EmailService } = await import("~/server/utils/email");
+			const emailService = new EmailService(context.env);
+
+			const emailTemplate = emailService.generateOrganizationInvitationEmail({
+				email: invitedUser.email,
+				organizationName: organization.displayName || organization.name,
+				inviterName: user.username,
+				invitationToken,
+				userLocale: "ja", // Default to Japanese
+			});
+
+			try {
+				await emailService.sendEmail(emailTemplate);
+			} catch (error) {
+				console.error("Failed to send invitation email:", error);
+				// Delete the invitation if email fails
+				await db.organizationInvitation.delete({
+					where: { token: invitationToken },
+				});
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Failed to send invitation email",
+				});
+			}
+
+			return {
+				success: true,
+				message: "Invitation sent successfully",
+			};
+		}),
+
 	leave: os
 		.use(dbWithAuth)
 		.input(

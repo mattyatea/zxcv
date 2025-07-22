@@ -495,7 +495,21 @@
       "noRules": "No rules yet",
       "inviteMembers": "Invite members",
       "notFound": "Organization not found",
-      "backToList": "Back to organizations"
+      "backToList": "Back to organizations",
+      "removeMember": "Remove member",
+      "confirmRemoveMember": "Are you sure you want to remove {{username}} from the organization?",
+      "memberRemoved": "{{username}} has been removed from the organization",
+      "removeMemberError": "Failed to remove member"
+    },
+    "inviteMember": {
+      "title": "Invite Member",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "Enter username...",
+      "invite": "Send Invitation",
+      "success": "Invitation sent to {{username}}",
+      "error": "Failed to send invitation",
+      "alreadyMember": "This user is already a member",
+      "alreadyInvited": "An invitation has already been sent to this user"
     }
   },
   "auth": {

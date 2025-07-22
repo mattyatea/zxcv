@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { readonly, ref } from "vue";
 
 export interface Toast {
 	id: string;
@@ -16,9 +17,10 @@ export const useToastStore = defineStore("toast", () => {
 	const toasts = ref<Toast[]>([]);
 
 	// Actions
+	let idCounter = 0;
 	const showToast = (options: Omit<Toast, "id">) => {
 		const toast: Toast = {
-			id: Date.now().toString(),
+			id: `toast_${Date.now()}_${++idCounter}`,
 			duration: 3000,
 			...options,
 		};
@@ -48,19 +50,19 @@ export const useToastStore = defineStore("toast", () => {
 
 	// Helper methods for different types
 	const success = (message: string, duration?: number) => {
-		return showToast({ message, type: "success", duration });
+		return showToast({ message, type: "success", ...(duration !== undefined && { duration }) });
 	};
 
 	const error = (message: string, duration?: number) => {
-		return showToast({ message, type: "error", duration });
+		return showToast({ message, type: "error", ...(duration !== undefined && { duration }) });
 	};
 
 	const warning = (message: string, duration?: number) => {
-		return showToast({ message, type: "warning", duration });
+		return showToast({ message, type: "warning", ...(duration !== undefined && { duration }) });
 	};
 
 	const info = (message: string, duration?: number) => {
-		return showToast({ message, type: "info", duration });
+		return showToast({ message, type: "info", ...(duration !== undefined && { duration }) });
 	};
 
 	return {

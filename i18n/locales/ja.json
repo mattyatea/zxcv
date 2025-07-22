@@ -495,7 +495,21 @@
       "noRules": "まだルールがありません",
       "inviteMembers": "メンバーを招待",
       "notFound": "組織が見つかりませんでした",
-      "backToList": "組織一覧に戻る"
+      "backToList": "組織一覧に戻る",
+      "removeMember": "メンバーを削除",
+      "confirmRemoveMember": "{{username}}さんを組織から削除してよろしいですか？",
+      "memberRemoved": "{{username}}さんを組織から削除しました",
+      "removeMemberError": "メンバーの削除に失敗しました"
+    },
+    "inviteMember": {
+      "title": "メンバーを招待",
+      "usernameLabel": "ユーザー名",
+      "usernamePlaceholder": "ユーザー名を入力...",
+      "invite": "招待を送信",
+      "success": "{{username}}さんに招待を送信しました",
+      "error": "招待の送信に失敗しました",
+      "alreadyMember": "このユーザーは既にメンバーです",
+      "alreadyInvited": "このユーザーには既に招待を送信済みです"
     }
   },
   "auth": {

@@ -153,13 +153,25 @@
                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ member.email }}</p>
               </div>
             </div>
-            <span class="badge" :class="member.role === 'owner' ? 'badge-primary' : 'badge-gray'">
-              {{ member.role === 'owner' ? $t('organizations.owner') : $t('organizations.member') }}
-            </span>
+            <div class="flex items-center gap-2">
+              <span class="badge" :class="member.role === 'owner' ? 'badge-primary' : 'badge-gray'">
+                {{ member.role === 'owner' ? $t('organizations.owner') : $t('organizations.member') }}
+              </span>
+              <button
+                v-if="organization.role === 'owner' && member.id !== authStore.user?.id && member.role !== 'owner'"
+                @click="removeMember(member)"
+                class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                :title="$t('organizations.detail.removeMember')"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
           
           <div v-if="organization.role === 'owner'" class="mt-6">
-            <CommonButton variant="ghost" class="w-full">
+            <CommonButton @click="showInviteModal = true" variant="ghost" class="w-full">
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
@@ -179,6 +191,13 @@
         </NuxtLink>
       </div>
     </div>
+    
+    <!-- 招待モーダル -->
+    <OrganizationsInviteMemberModal
+      v-model="showInviteModal"
+      :organization-id="organization?.id || ''"
+      @invited="handleMemberInvited"
+    />
   </div>
 </template>
 
@@ -214,14 +233,22 @@ interface Member {
 	role: "owner" | "member";
 }
 
+interface User {
+	id: string;
+	username: string;
+	email: string;
+}
+
 const { t } = useI18n();
 const route = useRoute();
 const { $rpc } = useNuxtApp();
+const authStore = useAuthStore();
 const loading = ref(false);
 const organization = ref<Organization | null>(null);
 const rules = ref<Rule[]>([]);
 const members = ref<Member[]>([]);
 const activeTab = ref("rules");
+const showInviteModal = ref(false);
 
 const tabs = [
 	{ id: "rules", label: t("organizations.detail.rules") },
@@ -269,6 +296,50 @@ const fetchTabData = async (tab: string) => {
 		}
 	} catch (error) {
 		console.error(`Failed to fetch ${tab}:`, error);
+	}
+};
+
+const removeMember = async (member: Member) => {
+	if (
+		!organization.value ||
+		!confirm(t("organizations.detail.confirmRemoveMember", { username: member.username }))
+	) {
+		return;
+	}
+
+	try {
+		await $rpc.organizations.removeMember({
+			organizationId: organization.value.id,
+			userId: member.id,
+		});
+
+		// メンバーリストから削除
+		members.value = members.value.filter((m) => m.id !== member.id);
+
+		// メンバー数を更新
+		if (organization.value) {
+			organization.value.memberCount--;
+		}
+
+		const { showToast } = useToast();
+		showToast({
+			message: t("organizations.detail.memberRemoved", { username: member.username }),
+			type: "success",
+		});
+	} catch (error) {
+		console.error("Failed to remove member:", error);
+		const { showToast } = useToast();
+		showToast({
+			message: t("organizations.detail.removeMemberError"),
+			type: "error",
+		});
+	}
+};
+
+const handleMemberInvited = (_user: User) => {
+	// 招待が成功したらメンバーリストを再取得
+	if (activeTab.value === "members") {
+		fetchTabData("members");
 	}
 };
 

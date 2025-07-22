@@ -5,6 +5,40 @@ import { dbProvider, dbWithAuth } from "~/server/orpc/middleware/combined";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 
 export const usersProcedures = {
+	// Search users by username (for organization invitations)
+	searchByUsername: os
+		.use(dbWithAuth)
+		.input(
+			z.object({
+				username: z.string().min(1),
+				limit: z.number().min(1).max(20).default(10),
+			}),
+		)
+		.handler(async ({ input, context }) => {
+			const { username, limit } = input;
+			const { db } = context;
+
+			// Search for users by username (case-insensitive partial match)
+			const users = await db.user.findMany({
+				where: {
+					username: {
+						contains: username.toLowerCase(),
+					},
+				},
+				select: {
+					id: true,
+					username: true,
+					email: true,
+				},
+				take: limit,
+				orderBy: {
+					username: "asc",
+				},
+			});
+
+			return users;
+		}),
+
 	// Get user profile by username
 	getProfile: os
 		.use(dbProvider)
