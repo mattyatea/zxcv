@@ -768,7 +768,7 @@ export const rulesProcedures = {
 			}),
 		)
 		.handler(async ({ input, context }) => {
-			const { db, user } = context;
+			const { db, user, env } = context;
 
 			const rule = await db.rule.findUnique({
 				where: { id: input.id },
@@ -802,9 +802,37 @@ export const rulesProcedures = {
 				});
 			}
 
+			// Get all versions before deleting the rule
+			const versions = await db.ruleVersion.findMany({
+				where: { ruleId: input.id },
+				select: { r2ObjectKey: true },
+			});
+
+			// Delete from database first (cascade will delete versions)
 			await db.rule.delete({
 				where: { id: input.id },
 			});
+
+			// Clean up R2 storage after successful database deletion
+			if (env.R2 && versions.length > 0) {
+				try {
+					console.log(`Cleaning up ${versions.length} R2 objects for rule ${input.id}`);
+
+					// Delete all version content files from R2
+					const deletePromises = versions.map((version) =>
+						env.R2.delete(version.r2ObjectKey).catch((error) => {
+							console.error(`Failed to delete R2 object ${version.r2ObjectKey}:`, error);
+							// Continue with other deletions even if one fails
+						}),
+					);
+
+					await Promise.all(deletePromises);
+					console.log(`Successfully cleaned up R2 objects for rule ${input.id}`);
+				} catch (error) {
+					// Log error but don't fail the operation since database deletion already succeeded
+					console.error("Failed to clean up some R2 objects:", error);
+				}
+			}
 
 			return { success: true };
 		}),

@@ -275,24 +275,39 @@ describe("Rules Integration Tests", () => {
 
 			// Mock version list for cleanup
 			vi.mocked(mockDb.ruleVersion.findMany).mockResolvedValue([
-				{ id: "v1", ruleId, version: 1, releaseNotes: null, downloads: 0, createdAt: 0 },
-				{ id: "v2", ruleId, version: 2, releaseNotes: null, downloads: 0, createdAt: 0 },
+				{
+					id: "v1",
+					ruleId,
+					versionNumber: "1.0",
+					r2ObjectKey: `rules/${ruleId}/versions/v1/content.md`,
+					changelog: null,
+					contentHash: "hash1",
+					createdAt: 0,
+					createdBy: authenticatedUser.id,
+				},
+				{
+					id: "v2",
+					ruleId,
+					versionNumber: "2.0",
+					r2ObjectKey: `rules/${ruleId}/versions/v2/content.md`,
+					changelog: null,
+					contentHash: "hash2",
+					createdAt: 0,
+					createdBy: authenticatedUser.id,
+				},
 			]);
 
-			// Mock R2 list for cleanup
-			vi.mocked(mockR2.list).mockResolvedValue({
-				objects: [
-					{ key: `rules/${ruleId}/versions/1/content.md` },
-					{ key: `rules/${ruleId}/versions/2/content.md` },
-				],
-				truncated: false,
-			});
+			// Mock R2 delete operations
+			vi.mocked(mockR2.delete).mockResolvedValue(undefined);
 
 			const result = await client.rules.delete({ id: ruleId });
 
 			expect(result.success).toBe(true);
-			// Delete operation only returns success, no message
-			// Note: R2 cleanup is not implemented in the current delete procedure
+			
+			// Verify R2 cleanup was performed
+			expect(mockR2.delete).toHaveBeenCalledTimes(2);
+			expect(mockR2.delete).toHaveBeenCalledWith(`rules/${ruleId}/versions/v1/content.md`);
+			expect(mockR2.delete).toHaveBeenCalledWith(`rules/${ruleId}/versions/v2/content.md`);
 		});
 	});
 
