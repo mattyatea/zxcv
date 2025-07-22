@@ -222,6 +222,51 @@
     "bio": "Bio",
     "website": "Website",
     "joined": "Joined",
+    "backToHome": "Back to Home",
+    "emailVerified": "Email verified",
+    "emailNotVerified": "Email not verified",
+    "createdRules": "Created Rules",
+    "belongingOrganizations": "Organizations",
+    "registrationDate": "Registration Date",
+    "recentActivity": "Recent Activity",
+    "noActivityYet": "No activity yet",
+    "changeAvatar": "Change avatar",
+    "avatarChangeComingSoon": "Avatar image change coming soon",
+    "usernameHint": "Letters, numbers, hyphens, and underscores only",
+    "emailChangeWarning": "Changing your email address will require re-verification",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "newPasswordConfirm": "New password (confirm)",
+    "passwordHint": "At least 8 characters",
+    "update": "Update",
+    "change": "Change",
+    "placeholders": {
+      "username": "username",
+      "email": "email@example.com",
+      "currentPassword": "Enter current password",
+      "newPassword": "Enter new password",
+      "newPasswordConfirm": "Re-enter new password"
+    },
+    "errors": {
+      "noUsername": "Username not specified",
+      "loadFailed": "Failed to load profile",
+      "usernameRequired": "Username is required",
+      "usernameInvalid": "Only letters, numbers, hyphens, and underscores allowed",
+      "usernameMinLength": "Must be at least 3 characters",
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Please enter a valid email address",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "passwordMismatch": "Passwords do not match",
+      "usernameOrEmailTaken": "That username or email address is already taken",
+      "updateFailed": "Failed to update profile",
+      "wrongCurrentPassword": "Current password is incorrect",
+      "passwordChangeFailed": "Failed to change password"
+    },
+    "success": {
+      "profileUpdated": "Profile updated successfully",
+      "passwordChanged": "Password changed successfully"
+    },
     "stats": {
       "rules": "Rules",
       "organizations": "Organizations",
@@ -270,160 +315,6 @@
     "careers": "Careers",
     "partners": "Partners",
     "security": "Security"
-  },
-  "home": {
-    "hero": {
-      "badge": "The new standard for AI coding rule management",
-      "title": "Share, manage, and utilize",
-      "titleHighlight": "coding rules",
-      "description": "Unify coding standards across your organization. Maximize development efficiency with AI-optimized rule management.",
-      "viewRules": "View rules",
-      "getStarted": "Get started free"
-    },
-    "features": {
-      "title": "FEATURES",
-      "subtitle": "All the features you need for organization development",
-      "description": "Providing features to improve development speed while maintaining code quality",
-      "versionControl": {
-        "title": "Version Control",
-        "description": "Automatically record rule change history. Revert to previous versions anytime."
-      },
-      "organizationCollaboration": {
-        "title": "Organization Collaboration",
-        "description": "Easy sharing with organization members. Manage rules safely with permission control."
-      },
-      "aiOptimized": {
-        "title": "AI Optimized",
-        "description": "Output rules in formats optimized for AI development tools. Improve development efficiency."
-      },
-      "export": {
-        "title": "Easy Export",
-        "description": "Export rules in various formats like ESLint, Prettier, EditorConfig."
-      },
-      "search": {
-        "title": "Fast Search",
-        "description": "Instantly find rules with tags, categories, and full-text search."
-      },
-      "accessControl": {
-        "title": "Access Control",
-        "description": "Fine-grained control over who can view and edit with flexible permissions."
-      },
-      "api": {
-        "title": "API Access",
-        "description": "Integrate with CI/CD pipelines for automation."
-      }
-    },
-    "cta": {
-      "title": "Get started today",
-      "description": "Start for free. No credit card required.",
-      "button": "Create free account"
-    }
-  },
-  "rules": {
-    "title": "Coding Rules",
-    "subtitle": "Explore and share AI coding rules",
-    "myRules": "My Rules",
-    "publicRules": "Public Rules",
-    "organizationRules": "Organization Rules",
-    "createRule": "New Rule",
-    "searchPlaceholder": "Search rules...",
-    "visibility": {
-      "public": "Public",
-      "private": "Private",
-      "organization": "Organization",
-      "all": "All visibility"
-    },
-    "sort": {
-      "recentlyUpdated": "Recently updated",
-      "recentlyCreated": "Recently created",
-      "alphabetical": "Alphabetical"
-    },
-    "popularTags": "Popular tags:",
-    "noRulesFound": "No rules found",
-    "createFirstRule": "Create your first rule",
-    "actions": {
-      "view": "View",
-      "edit": "Edit",
-      "delete": "Delete",
-      "share": "Share",
-      "duplicate": "Duplicate",
-      "download": "Download",
-      "version": "Version",
-      "copyRule": "Copy Rule",
-      "copied": "Copied!"
-    },
-    "form": {
-      "name": "Rule name",
-      "nameHint": "Only letters, numbers, underscores, and hyphens allowed",
-      "namePlaceholder": "my-coding-rules",
-      "organization": "Organization to post to (optional)",
-      "urlPreview": "Your rule will be available at:",
-      "description": "Description",
-      "descriptionPlaceholder": "Describe what this rule does and when to use it",
-      "content": "Content",
-      "contentPlaceholder": "# Rule Name\n\nDescribe your rule here.\n\n## Usage\n\n```\n// Code example\n```\n\n## Configuration Example\n\n```json\n{\n  \"rules\": {}\n}\n```",
-      "markdownSupported": "You can write in Markdown format",
-      "uploadMarkdown": "Upload Markdown file",
-      "writeDirectly": "Write directly",
-      "tags": "Tags",
-      "tagsPlaceholder": "Add a tag and press Enter",
-      "addTag": "Add",
-      "visibility": "Visibility",
-      "visibilityOptions": {
-        "public": "Public - Anyone can view",
-        "private": "Private - Only you can view",
-        "organization": "Organization - Only organization members can view"
-      },
-      "organization": "Organization",
-      "selectOrganization": "Select an organization",
-      "format": "Format",
-      "basicInfo": "Basic Information"
-    },
-    "messages": {
-      "created": "Rule created successfully",
-      "updated": "Rule updated successfully",
-      "deleted": "Rule deleted successfully",
-      "deleteConfirm": "Are you sure you want to delete this rule?",
-      "createError": "Failed to create rule",
-      "updateSuccess": "Rule updated successfully",
-      "updateError": "Failed to update rule",
-      "copied": "Rule copied",
-      "copyError": "Failed to copy",
-      "contentCopied": "Rule content copied",
-      "invalidFileType": "Only Markdown files (.md, .markdown) can be uploaded",
-      "viewingVersion": "Viewing version {{version}}",
-      "versionFetchError": "Failed to fetch version"
-    },
-    "pageTitle": "Rules - zxcv",
-    "newRuleTitle": "Create New Rule - zxcv",
-    "createNewRule": "Create New Rule",
-    "shareWithCommunity": "Share your coding standards with the community",
-    "basicInfo": "Basic Information",
-    "ruleContent": "Rule Content",
-    "creating": "Creating...",
-    "detail": {
-      "notFound": "Rule not found",
-      "backToList": "Back to rules",
-      "versionHistory": "Version History",
-      "relatedRules": "Related Rules",
-      "currentVersion": "Current",
-      "viewingOldVersion": "Viewing version {{version}}",
-      "viewLatestVersion": "View Latest Version",
-      "latest": "Latest",
-      "currentlyViewing": "Currently Viewing"
-    },
-    "edit": {
-      "title": "Edit Rule",
-      "notOwner": "You don't have permission to edit this rule",
-      "fetchError": "Failed to fetch rule",
-      "changeLog": "Change Log",
-      "changeLogPlaceholder": "Describe what you changed (e.g., Fixed typos, Added new examples)",
-      "showPreview": "Show Preview",
-      "hidePreview": "Hide Preview",
-      "update": "Update Rule",
-      "unsavedChanges": "You have unsaved changes",
-      "incrementMajorVersion": "Major version update"
-    }
   },
   "organizations": {
     "title": "Organizations",
@@ -593,8 +484,8 @@
       "title": "Verify email address",
       "verifying": "Verifying your account...",
       "success": "Verification complete",
-      "successMessage": "Email address verified",
-      "successDescription": "Your account has been activated. Please sign in to use zxcv.",
+      "successMessage": "Email address verified successfully.",
+      "successDescription": "You can now access your account from the login page.",
       "error": "Verification error",
       "errorMessage": "Failed to verify email address.",
       "invalidToken": "Invalid or expired verification token.",
@@ -603,12 +494,14 @@
       "resendEmail": "Resend verification email",
       "resending": "Sending...",
       "noToken": "No verification token",
-      "noTokenMessage": "Please click the link in your email to access this page.",
+      "noTokenMessage": "Email verification requires a token.",
+      "noTokenDescription": "Please click the link in the email sent during registration.",
       "enterEmail": "Please enter your email address:",
       "emailResent": "Verification email sent. Please check your email.",
       "resendError": "Failed to send verification email.",
       "generalError": "An error occurred.",
-      "pageTitle": "Verify Email - zxcv"
+      "pageTitle": "Verify Email - zxcv",
+      "register": "Sign up"
     }
   }
 }

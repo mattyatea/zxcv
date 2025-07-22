@@ -222,6 +222,51 @@
     "bio": "自己紹介",
     "website": "ウェブサイト",
     "joined": "登録日",
+    "backToHome": "ホームに戻る",
+    "emailVerified": "メール認証済み",
+    "emailNotVerified": "メール未認証",
+    "createdRules": "作成したルール",
+    "belongingOrganizations": "所属組織",
+    "registrationDate": "登録日",
+    "recentActivity": "最近のアクティビティ",
+    "noActivityYet": "まだアクティビティがありません",
+    "changeAvatar": "アバターを変更",
+    "avatarChangeComingSoon": "アバター画像の変更は近日実装予定",
+    "usernameHint": "英数字、ハイフン、アンダースコアのみ使用可能",
+    "emailChangeWarning": "メールアドレスを変更すると再認証が必要になります",
+    "changePassword": "パスワードを変更",
+    "currentPassword": "現在のパスワード",
+    "newPassword": "新しいパスワード",
+    "newPasswordConfirm": "新しいパスワード（確認）",
+    "passwordHint": "8文字以上で設定してください",
+    "update": "更新",
+    "change": "変更",
+    "placeholders": {
+      "username": "username",
+      "email": "email@example.com",
+      "currentPassword": "現在のパスワードを入力",
+      "newPassword": "新しいパスワードを入力",
+      "newPasswordConfirm": "新しいパスワードを再入力"
+    },
+    "errors": {
+      "noUsername": "ユーザー名が指定されていません",
+      "loadFailed": "プロフィールの読み込みに失敗しました",
+      "usernameRequired": "ユーザー名は必須です",
+      "usernameInvalid": "英数字、ハイフン、アンダースコアのみ使用可能です",
+      "usernameMinLength": "3文字以上で入力してください",
+      "emailRequired": "メールアドレスは必須です",
+      "emailInvalid": "有効なメールアドレスを入力してください",
+      "passwordMinLength": "パスワードは8文字以上で設定してください",
+      "passwordMismatch": "パスワードが一致しません",
+      "usernameOrEmailTaken": "そのユーザー名またはメールアドレスは既に使用されています",
+      "updateFailed": "プロフィールの更新に失敗しました",
+      "wrongCurrentPassword": "現在のパスワードが正しくありません",
+      "passwordChangeFailed": "パスワードの変更に失敗しました"
+    },
+    "success": {
+      "profileUpdated": "プロフィールを更新しました",
+      "passwordChanged": "パスワードを変更しました"
+    },
     "stats": {
       "rules": "ルール",
       "organizations": "組織",
@@ -270,160 +315,6 @@
     "careers": "採用情報",
     "partners": "パートナー",
     "security": "セキュリティ"
-  },
-  "home": {
-    "hero": {
-      "badge": "AIコーディングルール管理の新しいスタンダード",
-      "title": "コーディングルールを",
-      "titleHighlight": "共有・管理・活用",
-      "description": "組織全体でコーディング規約を統一。AIに最適化されたルール管理で、開発効率を最大化します。",
-      "viewRules": "ルールを見る",
-      "getStarted": "無料で始める"
-    },
-    "features": {
-      "title": "FEATURES",
-      "subtitle": "組織開発に必要なすべての機能",
-      "description": "コード品質を保ちながら、開発スピードを向上させる機能を提供",
-      "versionControl": {
-        "title": "バージョン管理",
-        "description": "ルールの変更履歴を自動的に記録。いつでも過去のバージョンに戻すことができます。"
-      },
-      "organizationCollaboration": {
-        "title": "組織連携",
-        "description": "組織メンバーと簡単に共有。権限管理で安全にルールを管理できます。"
-      },
-      "aiOptimized": {
-        "title": "AI最適化",
-        "description": "AI開発ツールに最適化された形式でルールを出力。開発効率を向上させます。"
-      },
-      "export": {
-        "title": "簡単エクスポート",
-        "description": "ESLint、Prettier、EditorConfigなど、様々な形式でルールをエクスポート。"
-      },
-      "search": {
-        "title": "高速検索",
-        "description": "タグ、カテゴリ、全文検索で必要なルールを瞬時に発見。"
-      },
-      "accessControl": {
-        "title": "アクセス制御",
-        "description": "柔軟な権限設定で、誰が閲覧・編集できるかを細かく制御。"
-      },
-      "api": {
-        "title": "APIアクセス",
-        "description": "CI/CDパイプラインと連携して、自動化を実現。"
-      }
-    },
-    "cta": {
-      "title": "今すぐ始めよう",
-      "description": "無料で始められます。クレジットカード不要。",
-      "button": "無料アカウント作成"
-    }
-  },
-  "rules": {
-    "title": "コーディングルール",
-    "subtitle": "AIコーディングルールを探索・共有しましょう",
-    "myRules": "マイルール",
-    "publicRules": "公開ルール",
-    "organizationRules": "組織ルール",
-    "createRule": "新規ルール",
-    "searchPlaceholder": "ルールを検索...",
-    "visibility": {
-      "public": "パブリック",
-      "private": "プライベート",
-      "organization": "組織",
-      "all": "すべての公開設定"
-    },
-    "sort": {
-      "recentlyUpdated": "最近更新",
-      "recentlyCreated": "最近作成",
-      "alphabetical": "名前順"
-    },
-    "popularTags": "人気のタグ:",
-    "noRulesFound": "ルールが見つかりません",
-    "createFirstRule": "最初のルールを作成してみましょう",
-    "actions": {
-      "view": "表示",
-      "edit": "編集",
-      "delete": "削除",
-      "share": "共有",
-      "duplicate": "複製",
-      "download": "ダウンロード",
-      "version": "バージョン",
-      "copyRule": "ルールをコピー",
-      "copied": "コピーしました！"
-    },
-    "form": {
-      "name": "ルール名",
-      "nameHint": "英数字、アンダースコア、ハイフンのみ使用可能",
-      "namePlaceholder": "my-coding-rules",
-      "organization": "投稿先の組織 (オプション)",
-      "urlPreview": "ルールのURLは以下になります：",
-      "description": "説明",
-      "descriptionPlaceholder": "このルールの用途と使用タイミングを説明してください",
-      "content": "内容",
-      "contentPlaceholder": "# ルール名\n\nルールの説明をここに記載してください。\n\n## 使用方法\n\n```\n// コード例\n```\n\n## 設定例\n\n```json\n{\n  \"rules\": {}\n}\n```",
-      "markdownSupported": "Markdown形式で記述できます",
-      "uploadMarkdown": "Markdownファイルをアップロード",
-      "writeDirectly": "直接入力する",
-      "tags": "タグ",
-      "tagsPlaceholder": "タグを入力してEnterキーを押してください",
-      "addTag": "追加",
-      "visibility": "公開設定",
-      "visibilityOptions": {
-        "public": "公開 - 誰でも閲覧可能",
-        "private": "非公開 - 自分だけが閲覧可能",
-        "organization": "組織 - 組織メンバーのみ閲覧可能"
-      },
-      "organization": "組織",
-      "selectOrganization": "組織を選択",
-      "format": "フォーマット",
-      "basicInfo": "基本情報"
-    },
-    "messages": {
-      "created": "ルールを作成しました",
-      "updated": "ルールを更新しました",
-      "deleted": "ルールを削除しました",
-      "deleteConfirm": "このルールを削除してもよろしいですか？",
-      "createError": "ルールの作成に失敗しました",
-      "updateSuccess": "ルールを更新しました",
-      "updateError": "ルールの更新に失敗しました",
-      "copied": "ルールをコピーしました",
-      "copyError": "コピーに失敗しました",
-      "contentCopied": "ルール内容をコピーしました",
-      "invalidFileType": "Markdownファイル（.md、.markdown）のみアップロード可能です",
-      "viewingVersion": "バージョン {{version}} を表示中",
-      "versionFetchError": "バージョンの取得に失敗しました"
-    },
-    "pageTitle": "ルール一覧 - zxcv",
-    "newRuleTitle": "新規ルール作成 - zxcv",
-    "createNewRule": "新規ルールを作成",
-    "shareWithCommunity": "コーディング標準をコミュニティと共有",
-    "basicInfo": "基本情報",
-    "ruleContent": "ルール内容",
-    "creating": "作成中...",
-    "detail": {
-      "notFound": "ルールが見つかりませんでした",
-      "backToList": "ルール一覧に戻る",
-      "versionHistory": "バージョン履歴",
-      "relatedRules": "関連するルール",
-      "currentVersion": "現在",
-      "viewingOldVersion": "バージョン {{version}} を表示中",
-      "viewLatestVersion": "最新版を表示",
-      "latest": "最新",
-      "currentlyViewing": "表示中"
-    },
-    "edit": {
-      "title": "ルールを編集",
-      "notOwner": "このルールを編集する権限がありません",
-      "fetchError": "ルールの取得に失敗しました",
-      "changeLog": "変更履歴",
-      "changeLogPlaceholder": "何を変更したか説明してください（例：誤字修正、新しい例を追加）",
-      "showPreview": "プレビュー表示",
-      "hidePreview": "プレビューを隠す",
-      "update": "ルールを更新",
-      "unsavedChanges": "未保存の変更があります",
-      "incrementMajorVersion": "メジャーバージョンアップ"
-    }
   },
   "organizations": {
     "title": "組織",
@@ -593,8 +484,8 @@
       "title": "メールアドレスの確認",
       "verifying": "アカウントを有効化しています...",
       "success": "確認完了",
-      "successMessage": "メールアドレスが確認されました",
-      "successDescription": "アカウントの有効化が完了しました。ログインしてzxcvをご利用ください。",
+      "successMessage": "メールアドレスの確認が完了しました。",
+      "successDescription": "ログインページからアカウントにアクセスできます。",
       "error": "確認エラー",
       "errorMessage": "メールアドレスの確認に失敗しました。",
       "invalidToken": "無効または期限切れの確認トークンです。",
@@ -603,12 +494,14 @@
       "resendEmail": "確認メールを再送信",
       "resending": "送信中...",
       "noToken": "確認トークンがありません",
-      "noTokenMessage": "このページにアクセスするには、メールに記載されたリンクをクリックしてください。",
+      "noTokenMessage": "メールアドレスの確認にはトークンが必要です。",
+      "noTokenDescription": "登録時に送信されたメールのリンクをクリックしてください。",
       "enterEmail": "メールアドレスを入力してください:",
       "emailResent": "確認メールを送信しました。メールをご確認ください。",
       "resendError": "確認メールの送信に失敗しました。",
       "generalError": "エラーが発生しました。",
-      "pageTitle": "メールアドレスの確認 - zxcv"
+      "pageTitle": "メールアドレスの確認 - zxcv",
+      "register": "新規登録"
     }
   }
 }

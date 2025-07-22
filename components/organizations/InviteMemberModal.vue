@@ -2,20 +2,14 @@
   <CommonModal v-model="isOpen" :title="$t('organizations.inviteMember.title')">
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <!-- ユーザー名検索 -->
-      <div>
-        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          {{ $t('organizations.inviteMember.usernameLabel') }}
-        </label>
-        <div class="relative">
-          <input
-            id="username"
-            v-model="searchQuery"
-            @input="handleSearch"
-            type="text"
-            :placeholder="$t('organizations.inviteMember.usernamePlaceholder')"
-            class="form-input"
-            autocomplete="off"
-          />
+      <div class="relative">
+        <CommonInput
+          v-model="searchQuery"
+          @input="handleSearch"
+          :label="$t('organizations.inviteMember.usernameLabel')"
+          :placeholder="$t('organizations.inviteMember.usernamePlaceholder')"
+          autocomplete="off"
+        />
           
           <!-- 検索結果のドロップダウン -->
           <div
@@ -39,10 +33,10 @@
             </button>
           </div>
           
-          <!-- ローディング -->
-          <div v-if="searching" class="absolute right-3 top-1/2 -translate-y-1/2">
-            <CommonLoadingSpinner size="sm" />
-          </div>
+        
+        <!-- ローディング -->
+        <div v-if="searching" class="absolute right-3 top-10">
+          <CommonLoadingSpinner size="sm" />
         </div>
       </div>
 
