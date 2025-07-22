@@ -1,3 +1,4 @@
+import { EmailMessage } from "cloudflare:email";
 import { createMimeMessage } from "mimetext";
 import type { Env } from "~/server/types/env";
 
@@ -81,19 +82,10 @@ export class EmailService {
 			// Create EmailMessage instance
 			// Dynamic import for Cloudflare Workers environment
 			// biome-ignore lint/suspicious/noExplicitAny: Checking for Cloudflare runtime
-			if (typeof (globalThis as any).EmailMessage !== "undefined") {
-				// In Cloudflare Workers environment
-				const { EmailMessage } = await import("cloudflare:email");
-				const emailMessage = new EmailMessage(this.fromEmail, template.to, msg.asRaw());
-				await this.env.EMAIL_SENDER.send(emailMessage);
-			} else {
-				// In local development environment
-				console.log("[LOCAL DEV] Email would be sent:");
-				console.log(`From: ${this.fromEmail}`);
-				console.log(`To: ${template.to}`);
-				console.log(`Subject: ${template.subject}`);
-				console.log(`Raw size: ${msg.asRaw().length} bytes`);
-			}
+			// In Cloudflare Workers environment
+			const { EmailMessage } = await import("cloudflare:email");
+			const emailMessage = new EmailMessage(this.fromEmail, template.to, msg.asRaw());
+			await this.env.EMAIL_SENDER.send(emailMessage);
 
 			return true;
 		} catch (error) {
