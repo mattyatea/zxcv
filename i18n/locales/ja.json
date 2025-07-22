@@ -40,6 +40,9 @@
   "nav": {
     "home": "ホーム",
     "rules": "ルール",
+    "myRules": "マイルール",
+    "myOrganizations": "マイ組織",
+    "quickAccess": "クイックアクセス",
     "organizations": "組織",
     "profile": "プロフィール",
     "settings": "設定",

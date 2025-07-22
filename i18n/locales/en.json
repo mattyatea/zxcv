@@ -40,6 +40,9 @@
   "nav": {
     "home": "Home",
     "rules": "Rules",
+    "myRules": "My Rules",
+    "myOrganizations": "My Organizations", 
+    "quickAccess": "Quick Access",
     "organizations": "Organizations",
     "profile": "Profile",
     "settings": "Settings",

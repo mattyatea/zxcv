@@ -1,11 +1,11 @@
 <template>
   <div class="form-group">
-    <label v-if="label" :for="inputId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+    <label v-if="label" :for="inputId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 transition-colors duration-200">
       {{ label }}
       <span v-if="required" class="text-danger ml-0.5">*</span>
     </label>
     
-    <div class="relative">
+    <div class="relative input-wrapper">
       <div v-if="$slots.prefix" class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
         <slot name="prefix" />
       </div>
@@ -127,11 +127,11 @@ const inputClasses = computed(() => {
 
 	const variants = {
 		default:
-			"bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 shadow-sm hover:shadow",
+			"bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 shadow-sm",
 		filled:
-			"bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-gray-300 dark:hover:border-gray-700 focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10",
+			"bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-gray-300 dark:hover:border-gray-700 focus:bg-white dark:focus:bg-gray-800 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
 		outlined:
-			"bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-primary-500 focus:bg-gray-50/50 dark:focus:bg-gray-800/30",
+			"bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-primary-400 dark:hover:border-primary-500 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20",
 	};
 
 	const sizes = {

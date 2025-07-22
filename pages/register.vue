@@ -3,24 +3,24 @@
     <div class="max-w-md w-full space-y-8">
       <!-- Logo and Title -->
       <div class="text-center">
-        <div class="flex justify-center mb-6">
-          <div class="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-2xl flex items-center justify-center">
+        <div class="flex justify-center mb-6 stagger-item stagger-1">
+          <div class="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-2xl flex items-center justify-center hover:scale-110 transition-transform duration-300">
             <span class="text-3xl font-bold text-white">Z</span>
           </div>
         </div>
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white stagger-item stagger-2">
           {{ $t('auth.register.title') }}
         </h2>
-        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 stagger-item stagger-3">
           {{ $t('auth.register.subtitle') }}
-          <NuxtLink to="/login" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">
+          <NuxtLink to="/login" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 transition-colors duration-200">
             {{ $t('nav.login') }}
           </NuxtLink>
         </p>
       </div>
 
       <!-- Register Form -->
-      <CommonCard padding="lg" class="shadow-xl border-0">
+      <CommonCard padding="lg" class="shadow-xl border-0 stagger-item stagger-4">
         <form class="space-y-6" @submit="handleRegister">
           <div class="space-y-4">
             <CommonInput
@@ -33,6 +33,7 @@
               pattern="[a-zA-Z0-9_-]+"
               size="lg"
               :error="errors.username"
+              class="stagger-item stagger-5"
             >
               <template #prefix>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,6 +50,7 @@
               required
               size="lg"
               :error="errors.email"
+              class="stagger-item stagger-6"
             >
               <template #prefix>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,6 +69,7 @@
               size="lg"
               :error="errors.password"
               @input="checkPasswordStrength"
+              class="stagger-item stagger-7"
             >
               <template #prefix>
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +79,7 @@
             </CommonInput>
 
             <!-- Password Strength Indicator -->
-            <div v-if="form.password" class="space-y-1">
+            <div v-if="form.password" class="space-y-1 stagger-item stagger-8">
               <div class="flex gap-1">
                 <div 
                   v-for="i in 4" 

@@ -3,14 +3,14 @@
     <div class="container-lg py-8">
       <!-- ヘッダー -->
       <div class="flex items-center justify-between mb-8">
-        <div>
+        <div class="stagger-item stagger-1">
           <h1 class="heading-1 mb-2">{{ $t('rules.title') }}</h1>
           <p class="text-gray-600 dark:text-gray-400">
             {{ $t('rules.subtitle') }}
           </p>
         </div>
-        <NuxtLink to="/rules/new">
-          <CommonButton variant="primary">
+        <NuxtLink to="/rules/new" class="stagger-item stagger-2">
+          <CommonButton variant="primary" class="hover-lift">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -20,44 +20,47 @@
       </div>
 
       <!-- 検索とフィルター -->
-      <div class="space-y-4 mb-8">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1">
+      <div class="space-y-6 mb-8 stagger-item stagger-3">
+        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+          <div class="flex-1 relative group">
             <CommonInput
               v-model="searchQuery"
               :placeholder="$t('rules.searchPlaceholder')"
               @input="debouncedSearch"
+              class="transition-all duration-300 focus-within:scale-[1.02] focus-within:shadow-lg"
             >
               <template #prefix>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-gray-400 group-focus-within:text-primary-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </template>
             </CommonInput>
           </div>
-          <select
-            v-model="filters.visibility"
-            class="input sm:w-48"
-            @change="fetchRules"
-          >
-            <option value="all">{{ $t('rules.visibility.all') }}</option>
-            <option value="public">{{ $t('rules.visibility.public') }}</option>
-            <option value="private">{{ $t('rules.visibility.private') }}</option>
-            <option value="organization">{{ $t('rules.visibility.organization') }}</option>
-          </select>
-          <select
-            v-model="filters.sort"
-            class="input sm:w-48"
-            @change="fetchRules"
-          >
-            <option value="updated">{{ $t('rules.sort.recentlyUpdated') }}</option>
-            <option value="created">{{ $t('rules.sort.recentlyCreated') }}</option>
-            <option value="name">{{ $t('rules.sort.alphabetical') }}</option>
-          </select>
+          <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <CommonSelect
+              v-model="filters.visibility"
+              @change="fetchRules"
+              class="sm:min-w-[200px] transition-all duration-200 hover:shadow-md focus:scale-[1.02]"
+            >
+              <option value="all">{{ $t('rules.visibility.all') }}</option>
+              <option value="public">{{ $t('rules.visibility.public') }}</option>
+              <option value="private">{{ $t('rules.visibility.private') }}</option>
+              <option value="organization">{{ $t('rules.visibility.organization') }}</option>
+            </CommonSelect>
+            <CommonSelect
+              v-model="filters.sort"
+              @change="fetchRules"
+              class="sm:min-w-[200px] transition-all duration-200 hover:shadow-md focus:scale-[1.02]"
+            >
+              <option value="updated">{{ $t('rules.sort.recentlyUpdated') }}</option>
+              <option value="created">{{ $t('rules.sort.recentlyCreated') }}</option>
+              <option value="name">{{ $t('rules.sort.alphabetical') }}</option>
+            </CommonSelect>
+          </div>
         </div>
 
         <!-- タグフィルター -->
-        <div v-if="popularTags.length > 0" class="flex flex-wrap items-center gap-2">
+        <div v-if="popularTags.length > 0" class="flex flex-wrap items-center gap-2 stagger-item stagger-4">
           <span class="text-sm text-gray-600 dark:text-gray-400">{{ $t('rules.popularTags') }}</span>
           <button
             v-for="tag in popularTags"
@@ -86,12 +89,13 @@
       </div>
 
       <!-- ルール一覧 -->
-      <div v-else-if="rules.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-else-if="rules.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-item stagger-5">
         <NuxtLink
-          v-for="rule in rules"
+          v-for="(rule, index) in rules"
           :key="rule.id"
           :to="getRuleUrl(rule)"
-          class="card-hover group"
+          class="card-hover group transition-all duration-300 hover:scale-[1.02] hover:-translate-y-2 hover:shadow-2xl stagger-item"
+          :class="`stagger-${Math.min(index + 6, 8)}`"
         >
           <div class="flex items-start justify-between mb-3">
             <div class="flex-1 min-w-0">

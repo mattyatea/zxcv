@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="relative select-wrapper">
     <select
       :id="id"
       :value="modelValue"
@@ -20,7 +20,7 @@
       </option>
     </select>
     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="select-chevron w-5 h-5 text-gray-400 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
     </div>
@@ -65,7 +65,7 @@ const id = `select-${Math.random().toString(36).substr(2, 9)}`;
 
 const selectClasses = computed(() => {
 	const base =
-		"w-full bg-white dark:bg-gray-900 border rounded-lg text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors appearance-none pr-10";
+		"w-full bg-white dark:bg-gray-900 border rounded-lg text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all duration-300 appearance-none pr-10 hover:border-primary-400 dark:hover:border-primary-600 transform-gpu";
 
 	const sizes = {
 		sm: "text-sm px-3 py-1.5",
@@ -89,3 +89,40 @@ const selectClasses = computed(() => {
 		.join(" ");
 });
 </script>
+
+<style scoped>
+/* Select wrapper focus effect */
+.select-wrapper:focus-within {
+  transform: translateY(-1px);
+}
+
+.select-wrapper:focus-within select {
+  box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.15);
+}
+
+/* Chevron rotation on focus */
+.select-wrapper:focus-within .select-chevron {
+  transform: rotate(180deg);
+  color: rgb(59 130 246);
+}
+
+/* Dark mode chevron color */
+.dark .select-wrapper:focus-within .select-chevron {
+  color: rgb(147 197 253);
+}
+
+/* Smooth hover effect */
+select:hover:not(:disabled) {
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.1);
+}
+
+.dark select:hover:not(:disabled) {
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Active state */
+select:active:not(:disabled) {
+  transform: scale(0.995);
+}
+</style>
