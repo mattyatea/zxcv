@@ -14,7 +14,7 @@
 		<!-- プロフィール表示 -->
 		<div v-else-if="user">
 			<!-- ヘッダー部分 -->
-			<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 mb-6">
 				<div class="flex items-start justify-between">
 					<div class="flex items-center space-x-4">
 						<!-- アバター -->
@@ -22,12 +22,12 @@
 							{{ user.username.charAt(0).toUpperCase() }}
 						</div>
 						<div>
-							<h1 class="text-2xl font-bold text-gray-900">{{ user.username }}</h1>
-							<p class="text-gray-600">{{ user.email }}</p>
+							<h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ user.username }}</h1>
+							<p class="text-gray-600 dark:text-gray-400">{{ user.email }}</p>
 							<div class="flex items-center mt-2">
 								<span
 									v-if="user.emailVerified"
-									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
 								>
 									<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
 										<path
@@ -40,7 +40,7 @@
 								</span>
 								<span
 									v-else
-									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"
 								>
 									{{ $t('profile.emailNotVerified') }}
 								</span>
@@ -63,40 +63,40 @@
 
 			<!-- 統計情報 -->
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-				<div class="bg-white rounded-lg shadow-md p-6">
-					<h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $t('profile.createdRules') }}</h3>
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
+					<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ $t('profile.createdRules') }}</h3>
 					<p class="text-3xl font-bold text-blue-600">{{ stats.rulesCount || 0 }}</p>
 				</div>
-				<div class="bg-white rounded-lg shadow-md p-6">
-					<h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $t('profile.belongingOrganizations') }}</h3>
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
+					<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ $t('profile.belongingOrganizations') }}</h3>
 					<p class="text-3xl font-bold text-green-600">{{ stats.organizationsCount || 0 }}</p>
 				</div>
-				<div class="bg-white rounded-lg shadow-md p-6">
-					<h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $t('profile.registrationDate') }}</h3>
-					<p class="text-lg text-gray-600">{{ formatDate(user.createdAt) }}</p>
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
+					<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ $t('profile.registrationDate') }}</h3>
+					<p class="text-lg text-gray-600 dark:text-gray-400">{{ formatDate(user.createdAt) }}</p>
 				</div>
 			</div>
 
 			<!-- 最近のアクティビティ -->
-			<div class="bg-white rounded-lg shadow-md p-6">
-				<h2 class="text-xl font-bold text-gray-900 mb-4">{{ $t('profile.recentActivity') }}</h2>
+			<div class="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
+				<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ $t('profile.recentActivity') }}</h2>
 				<div v-if="recentRules.length > 0" class="space-y-4">
-					<div v-for="rule in recentRules" :key="rule.id" class="border-b border-gray-200 pb-4 last:border-0">
+					<div v-for="rule in recentRules" :key="rule.id" class="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-0">
 						<div class="flex justify-between items-start">
 							<div>
 								<NuxtLink
-									:to="`/rules/${rule.name}`"
+									:to="rule.organization ? `/rules/@${rule.organization.name}/${rule.name}` : `/rules/@${user.username}/${rule.name}`"
 									class="text-lg font-medium text-blue-600 hover:underline"
 								>
 									{{ rule.name }}
 								</NuxtLink>
-								<p class="text-sm text-gray-600 mt-1">{{ rule.description }}</p>
+								<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ rule.description }}</p>
 							</div>
-							<span class="text-sm text-gray-500">{{ formatDate(rule.updatedAt) }}</span>
+							<span class="text-sm text-gray-500 dark:text-gray-500">{{ formatDate(rule.updatedAt) }}</span>
 						</div>
 					</div>
 				</div>
-				<div v-else class="text-gray-500 text-center py-8">
+				<div v-else class="text-gray-500 dark:text-gray-400 text-center py-8">
 					{{ $t('profile.noActivityYet') }}
 				</div>
 			</div>
@@ -113,17 +113,17 @@
 						</div>
 						<button
 							type="button"
-							class="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
+							class="absolute bottom-0 right-0 p-2 bg-white dark:bg-gray-700 rounded-full shadow-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
 							@click="showAvatarUpload = true"
 							:title="$t('profile.changeAvatar')"
 						>
-							<svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
 							</svg>
 						</button>
 					</div>
-					<p class="text-sm text-gray-500 mt-2">{{ $t('profile.avatarChangeComingSoon') }}</p>
+					<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">{{ $t('profile.avatarChangeComingSoon') }}</p>
 				</div>
 
 				<!-- ユーザー名 -->
@@ -137,7 +137,7 @@
 						@blur="validateUsername"
 					>
 						<template #hint>
-							<p class="text-xs text-gray-500 mt-1">{{ $t('profile.usernameHint') }}</p>
+							<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $t('profile.usernameHint') }}</p>
 						</template>
 					</CommonInput>
 				</div>
@@ -164,19 +164,19 @@
 				</div>
 
 				<!-- パスワード変更リンク -->
-				<div class="pt-4 border-t border-gray-200">
+				<div class="pt-4 border-t border-gray-200 dark:border-gray-700">
 					<button
 						type="button"
 						@click="showPasswordChange = true"
-						class="text-sm text-blue-600 hover:text-blue-700 font-medium"
+						class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
 					>
 						{{ $t('profile.changePassword') }}
 					</button>
 				</div>
 
 				<!-- エラーメッセージ -->
-				<div v-if="updateError" class="p-3 bg-red-50 border border-red-200 rounded-md">
-					<p class="text-sm text-red-600">{{ updateError }}</p>
+				<div v-if="updateError" class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+					<p class="text-sm text-red-600 dark:text-red-400">{{ updateError }}</p>
 				</div>
 
 				<!-- ボタン -->
@@ -220,7 +220,7 @@
 					@blur="validateNewPassword"
 				>
 					<template #hint>
-						<p class="text-xs text-gray-500 mt-1">{{ $t('profile.passwordHint') }}</p>
+						<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $t('profile.passwordHint') }}</p>
 					</template>
 				</CommonInput>
 				<CommonInput
@@ -233,8 +233,8 @@
 					@blur="validatePasswordConfirm"
 				/>
 
-				<div v-if="passwordError" class="p-3 bg-red-50 border border-red-200 rounded-md">
-					<p class="text-sm text-red-600">{{ passwordError }}</p>
+				<div v-if="passwordError" class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+					<p class="text-sm text-red-600 dark:text-red-400">{{ passwordError }}</p>
 				</div>
 
 				<div class="flex justify-end space-x-3 pt-4">
@@ -286,6 +286,9 @@ interface Rule {
 	visibility: string;
 	createdAt: number;
 	updatedAt: number;
+	organization?: {
+		name: string;
+	} | null;
 }
 
 // State

@@ -96,6 +96,11 @@ export const usersProcedures = {
 					visibility: true,
 					createdAt: true,
 					updatedAt: true,
+					organization: {
+						select: {
+							name: true,
+						},
+					},
 				},
 				orderBy: {
 					updatedAt: "desc",
