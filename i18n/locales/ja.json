@@ -185,7 +185,8 @@
       "created": "ルールを作成しました",
       "updated": "ルールを更新しました",
       "deleted": "ルールを削除しました",
-      "deleteConfirm": "このルールを削除してもよろしいですか？"
+      "deleteConfirm": "このルールを削除してもよろしいですか？",
+      "deleteError": "ルールの削除に失敗しました"
     }
   },
   "organizations": {
