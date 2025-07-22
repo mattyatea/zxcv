@@ -303,7 +303,25 @@ const fetchRuleDetails = async () => {
 		};
 
 		// オーナーかどうかを判定
-		isOwner.value = user.value?.id === data.author.id;
+		// 1. ルールの作成者の場合
+		// 2. 組織のルールで、現在のユーザーが組織のオーナーの場合
+		if (user.value?.id === data.author.id) {
+			isOwner.value = true;
+		} else if (data.organization) {
+			// 組織のオーナーかどうかを確認
+			try {
+				const organizations = await $rpc.organizations.list();
+				const isOrgOwner = organizations.some(
+					(org) => org.id === data.organization?.id && org.owner.id === user.value?.id,
+				);
+				isOwner.value = isOrgOwner;
+			} catch (error) {
+				console.error("Failed to check organization ownership:", error);
+				isOwner.value = false;
+			}
+		} else {
+			isOwner.value = false;
+		}
 
 		// 元のバージョンを保存
 		originalVersion.value = data.version;
