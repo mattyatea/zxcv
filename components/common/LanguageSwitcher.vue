@@ -27,13 +27,13 @@
           @click="() => switchLocale(localeItem.code)"
           class="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between group"
           :class="{
-            'text-primary-600 dark:text-primary-400 font-medium': localeItem.code === locale,
-            'text-gray-700 dark:text-gray-300': localeItem.code !== locale
+            'text-primary-600 dark:text-primary-400 font-medium': localeItem.code === settingsStore.language,
+            'text-gray-700 dark:text-gray-300': localeItem.code !== settingsStore.language
           }"
         >
           <span>{{ localeItem.name }}</span>
           <svg
-            v-if="localeItem.code === locale"
+            v-if="localeItem.code === settingsStore.language"
             class="w-4 h-4 text-primary-600 dark:text-primary-400"
             fill="currentColor"
             viewBox="0 0 20 20"
@@ -51,13 +51,13 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "~/composables/useI18n";
 import { useSettingsStore } from "~/stores/settings";
 
-const { locale, availableLocales, setLocale } = useI18n();
+const { locale, availableLocales, setLocale, t } = useI18n();
 const settingsStore = useSettingsStore();
 const isOpen = ref(false);
 
 const currentLocaleName = computed(() => {
-	const current = availableLocales.find((loc) => loc.code === locale);
-	return current?.name || locale;
+	const current = availableLocales.find((loc) => loc.code === settingsStore.language);
+	return current?.name || settingsStore.language;
 });
 
 const switchLocale = async (code: string) => {
@@ -66,15 +66,6 @@ const switchLocale = async (code: string) => {
 	localStorage.setItem("zxcv-language", code);
 	isOpen.value = false;
 };
-
-// Initialize locale from store on mount
-onMounted(() => {
-	// Get language from settings store (which handles persistence)
-	const savedLanguage = settingsStore.language;
-	if (savedLanguage && savedLanguage !== locale) {
-		setLocale(savedLanguage as "ja" | "en");
-	}
-});
 
 // Sync store with locale changes
 watch(
@@ -96,6 +87,12 @@ const handleClickOutside = (event: MouseEvent) => {
 
 onMounted(() => {
 	document.addEventListener("click", handleClickOutside);
+
+	// Initialize locale from saved language
+	const savedLanguage = settingsStore.language;
+	if (savedLanguage && savedLanguage !== locale) {
+		setLocale(savedLanguage as "ja" | "en");
+	}
 });
 
 onUnmounted(() => {

@@ -58,7 +58,7 @@ export const useI18nStore = defineStore("i18n", () => {
 	}
 
 	return {
-		locale: readonly(locale),
+		locale: computed(() => locale.value),
 		t,
 		availableLocales,
 		setLocale,
