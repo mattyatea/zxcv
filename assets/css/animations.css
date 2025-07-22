@@ -22,7 +22,8 @@
   
   /* Animation Delays */
   --delay-base: 50ms;
-  --delay-stagger: 30ms;
+  --delay-stagger-configurable: 50ms;
+  --delay-stagger: var(--delay-stagger-configurable);
 }
 
 /* ===== Keyframes ===== */
@@ -723,6 +724,34 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+  
+  /* Remove transforms to prevent layout shifts */
+  .hover-lift:hover,
+  .hover-scale:hover,
+  .hover-rotate:hover,
+  .click-scale:active,
+  .group:hover,
+  .group:active {
+    transform: none !important;
+  }
+  
+  /* Disable specific animations */
+  .animate-spin,
+  .animate-spin-slow,
+  .animate-pulse,
+  .animate-pulse-soft,
+  .animate-bounce,
+  .animate-float,
+  .animate-float-slow,
+  .animate-wave,
+  .animate-gradient,
+  .animate-shimmer,
+  .skeleton-loading,
+  .morph {
+    animation: none !important;
   }
 }
 

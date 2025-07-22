@@ -288,6 +288,12 @@ export const useAnimation = () => {
 
 	/**
 	 * Morph between two shapes
+	 *
+	 * NOTE: The Web Animations API doesn't natively support morphing the 'd' attribute.
+	 * This implementation may not work in all browsers. For production use, consider
+	 * using libraries like GSAP or implementing a custom path interpolation solution.
+	 *
+	 * @experimental This feature is experimental and may not work as expected
 	 */
 	const morph = (
 		element: HTMLElement | null,
@@ -299,6 +305,8 @@ export const useAnimation = () => {
 			return;
 		}
 
+		// Warning: Direct 'd' attribute animation may not be supported
+		// Consider using a more robust solution for path morphing
 		const animation = element.animate([{ d: fromPath }, { d: toPath }], {
 			duration,
 			easing: easings.easeOutQuart,

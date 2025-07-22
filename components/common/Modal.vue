@@ -125,6 +125,14 @@ const handleClose = () => {
 };
 
 // Dragging functionality
+const startDragging = (clientX: number, clientY: number) => {
+	isDragging.value = true;
+	dragStart.value = {
+		x: clientX - position.value.x,
+		y: clientY - position.value.y,
+	};
+};
+
 const handleMouseDown = (e: MouseEvent) => {
 	if (!props.draggable) {
 		return;
@@ -133,11 +141,7 @@ const handleMouseDown = (e: MouseEvent) => {
 		return;
 	}
 
-	isDragging.value = true;
-	dragStart.value = {
-		x: e.clientX - position.value.x,
-		y: e.clientY - position.value.y,
-	};
+	startDragging(e.clientX, e.clientY);
 
 	const handleMouseMove = (e: MouseEvent) => {
 		if (!isDragging.value) {
@@ -163,8 +167,32 @@ const handleTouchStart = (e: TouchEvent) => {
 	if (!props.draggable) {
 		return;
 	}
+	if ((e.target as HTMLElement).closest("button")) {
+		return;
+	}
+
 	const touch = e.touches[0];
-	handleMouseDown(touch as unknown as MouseEvent);
+	startDragging(touch.clientX, touch.clientY);
+
+	const handleTouchMove = (e: TouchEvent) => {
+		if (!isDragging.value) {
+			return;
+		}
+		const touch = e.touches[0];
+		position.value = {
+			x: touch.clientX - dragStart.value.x,
+			y: touch.clientY - dragStart.value.y,
+		};
+	};
+
+	const handleTouchEnd = () => {
+		isDragging.value = false;
+		window.removeEventListener("touchmove", handleTouchMove);
+		window.removeEventListener("touchend", handleTouchEnd);
+	};
+
+	window.addEventListener("touchmove", handleTouchMove, { passive: false });
+	window.addEventListener("touchend", handleTouchEnd);
 };
 </script>
 
