@@ -49,7 +49,11 @@
 					</div>
 					<button
 						v-if="isOwnProfile"
-						@click="isEditing = true"
+						@click="() => {
+							console.log('Edit button clicked');
+							errors.value = {};
+							isEditing = true;
+						}"
 						class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
 					>
 						{{ $t('profile.editProfile') }}
@@ -322,11 +326,10 @@ const isOwnProfile = computed(() => {
 });
 
 const isFormValid = computed(() => {
-	return (
-		editForm.value.username.trim().length > 0 &&
-		editForm.value.email.trim().length > 0 &&
-		Object.keys(errors.value).length === 0
-	);
+	const hasUsername = editForm.value.username.trim().length > 0;
+	const hasEmail = editForm.value.email.trim().length > 0;
+	const hasNoErrors = !errors.value.username && !errors.value.email;
+	return hasUsername && hasEmail && hasNoErrors;
 });
 
 const isPasswordFormValid = computed(() => {
@@ -376,6 +379,8 @@ const loadProfile = async () => {
 				username: user.value.username,
 				email: user.value.email,
 			};
+			// Clear any previous errors
+			errors.value = {};
 		}
 	} catch (err: unknown) {
 		console.error("Failed to load profile:", err);
@@ -425,6 +430,11 @@ const validatePasswordConfirm = () => {
 };
 
 const updateProfile = async () => {
+	console.log("updateProfile called");
+	console.log("isFormValid:", isFormValid.value);
+	console.log("editForm:", editForm.value);
+	console.log("errors:", errors.value);
+
 	try {
 		updating.value = true;
 		updateError.value = null;
@@ -434,13 +444,21 @@ const updateProfile = async () => {
 		validateEmail();
 
 		if (!isFormValid.value) {
+			console.log("Form is invalid, returning");
 			return;
 		}
+
+		console.log("Calling API with:", {
+			username: editForm.value.username.trim(),
+			email: editForm.value.email.trim(),
+		});
 
 		const result = await $rpc.users.updateProfile({
 			username: editForm.value.username.trim(),
 			email: editForm.value.email.trim(),
 		});
+
+		console.log("API response:", result);
 
 		// Update local state
 		user.value = result.user;
@@ -482,6 +500,7 @@ const cancelEdit = () => {
 			email: user.value.email,
 		};
 	}
+	console.log("cancelEdit - errors cleared:", errors.value);
 };
 
 const changePassword = async () => {
