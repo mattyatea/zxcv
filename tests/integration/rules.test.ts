@@ -107,15 +107,17 @@ describe("Rules Integration Tests", () => {
 				id: ruleId,
 				name: createInput.name,
 				description: createInput.description,
-				authorId: authenticatedUser.id,
+				userId: authenticatedUser.id,
 				organizationId: null,
 				visibility: createInput.visibility,
-				latestVersion: 1,
+				version: "1.0.0",
+				latestVersionId: null,
 				publishedAt: Math.floor(Date.now() / 1000),
 				createdAt: Math.floor(Date.now() / 1000),
 				updatedAt: Math.floor(Date.now() / 1000),
 				downloads: 0,
-				views: 0,
+				stars: 0,
+				tags: JSON.stringify(createInput.tags),
 			});
 
 			// Mock rule version creation
@@ -159,10 +161,10 @@ describe("Rules Integration Tests", () => {
 		it("should update an existing rule", async () => {
 			const ruleId = "rule_123";
 			const updateInput = {
-				ruleId,
+				id: ruleId, // Use 'id' instead of 'ruleId' for the update input
 				description: "Updated description",
 				content: "# Updated Content",
-				releaseNotes: "Fixed typos",
+				changelog: "Fixed typos",
 			};
 
 			// Mock existing rule
@@ -170,32 +172,37 @@ describe("Rules Integration Tests", () => {
 				id: ruleId,
 				name: "existing-rule",
 				description: "Old description",
-				authorId: authenticatedUser.id,
+				userId: authenticatedUser.id,
 				organizationId: null,
 				visibility: "public",
-				latestVersion: 1,
+				version: "1.0.0",
+				latestVersionId: null,
 				publishedAt: Math.floor(Date.now() / 1000),
 				createdAt: Math.floor(Date.now() / 1000),
 				updatedAt: Math.floor(Date.now() / 1000),
 				downloads: 10,
-				views: 50,
+				stars: 0,
+				tags: "[]",
 			};
 
 			vi.mocked(mockDb.rule.findUnique).mockResolvedValue(existingRule);
 			vi.mocked(mockDb.rule.update).mockResolvedValue({
 				...existingRule,
 				description: updateInput.description,
-				latestVersion: 2,
+				version: "2.0.0",
 				updatedAt: Math.floor(Date.now() / 1000),
 			});
 
 			// Mock version creation
+			const newVersionId = generateId();
 			vi.mocked(mockDb.ruleVersion.create).mockResolvedValue({
-				id: generateId(),
+				id: newVersionId,
 				ruleId,
-				version: 2,
-				releaseNotes: updateInput.releaseNotes,
-				downloads: 0,
+				versionNumber: "2.0.0",
+				changelog: updateInput.changelog,
+				contentHash: "new-hash",
+				r2ObjectKey: `rules/${ruleId}/versions/${newVersionId}/content.md`,
+				createdBy: authenticatedUser.id,
 				createdAt: Math.floor(Date.now() / 1000),
 			});
 
@@ -228,15 +235,17 @@ describe("Rules Integration Tests", () => {
 				id: ruleId,
 				name: "to-delete",
 				description: "Rule to delete",
-				authorId: authenticatedUser.id,
+				userId: authenticatedUser.id,
 				organizationId: null,
 				visibility: "public",
-				latestVersion: 2,
+				version: "2.0.0",
+				latestVersionId: null,
 				publishedAt: Math.floor(Date.now() / 1000),
 				createdAt: Math.floor(Date.now() / 1000),
 				updatedAt: Math.floor(Date.now() / 1000),
 				downloads: 5,
-				views: 20,
+				stars: 0,
+				tags: "[]",
 			};
 
 			vi.mocked(mockDb.rule.findUnique).mockResolvedValue(existingRule);
@@ -257,7 +266,7 @@ describe("Rules Integration Tests", () => {
 				truncated: false,
 			});
 
-			const result = await client.rules.delete({ ruleId });
+			const result = await client.rules.delete({ id: ruleId });
 
 			expect(result.success).toBe(true);
 			expect(result.message).toContain("deleted successfully");
@@ -347,14 +356,25 @@ describe("Rules Integration Tests", () => {
 			vi.mocked(mockDb.rule.findUnique).mockResolvedValue({
 				id: ruleId,
 				name: "likeable-rule",
-				authorId: "user_456",
+				userId: "user_456",
+				visibility: "public",
+				description: null,
+				tags: null,
+				createdAt: Math.floor(Date.now() / 1000),
+				updatedAt: Math.floor(Date.now() / 1000),
+				publishedAt: null,
+				version: "1.0.0",
+				latestVersionId: null,
+				downloads: 0,
+				stars: 0,
+				organizationId: null,
 			});
 
-			// Mock no existing like
-			vi.mocked(mockDb.ruleLike.findUnique).mockResolvedValue(null);
+			// Mock no existing star
+			vi.mocked(mockDb.ruleStar.findFirst).mockResolvedValue(null);
 
-			// Mock like creation
-			vi.mocked(mockDb.ruleLike.create).mockResolvedValue({
+			// Mock star creation
+			vi.mocked(mockDb.ruleStar.create).mockResolvedValue({
 				id: generateId(),
 				ruleId,
 				userId: authenticatedUser.id,
@@ -364,7 +384,7 @@ describe("Rules Integration Tests", () => {
 			const result = await client.rules.like({ ruleId });
 
 			expect(result.success).toBe(true);
-			expect(result.liked).toBe(true);
+			expect(result.message).toContain("liked successfully");
 		});
 
 		it("should unlike a rule", async () => {
