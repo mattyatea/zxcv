@@ -54,6 +54,17 @@
                 </CommonButton>
               </NuxtLink>
               <CommonButton
+                v-if="isOwner"
+                variant="danger"
+                size="sm"
+                @click="showDeleteModal = true"
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {{ $t('rules.actions.delete') }}
+              </CommonButton>
+              <CommonButton
                 variant="primary"
                 size="sm"
                 @click="copyRule"
@@ -184,6 +195,21 @@
         </NuxtLink>
       </div>
     </div>
+    
+    <!-- 削除確認ダイアログ -->
+    <CommonModal v-model="showDeleteModal" :title="$t('rules.messages.deleteConfirm')" size="sm">
+      <p class="text-gray-600 dark:text-gray-400">
+        {{ $t('rules.messages.deleteConfirm') }}
+      </p>
+      <template #footer>
+        <CommonButton variant="ghost" @click="showDeleteModal = false">
+          {{ $t('common.cancel') }}
+        </CommonButton>
+        <CommonButton variant="danger" @click="deleteRule" :loading="deleting">
+          {{ $t('common.delete') }}
+        </CommonButton>
+      </template>
+    </CommonModal>
   </div>
 </template>
 
@@ -226,6 +252,7 @@ interface Version {
 const route = useRoute();
 const { $rpc } = useNuxtApp();
 const { t } = useI18n();
+const router = useRouter();
 const loading = ref(false);
 const rule = ref<Rule | null>(null);
 const versions = ref<Version[]>([]);
@@ -236,6 +263,8 @@ const originalVersion = ref<string>("");
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const { success: toastSuccess, error: toastError } = useToast();
+const showDeleteModal = ref(false);
+const deleting = ref(false);
 
 // Get route params from parent component or directly from route
 interface CustomRouteParams {
@@ -382,6 +411,26 @@ const showVersion = async (versionNumber: string) => {
 		toastError(t("rules.messages.versionFetchError"));
 	} finally {
 		loading.value = false;
+	}
+};
+
+const deleteRule = async () => {
+	if (!rule.value) {
+		return;
+	}
+
+	deleting.value = true;
+	try {
+		await $rpc.rules.delete({ id: rule.value.id });
+		showDeleteModal.value = false;
+		toastSuccess(t("rules.messages.deleted"));
+		// ルール一覧にリダイレクト
+		await router.push("/rules");
+	} catch (error) {
+		console.error("Failed to delete rule:", error);
+		toastError(t("rules.messages.deleteError"));
+	} finally {
+		deleting.value = false;
 	}
 };
 

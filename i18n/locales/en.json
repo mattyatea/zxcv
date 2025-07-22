@@ -185,7 +185,8 @@
       "created": "Rule created successfully",
       "updated": "Rule updated successfully",
       "deleted": "Rule deleted successfully",
-      "deleteConfirm": "Are you sure you want to delete this rule?"
+      "deleteConfirm": "Are you sure you want to delete this rule?",
+      "deleteError": "Failed to delete rule"
     }
   },
   "organizations": {
