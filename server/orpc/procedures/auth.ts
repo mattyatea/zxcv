@@ -201,6 +201,11 @@ export const authProcedures = {
 
 	refresh: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/refresh",
+			description: "Refresh access token",
+		})
 		.input(
 			z.object({
 				refreshToken: z.string(),
@@ -249,6 +254,11 @@ export const authProcedures = {
 
 	verifyEmail: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/verifyEmail",
+			description: "Verify email address",
+		})
 		.input(
 			z.object({
 				token: z.string(),
@@ -276,6 +286,11 @@ export const authProcedures = {
 
 	sendPasswordReset: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/sendPasswordReset",
+			description: "Send password reset email",
+		})
 		.input(
 			z.object({
 				email: z.string().email(),
@@ -336,6 +351,11 @@ export const authProcedures = {
 
 	resetPassword: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/resetPassword",
+			description: "Reset password with token",
+		})
 		.input(
 			z.object({
 				token: z.string(),
@@ -396,6 +416,11 @@ export const authProcedures = {
 
 	sendVerification: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/sendVerification",
+			description: "Resend verification email",
+		})
 		.input(
 			z.object({
 				email: z.string().email(),
@@ -434,6 +459,11 @@ export const authProcedures = {
 
 	logout: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/logout",
+			description: "Logout user",
+		})
 		.input(
 			z.object({
 				refreshToken: z.string(),
@@ -468,6 +498,11 @@ export const authProcedures = {
 	// OAuth initialization endpoints
 	oauthInitialize: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/oauthInitialize",
+			description: "Initialize OAuth flow",
+		})
 		.input(
 			z.object({
 				provider: z.enum(["google", "github"]),
@@ -526,6 +561,11 @@ export const authProcedures = {
 	// OAuth callback handler
 	oauthCallback: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/oauthCallback",
+			description: "Handle OAuth callback",
+		})
 		.input(
 			z.object({
 				provider: z.enum(["google", "github"]),

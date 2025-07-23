@@ -1,5 +1,5 @@
-import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
+import { RPCHandler } from "@orpc/server/fetch";
 import type { H3Event } from "h3";
 import { defineEventHandler, getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
 import { router } from "~/server/orpc/router";
@@ -47,7 +47,7 @@ async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
 	}
 }
 
-const handler = new OpenAPIHandler(router, {
+const handler = new RPCHandler(router, {
 	// Enable error handling
 	plugins: [],
 	interceptors: [
@@ -58,14 +58,14 @@ const handler = new OpenAPIHandler(router, {
 				code: (error as { code?: string })?.code,
 				message: (error as { message?: string })?.message,
 			});
-			// Re-throw the error to let OpenAPIHandler process it
+			// Re-throw the error to let RPCHandler process it
 			throw error;
 		}),
 	],
 });
 
 export default defineEventHandler(async (event: H3Event) => {
-	console.log("API handler called:", {
+	console.log("RPC handler called:", {
 		method: event.node.req.method,
 		url: event.node.req.url,
 		path: event.path,
@@ -143,7 +143,7 @@ export default defineEventHandler(async (event: H3Event) => {
 		let response: Awaited<ReturnType<typeof handler.handle>>;
 		try {
 			response = await handler.handle(request, {
-				prefix: "/api",
+				prefix: "/rpc",
 				context: {
 					user,
 					env: context.cloudflare.env,
@@ -184,11 +184,11 @@ export default defineEventHandler(async (event: H3Event) => {
 		}
 		return await response.response.text();
 	} catch (error) {
-		console.error("OpenAPI Handler Error:", error);
+		console.error("RPC Handler Error:", error);
 		console.error("Error type:", error?.constructor?.name);
 		console.error("Is ORPCError:", error instanceof ORPCError);
 
-		// Check if the error has already been processed by OpenAPIHandler
+		// Check if the error has already been processed by RPCHandler
 		if (
 			error &&
 			typeof error === "object" &&

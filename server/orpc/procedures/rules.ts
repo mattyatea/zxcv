@@ -154,6 +154,11 @@ export const rulesProcedures = {
 
 	search: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/search",
+			description: "Search rules",
+		})
 		.input(
 			z.object({
 				query: z.string().optional(),
@@ -294,6 +299,11 @@ export const rulesProcedures = {
 
 	get: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/get",
+			description: "Get a rule by ID",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -372,6 +382,11 @@ export const rulesProcedures = {
 
 	create: os
 		.use(dbWithAuth)
+		.route({
+			method: "POST",
+			path: "/rules/create",
+			description: "Create a new rule",
+		})
 		.input(
 			z.object({
 				name: z.string().regex(/^[a-zA-Z0-9_-]+$/),
@@ -537,6 +552,11 @@ export const rulesProcedures = {
 
 	update: os
 		.use(dbWithEmailVerification)
+		.route({
+			method: "POST",
+			path: "/rules/update",
+			description: "Update a rule",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -810,6 +830,11 @@ export const rulesProcedures = {
 
 	delete: os
 		.use(dbWithEmailVerification)
+		.route({
+			method: "POST",
+			path: "/rules/delete",
+			description: "Delete a rule",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -887,6 +912,11 @@ export const rulesProcedures = {
 
 	getContent: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/getContent",
+			description: "Get rule content",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -991,6 +1021,11 @@ export const rulesProcedures = {
 
 	versions: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/versions",
+			description: "Get rule versions",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -1061,6 +1096,11 @@ export const rulesProcedures = {
 
 	getVersion: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/getVersion",
+			description: "Get specific rule version",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -1180,6 +1220,11 @@ export const rulesProcedures = {
 
 	related: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/related",
+			description: "Get related rules",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -1272,6 +1317,11 @@ export const rulesProcedures = {
 
 	list: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/list",
+			description: "List rules",
+		})
 		.input(
 			z.object({
 				visibility: z.enum(["public", "private", "all"]).optional().default("public"),
@@ -1352,6 +1402,11 @@ export const rulesProcedures = {
 
 	like: os
 		.use(dbWithAuth)
+		.route({
+			method: "POST",
+			path: "/rules/like",
+			description: "Like a rule",
+		})
 		.input(
 			z.object({
 				ruleId: z.string(),
@@ -1396,6 +1451,11 @@ export const rulesProcedures = {
 
 	unlike: os
 		.use(dbWithAuth)
+		.route({
+			method: "POST",
+			path: "/rules/unlike",
+			description: "Unlike a rule",
+		})
 		.input(
 			z.object({
 				ruleId: z.string(),
@@ -1426,6 +1486,11 @@ export const rulesProcedures = {
 
 	view: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "POST",
+			path: "/rules/view",
+			description: "Record rule view",
+		})
 		.input(
 			z.object({
 				ruleId: z.string(),
