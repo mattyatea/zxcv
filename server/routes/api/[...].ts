@@ -1,3 +1,4 @@
+import type { ORPCErrorCode } from "@orpc/client";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
 import type { H3Event } from "h3";
@@ -219,7 +220,7 @@ export default defineEventHandler(async (event: H3Event) => {
 			error instanceof ORPCError ||
 			(error && typeof error === "object" && "code" in error && "__isORPCError" in error)
 		) {
-			const orpcError = error as ORPCError<string, unknown>;
+			const orpcError = error as ORPCError<ORPCErrorCode, unknown>;
 			console.log("Handling ORPCError:", { code: orpcError.code, message: orpcError.message });
 
 			const statusMap: Record<string, number> = {
