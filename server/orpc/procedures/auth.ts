@@ -10,14 +10,31 @@ import { createOAuthProviders, generateCodeVerifier, generateState } from "~/ser
 export const authProcedures = {
 	register: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/register",
+			description: "Register a new user account",
+		})
 		.input(
 			z.object({
 				username: z
 					.string()
 					.min(1)
-					.regex(/^[a-zA-Z0-9_-]+$/),
-				email: z.string().email(),
-				password: z.string().min(8),
+					.regex(/^[a-zA-Z0-9_-]+$/)
+					.describe("Username (alphanumeric, underscores, and hyphens only)"),
+				email: z.string().email().describe("User email address"),
+				password: z.string().min(8).describe("Password (minimum 8 characters)"),
+			}),
+		)
+		.output(
+			z.object({
+				success: z.boolean(),
+				message: z.string(),
+				user: z.object({
+					id: z.string(),
+					username: z.string(),
+					email: z.string(),
+				}),
 			}),
 		)
 		.handler(async ({ input, context }) => {
@@ -102,11 +119,29 @@ export const authProcedures = {
 
 	login: os
 		.use(dbProvider)
+		.route({
+			method: "POST",
+			path: "/auth/login",
+			description: "Login with email and password",
+		})
 		.input(
 			z.object({
-				email: z.string().email(),
-				password: z.string(),
-				rememberMe: z.boolean().optional(),
+				email: z.string().email().describe("User email address"),
+				password: z.string().describe("User password"),
+				rememberMe: z.boolean().optional().describe("Remember login session"),
+			}),
+		)
+		.output(
+			z.object({
+				accessToken: z.string(),
+				refreshToken: z.string(),
+				user: z.object({
+					id: z.string(),
+					email: z.string(),
+					username: z.string(),
+					emailVerified: z.boolean(),
+				}),
+				message: z.string().optional(),
 			}),
 		)
 		.handler(async ({ input, context }) => {

@@ -130,3 +130,33 @@ cp .env.example .env
 - **Storage**: Cloudflare R2
 - **Authentication**: JWT, OAuth 2.0 (Google, GitHub)
 - **Development**: TypeScript, Biome, Vitest
+- **API Documentation**: OpenAPI 3.0, Swagger UI
+
+## API Documentation
+
+本プロジェクトはOpenAPI 3.0仕様に準拠したREST APIを提供しています。
+
+### APIドキュメントへのアクセス
+
+開発サーバーを起動後、以下のURLでアクセスできます：
+
+- **Swagger UI (インタラクティブドキュメント)**: http://localhost:3000/api-docs
+- **OpenAPI仕様書 (JSON形式)**: http://localhost:3000/api-spec.json
+
+### APIエンドポイント
+
+APIのベースURLは `/api` です。主なエンドポイント：
+
+- `/api/auth/*` - 認証関連
+- `/api/rules/*` - ルール管理
+- `/api/organizations/*` - 組織管理
+- `/api/users/*` - ユーザー管理
+- `/api/health` - ヘルスチェック
+
+### 認証
+
+保護されたエンドポイントへのアクセスには、Bearerトークン認証が必要です：
+
+```bash
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" http://localhost:3000/api/users/me
+```

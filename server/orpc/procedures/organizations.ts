@@ -5,47 +5,75 @@ import { dbWithAuth } from "~/server/orpc/middleware/combined";
 import { checkNamespaceAvailable } from "~/server/utils/namespace";
 
 export const organizationsProcedures = {
-	list: os.use(dbWithAuth).handler(async ({ context }) => {
-		const { db, user } = context;
+	list: os
+		.use(dbWithAuth)
+		.route({
+			method: "GET",
+			path: "/organizations/list",
+			description: "List organizations the authenticated user belongs to",
+		})
+		.output(
+			z.array(
+				z.object({
+					id: z.string(),
+					name: z.string(),
+					displayName: z.string(),
+					owner: z.object({
+						id: z.string(),
+						username: z.string(),
+						email: z.string(),
+					}),
+					memberCount: z.number(),
+					ruleCount: z.number(),
+				}),
+			),
+		)
+		.handler(async ({ context }) => {
+			const { db, user } = context;
 
-		const organizations = await db.organization.findMany({
-			where: {
-				members: {
-					some: {
-						userId: user.id,
+			const organizations = await db.organization.findMany({
+				where: {
+					members: {
+						some: {
+							userId: user.id,
+						},
 					},
 				},
-			},
-			include: {
-				owner: {
-					select: {
-						id: true,
-						username: true,
-						email: true,
+				include: {
+					owner: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
+					},
+					// biome-ignore lint/style/useNamingConvention: Prisma の命名規則に従うため、_count を使用するしかない
+					_count: {
+						select: {
+							members: true,
+							rules: true,
+						},
 					},
 				},
-				// biome-ignore lint/style/useNamingConvention: Prisma の命名規則に従うため、_count を使用するしかない
-				_count: {
-					select: {
-						members: true,
-						rules: true,
-					},
-				},
-			},
-		});
+			});
 
-		return organizations.map((organization) => ({
-			id: organization.id,
-			name: organization.name,
-			displayName: organization.displayName,
-			owner: organization.owner,
-			memberCount: organization._count.members,
-			ruleCount: organization._count.rules,
-		}));
-	}),
+			return organizations.map((organization) => ({
+				id: organization.id,
+				name: organization.name,
+				displayName: organization.displayName,
+				owner: organization.owner,
+				memberCount: organization._count.members,
+				ruleCount: organization._count.rules,
+			}));
+		}),
 
 	create: os
 		.use(dbWithAuth)
+		.route({
+			method: "POST",
+			path: "/organizations",
+			description: "Create a new organization",
+		})
 		.input(
 			z.object({
 				name: z
@@ -55,10 +83,22 @@ export const organizationsProcedures = {
 					.regex(
 						/^[a-zA-Z0-9-]+$/,
 						"Organization name can only contain alphanumeric characters and hyphens",
-					),
-				displayName: z.string().min(1).max(100).optional(),
-				description: z.string().max(500).optional(),
-				inviteEmails: z.array(z.string().email()).optional(),
+					)
+					.describe("Organization name (alphanumeric and hyphens only)"),
+				displayName: z.string().min(1).max(100).optional().describe("Display name"),
+				description: z.string().max(500).optional().describe("Organization description"),
+				inviteEmails: z.array(z.string().email()).optional().describe("Email addresses to invite"),
+			}),
+		)
+		.output(
+			z.object({
+				id: z.string(),
+				name: z.string(),
+				displayName: z.string(),
+				description: z.string().nullable(),
+				ownerId: z.string(),
+				createdAt: z.number(),
+				updatedAt: z.number(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
@@ -160,8 +200,9 @@ export const organizationsProcedures = {
 				name: organization.name,
 				displayName: organization.displayName,
 				description: organization.description,
-				owner: organization.owner,
+				ownerId: organization.ownerId,
 				createdAt: organization.createdAt,
+				updatedAt: organization.updatedAt,
 			};
 		}),
 

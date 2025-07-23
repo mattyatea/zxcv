@@ -1,10 +1,14 @@
+interface NuxtAppWithRpc {
+	$rpc: any; // oRPC client type
+}
+
 export default defineNuxtPlugin(async (nuxtApp) => {
 	// クライアントサイドでのみ実行
 	if (!process.client) {
 		return;
 	}
 
-	const { $rpc } = nuxtApp as any;
+	const { $rpc } = nuxtApp as unknown as NuxtAppWithRpc;
 
 	// 初期化時に認証状態をチェック
 	const checkAuthStatus = async () => {
@@ -18,17 +22,18 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
 		try {
 			// プロフィール取得を試みて認証状態を確認
-			await $rpc.users.me();
-		} catch (error: any) {
+			await $rpc.users.profile();
+		} catch (error: unknown) {
 			console.error("Auth check failed:", error);
 
 			// 401 Unauthorized または 500 エラーの場合
+			const errorObj = error as { status?: number; message?: string };
 			if (
-				error?.status === 401 ||
-				error?.status === 500 ||
-				error?.message?.includes("UNAUTHORIZED") ||
-				error?.message?.includes("User not found") ||
-				error?.message?.includes("FOREIGN KEY constraint failed")
+				errorObj?.status === 401 ||
+				errorObj?.status === 500 ||
+				errorObj?.message?.includes("UNAUTHORIZED") ||
+				errorObj?.message?.includes("User not found") ||
+				errorObj?.message?.includes("FOREIGN KEY constraint failed")
 			) {
 				console.log("Invalid token detected, clearing auth data...");
 

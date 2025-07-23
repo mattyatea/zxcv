@@ -1,5 +1,6 @@
 import type { RouterClient } from "@orpc/server";
 import { authProcedures } from "~/server/orpc/procedures/auth";
+import { debugProcedures } from "~/server/orpc/procedures/debug";
 import { healthProcedures } from "~/server/orpc/procedures/health";
 import { organizationsProcedures } from "~/server/orpc/procedures/organizations";
 import { rulesProcedures } from "~/server/orpc/procedures/rules";
@@ -11,6 +12,7 @@ export const router = {
 	organizations: organizationsProcedures,
 	users: usersProcedures,
 	health: healthProcedures,
+	debug: debugProcedures,
 };
 
 export type Router = RouterClient<typeof router>;

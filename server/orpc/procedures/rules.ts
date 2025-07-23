@@ -11,9 +11,34 @@ import { parseRulePath, validateRuleOwnership } from "~/server/utils/namespace";
 export const rulesProcedures = {
 	getByPath: os
 		.use(dbWithOptionalAuth)
+		.route({
+			method: "GET",
+			path: "/rules/{path}",
+			description: "Get a rule by its path (@owner/rulename)",
+		})
 		.input(
 			z.object({
-				path: z.string(), // Format: @owner/rulename
+				path: z.string().describe("Rule path in format @owner/rulename"),
+			}),
+		)
+		.output(
+			z.object({
+				rule: z.object({
+					id: z.string(),
+					name: z.string(),
+					description: z.string().nullable(),
+					content: z.string(),
+					tags: z.array(z.string()),
+					visibility: z.enum(["public", "private"]),
+					publishedAt: z.number().nullable(),
+					createdAt: z.number(),
+					updatedAt: z.number(),
+					owner: z.object({
+						id: z.string(),
+						username: z.string(),
+						type: z.enum(["user", "organization"]),
+					}),
+				}),
 			}),
 		)
 		.handler(async ({ input, context }) => {
@@ -97,10 +122,33 @@ export const rulesProcedures = {
 				}
 			}
 
+			// Format the owner information
+			const ownerData =
+				rule.organizationId && rule.organization
+					? {
+							type: "organization" as const,
+							id: rule.organization.id,
+							username: rule.organization.name,
+						}
+					: {
+							type: "user" as const,
+							id: rule.user.id,
+							username: rule.user.username,
+						};
+
 			return {
-				...rule,
-				author: rule.user,
-				tags: rule.tags ? JSON.parse(rule.tags) : [],
+				rule: {
+					id: rule.id,
+					name: rule.name,
+					content: "", // Content is fetched separately via getContent endpoint
+					description: rule.description,
+					visibility: rule.visibility as "public" | "private",
+					tags: rule.tags ? JSON.parse(rule.tags) : [],
+					owner: ownerData,
+					createdAt: rule.createdAt,
+					updatedAt: rule.updatedAt,
+					publishedAt: rule.publishedAt,
+				},
 			};
 		}),
 
@@ -1256,7 +1304,7 @@ export const rulesProcedures = {
 			// Add tag filter
 			if (input.tags && input.tags.length > 0) {
 				whereConditions.AND = whereConditions.AND || [];
-				(whereConditions.AND as any[]).push({
+				(whereConditions.AND as unknown[]).push({
 					OR: input.tags.map((tag) => ({ tags: { contains: tag } })),
 				});
 			}

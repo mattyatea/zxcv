@@ -42,9 +42,23 @@ export const usersProcedures = {
 	// Get user profile by username
 	getProfile: os
 		.use(dbProvider)
+		.route({
+			method: "GET",
+			path: "/users/{username}",
+			description: "Get user profile by username",
+		})
 		.input(
 			z.object({
 				username: z.string().min(1),
+			}),
+		)
+		.output(
+			z.object({
+				id: z.string(),
+				username: z.string(),
+				email: z.string().optional(),
+				bio: z.string().optional(),
+				createdAt: z.number(),
 			}),
 		)
 		.handler(async ({ input, context }) => {
@@ -109,48 +123,46 @@ export const usersProcedures = {
 			});
 
 			return {
-				user: {
-					id: user.id,
-					email: user.email,
-					username: user.username,
-					emailVerified: user.emailVerified,
-					createdAt: user.createdAt,
-					updatedAt: user.updatedAt,
-				},
-				stats: {
-					rulesCount,
-					organizationsCount,
-				},
-				recentRules,
+				id: user.id,
+				email: user.email,
+				username: user.username,
+				createdAt: user.createdAt,
 			};
 		}),
-	profile: os.use(dbWithAuth).handler(async ({ context }) => {
-		const { db, user } = context;
+	profile: os
+		.use(dbWithAuth)
+		.route({
+			method: "GET",
+			path: "/users/me",
+			description: "Get current user profile",
+		})
+		.handler(async ({ context }) => {
+			const { db, user } = context;
 
-		// Get user profile from database
-		const userProfile = await db.user.findUnique({
-			where: { id: user.id },
-			select: {
-				id: true,
-				email: true,
-				username: true,
-				createdAt: true,
-				updatedAt: true,
-			},
-		});
+			// Get user profile from database
+			const userProfile = await db.user.findUnique({
+				where: { id: user.id },
+				select: {
+					id: true,
+					email: true,
+					username: true,
+					createdAt: true,
+					updatedAt: true,
+				},
+			});
 
-		if (!userProfile) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
-		}
+			if (!userProfile) {
+				throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			}
 
-		return {
-			id: userProfile.id,
-			email: userProfile.email,
-			username: userProfile.username,
-			created_at: userProfile.createdAt,
-			updated_at: userProfile.updatedAt,
-		};
-	}),
+			return {
+				id: userProfile.id,
+				email: userProfile.email,
+				username: userProfile.username,
+				created_at: userProfile.createdAt,
+				updated_at: userProfile.updatedAt,
+			};
+		}),
 
 	updateProfile: os
 		.use(dbWithAuth)
@@ -267,35 +279,42 @@ export const usersProcedures = {
 			return { success: true };
 		}),
 
-	settings: os.use(dbWithAuth).handler(async ({ context }) => {
-		const { db, user } = context;
+	settings: os
+		.use(dbWithAuth)
+		.route({
+			method: "GET",
+			path: "/users/settings",
+			description: "Get current user settings",
+		})
+		.handler(async ({ context }) => {
+			const { db, user } = context;
 
-		// Get user settings from database
-		const userSettings = await db.user.findUnique({
-			where: { id: user.id },
-			select: {
-				id: true,
-				email: true,
-				username: true,
-				emailVerified: true,
-				createdAt: true,
-				updatedAt: true,
-			},
-		});
+			// Get user settings from database
+			const userSettings = await db.user.findUnique({
+				where: { id: user.id },
+				select: {
+					id: true,
+					email: true,
+					username: true,
+					emailVerified: true,
+					createdAt: true,
+					updatedAt: true,
+				},
+			});
 
-		if (!userSettings) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
-		}
+			if (!userSettings) {
+				throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			}
 
-		return {
-			id: userSettings.id,
-			email: userSettings.email,
-			username: userSettings.username,
-			email_verified: userSettings.emailVerified,
-			created_at: userSettings.createdAt,
-			updated_at: userSettings.updatedAt,
-		};
-	}),
+			return {
+				id: userSettings.id,
+				email: userSettings.email,
+				username: userSettings.username,
+				email_verified: userSettings.emailVerified,
+				created_at: userSettings.createdAt,
+				updated_at: userSettings.updatedAt,
+			};
+		}),
 
 	updateSettings: os
 		.use(dbWithAuth)

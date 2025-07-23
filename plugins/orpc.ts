@@ -9,9 +9,8 @@ export default defineNuxtPlugin((_nuxtApp) => {
 	const baseURL = process.server
 		? `${requestURL.protocol}//${requestURL.host}`
 		: window.location.origin;
-
 	const link = new RPCLink({
-		url: `${baseURL}/rpc`,
+		url: `${baseURL}/api`,
 		headers: () => {
 			const token = process.client ? localStorage.getItem("access_token") : null;
 			return token ? { Authorization: `Bearer ${token}` } : {};
@@ -22,7 +21,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
 			// レスポンスのクローンを作成してボディを読む
 			const clonedResponse = response.clone();
 			const text = await clonedResponse.text();
-			let data;
+			let data: unknown;
 
 			try {
 				data = JSON.parse(text);
@@ -36,10 +35,12 @@ export default defineNuxtPlugin((_nuxtApp) => {
 				// クライアントサイドでのみ実行
 				if (process.client) {
 					// 認証エラーまたはユーザー不在エラーの場合
+					const errorData = data as { message?: string };
 					if (
 						response.status === 401 ||
-						(response.status === 500 && data?.message?.includes("User not found")) ||
-						(response.status === 500 && data?.message?.includes("FOREIGN KEY constraint failed"))
+						(response.status === 500 && errorData?.message?.includes("User not found")) ||
+						(response.status === 500 &&
+							errorData?.message?.includes("FOREIGN KEY constraint failed"))
 					) {
 						console.log("Authentication error detected, clearing auth data...");
 
