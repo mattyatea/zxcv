@@ -5,7 +5,8 @@ import { createPrismaClient } from "~/server/utils/prisma";
 
 // Database provider middleware (no auth required)
 export const dbProvider = os.middleware(async ({ context, next }) => {
-	const db = createPrismaClient(context.env.DB);
+	// Use existing db if provided (for testing), otherwise create new one
+	const db = context.db || createPrismaClient(context.env.DB);
 
 	return next({
 		context: {
@@ -17,7 +18,8 @@ export const dbProvider = os.middleware(async ({ context, next }) => {
 
 // Combined middleware that provides both db and ensures auth
 export const dbWithAuth = os.middleware(async ({ context, next }) => {
-	const db = createPrismaClient(context.env.DB);
+	// Use existing db if provided (for testing), otherwise create new one
+	const db = context.db || createPrismaClient(context.env.DB);
 
 	if (!context.user) {
 		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
@@ -34,7 +36,8 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 
 // Combined middleware that provides db and optionally has auth
 export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
-	const db = createPrismaClient(context.env.DB);
+	// Use existing db if provided (for testing), otherwise create new one
+	const db = context.db || createPrismaClient(context.env.DB);
 
 	return next({
 		context: {
@@ -47,7 +50,8 @@ export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
 
 // Combined middleware that provides db and ensures email verification
 export const dbWithEmailVerification = os.middleware(async ({ context, next }) => {
-	const db = createPrismaClient(context.env.DB);
+	// Use existing db if provided (for testing), otherwise create new one
+	const db = context.db || createPrismaClient(context.env.DB);
 
 	if (!context.user) {
 		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
