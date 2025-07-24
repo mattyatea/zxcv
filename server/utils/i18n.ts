@@ -147,6 +147,10 @@ export const authErrors = {
 			: `No email address found in ${provider} account`,
 	oauthAuthFailed: (locale: Locale, error: string) =>
 		locale === "ja" ? `OAuth認証に失敗しました: ${error}` : `OAuth authentication failed: ${error}`,
+	tooManyOAuthAttempts: (locale: Locale) =>
+		locale === "ja"
+			? "OAuth認証の試行回数が多すぎます。しばらく待ってから再度お試しください。"
+			: "Too many OAuth authentication attempts. Please try again later.",
 	// User management errors
 	emailAlreadyInUse: (locale: Locale) =>
 		locale === "ja" ? "このメールアドレスは既に使用されています" : "Email already in use",

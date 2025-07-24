@@ -414,13 +414,40 @@ export const oauthInitialize = os.auth.oauthInitialize
 	.use(authRateLimit)
 	.handler(async ({ input, context }) => {
 		const { provider, redirectUrl, action } = input;
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		const providers = createOAuthProviders(env);
+		const locale: Locale = "ja"; // Default to Japanese for now
+
+		// Import security utilities
+		const { validateRedirectUrl, performOAuthSecurityChecks, generateNonce, OAUTH_CONFIG } =
+			await import("~/server/utils/oauthSecurity");
+
+		// Validate redirect URL to prevent open redirect
+		const allowedDomains = [
+			new URL(env.FRONTEND_URL || "http://localhost:3000").hostname,
+			"localhost",
+		];
+
+		if (redirectUrl && !validateRedirectUrl(redirectUrl, allowedDomains)) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: locale === "ja" ? "無効なリダイレクトURLです" : "Invalid redirect URL",
+			});
+		}
+
+		// Get client IP for security tracking
+		const clientIp =
+			cloudflare?.request?.headers?.get("CF-Connecting-IP") ||
+			cloudflare?.request?.headers?.get("X-Forwarded-For") ||
+			"unknown";
+
+		// Perform security checks
+		await performOAuthSecurityChecks(db, clientIp, locale);
 
 		// Generate state for CSRF protection with action encoded
 		const stateData = {
 			random: generateState(),
 			action,
+			nonce: generateNonce(), // Additional entropy
 		};
 		const state = Buffer.from(JSON.stringify(stateData)).toString("base64url");
 		const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
@@ -429,9 +456,9 @@ export const oauthInitialize = os.auth.oauthInitialize
 		const { cleanupExpiredOAuthStates } = await import("~/server/utils/oauthCleanup");
 		await cleanupExpiredOAuthStates(db);
 
-		// Store state in database
+		// Store state in database with security metadata
 		const { generateId } = await import("~/server/utils/crypto");
-		const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+		const expiresAt = Math.floor(Date.now() / 1000) + OAUTH_CONFIG.STATE_EXPIRATION;
 
 		await db.oAuthState.create({
 			data: {
@@ -440,6 +467,8 @@ export const oauthInitialize = os.auth.oauthInitialize
 				provider,
 				codeVerifier,
 				redirectUrl: redirectUrl || "/",
+				clientIp,
+				nonce: stateData.nonce,
 				expiresAt,
 			},
 		});
@@ -481,8 +510,14 @@ export const oauthCallback = os.auth.oauthCallback
 
 		const providers = createOAuthProviders(env);
 
+		// Import security utilities
+		const { validateOAuthResponse } = await import("~/server/utils/oauthSecurity");
+
+		// Validate OAuth response parameters
+		validateOAuthResponse({ code, state });
+
 		// Decode state to extract action
-		let stateData: { random: string; action: string };
+		let stateData: { random: string; action: string; nonce?: string };
 		try {
 			stateData = JSON.parse(Buffer.from(state, "base64url").toString());
 		} catch (e) {
@@ -503,11 +538,13 @@ export const oauthCallback = os.auth.oauthCallback
 		// 2. Use timing-safe comparison to prevent timing attacks
 		// 3. Verify provider matches to prevent cross-provider attacks
 		// 4. Check expiration to prevent replay attacks
+		// 5. Verify nonce if present for additional security
 		const isValidState =
 			stateRecord &&
 			safeCompare(stateRecord.state, stateData.random) &&
 			safeCompare(stateRecord.provider, provider) &&
-			stateRecord.expiresAt >= Math.floor(Date.now() / 1000);
+			stateRecord.expiresAt >= Math.floor(Date.now() / 1000) &&
+			(!stateData.nonce || !stateRecord.nonce || safeCompare(stateRecord.nonce, stateData.nonce));
 
 		if (!isValidState) {
 			console.error("State validation failed", {
