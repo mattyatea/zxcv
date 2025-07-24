@@ -661,8 +661,8 @@ describe("Auth Integration Tests", () => {
 			const userDetails = {
 				...currentUser,
 				passwordHash: "hashed",
-				createdAt: new Date(),
-				updatedAt: new Date(),
+				createdAt: Math.floor(Date.now() / 1000),
+				updatedAt: Math.floor(Date.now() / 1000),
 				name: "Test User",
 				avatarUrl: "https://example.com/avatar.jpg",
 				bio: "Test bio",
