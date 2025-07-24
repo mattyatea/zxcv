@@ -1,5 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
+import { authErrors, type Locale } from "~/server/utils/i18n";
 import { createPrismaClient } from "~/server/utils/prisma";
 
 export interface RateLimitConfig {
@@ -14,7 +15,8 @@ export interface RateLimitConfig {
  */
 export function createRateLimitMiddleware(config: RateLimitConfig) {
 	return os.middleware(async ({ context, next }) => {
-		const db = createPrismaClient(context.env.DB);
+		// Use existing db from context if available (for testing), otherwise create new one
+		const db = (context as any).db || createPrismaClient(context.env.DB);
 		const { env } = context;
 		const { windowMs, maxRequests, keyPrefix } = config;
 
@@ -45,8 +47,9 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 					// Check if limit exceeded
 					if (rateLimitRecord.count >= maxRequests) {
 						const retryAfter = rateLimitRecord.resetAt - now;
+						const locale: Locale = "ja"; // Default to Japanese for now
 						throw new ORPCError("TOO_MANY_REQUESTS", {
-							message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
+							message: authErrors.rateLimit(locale, retryAfter),
 						});
 					}
 

@@ -98,7 +98,7 @@ describe.skip("Auth Integration Tests with Real DB", () => {
 			// Try to register again
 			await expect(
 				client.auth.register(registerInput)
-			).rejects.toThrow("ユーザーはすでに存在します");
+			).rejects.toThrow("このメールアドレスは既に使用されています");
 		});
 	});
 	

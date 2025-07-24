@@ -206,32 +206,20 @@ describe("OAuth Integration Tests", () => {
 
 		describe("Rate Limiting", () => {
 			it("should apply rate limiting to OAuth initialization", async () => {
-				// Mock rate limit hit
-				mockDb.rateLimit.findUnique
-					.mockResolvedValueOnce({
-						key: "auth:anonymous:default",
-						count: 4,
-						resetAt: mockNow + 300,
-					})
-					.mockResolvedValueOnce({
-						key: "auth:anonymous:default",
-						count: 5,
-						resetAt: mockNow + 300,
-					});
-
-				// First request should succeed
-				await client.auth.oauthInitialize({
-					provider: "google",
-					action: "login",
+				// Mock rate limit hit (5 requests is the limit)
+				mockDb.rateLimit.findUnique.mockResolvedValue({
+					key: "auth:anonymous:default",
+					count: 5, // Already at limit
+					resetAt: mockNow + 300,
 				});
 
-				// Second request should fail with rate limit
+				// Request should fail with rate limit
 				await expect(
 					client.auth.oauthInitialize({
 						provider: "google",
 						action: "login",
 					})
-				).rejects.toThrow("Rate limit exceeded");
+				).rejects.toThrow("リクエストが多すぎます。300秒後にもう一度お試しください。");
 			});
 		});
 	});

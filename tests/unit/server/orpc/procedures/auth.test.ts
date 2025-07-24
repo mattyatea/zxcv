@@ -73,7 +73,7 @@ describe("auth procedures", () => {
 
 			expect(result).toEqual({
 				success: true,
-				message: "登録が完了しました。メールを確認してアカウントを認証してください。",
+				message: "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。",
 				user: {
 					id: "user_123",
 					username: "testuser",
@@ -111,7 +111,7 @@ describe("auth procedures", () => {
 
 			expect(error).toBeInstanceOf(ORPCError);
 			expect((error as ORPCError<any, any>).code).toBe("CONFLICT");
-			expect((error as ORPCError<any, any>).message).toBe("ユーザーはすでに存在します");
+			expect((error as ORPCError<any, any>).message).toBe("このメールアドレスは既に使用されています");
 		});
 
 		it("should throw CONFLICT error when username is not available", async () => {
@@ -129,7 +129,7 @@ describe("auth procedures", () => {
 
 			expect(error).toBeInstanceOf(ORPCError);
 			expect((error as ORPCError<any, any>).code).toBe("CONFLICT");
-			expect((error as ORPCError<any, any>).message).toBe("このユーザー名は使用できません");
+			expect((error as ORPCError<any, any>).message).toBe("このユーザー名は既に使用されています");
 		});
 
 		it("should handle email service failure gracefully", async () => {
@@ -142,7 +142,7 @@ describe("auth procedures", () => {
 				passwordHash: "hashed_password",
 				emailVerified: false,
 			});
-			mockPrisma.user.findUnique.mockResolvedValue({
+			mockPrisma.user.delete.mockResolvedValue({
 				id: "user_123",
 				username: "testuser",
 				email: "test@example.com",
@@ -153,17 +153,15 @@ describe("auth procedures", () => {
 			};
 			vi.mocked(EmailVerificationService).mockImplementation(() => mockEmailService as any);
 
-			const result = await callProcedure(authProcedures.register, validInput, mockContext);
+			const error = await expectORPCError(
+				authProcedures.register,
+				validInput,
+				mockContext,
+			);
 
-			expect(result).toEqual({
-				success: false,
-				message: "登録が完了しましたが、確認メールの送信に失敗しました。メールが届かない場合はお問い合わせください。",
-				user: {
-					id: "user_123",
-					username: "testuser",
-					email: "test@example.com",
-				},
-			});
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError<any, any>).code).toBe("INTERNAL_SERVER_ERROR");
+			expect((error as ORPCError<any, any>).message).toBe("登録に失敗しました。確認メールを送信できませんでした。サポートにお問い合わせください。");
 
 			// Should delete the user on email failure
 			expect(mockPrisma.user.delete).toHaveBeenCalledWith({

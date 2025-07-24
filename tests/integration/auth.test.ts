@@ -313,7 +313,7 @@ describe("Auth Integration Tests", () => {
 
 			await expect(
 				client.auth.register(registerInput)
-			).rejects.toThrow("ユーザーはすでに存在します");
+			).rejects.toThrow("このメールアドレスは既に使用されています");
 		});
 	});
 
@@ -711,6 +711,8 @@ describe("Auth Integration Tests", () => {
 				username: "testuser",
 				email: "test@example.com",
 			});
+			expect(meResult.created_at).toBeDefined();
+			expect(meResult.updated_at).toBeDefined();
 		});
 
 		it("should update user profile", async () => {
