@@ -99,12 +99,6 @@
 				"useDefaultParameterLast": "error",
 				"useEnumInitializers": "error",
 				"useExponentiationOperator": "error",
-				"useFilenamingConvention": {
-					"level": "error",
-					"options": {
-						"filenameCases": ["camelCase", "PascalCase"]
-					}
-				},
 				"useForOf": "error",
 				"useImportType": "error",
 				"useLiteralEnumMembers": "error",

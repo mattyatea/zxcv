@@ -1,6 +1,8 @@
 import type { ORPCErrorCode } from "@orpc/client";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
+import { CORSPlugin } from "@orpc/server/plugins";
+import { experimental_ZodSmartCoercionPlugin as ZodSmartCoercionPlugin } from "@orpc/zod/zod4";
 import type { H3Event } from "h3";
 import { defineEventHandler, getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
 import { router } from "~/server/orpc/router";
@@ -50,7 +52,7 @@ async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
 
 const handler = new OpenAPIHandler(router, {
 	// Enable error handling
-	plugins: [],
+	plugins: [new CORSPlugin(), new ZodSmartCoercionPlugin()],
 	interceptors: [
 		onError((error) => {
 			console.log("oRPC onError interceptor:", {
