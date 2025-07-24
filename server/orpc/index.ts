@@ -1,4 +1,6 @@
-import { os as baseOs } from "@orpc/server";
+import { implement } from "@orpc/server";
+import { contract } from "~/server/orpc/contracts";
 import type { Context } from "~/server/orpc/types";
 
-export const os = baseOs.$context<Context>();
+const baseOS = implement(contract);
+export const os = baseOS.$context<Context>();

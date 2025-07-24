@@ -1,6 +1,7 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
-import type { Router } from "~/server/orpc/router";
+import type { RouterClient } from "@orpc/server";
+import type { router } from "~/server/orpc/router";
 
 export default defineNuxtPlugin((_nuxtApp) => {
 	const requestURL = useRequestURL();
@@ -10,50 +11,39 @@ export default defineNuxtPlugin((_nuxtApp) => {
 		? `${requestURL.protocol}//${requestURL.host}`
 		: window.location.origin;
 
+	// Use standard oRPC link for RPC protocol
+	// Separate endpoints: /rpc for oRPC protocol, /api for REST/OpenAPI
 	const link = new RPCLink({
 		url: `${baseURL}/rpc`,
 		headers: () => {
-			const token = process.client ? localStorage.getItem("access_token") : null;
+			const token = import.meta.client ? localStorage.getItem("access_token") : null;
 			return token ? { Authorization: `Bearer ${token}` } : {};
 		},
 		fetch: async (url, options) => {
 			const response = await fetch(url, options);
 
-			// レスポンスのクローンを作成してボディを読む
-			const clonedResponse = response.clone();
-			const text = await clonedResponse.text();
-			let data;
-
-			try {
-				data = JSON.parse(text);
-			} catch {
-				// JSONパースエラーの場合はそのまま返す
-				return response;
-			}
-
-			// エラーレスポンスの場合
-			if (!response.ok) {
-				// クライアントサイドでのみ実行
-				if (process.client) {
-					// 認証エラーまたはユーザー不在エラーの場合
+			// Handle authentication errors
+			if (!response.ok && import.meta.client) {
+				const clonedResponse = response.clone();
+				try {
+					const data = (await clonedResponse.json()) as { message?: string };
 					if (
 						response.status === 401 ||
 						(response.status === 500 && data?.message?.includes("User not found")) ||
 						(response.status === 500 && data?.message?.includes("FOREIGN KEY constraint failed"))
 					) {
 						console.log("Authentication error detected, clearing auth data...");
-
-						// トークンをクリア
 						localStorage.removeItem("access_token");
 						localStorage.removeItem("refresh_token");
 						localStorage.removeItem("user");
 
-						// ログインページへリダイレクト
 						const route = useRoute();
 						if (route.path !== "/login" && route.path !== "/register") {
 							navigateTo("/login");
 						}
 					}
+				} catch {
+					// Ignore JSON parse errors
 				}
 			}
 
@@ -61,7 +51,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
 		},
 	});
 
-	const rpcClient = createORPCClient<Router>(link);
+	const rpcClient: RouterClient<typeof router> = createORPCClient(link);
 
 	return {
 		provide: {

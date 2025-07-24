@@ -5,14 +5,12 @@ import { callProcedure, expectORPCError } from "~/tests/helpers/orpc";
 import { createMockContext } from "~/tests/helpers/mocks";
 import * as cryptoUtils from "~/server/utils/crypto";
 import * as jwtUtils from "~/server/utils/jwt";
-import * as namespaceUtils from "~/server/utils/namespace";
 import { EmailVerificationService } from "~/server/services/emailVerification";
 import type { PrismaClient } from "@prisma/client";
 
 // Mock dependencies
 vi.mock("~/server/utils/crypto");
 vi.mock("~/server/utils/jwt");
-vi.mock("~/server/utils/namespace");
 vi.mock("~/server/services/emailVerification", () => ({
 	EmailVerificationService: vi.fn(),
 }));
@@ -36,7 +34,6 @@ describe("auth procedures", () => {
 		vi.mocked(cryptoUtils.generateId).mockReturnValue("user_123");
 		vi.mocked(cryptoUtils.hashPassword).mockResolvedValue("hashed_password");
 		vi.mocked(cryptoUtils.verifyPassword).mockResolvedValue(false);
-		vi.mocked(namespaceUtils.checkNamespaceAvailable).mockResolvedValue(true);
 		vi.mocked(jwtUtils.createJWT).mockResolvedValue("jwt_token");
 	});
 
@@ -48,7 +45,8 @@ describe("auth procedures", () => {
 		};
 
 		it("should register a new user successfully", async () => {
-			mockPrisma.user.findFirst.mockResolvedValue(null);
+			mockPrisma.user.findUnique.mockResolvedValue(null);
+			mockPrisma.organization.findUnique.mockResolvedValue(null);
 			mockPrisma.user.create.mockResolvedValue({
 				id: "user_123",
 				username: "testuser",
@@ -75,7 +73,7 @@ describe("auth procedures", () => {
 
 			expect(result).toEqual({
 				success: true,
-				message: "Registration successful. Please check your email to verify your account.",
+				message: "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。",
 				user: {
 					id: "user_123",
 					username: "testuser",
@@ -100,7 +98,7 @@ describe("auth procedures", () => {
 		});
 
 		it("should throw CONFLICT error when user already exists", async () => {
-			mockPrisma.user.findFirst.mockResolvedValue({
+			mockPrisma.user.findUnique.mockResolvedValue({
 				id: "existing_user",
 				email: "test@example.com",
 			});
@@ -113,12 +111,15 @@ describe("auth procedures", () => {
 
 			expect(error).toBeInstanceOf(ORPCError);
 			expect((error as ORPCError<any, any>).code).toBe("CONFLICT");
-			expect((error as ORPCError<any, any>).message).toBe("User already exists");
+			expect((error as ORPCError<any, any>).message).toBe("このメールアドレスは既に使用されています");
 		});
 
 		it("should throw CONFLICT error when username is not available", async () => {
-			mockPrisma.user.findFirst.mockResolvedValue(null);
-			vi.mocked(namespaceUtils.checkNamespaceAvailable).mockResolvedValue(false);
+			mockPrisma.user.findUnique.mockResolvedValue(null);
+			mockPrisma.organization.findUnique.mockResolvedValue({ 
+				id: "org_123",
+				name: "testuser"
+			});
 
 			const error = await expectORPCError(
 				authProcedures.register,
@@ -128,11 +129,12 @@ describe("auth procedures", () => {
 
 			expect(error).toBeInstanceOf(ORPCError);
 			expect((error as ORPCError<any, any>).code).toBe("CONFLICT");
-			expect((error as ORPCError<any, any>).message).toBe("Username is already taken");
+			expect((error as ORPCError<any, any>).message).toBe("このユーザー名は既に使用されています");
 		});
 
 		it("should handle email service failure gracefully", async () => {
-			mockPrisma.user.findFirst.mockResolvedValue(null);
+			mockPrisma.user.findUnique.mockResolvedValue(null);
+			mockPrisma.organization.findUnique.mockResolvedValue(null);
 			mockPrisma.user.create.mockResolvedValue({
 				id: "user_123",
 				username: "testuser",
@@ -140,7 +142,7 @@ describe("auth procedures", () => {
 				passwordHash: "hashed_password",
 				emailVerified: false,
 			});
-			mockPrisma.user.findUnique.mockResolvedValue({
+			mockPrisma.user.delete.mockResolvedValue({
 				id: "user_123",
 				username: "testuser",
 				email: "test@example.com",
@@ -151,18 +153,15 @@ describe("auth procedures", () => {
 			};
 			vi.mocked(EmailVerificationService).mockImplementation(() => mockEmailService as any);
 
-			const result = await callProcedure(authProcedures.register, validInput, mockContext);
+			const error = await expectORPCError(
+				authProcedures.register,
+				validInput,
+				mockContext,
+			);
 
-			expect(result).toEqual({
-				success: false,
-				message:
-					"Registration failed to send verification email. Please contact support if you do not receive it.",
-				user: {
-					id: "user_123",
-					username: "testuser",
-					email: "test@example.com",
-				},
-			});
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError<any, any>).code).toBe("INTERNAL_SERVER_ERROR");
+			expect((error as ORPCError<any, any>).message).toBe("登録に失敗しました。確認メールを送信できませんでした。サポートにお問い合わせください。");
 
 			// Should delete the user on email failure
 			expect(mockPrisma.user.delete).toHaveBeenCalledWith({
@@ -186,7 +185,8 @@ describe("auth procedures", () => {
 		});
 
 		it("should normalize username and email to lowercase", async () => {
-			mockPrisma.user.findFirst.mockResolvedValue(null);
+			mockPrisma.user.findUnique.mockResolvedValue(null);
+			mockPrisma.organization.findUnique.mockResolvedValue(null);
 			mockPrisma.user.create.mockResolvedValue({
 				id: "user_123",
 				username: "testuser",
@@ -210,10 +210,13 @@ describe("auth procedures", () => {
 				mockContext,
 			);
 
-			expect(mockPrisma.user.findFirst).toHaveBeenCalledWith({
-				where: {
-					OR: [{ email: "test@example.com" }, { username: "testuser" }],
-				},
+			// Should check email first
+			expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+				where: { email: "test@example.com" },
+			});
+			// Then check username
+			expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+				where: { username: "testuser" },
 			});
 
 			expect(mockPrisma.user.create).toHaveBeenCalledWith({

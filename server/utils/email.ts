@@ -82,7 +82,6 @@ export class EmailService {
 
 			// Create EmailMessage instance
 			// Dynamic import for Cloudflare Workers environment
-			// biome-ignore lint/suspicious/noExplicitAny: Checking for Cloudflare runtime
 			// In Cloudflare Workers environment
 			const { EmailMessage } = await import("cloudflare:email");
 			const emailMessage = new EmailMessage(this.fromEmail, template.to, msg.asRaw());

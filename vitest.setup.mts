@@ -215,6 +215,10 @@ const mockPrismaClient = {
 		count: vi.fn(),
 	},
 	$transaction: vi.fn().mockImplementation((fn) => fn(mockPrismaClient)),
+	$queryRaw: vi.fn(),
+	$queryRawUnsafe: vi.fn(),
+	$executeRaw: vi.fn(),
+	$executeRawUnsafe: vi.fn(),
 };
 
 // Setup default mock behaviors - Use mockResolvedValue instead of mockImplementation
@@ -300,4 +304,34 @@ vi.mock("~/server/utils/prisma", () => ({
 		// Use the global mock client
 		return mockClient;
 	}),
+}));
+
+// Mock crypto utilities globally
+vi.mock("~/server/utils/crypto", () => ({
+	generateId: vi.fn(() => `id_${Date.now()}`),
+	hashPassword: vi.fn(async (password: string) => `hashed_${password}`),
+	verifyPassword: vi.fn(async (password: string, hash: string) => true),
+}));
+
+// Mock OAuth security utilities globally
+vi.mock("~/server/utils/oauthSecurity", () => ({
+	validateRedirectUrl: vi.fn((url) => {
+		// Allow relative URLs that start with /
+		if (url && url.startsWith("/") && !url.startsWith("//")) {
+			return true;
+		}
+		// For tests, allow all localhost URLs
+		return true;
+	}),
+	performOAuthSecurityChecks: vi.fn().mockResolvedValue(undefined),
+	generateNonce: vi.fn().mockReturnValue("test-nonce"),
+	validateOAuthResponse: vi.fn(),
+	OAUTH_CONFIG: {
+		STATE_EXPIRATION: 600,
+		MAX_PENDING_STATES_PER_IP: 5,
+		OAUTH_RATE_LIMIT: {
+			windowMs: 900 * 1000,
+			maxRequests: 10,
+		},
+	},
 }));

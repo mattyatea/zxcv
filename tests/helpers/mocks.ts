@@ -74,6 +74,16 @@ export function createMockContext(overrides: Partial<Context> = {}): Context {
 		user: null as any,
 		request: (overrides as any).request || createMockRequest(),
 		executionContext: (overrides as any).executionContext || createMockExecutionContext(),
+		cloudflare: {
+			env,
+			context: createMockExecutionContext(),
+			request: createMockRequest({
+				headers: {
+					"CF-Connecting-IP": "127.0.0.1",
+					"X-Forwarded-For": "127.0.0.1",
+				},
+			}),
+		},
 		...overrides,
 	} as any;
 }

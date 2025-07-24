@@ -247,11 +247,15 @@ model OAuthState {
   provider  String
   codeVerifier String? @map("code_verifier") // For PKCE
   redirectUrl String? @map("redirect_url")
+  clientIp  String? @map("client_ip") // IP tracking for security
+  nonce     String? // Additional CSRF protection
+  attemptCount Int @default(0) @map("attempt_count") // Rate limiting per state
   expiresAt Int    @map("expires_at")
   createdAt Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
 
   @@index([state])
   @@index([expiresAt])
+  @@index([clientIp])
   @@map("oauth_states")
 }
 

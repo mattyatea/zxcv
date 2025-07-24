@@ -218,7 +218,7 @@ export const useAnimation = () => {
 			if (property === "translateX" || property === "translateY") {
 				element.style.transform = `${property}(${value}px)`;
 			} else {
-				(element.style as any)[property] = `${value}px`;
+				(element.style as CSSStyleDeclaration & Record<string, string>)[property] = `${value}px`;
 			}
 
 			// Continue animation if not settled
@@ -399,13 +399,21 @@ export const useViewTransition = () => {
 		if (
 			typeof document === "undefined" ||
 			!isSupported.value ||
-			!(document as any).startViewTransition
+			!(
+				document as Document & {
+					startViewTransition?: (callback: () => void | Promise<void>) => unknown;
+				}
+			).startViewTransition
 		) {
 			await callback();
 			return;
 		}
 
-		const transition = (document as any).startViewTransition(async () => {
+		const transition = (
+			document as Document & {
+				startViewTransition: (callback: () => void | Promise<void>) => unknown;
+			}
+		).startViewTransition(async () => {
 			await callback();
 		});
 
