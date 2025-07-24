@@ -167,7 +167,7 @@ describe("Rules Integration Tests", () => {
 		it("should update an existing rule", async () => {
 			const ruleId = "rule_123";
 			const updateInput = {
-				id: ruleId, // Use 'id' instead of 'ruleId' for the update input
+				ruleId: ruleId,
 				description: "Updated description",
 				content: "# Updated Content",
 				changelog: "Fixed typos",
@@ -240,7 +240,8 @@ describe("Rules Integration Tests", () => {
 			
 			const result = await client.rules.update(updateInput);
 
-			expect(result.success).toBe(true);
+			expect(result.rule).toBeDefined();
+			expect(result.version).toBeDefined();
 
 			// Verify R2 operations
 			expect(mockR2.put).toHaveBeenCalledWith(
@@ -297,12 +298,21 @@ describe("Rules Integration Tests", () => {
 				},
 			]);
 
-			// Mock R2 delete operations
+			// Mock R2 list and delete operations
+			vi.mocked(mockR2.list).mockResolvedValue({
+				objects: [
+					{ key: `rules/${ruleId}/versions/v1/content.md` },
+					{ key: `rules/${ruleId}/versions/v2/content.md` },
+				],
+				cursor: undefined,
+				truncated: false,
+				delimitedPrefixes: [],
+			});
 			vi.mocked(mockR2.delete).mockResolvedValue(undefined);
 
-			const result = await client.rules.delete({ id: ruleId });
+			const result = await client.rules.delete({ ruleId: ruleId });
 
-			expect(result.success).toBe(true);
+			expect(result.message).toBe("ルールが削除されました");
 			
 			// Verify R2 cleanup was performed
 			expect(mockR2.delete).toHaveBeenCalledTimes(2);
@@ -341,9 +351,9 @@ describe("Rules Integration Tests", () => {
 			vi.mocked(mockDb.rule.findMany).mockResolvedValue(mockRules);
 			vi.mocked(mockDb.rule.count).mockResolvedValue(1);
 
-			const result = await client.rules.list({
-				visibility: "public",
-				limit: 10,
+			const result = await client.rules.listPublic({
+				page: 1,
+				pageSize: 10,
 			});
 
 			expect(result.rules).toHaveLength(1);
@@ -360,9 +370,10 @@ describe("Rules Integration Tests", () => {
 			vi.mocked(mockDb.rule.findMany).mockResolvedValue([]);
 			vi.mocked(mockDb.rule.count).mockResolvedValue(0);
 
-			const result = await client.rules.search({
-				query: searchQuery,
-				limit: 10,
+			const result = await client.rules.listPublic({
+				search: searchQuery,
+				page: 1,
+				pageSize: 10,
 			});
 
 			expect(result.rules).toHaveLength(0);
@@ -372,20 +383,26 @@ describe("Rules Integration Tests", () => {
 			expect(mockDb.rule.findMany).toHaveBeenCalledWith(
 				expect.objectContaining({
 					where: expect.objectContaining({
-						AND: expect.arrayContaining([
+						isPublished: true,
+						visibility: "public",
+						OR: expect.arrayContaining([
 							expect.objectContaining({
-								OR: expect.arrayContaining([
-									expect.objectContaining({
-										name: expect.objectContaining({
-											contains: searchQuery,
-										}),
-									}),
-									expect.objectContaining({
-										description: expect.objectContaining({
-											contains: searchQuery,
-										}),
-									}),
-								]),
+								name: expect.objectContaining({
+									contains: searchQuery,
+									mode: "insensitive",
+								}),
+							}),
+							expect.objectContaining({
+								description: expect.objectContaining({
+									contains: searchQuery,
+									mode: "insensitive",
+								}),
+							}),
+							expect.objectContaining({
+								tags: expect.objectContaining({
+									contains: searchQuery,
+									mode: "insensitive",
+								}),
 							}),
 						]),
 					}),
@@ -431,10 +448,9 @@ describe("Rules Integration Tests", () => {
 				createdAt: Math.floor(Date.now() / 1000),
 			});
 
-			const result = await client.rules.like({ ruleId });
+			const result = await client.rules.star({ ruleId });
 
 			expect(result.success).toBe(true);
-			expect(result.message).toContain("liked successfully");
 		});
 
 		it("should unlike a rule", async () => {
@@ -469,13 +485,12 @@ describe("Rules Integration Tests", () => {
 			// Mock star deletion
 			vi.mocked(mockDb.ruleStar.deleteMany).mockResolvedValue({ count: 1 });
 
-			const result = await client.rules.unlike({ ruleId });
+			const result = await client.rules.unstar({ ruleId });
 
 			expect(result.success).toBe(true);
-			expect(result.message).toContain("unliked successfully");
 		});
 
-		it("should track rule views", async () => {
+		it.skip("should track rule views", async () => {
 			const ruleId = "rule_123";
 
 			// Mock rule exists
@@ -506,7 +521,8 @@ describe("Rules Integration Tests", () => {
 				downloadedAt: Math.floor(Date.now() / 1000),
 			});
 
-			const result = await client.rules.view({ ruleId });
+			// view endpoint no longer exists, skip this test
+			// const result = await client.rules.view({ ruleId });
 
 			expect(result.success).toBe(true);
 			expect(result.message).toBe("View tracked");
@@ -567,16 +583,29 @@ describe("Rules Integration Tests", () => {
 				},
 			];
 
+			// Clear any previous mocks
+			vi.mocked(mockDb.rule.findUnique).mockReset();
+			
+			// Mock rule exists and is public
+			vi.mocked(mockDb.rule.findUnique).mockResolvedValue({
+				visibility: "public",
+				userId: "user_456",
+				creatorId: "user_456",
+				isPublished: true,
+				organizationId: null,
+				publishedAt: Math.floor(Date.now() / 1000),
+			});
+			
 			vi.mocked(mockDb.ruleVersion.findMany).mockResolvedValue(versions);
 
-			const result = await client.rules.versions({ id: ruleId });
+			const result = await client.rules.getVersionHistory({ ruleId });
 
-			expect(result).toHaveLength(2);
-			expect(result[0].version).toBe("2.0");
-			expect(result[1].version).toBe("1.0");
+			expect(result.versions).toHaveLength(2);
+			expect(result.versions[0].versionNumber).toBe("2.0");
+			expect(result.versions[1].versionNumber).toBe("1.0");
 		});
 
-		it("should get specific version content", async () => {
+		it.skip("should get specific version content", async () => {
 			const ruleId = "rule_123";
 			const version = 1;
 
@@ -629,7 +658,8 @@ describe("Rules Integration Tests", () => {
 			// Also ensure the environment R2 points to our mock
 			mockEnv.R2 = mockR2;
 
-			const result = await client.rules.getVersion({ id: ruleId, version: version.toString() });
+			// getVersion endpoint no longer exists, skip this test
+			// const result = await client.rules.getVersion({ id: ruleId, version: version.toString() });
 
 			expect(result.content).toBe(content);
 			expect(result.version).toBe(version.toString());

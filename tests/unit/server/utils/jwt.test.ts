@@ -219,14 +219,11 @@ describe("JWT utilities", () => {
 				email: "test@example.com",
 			};
 
-			const result = await generateToken(payload, "custom-secret", "HS512", "7d");
+			const result = await generateToken(payload, "custom-secret", "7d");
 
 			expect(result).toBe("mock-jwt-token");
-			expect(SignJWT).toHaveBeenCalledWith({
-				sub: "user_123",
-				email: "test@example.com",
-			});
-			expect(mockSignJWT.setProtectedHeader).toHaveBeenCalledWith({ alg: "HS512" });
+			expect(SignJWT).toHaveBeenCalledWith(payload);
+			expect(mockSignJWT.setProtectedHeader).toHaveBeenCalledWith({ alg: "HS256" });
 			expect(mockSignJWT.setIssuedAt).toHaveBeenCalled();
 			expect(mockSignJWT.setExpirationTime).toHaveBeenCalledWith("7d");
 			expect(mockSignJWT.sign).toHaveBeenCalledWith(

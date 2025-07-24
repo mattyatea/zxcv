@@ -13,7 +13,9 @@ export default defineWorkersConfig({
   },
   resolve: {
     alias: {
-      "@prisma/client": "@prisma/client",
+      "@prisma/client": path.resolve(__dirname, "tests/mocks/prisma.ts"),
+      "@prisma/adapter-d1": path.resolve(__dirname, "tests/mocks/prisma.ts"),
+      ".prisma/client": path.resolve(__dirname, "tests/mocks/prisma.ts"),
       "~": path.resolve(__dirname),
       "@": path.resolve(__dirname),
     },
@@ -22,12 +24,15 @@ export default defineWorkersConfig({
     global: "globalThis",
   },
   optimizeDeps: {
-    include: ["jose", "@prisma/client"],
+    include: ["jose", "@prisma/client", "@prisma/client/runtime/library"],
+    exclude: ["@prisma/adapter-d1"],
   },
   ssr: {
     optimizeDeps: {
-      exclude: ["chai"],
+      exclude: ["chai", "@prisma/adapter-d1"],
+      include: ["@prisma/client", "@prisma/client/runtime/library"],
     },
+    external: ["@prisma/adapter-d1"],
   },
   test: {
     setupFiles: ["./vitest.setup.mts", "./tests/apply-migrations.ts", "./tests/helpers/setup-env.ts", "./tests/helpers/setup.ts"],

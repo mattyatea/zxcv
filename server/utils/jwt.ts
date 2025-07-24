@@ -79,19 +79,29 @@ export async function verifyRefreshToken(token: string, env: Env): Promise<strin
 	}
 }
 
+// 新しい汎用的なトークン生成関数
 export async function generateToken(
-	payload: { userId: string; email: string },
+	payload: Record<string, unknown>,
 	secret: string,
-	algorithm: string,
 	expiresIn: string,
 ): Promise<string> {
 	const secretKey = new TextEncoder().encode(secret);
 
-	const jwt = await new SignJWT({ sub: payload.userId, email: payload.email })
-		.setProtectedHeader({ alg: algorithm })
+	const jwt = await new SignJWT(payload)
+		.setProtectedHeader({ alg: "HS256" })
 		.setIssuedAt()
 		.setExpirationTime(expiresIn)
 		.sign(secretKey);
 
 	return jwt;
+}
+
+// 新しい汎用的なトークン検証関数
+export async function verifyToken(token: string, secret: string): Promise<Record<string, unknown>> {
+	const secretKey = new TextEncoder().encode(secret);
+	const { payload } = await jwtVerify(token, secretKey, {
+		algorithms: ["HS256"],
+	});
+
+	return payload;
 }

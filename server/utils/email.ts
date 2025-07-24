@@ -1,5 +1,21 @@
 import type { Env } from "~/server/types/env";
 
+// Legacy sendEmail function for backward compatibility
+export async function sendEmail(
+	env: Env,
+	to: string,
+	subject: string,
+	body: string,
+): Promise<boolean> {
+	const emailService = new EmailService(env);
+	return await emailService.sendEmail({
+		to,
+		subject,
+		html: body,
+		text: body.replace(/<[^>]*>/g, ""), // Simple HTML strip
+	});
+}
+
 export interface EmailTemplate {
 	to: string;
 	subject: string;

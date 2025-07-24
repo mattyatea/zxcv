@@ -1,0 +1,100 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"vcs": {
+		"enabled": false,
+		"clientKind": "git",
+		"useIgnoreFile": false
+	},
+	"files": {
+		"ignoreUnknown": false,
+		"ignore": ["node_modules/**", ".output/**", ".nuxt/**", "dist/**", "build/**", "coverage/**", ".vscode/**", ".git/**", "public/**"]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineWidth": 100,
+		"attributePosition": "auto"
+	},
+	"organizeImports": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"all": true,
+				"noUnusedImports": "error"
+			},
+			"suspicious": {
+				"all": true,
+				"noExplicitAny": "warn"
+			},
+			"style": {
+				"all": true,
+				"noParameterAssign": "off",
+				"noNonNullAssertion": "warn",
+				"noUselessElse": "off",
+				"useNamingConvention": {
+					"level": "error",
+					"options": {
+						"conventions": [
+							{
+								"selector": {
+									"kind": "objectLiteralProperty"
+								},
+								"formats": ["camelCase", "snake_case", "PascalCase", "CONSTANT_CASE"],
+								"match": "(.*)_(.*)|(.*)"
+							},
+							{
+								"selector": {
+									"kind": "variable"
+								},
+								"formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
+							},
+							{
+								"selector": {
+									"kind": "function"
+								},
+								"formats": ["camelCase", "PascalCase"]
+							},
+							{
+								"selector": {
+									"kind": "typeLike"
+								},
+								"formats": ["PascalCase"]
+							},
+							{
+								"selector": {
+									"kind": "classMember"
+								},
+								"formats": ["camelCase"]
+							},
+							{
+								"selector": {
+									"kind": "enum"
+								},
+								"formats": ["PascalCase"]
+							}
+						]
+					}
+				}
+			},
+			"complexity": {
+				"all": true,
+				"noStaticOnlyClass": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"trailingCommas": "all",
+			"semicolons": "always",
+			"arrowParentheses": "always",
+			"bracketSpacing": true,
+			"lineEnding": "lf"
+		}
+	}
+}
