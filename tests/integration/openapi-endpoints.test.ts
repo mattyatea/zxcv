@@ -985,8 +985,10 @@ describe("OpenAPI Endpoints via REST", () => {
 
 			// Step 2: Reset password with token
 			mockDb.passwordReset.findFirst.mockImplementation(async (args) => {
-				// Check if the token matches
-				if (args?.where?.token === "reset_token") {
+				// Check if the token matches and other conditions
+				if (args?.where?.token === "reset_token" && 
+					args?.where?.usedAt === null &&
+					args?.where?.expiresAt?.gt) {
 					return {
 						id: "reset_123",
 						userId,

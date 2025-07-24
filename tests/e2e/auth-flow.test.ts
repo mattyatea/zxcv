@@ -339,8 +339,10 @@ describe("E2E Authentication Flow Tests", () => {
 			// Step 2: Reset password with token
 			// Mock the findFirst to return the token when searched
 			mockDb.passwordReset.findFirst.mockImplementation(async (args) => {
-				// Check if the token matches
-				if (args?.where?.token === resetToken) {
+				// Check if the token matches and other conditions
+				if (args?.where?.token === resetToken && 
+					args?.where?.usedAt === null &&
+					args?.where?.expiresAt?.gt) {
 					return {
 						id: "reset_id",
 						userId,

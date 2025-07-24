@@ -1,4 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
+
+// Reset the mock before importing to test the actual implementation
+beforeAll(() => {
+  vi.unmock("~/server/utils/crypto");
+});
+
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 
 describe("Crypto Utils", () => {
