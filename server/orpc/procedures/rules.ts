@@ -1,46 +1,11 @@
 import { ORPCError } from "@orpc/server";
-import * as z from "zod";
 import { os } from "~/server/orpc";
-import {
-	dbWithAuth,
-	dbWithEmailVerification,
-	dbWithOptionalAuth,
-} from "~/server/orpc/middleware/combined";
+import { dbWithAuth, dbWithEmailVerification, dbProvider } from "~/server/orpc/middleware/combined";
 import { parseRulePath, validateRuleOwnership } from "~/server/utils/namespace";
 
-export const rulesProcedures = {
-	getByPath: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "GET",
-			path: "/rules/{path}",
-			description: "Get a rule by its path (@owner/rulename)",
-		})
-		.input(
-			z.object({
-				path: z.string().describe("Rule path in format @owner/rulename"),
-			}),
-		)
-		.output(
-			z.object({
-				rule: z.object({
-					id: z.string(),
-					name: z.string(),
-					description: z.string().nullable(),
-					content: z.string(),
-					tags: z.array(z.string()),
-					visibility: z.enum(["public", "private"]),
-					publishedAt: z.number().nullable(),
-					createdAt: z.number(),
-					updatedAt: z.number(),
-					owner: z.object({
-						id: z.string(),
-						username: z.string(),
-						type: z.enum(["user", "organization"]),
-					}),
-				}),
-			}),
-		)
+// Individual rule procedure handlers
+export const getByPath = os.rules.getByPath
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -137,39 +102,14 @@ export const rulesProcedures = {
 						};
 
 			return {
-				rule: {
-					id: rule.id,
-					name: rule.name,
-					content: "", // Content is fetched separately via getContent endpoint
-					description: rule.description,
-					visibility: rule.visibility as "public" | "private",
-					tags: rule.tags ? JSON.parse(rule.tags) : [],
-					owner: ownerData,
-					createdAt: rule.createdAt,
-					updatedAt: rule.updatedAt,
-					publishedAt: rule.publishedAt,
-				},
+				...rule,
+				author: rule.user,
+				tags: rule.tags ? JSON.parse(rule.tags) : [],
 			};
-		}),
+		});
 
-	search: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/search",
-			description: "Search rules",
-		})
-		.input(
-			z.object({
-				query: z.string().optional(),
-				tags: z.array(z.string()).optional(),
-				author: z.string().optional(),
-				visibility: z.string().optional(),
-				sortBy: z.string().optional(),
-				page: z.number().default(1),
-				limit: z.number().default(20),
-			}),
-		)
+export const search = os.rules.search
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -295,20 +235,10 @@ export const rulesProcedures = {
 				page: input.page,
 				limit: input.limit,
 			};
-		}),
+		});
 
-	get: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/get",
-			description: "Get a rule by ID",
-		})
-		.input(
-			z.object({
-				id: z.string(),
-			}),
-		)
+export const get = os.rules.get
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -378,25 +308,10 @@ export const rulesProcedures = {
 				created_at: rule.createdAt,
 				tags: rule.tags ? JSON.parse(rule.tags) : [],
 			};
-		}),
+		});
 
-	create: os
-		.use(dbWithAuth)
-		.route({
-			method: "POST",
-			path: "/rules/create",
-			description: "Create a new rule",
-		})
-		.input(
-			z.object({
-				name: z.string().regex(/^[a-zA-Z0-9_-]+$/),
-				description: z.string().optional(),
-				visibility: z.enum(["public", "private"]),
-				organizationId: z.string().optional(),
-				tags: z.array(z.string()),
-				content: z.string(),
-			}),
-		)
+export const create = os.rules.create
+	.use(dbWithAuth)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 
@@ -548,32 +463,11 @@ export const rulesProcedures = {
 
 				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to create rule" });
 			}
-		}),
+		});
 
-	update: os
-		.use(dbWithEmailVerification)
-		.route({
-			method: "POST",
-			path: "/rules/update",
-			description: "Update a rule",
-		})
-		.input(
-			z.object({
-				id: z.string(),
-				name: z
-					.string()
-					.regex(/^[a-zA-Z0-9_-]+$/)
-					.optional(),
-				description: z.string().optional(),
-				visibility: z.enum(["public", "private"]).optional(),
-				organizationId: z.string().optional(),
-				tags: z.array(z.string()).optional(),
-				content: z.string().optional(),
-				changelog: z.string().optional(),
-				isMajorVersionUp: z.boolean().optional(),
-			}),
-		)
-		.handler(async ({ input, context }) => {
+export const update = os.rules.update
+	.use(dbWithEmailVerification)
+	.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 
 			const existingRule = await db.rule.findUnique({
@@ -826,20 +720,10 @@ export const rulesProcedures = {
 			}
 
 			return { success: true };
-		}),
+		});
 
-	delete: os
-		.use(dbWithEmailVerification)
-		.route({
-			method: "POST",
-			path: "/rules/delete",
-			description: "Delete a rule",
-		})
-		.input(
-			z.object({
-				id: z.string(),
-			}),
-		)
+export const deleteRule = os.rules.delete
+	.use(dbWithEmailVerification)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 
@@ -908,21 +792,10 @@ export const rulesProcedures = {
 			}
 
 			return { success: true };
-		}),
+		});
 
-	getContent: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/getContent",
-			description: "Get rule content",
-		})
-		.input(
-			z.object({
-				id: z.string(),
-				version: z.string().optional(),
-			}),
-		)
+export const getContent = os.rules.getContent
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, env, user } = context;
 			console.log("getContent called with:", { id: input.id, version: input.version });
@@ -1017,20 +890,10 @@ export const rulesProcedures = {
 				}
 				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to fetch content" });
 			}
-		}),
+		});
 
-	versions: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/versions",
-			description: "Get rule versions",
-		})
-		.input(
-			z.object({
-				id: z.string(),
-			}),
-		)
+export const versions = os.rules.versions
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -1092,21 +955,10 @@ export const rulesProcedures = {
 				created_at: version.createdAt,
 				createdBy: version.creator,
 			}));
-		}),
+		});
 
-	getVersion: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/getVersion",
-			description: "Get specific rule version",
-		})
-		.input(
-			z.object({
-				id: z.string(),
-				version: z.string(),
-			}),
-		)
+export const getVersion = os.rules.getVersion
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, env, user } = context;
 			const { id, version: versionNumber } = input;
@@ -1216,21 +1068,10 @@ export const rulesProcedures = {
 					message: "Failed to fetch version content",
 				});
 			}
-		}),
+		});
 
-	related: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/related",
-			description: "Get related rules",
-		})
-		.input(
-			z.object({
-				id: z.string(),
-				limit: z.number().min(1).max(10).default(5),
-			}),
-		)
+export const related = os.rules.related
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -1313,24 +1154,10 @@ export const rulesProcedures = {
 				version: rule.version,
 				updated_at: rule.updatedAt,
 			}));
-		}),
+		});
 
-	list: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/list",
-			description: "List rules",
-		})
-		.input(
-			z.object({
-				visibility: z.enum(["public", "private", "all"]).optional().default("public"),
-				tags: z.array(z.string()).optional(),
-				author: z.string().optional(),
-				limit: z.number().min(1).max(100).default(20),
-				offset: z.number().min(0).default(0),
-			}),
-		)
+export const list = os.rules.list
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -1398,20 +1225,10 @@ export const rulesProcedures = {
 				limit: input.limit,
 				offset: input.offset,
 			};
-		}),
+		});
 
-	like: os
-		.use(dbWithAuth)
-		.route({
-			method: "POST",
-			path: "/rules/like",
-			description: "Like a rule",
-		})
-		.input(
-			z.object({
-				ruleId: z.string(),
-			}),
-		)
+export const like = os.rules.like
+	.use(dbWithAuth)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -1447,20 +1264,10 @@ export const rulesProcedures = {
 			});
 
 			return { success: true, message: "Rule liked successfully" };
-		}),
+		});
 
-	unlike: os
-		.use(dbWithAuth)
-		.route({
-			method: "POST",
-			path: "/rules/unlike",
-			description: "Unlike a rule",
-		})
-		.input(
-			z.object({
-				ruleId: z.string(),
-			}),
-		)
+export const unlike = os.rules.unlike
+	.use(dbWithAuth)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -1482,20 +1289,10 @@ export const rulesProcedures = {
 			});
 
 			return { success: true, message: "Rule unliked successfully" };
-		}),
+		});
 
-	view: os
-		.use(dbWithOptionalAuth)
-		.route({
-			method: "POST",
-			path: "/rules/view",
-			description: "Record rule view",
-		})
-		.input(
-			z.object({
-				ruleId: z.string(),
-			}),
-		)
+export const view = os.rules.view
+	.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -1521,5 +1318,22 @@ export const rulesProcedures = {
 			});
 
 			return { success: true, message: "View tracked" };
-		}),
+		});
+
+// Export all procedures as a group for the router
+export const rulesProcedures = {
+	getByPath,
+	search,
+	get,
+	create,
+	update,
+	delete: deleteRule,
+	getContent,
+	versions,
+	getVersion,
+	related,
+	list,
+	like,
+	unlike,
+	view,
 };

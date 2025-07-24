@@ -1,18 +1,22 @@
 import type { RouterClient } from "@orpc/server";
+import { implement } from "@orpc/server";
+import { contract } from "~/server/orpc/contracts";
 import { authProcedures } from "~/server/orpc/procedures/auth";
-import { debugProcedures } from "~/server/orpc/procedures/debug";
 import { healthProcedures } from "~/server/orpc/procedures/health";
 import { organizationsProcedures } from "~/server/orpc/procedures/organizations";
 import { rulesProcedures } from "~/server/orpc/procedures/rules";
 import { usersProcedures } from "~/server/orpc/procedures/users";
+import type { Context } from "~/server/orpc/types";
 
-export const router = {
+const baseOs = implement(contract);
+const os = baseOs.$context<Context>();
+
+export const router = os.router({
 	auth: authProcedures,
 	rules: rulesProcedures,
 	organizations: organizationsProcedures,
 	users: usersProcedures,
 	health: healthProcedures,
-	debug: debugProcedures,
-};
+});
 
 export type Router = RouterClient<typeof router>;

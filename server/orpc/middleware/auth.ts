@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc/index";
+import { os } from "~/server/orpc";
 
 export const authRequired = os.middleware(async ({ context, next }) => {
 	if (!context.user) {
@@ -10,7 +10,7 @@ export const authRequired = os.middleware(async ({ context, next }) => {
 		context: {
 			...context,
 			user: context.user,
-		},
+		} as typeof context & { user: NonNullable<typeof context.user> },
 	});
 });
 
@@ -27,6 +27,6 @@ export const emailVerificationRequired = os.middleware(async ({ context, next })
 		context: {
 			...context,
 			user: context.user,
-		},
+		} as typeof context & { user: NonNullable<typeof context.user> },
 	});
 });

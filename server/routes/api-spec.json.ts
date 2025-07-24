@@ -1,14 +1,14 @@
 import { OpenAPIGenerator } from "@orpc/openapi";
 import { ZodToJsonSchemaConverter } from "@orpc/zod";
 import * as z from "zod";
-import { router } from "~/server/orpc/router";
+import { contract } from "~/server/orpc/contracts";
 
 export default defineEventHandler(async () => {
 	const generator = new OpenAPIGenerator({
 		schemaConverters: [new ZodToJsonSchemaConverter()],
 	});
 
-	const spec = await generator.generate(router, {
+	const spec = await generator.generate(contract, {
 		info: {
 			title: "zxcv API",
 			version: "1.0.0",

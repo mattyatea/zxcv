@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc/index";
+import { os } from "~/server/orpc";
 import type { AuthUser } from "~/server/utils/auth";
 import { createPrismaClient } from "~/server/utils/prisma";
 
