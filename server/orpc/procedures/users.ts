@@ -150,23 +150,30 @@ export const updateProfile = os.users.updateProfile
 		const { db, user } = context;
 
 		// Check if email or username already exist
-		if (email || username) {
-			const existingUser = await db.user.findFirst({
+		// Use separate queries for better index utilization
+		if (email) {
+			const existingUserByEmail = await db.user.findFirst({
 				where: {
-					AND: [
-						{ id: { not: user.id } },
-						{
-							OR: [
-								...(email ? [{ email: email.toLowerCase() }] : []),
-								...(username ? [{ username: username.toLowerCase() }] : []),
-							],
-						},
-					],
+					email: email.toLowerCase(),
+					id: { not: user.id },
 				},
 			});
 
-			if (existingUser) {
-				throw new ORPCError("CONFLICT", { message: "Email or username already in use" });
+			if (existingUserByEmail) {
+				throw new ORPCError("CONFLICT", { message: "Email already in use" });
+			}
+		}
+
+		if (username) {
+			const existingUserByUsername = await db.user.findFirst({
+				where: {
+					username: username.toLowerCase(),
+					id: { not: user.id },
+				},
+			});
+
+			if (existingUserByUsername) {
+				throw new ORPCError("CONFLICT", { message: "Username already in use" });
 			}
 		}
 

@@ -18,15 +18,22 @@ export const register = os.auth.register.use(authRateLimit).handler(async ({ inp
 	// Get user locale from request headers
 	const locale: Locale = "ja"; // Default to Japanese for now
 
-	// Check for existing user
-	const existingUser = await db.user.findFirst({
-		where: {
-			OR: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
-		},
+	// Check for existing user by email first (more likely to have index)
+	const existingUserByEmail = await db.user.findUnique({
+		where: { email: email.toLowerCase() },
 	});
 
-	if (existingUser) {
+	if (existingUserByEmail) {
 		throw new ORPCError("CONFLICT", { message: authErrors.userExists(locale) });
+	}
+
+	// Then check by username
+	const existingUserByUsername = await db.user.findUnique({
+		where: { username: username.toLowerCase() },
+	});
+
+	if (existingUserByUsername) {
+		throw new ORPCError("CONFLICT", { message: authErrors.usernameExists(locale) });
 	}
 
 	// Check if username is available (not taken by organization)
@@ -45,7 +52,7 @@ export const register = os.auth.register.use(authRateLimit).handler(async ({ inp
 	const { generateId } = await import("~/server/utils/crypto");
 	const userId = generateId();
 
-	let user;
+	let user: Awaited<ReturnType<typeof db.user.create>>;
 	try {
 		// Create user
 		user = await db.user.create({
