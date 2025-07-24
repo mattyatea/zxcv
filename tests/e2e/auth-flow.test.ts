@@ -122,9 +122,7 @@ describe("E2E Authentication Flow Tests", () => {
 				updatedAt: mockNow,
 			});
 
-			// Mock password verification
-			const { verifyPassword } = await import("~/server/utils/crypto");
-			vi.mocked(verifyPassword).mockResolvedValue(true);
+			// Password verification is already mocked globally in vitest.setup.mts
 
 			const loginResult = await client.auth.login({
 				email: testUser.email,
@@ -339,13 +337,20 @@ describe("E2E Authentication Flow Tests", () => {
 			expect(mockDb.passwordReset.create).toHaveBeenCalled();
 
 			// Step 2: Reset password with token
-			mockDb.passwordReset.findFirst.mockResolvedValue({
-				id: "reset_id",
-				userId,
-				token: resetToken,
-				expiresAt: mockNow + 3600,
-				createdAt: mockNow,
-				usedAt: null,
+			// Mock the findFirst to return the token when searched
+			mockDb.passwordReset.findFirst.mockImplementation(async (args) => {
+				// Check if the token matches
+				if (args?.where?.token === resetToken) {
+					return {
+						id: "reset_id",
+						userId,
+						token: resetToken,
+						expiresAt: mockNow + 3600,
+						createdAt: mockNow,
+						usedAt: null,
+					};
+				}
+				return null;
 			});
 
 			mockDb.user.update.mockResolvedValue({

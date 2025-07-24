@@ -215,6 +215,10 @@ const mockPrismaClient = {
 		count: vi.fn(),
 	},
 	$transaction: vi.fn().mockImplementation((fn) => fn(mockPrismaClient)),
+	$queryRaw: vi.fn(),
+	$queryRawUnsafe: vi.fn(),
+	$executeRaw: vi.fn(),
+	$executeRawUnsafe: vi.fn(),
 };
 
 // Setup default mock behaviors - Use mockResolvedValue instead of mockImplementation
@@ -300,4 +304,11 @@ vi.mock("~/server/utils/prisma", () => ({
 		// Use the global mock client
 		return mockClient;
 	}),
+}));
+
+// Mock crypto utilities globally
+vi.mock("~/server/utils/crypto", () => ({
+	generateId: vi.fn(() => `id_${Date.now()}`),
+	hashPassword: vi.fn(async (password: string) => `hashed_${password}`),
+	verifyPassword: vi.fn(async (password: string, hash: string) => true),
 }));

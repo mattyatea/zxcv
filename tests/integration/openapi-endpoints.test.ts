@@ -210,6 +210,13 @@ describe("OpenAPI Endpoints via REST", () => {
 				},
 			});
 
+			// Debug response
+			if (!response.matched) {
+				console.log("Response not matched for /api/users/me");
+				const body = await response.response.text();
+				console.log("Response body:", body);
+			}
+			
 			expect(response.matched).toBe(true);
 			expect(response.response.status).toBe(200);
 
@@ -248,6 +255,9 @@ describe("OpenAPI Endpoints via REST", () => {
 					organization: null,
 				},
 			];
+
+			// Mock organization membership query
+			mockDb.organizationMember.findMany.mockResolvedValue([]);
 
 			// Mock count query - 最初の呼び出しはカウント、2回目は実際のデータ
 			let callCount = 0;
@@ -336,7 +346,7 @@ describe("OpenAPI Endpoints via REST", () => {
 			const mockRule = {
 				id: "rule_123",
 				name: "test-rule",
-				ownerId: "user_456", // Different user
+				userId: "user_456", // Different user (changed from ownerId to userId)
 				visibility: "public",
 				organizationId: null,
 			};
@@ -507,6 +517,9 @@ describe("OpenAPI Endpoints via REST", () => {
 
 	describe("Query Parameters", () => {
 		it("should handle input parameters in POST requests", async () => {
+			// Mock organization membership query
+			mockDb.organizationMember.findMany.mockResolvedValue([]);
+			
 			mockDb.$queryRaw.mockImplementation((query) => {
 				const queryString = query?.strings?.[0] || query?.sql || String(query);
 				if (queryString.includes("COUNT")) {
@@ -577,6 +590,9 @@ describe("OpenAPI Endpoints via REST", () => {
 			mockDb.user.findUnique.mockResolvedValue(null);
 			mockDb.organization.findUnique.mockResolvedValue(null);
 			
+			// Mock organization name check
+			mockDb.organization.findFirst.mockResolvedValue(null);
+			
 			const orgId = "org_123";
 			
 			// transaction をモック
@@ -588,9 +604,15 @@ describe("OpenAPI Endpoints via REST", () => {
 				id: orgId,
 				name: "test-org",
 				displayName: "Test Organization",
+				description: null,
 				ownerId: "user_123",
 				createdAt: mockNow,
 				updatedAt: mockNow,
+				owner: {
+					id: "user_123",
+					username: "testuser",
+					email: "test@example.com",
+				},
 			});
 
 			mockDb.teamMember.create.mockResolvedValue({
@@ -962,13 +984,19 @@ describe("OpenAPI Endpoints via REST", () => {
 			expect(resetResponse.response.status).toBe(200);
 
 			// Step 2: Reset password with token
-			mockDb.passwordReset.findFirst.mockResolvedValue({
-				id: "reset_123",
-				userId,
-				token: "reset_token",
-				expiresAt: mockNow + 3600,
-				createdAt: mockNow,
-				usedAt: null,
+			mockDb.passwordReset.findFirst.mockImplementation(async (args) => {
+				// Check if the token matches
+				if (args?.where?.token === "reset_token") {
+					return {
+						id: "reset_123",
+						userId,
+						token: "reset_token",
+						expiresAt: mockNow + 3600,
+						createdAt: mockNow,
+						usedAt: null,
+					};
+				}
+				return null;
 			});
 
 			mockDb.user.update.mockResolvedValue({
@@ -1074,7 +1102,7 @@ describe("OpenAPI Endpoints via REST", () => {
 
 			mockDb.user.findUnique.mockResolvedValue(mockUser);
 			mockDb.rule.count.mockResolvedValue(5);
-			mockDb.teamMember.count.mockResolvedValue(1);
+			mockDb.organizationMember.count.mockResolvedValue(1);
 			mockDb.rule.findMany.mockResolvedValue([]);
 
 			const request = new Request("http://localhost:3000/api/users/getProfile", {
