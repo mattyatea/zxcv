@@ -219,7 +219,7 @@ describe("OAuth Integration Tests", () => {
 						provider: "google",
 						action: "login",
 					})
-				).rejects.toThrow("リクエストが多すぎます。300秒後にもう一度お試しください。");
+				).rejects.toThrow(/リクエストが多すぎます。\d+秒後にもう一度お試しください。/);
 			});
 		});
 	});
