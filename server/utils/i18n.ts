@@ -147,4 +147,35 @@ export const authErrors = {
 			: `No email address found in ${provider} account`,
 	oauthAuthFailed: (locale: Locale, error: string) =>
 		locale === "ja" ? `OAuth認証に失敗しました: ${error}` : `OAuth authentication failed: ${error}`,
+	// User management errors
+	emailAlreadyInUse: (locale: Locale) =>
+		locale === "ja" ? "このメールアドレスは既に使用されています" : "Email already in use",
+	usernameAlreadyInUse: (locale: Locale) =>
+		locale === "ja" ? "このユーザー名は既に使用されています" : "Username already in use",
+	currentPasswordRequired: (locale: Locale) =>
+		locale === "ja" ? "現在のパスワードが必要です" : "Current password is required",
+	invalidCurrentPassword: (locale: Locale) =>
+		locale === "ja" ? "現在のパスワードが正しくありません" : "Invalid current password",
+	invalidConfirmation: (locale: Locale) =>
+		locale === "ja" ? "確認テキストが正しくありません" : "Invalid confirmation",
+	invalidPassword: (locale: Locale) =>
+		locale === "ja" ? "パスワードが正しくありません" : "Invalid password",
+	passwordChangeNotAvailable: (locale: Locale) =>
+		locale === "ja"
+			? "OAuthアカウントではパスワード変更はできません"
+			: "Password change not available for OAuth accounts",
+	transferOwnershipRequired: (locale: Locale) =>
+		locale === "ja"
+			? "アカウント削除前に組織の所有権を移譲する必要があります"
+			: "You must transfer ownership of your organizations before deleting your account",
+	useOAuthProviderToDelete: (locale: Locale) =>
+		locale === "ja"
+			? "OAuthプロバイダーを使用してアカウントを削除してください"
+			: "Please use your OAuth provider to delete your account",
+	accountDeletedSuccess: (locale: Locale) =>
+		locale === "ja" ? "アカウントが正常に削除されました" : "Account deleted successfully",
+	settingsUpdatedSuccess: (locale: Locale) =>
+		locale === "ja" ? "設定が正常に更新されました" : "Settings updated successfully",
+	passwordChangedSuccess: (locale: Locale) =>
+		locale === "ja" ? "パスワードが正常に変更されました" : "Password changed successfully",
 };

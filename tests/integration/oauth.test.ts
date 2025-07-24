@@ -5,27 +5,39 @@ import { createMockPrismaClient, setupCommonMocks } from "~/tests/helpers/test-d
 import { generateId } from "~/server/utils/crypto";
 
 // Mock arctic OAuth library
-vi.mock("arctic", () => ({
-	Google: vi.fn().mockImplementation(() => ({
-		createAuthorizationURL: vi.fn().mockImplementation((state: string, codeVerifier: string, scopes: string[]) => {
+vi.mock("arctic", () => {
+	class MockGoogle {
+		constructor() {}
+		createAuthorizationURL(state: string, codeVerifier: string, scopes: string[]) {
 			const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 			url.searchParams.set("state", state);
 			url.searchParams.set("code_challenge", codeVerifier);
 			url.searchParams.set("scope", scopes.join(" "));
 			return url;
-		}),
-		validateAuthorizationCode: vi.fn(),
-	})),
-	GitHub: vi.fn().mockImplementation(() => ({
-		createAuthorizationURL: vi.fn().mockImplementation((state: string, scopes: string[]) => {
+		}
+		validateAuthorizationCode = vi.fn().mockResolvedValue({
+			accessToken: () => "mock-access-token",
+		});
+	}
+
+	class MockGitHub {
+		constructor() {}
+		createAuthorizationURL(state: string, scopes: string[]) {
 			const url = new URL("https://github.com/login/oauth/authorize");
 			url.searchParams.set("state", state);
 			url.searchParams.set("scope", scopes.join(" "));
 			return url;
-		}),
-		validateAuthorizationCode: vi.fn(),
-	})),
-}));
+		}
+		validateAuthorizationCode = vi.fn().mockResolvedValue({
+			accessToken: () => "mock-github-token",
+		});
+	}
+
+	return {
+		Google: MockGoogle,
+		GitHub: MockGitHub,
+	};
+});
 
 // Mock OAuth cleanup service
 vi.mock("~/server/utils/oauthCleanup", () => ({
@@ -41,6 +53,15 @@ describe("OAuth Integration Tests", () => {
 		vi.clearAllMocks();
 		mockDb = createMockPrismaClient();
 		setupCommonMocks(mockDb);
+		
+		// Setup rate limit mock to not block requests
+		mockDb.rateLimit.findUnique.mockResolvedValue(null);
+		mockDb.rateLimit.upsert.mockResolvedValue({
+			key: "auth:anonymous:default",
+			count: 1,
+			resetAt: mockNow + 900,
+		});
+		
 		const testSetup = createTestORPCClient({ db: mockDb });
 		client = testSetup.client;
 
@@ -303,15 +324,6 @@ describe("OAuth Integration Tests", () => {
 
 		describe("User Creation and Linking", () => {
 			beforeEach(() => {
-				// Mock Google OAuth validation
-				const { Google } = require("arctic");
-				Google.mockImplementation(() => ({
-					createAuthorizationURL: vi.fn(),
-					validateAuthorizationCode: vi.fn().mockResolvedValue({
-						accessToken: () => "mock-access-token",
-					}),
-				}));
-
 				// Mock fetch for user info
 				global.fetch = vi.fn();
 			});
@@ -428,15 +440,6 @@ describe("OAuth Integration Tests", () => {
 					expiresAt: mockNow + 600,
 					createdAt: mockNow,
 				});
-
-				// Mock GitHub OAuth validation
-				const { GitHub } = require("arctic");
-				GitHub.mockImplementation(() => ({
-					createAuthorizationURL: vi.fn(),
-					validateAuthorizationCode: vi.fn().mockResolvedValue({
-						accessToken: () => "mock-github-token",
-					}),
-				}));
 			});
 
 			it("should handle GitHub email fetching", async () => {
@@ -520,14 +523,12 @@ describe("OAuth Integration Tests", () => {
 
 		describe("Error Handling", () => {
 			it("should handle OAuth provider errors gracefully", async () => {
-				// Mock OAuth validation error
-				const { Google } = require("arctic");
-				Google.mockImplementation(() => ({
-					createAuthorizationURL: vi.fn(),
-					validateAuthorizationCode: vi.fn().mockRejectedValue(
-						new Error("Invalid authorization code")
-					),
-				}));
+				// Mock OAuth validation error using the already mocked Arctic library
+				const { Google } = await import("arctic");
+				const googleInstance = new Google("test-id", "test-secret", "test-redirect");
+				vi.mocked(googleInstance.validateAuthorizationCode).mockRejectedValueOnce(
+					new Error("Invalid authorization code")
+				);
 
 				await expect(
 					client.auth.oauthCallback({
@@ -539,15 +540,6 @@ describe("OAuth Integration Tests", () => {
 			});
 
 			it("should handle API fetch errors", async () => {
-				// Mock successful OAuth validation
-				const { Google } = require("arctic");
-				Google.mockImplementation(() => ({
-					createAuthorizationURL: vi.fn(),
-					validateAuthorizationCode: vi.fn().mockResolvedValue({
-						accessToken: () => "mock-access-token",
-					}),
-				}));
-
 				// Mock fetch error
 				(global.fetch as any).mockResolvedValueOnce({
 					ok: false,

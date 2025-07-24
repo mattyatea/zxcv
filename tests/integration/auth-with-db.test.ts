@@ -78,7 +78,7 @@ describe.skip("Auth Integration Tests with Real DB", () => {
 			const result = await client.auth.register(registerInput);
 			
 			expect(result.success).toBe(true);
-			expect(result.message).toContain("Registration successful");
+			expect(result.message).toContain("登録が完了しました");
 			expect(result.user).toMatchObject({
 				username: "testuser",
 				email: "test@example.com",
@@ -98,7 +98,7 @@ describe.skip("Auth Integration Tests with Real DB", () => {
 			// Try to register again
 			await expect(
 				client.auth.register(registerInput)
-			).rejects.toThrow("User already exists");
+			).rejects.toThrow("ユーザーはすでに存在します");
 		});
 	});
 	
@@ -131,7 +131,7 @@ describe.skip("Auth Integration Tests with Real DB", () => {
 					email: "nonexistent@example.com",
 					password: "wrongpassword",
 				})
-			).rejects.toThrow("Invalid email or password");
+			).rejects.toThrow("メールアドレスまたはパスワードが無効です");
 		});
 	});
 });

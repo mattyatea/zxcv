@@ -76,10 +76,6 @@ vi.mock("~/server/utils/jwt", async () => {
 // Get the global mock Prisma client
 const mockPrismaClient = (globalThis as any).__mockPrismaClient;
 
-// Mock namespace checking
-vi.mock("~/server/utils/namespace", () => ({
-	checkNamespaceAvailable: vi.fn().mockResolvedValue(true),
-}));
 
 // Need to unmock first due to hoisting
 vi.unmock("~/server/utils/crypto");
@@ -120,8 +116,6 @@ describe("Auth Integration Tests", () => {
 			console.log("[TEST BEFORE] verifyPassword called with:", { password, hash });
 			return password === "correctpassword" || password === "password123";
 		});
-		// Ensure namespace check returns true
-		vi.mocked((await import("~/server/utils/namespace")).checkNamespaceAvailable).mockResolvedValue(true);
 		// Use global mock database
 		mockDb = mockPrismaClient;
 		
@@ -279,7 +273,7 @@ describe("Auth Integration Tests", () => {
 			}
 
 			expect(registerResult.success).toBe(true);
-			expect(registerResult.message).toContain("Registration successful");
+			expect(registerResult.message).toContain("登録が完了しました");
 			expect(registerResult.user).toMatchObject({
 				username: "newuser",
 				email: "newuser@example.com",
@@ -308,18 +302,18 @@ describe("Auth Integration Tests", () => {
 				githubUsername: null,
 			};
 
-			// Mock finding existing user with findFirst (as used in the actual code)
-			vi.mocked(mockDb.user.findFirst).mockResolvedValue(existingUser);
+			// Mock finding existing user by email
+			vi.mocked(mockDb.user.findUnique).mockResolvedValueOnce(existingUser);
 
 			const registerInput = {
-				username: "existinguser",
-				email: "newemail@example.com",
+				username: "newuser",
+				email: "existing@example.com", // Same email as existing user
 				password: "SecurePassword123!",
 			};
 
 			await expect(
 				client.auth.register(registerInput)
-			).rejects.toThrow("User already exists");
+			).rejects.toThrow("ユーザーはすでに存在します");
 		});
 	});
 
@@ -401,7 +395,7 @@ describe("Auth Integration Tests", () => {
 
 			await expect(
 				client.auth.login(loginInput)
-			).rejects.toThrow("Invalid email or password");
+			).rejects.toThrow("メールアドレスまたはパスワードが正しくありません");
 		});
 
 		it("should reject login for unverified email", async () => {
@@ -481,7 +475,7 @@ describe("Auth Integration Tests", () => {
 
 			await expect(
 				client.auth.refresh({ refreshToken: invalidToken })
-			).rejects.toThrow("Invalid refresh token");
+			).rejects.toThrow("無効または期限切れのトークンです");
 		});
 	});
 

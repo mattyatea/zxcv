@@ -79,12 +79,14 @@ export const register = os.auth.register.use(authRateLimit).handler(async ({ inp
 	} catch (error) {
 		console.error("Email verification error:", error);
 		// Email sending failed, but user is created - delete the user
-		try {
-			await db.user.delete({
-				where: { id: user.id },
-			});
-		} catch (deleteError) {
-			console.error("Failed to delete user after email error:", deleteError);
+		if (user && user.id) {
+			try {
+				await db.user.delete({
+					where: { id: user.id },
+				});
+			} catch (deleteError) {
+				console.error("Failed to delete user after email error:", deleteError);
+			}
 		}
 		throw new ORPCError("INTERNAL_SERVER_ERROR", {
 			message: authErrors.registrationFailedEmail(locale),

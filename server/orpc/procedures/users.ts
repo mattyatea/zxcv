@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
 import { dbProvider, dbWithAuth } from "~/server/orpc/middleware/combined";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
+import { authErrors, type Locale } from "~/server/utils/i18n";
 
 // Search users by username (for organization invitations)
 export const searchByUsername = os.users.searchByUsername
@@ -52,7 +53,8 @@ export const getProfile = os.users.getProfile
 		});
 
 		if (!user) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			const locale: Locale = "ja"; // Default to Japanese
+			throw new ORPCError("NOT_FOUND", { message: authErrors.userNotFound(locale) });
 		}
 
 		// Get user statistics
@@ -160,7 +162,8 @@ export const updateProfile = os.users.updateProfile
 			});
 
 			if (existingUserByEmail) {
-				throw new ORPCError("CONFLICT", { message: "Email already in use" });
+				const locale: Locale = "ja"; // Default to Japanese
+				throw new ORPCError("CONFLICT", { message: authErrors.emailAlreadyInUse(locale) });
 			}
 		}
 
@@ -173,7 +176,8 @@ export const updateProfile = os.users.updateProfile
 			});
 
 			if (existingUserByUsername) {
-				throw new ORPCError("CONFLICT", { message: "Username already in use" });
+				const locale: Locale = "ja"; // Default to Japanese
+				throw new ORPCError("CONFLICT", { message: authErrors.usernameAlreadyInUse(locale) });
 			}
 		}
 
@@ -222,8 +226,9 @@ export const changePassword = os.users.changePassword
 		});
 
 		if (!dbUser || !dbUser.passwordHash) {
+			const locale: Locale = "ja"; // Default to Japanese
 			throw new ORPCError("BAD_REQUEST", {
-				message: "Password change not available for OAuth accounts",
+				message: authErrors.passwordChangeNotAvailable(locale),
 			});
 		}
 
@@ -231,8 +236,9 @@ export const changePassword = os.users.changePassword
 		const { verifyPassword, hashPassword } = await import("~/server/utils/crypto");
 		const isValid = await verifyPassword(currentPassword, dbUser.passwordHash);
 		if (!isValid) {
+			const locale: Locale = "ja"; // Default to Japanese
 			throw new ORPCError("UNAUTHORIZED", {
-				message: "Current password is incorrect",
+				message: authErrors.invalidCurrentPassword(locale),
 			});
 		}
 
@@ -297,7 +303,8 @@ export const updateSettings = os.users.updateSettings
 			});
 
 			if (!userWithPassword) {
-				throw new ORPCError("NOT_FOUND", { message: "User not found" });
+				const locale: Locale = "ja"; // Default to Japanese
+				throw new ORPCError("NOT_FOUND", { message: authErrors.userNotFound(locale) });
 			}
 
 			const isValidPassword = await verifyPassword(
@@ -351,7 +358,8 @@ export const deleteAccount = os.users.deleteAccount
 		});
 
 		if (!dbUser) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			const locale: Locale = "ja"; // Default to Japanese
+			throw new ORPCError("NOT_FOUND", { message: authErrors.userNotFound(locale) });
 		}
 
 		// Verify password
