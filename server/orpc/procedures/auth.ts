@@ -514,7 +514,7 @@ export const oauthCallback = os.auth.oauthCallback
 		const { validateOAuthResponse } = await import("~/server/utils/oauthSecurity");
 
 		// Validate OAuth response parameters
-		validateOAuthResponse({ code, state });
+		validateOAuthResponse({ code, state }, locale);
 
 		// Decode state to extract action
 		let stateData: { random: string; action: string; nonce?: string };

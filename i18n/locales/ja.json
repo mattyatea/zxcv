@@ -296,7 +296,20 @@
     "forbidden": "アクセス権限がありません",
     "serverError": "サーバーエラーが発生しました",
     "networkError": "ネットワークエラーが発生しました",
-    "unknownError": "エラーが発生しました"
+    "unknownError": "エラーが発生しました",
+    "oauth": {
+      "authFailed": "OAuth認証に失敗しました",
+      "missingParams": "必要なパラメータが不足しています",
+      "invalidCode": "無効な認証コードです",
+      "invalidState": "無効なstateパラメータです",
+      "accessDenied": "ユーザーがアクセスを拒否しました",
+      "invalidRequest": "無効なリクエストです",
+      "unauthorizedClient": "認証されていないクライアントです",
+      "unsupportedResponseType": "サポートされていないレスポンスタイプです",
+      "invalidScope": "無効なスコープです",
+      "serverError": "認証サーバーでエラーが発生しました",
+      "temporarilyUnavailable": "一時的に利用できません"
+    }
   },
   "footer": {
     "copyright": "© 2025 zxcv. All rights reserved.",
@@ -506,6 +519,32 @@
       "generalError": "エラーが発生しました。",
       "pageTitle": "メールアドレスの確認 - zxcv",
       "register": "新規登録"
+    }
+  },
+  "test": {
+    "orpc": {
+      "title": "oRPC テストページ",
+      "healthCheck": "ヘルスチェックテスト",
+      "ruleCreate": "ルール作成テスト（認証必須）"
+    }
+  },
+  "accessibility": {
+    "changeLanguage": "言語を変更",
+    "socialLinks": {
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "discord": "Discord"
+    }
+  },
+  "placeholders": {
+    "username": "johndoe",
+    "email": "john@example.com"
+  },
+  "email": {
+    "subjects": {
+      "passwordReset": "【zxcv】パスワードリセットのお知らせ",
+      "emailVerification": "【zxcv】メールアドレスの確認",
+      "organizationInvite": "【zxcv】{organizationName}への招待"
     }
   }
 }

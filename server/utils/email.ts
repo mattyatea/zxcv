@@ -1,4 +1,5 @@
 import type { Env } from "~/server/types/env";
+import { t, type Locale } from "./i18n";
 
 export interface EmailTemplate {
 	to: string;
@@ -161,7 +162,7 @@ export class EmailService {
 
 		if (isJapanese) {
 			return {
-				subject: "【zxcv】パスワードリセットのお知らせ",
+				subject: t("email.subjects.passwordReset", "ja"),
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
@@ -219,7 +220,7 @@ ${resetUrl}
 
 		// English version
 		return {
-			subject: "zxcv - Password Reset",
+			subject: t("email.subjects.passwordReset", "en"),
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">
@@ -280,7 +281,7 @@ If you didn't request a password reset, please ignore this email.
 
 		if (isJapanese) {
 			return {
-				subject: "【zxcv】メールアドレスの確認",
+				subject: t("email.subjects.emailVerification", "ja"),
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
@@ -338,7 +339,7 @@ ${verificationUrl}
 
 		// English version
 		return {
-			subject: "zxcv - Email Verification",
+			subject: t("email.subjects.emailVerification", "en"),
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">
@@ -404,7 +405,7 @@ If you didn't create this account, please ignore this email.
 
 		if (isJapanese) {
 			return {
-				subject: `【zxcv】${organizationName}への招待`,
+				subject: t("email.subjects.organizationInvite", "ja", { organizationName }),
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
@@ -462,7 +463,7 @@ ${invitationUrl}
 
 		// English version
 		return {
-			subject: `zxcv - Invitation to ${organizationName}`,
+			subject: t("email.subjects.organizationInvite", "en", { organizationName }),
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">
