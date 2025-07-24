@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
-import { dbWithAuth, dbProvider } from "~/server/orpc/middleware/combined";
+import { dbProvider, dbWithAuth } from "~/server/orpc/middleware/combined";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 
 // Search users by username (for organization invitations)
@@ -115,35 +115,33 @@ export const getProfile = os.users.getProfile
 		};
 	});
 
-export const profile = os.users.profile
-	.use(dbWithAuth)
-	.handler(async ({ context }) => {
-		const { db, user } = context;
+export const profile = os.users.profile.use(dbWithAuth).handler(async ({ context }) => {
+	const { db, user } = context;
 
-		// Get user profile from database
-		const userProfile = await db.user.findUnique({
-			where: { id: user.id },
-			select: {
-				id: true,
-				email: true,
-				username: true,
-				createdAt: true,
-				updatedAt: true,
-			},
-		});
-
-		if (!userProfile) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
-		}
-
-		return {
-			id: userProfile.id,
-			email: userProfile.email,
-			username: userProfile.username,
-			created_at: userProfile.createdAt,
-			updated_at: userProfile.updatedAt,
-		};
+	// Get user profile from database
+	const userProfile = await db.user.findUnique({
+		where: { id: user.id },
+		select: {
+			id: true,
+			email: true,
+			username: true,
+			createdAt: true,
+			updatedAt: true,
+		},
 	});
+
+	if (!userProfile) {
+		throw new ORPCError("NOT_FOUND", { message: "User not found" });
+	}
+
+	return {
+		id: userProfile.id,
+		email: userProfile.email,
+		username: userProfile.username,
+		created_at: userProfile.createdAt,
+		updated_at: userProfile.updatedAt,
+	};
+});
 
 export const updateProfile = os.users.updateProfile
 	.use(dbWithAuth)
@@ -244,37 +242,35 @@ export const changePassword = os.users.changePassword
 		return { success: true };
 	});
 
-export const settings = os.users.settings
-	.use(dbWithAuth)
-	.handler(async ({ context }) => {
-		const { db, user } = context;
+export const settings = os.users.settings.use(dbWithAuth).handler(async ({ context }) => {
+	const { db, user } = context;
 
-		// Get user settings from database
-		const userSettings = await db.user.findUnique({
-			where: { id: user.id },
-			select: {
-				id: true,
-				email: true,
-				username: true,
-				emailVerified: true,
-				createdAt: true,
-				updatedAt: true,
-			},
-		});
-
-		if (!userSettings) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
-		}
-
-		return {
-			id: userSettings.id,
-			email: userSettings.email,
-			username: userSettings.username,
-			email_verified: userSettings.emailVerified,
-			created_at: userSettings.createdAt,
-			updated_at: userSettings.updatedAt,
-		};
+	// Get user settings from database
+	const userSettings = await db.user.findUnique({
+		where: { id: user.id },
+		select: {
+			id: true,
+			email: true,
+			username: true,
+			emailVerified: true,
+			createdAt: true,
+			updatedAt: true,
+		},
 	});
+
+	if (!userSettings) {
+		throw new ORPCError("NOT_FOUND", { message: "User not found" });
+	}
+
+	return {
+		id: userSettings.id,
+		email: userSettings.email,
+		username: userSettings.username,
+		email_verified: userSettings.emailVerified,
+		created_at: userSettings.createdAt,
+		updated_at: userSettings.updatedAt,
+	};
+});
 
 export const updateSettings = os.users.updateSettings
 	.use(dbWithAuth)

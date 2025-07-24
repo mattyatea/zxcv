@@ -1,14 +1,24 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
 import { dbProvider } from "~/server/orpc/middleware/db";
+import { authRateLimit } from "~/server/orpc/middleware/rateLimit";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
+import { authErrors, type Locale } from "~/server/utils/i18n";
 import { createJWT } from "~/server/utils/jwt";
-import { checkNamespaceAvailable } from "~/server/utils/namespace";
-import { createOAuthProviders, generateCodeVerifier, generateState } from "~/server/utils/oauth";
+import {
+	createOAuthProviders,
+	generateCodeVerifier,
+	generateState,
+	safeCompare,
+} from "~/server/utils/oauth";
 
-export const register = os.auth.register.use(dbProvider).handler(async ({ input, context }) => {
+export const register = os.auth.register.use(authRateLimit).handler(async ({ input, context }) => {
 	const { username, email, password } = input;
 	const { db } = context;
+	// Get user locale from request headers
+	const locale: Locale = "ja"; // Default to Japanese for now
+
+	// Check for existing user
 	const existingUser = await db.user.findFirst({
 		where: {
 			OR: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }],
@@ -16,30 +26,43 @@ export const register = os.auth.register.use(dbProvider).handler(async ({ input,
 	});
 
 	if (existingUser) {
-		throw new ORPCError("CONFLICT", { message: "User already exists" });
+		throw new ORPCError("CONFLICT", { message: authErrors.userExists(locale) });
 	}
 
-	// Check if username is available (not taken by user or organization)
-	const isAvailable = await checkNamespaceAvailable(db, username.toLowerCase());
-	if (!isAvailable) {
+	// Check if username is available (not taken by organization)
+	const organizationExists = await db.organization.findUnique({
+		where: { name: username.toLowerCase() },
+	});
+
+	if (organizationExists) {
 		throw new ORPCError("CONFLICT", {
-			message: "Username is already taken",
+			message: authErrors.usernameNotAvailable(locale),
 		});
 	}
 
+	// Hash password and generate user ID
 	const hashedPassword = await hashPassword(password);
 	const { generateId } = await import("~/server/utils/crypto");
 	const userId = generateId();
 
-	const user = await db.user.create({
-		data: {
-			id: userId,
-			username: username.toLowerCase(),
-			email: email.toLowerCase(),
-			passwordHash: hashedPassword,
-			emailVerified: false,
-		},
-	});
+	let user;
+	try {
+		// Create user
+		user = await db.user.create({
+			data: {
+				id: userId,
+				username: username.toLowerCase(),
+				email: email.toLowerCase(),
+				passwordHash: hashedPassword,
+				emailVerified: false,
+			},
+		});
+	} catch (error) {
+		console.error("User creation error:", error);
+		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+			message: authErrors.registrationFailed(locale),
+		});
+	}
 
 	// Send verification email
 	try {
@@ -47,37 +70,23 @@ export const register = os.auth.register.use(dbProvider).handler(async ({ input,
 		const emailService = new EmailVerificationService(db, context.env);
 		await emailService.sendVerificationEmail(user.id, user.email);
 	} catch (error) {
-		console.log("Email verification error:", error);
-		// Continue without failing registration
-		const delUser = await db.user.findUnique({
-			where: { id: user.id },
-			select: {
-				id: true,
-				username: true,
-				email: true,
-			},
-		});
-		if (delUser) {
+		console.error("Email verification error:", error);
+		// Email sending failed, but user is created - delete the user
+		try {
 			await db.user.delete({
 				where: { id: user.id },
 			});
+		} catch (deleteError) {
+			console.error("Failed to delete user after email error:", deleteError);
 		}
-
-		return {
-			success: false,
-			message:
-				"Registration failed to send verification email. Please contact support if you do not receive it.",
-			user: {
-				id: user.id,
-				username: user.username,
-				email: user.email,
-			},
-		};
+		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+			message: authErrors.registrationFailedEmail(locale),
+		});
 	}
 
 	return {
 		success: true,
-		message: "Registration successful. Please check your email to verify your account.",
+		message: authErrors.registrationSuccess(locale),
 		user: {
 			id: user.id,
 			username: user.username,
@@ -86,9 +95,11 @@ export const register = os.auth.register.use(dbProvider).handler(async ({ input,
 	};
 });
 
-export const login = os.auth.login.use(dbProvider).handler(async ({ input, context }) => {
+export const login = os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
 	const { email, password } = input;
 	const { db, env } = context;
+	// Get user locale from request headers
+	const locale: Locale = "ja"; // Default to Japanese for now
 
 	try {
 		const user = await db.user.findUnique({
@@ -96,15 +107,15 @@ export const login = os.auth.login.use(dbProvider).handler(async ({ input, conte
 		});
 
 		if (!user) {
-			throw new ORPCError("UNAUTHORIZED", { message: "Invalid email or password" });
+			throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidCredentials(locale) });
 		}
 
 		if (!user.passwordHash) {
-			throw new ORPCError("UNAUTHORIZED", { message: "Invalid email or password" });
+			throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidCredentials(locale) });
 		}
 		const isValidPassword = await verifyPassword(password, user.passwordHash);
 		if (!isValidPassword) {
-			throw new ORPCError("UNAUTHORIZED", { message: "Invalid email or password" });
+			throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidCredentials(locale) });
 		}
 
 		const authUser = {
@@ -130,27 +141,29 @@ export const login = os.auth.login.use(dbProvider).handler(async ({ input, conte
 			accessToken,
 			refreshToken,
 			user: authUser,
-			message: user.emailVerified ? undefined : "Please verify your email before logging in.",
+			message: user.emailVerified ? undefined : authErrors.emailNotVerified(locale),
 		};
 	} catch (error) {
 		console.error("Login error:", error);
-		if (error instanceof Error) {
-			throw new ORPCError("BAD_REQUEST", { message: error.message });
+		if (error instanceof ORPCError) {
+			throw error;
 		}
-		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Login failed" });
+		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: authErrors.loginFailed(locale) });
 	}
 });
 
 export const refresh = os.auth.refresh.use(dbProvider).handler(async ({ input, context }) => {
 	const { refreshToken } = input;
 	const { db, env } = context;
+	// Get user locale from request headers
+	const locale: Locale = "ja"; // Default to Japanese for now
 
 	// Verify refresh token
 	const { verifyRefreshToken, createRefreshToken } = await import("~/server/utils/jwt");
 	const userId = await verifyRefreshToken(refreshToken, env);
 
 	if (!userId) {
-		throw new ORPCError("UNAUTHORIZED", { message: "Invalid refresh token" });
+		throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidToken(locale) });
 	}
 
 	const user = await db.user.findUnique({
@@ -158,7 +171,7 @@ export const refresh = os.auth.refresh.use(dbProvider).handler(async ({ input, c
 	});
 
 	if (!user) {
-		throw new ORPCError("UNAUTHORIZED", { message: "User not found" });
+		throw new ORPCError("UNAUTHORIZED", { message: authErrors.userNotFound(locale) });
 	}
 
 	const authUser = {
@@ -187,6 +200,8 @@ export const verifyEmail = os.auth.verifyEmail
 	.handler(async ({ input, context }) => {
 		const { token } = input;
 		const { db, env } = context;
+		// Get user locale from request headers
+		const locale: Locale = "ja"; // Default to Japanese for now
 		const { EmailVerificationService } = await import("~/server/services/emailVerification");
 
 		const emailVerificationService = new EmailVerificationService(db, env);
@@ -194,13 +209,13 @@ export const verifyEmail = os.auth.verifyEmail
 
 		if (!result.success) {
 			throw new ORPCError("BAD_REQUEST", {
-				message: result.message || "Invalid or expired verification token",
+				message: result.message || authErrors.invalidToken(locale),
 			});
 		}
 
 		return {
 			success: true,
-			message: "Email verified successfully. You can now log in.",
+			message: authErrors.emailVerificationSuccess(locale),
 		};
 	});
 
@@ -209,6 +224,8 @@ export const sendPasswordReset = os.auth.sendPasswordReset
 	.handler(async ({ input, context }) => {
 		const { email } = input;
 		const { db, env } = context;
+		// Get user locale from request headers
+		const locale: Locale = "ja"; // Default to Japanese for now
 
 		// Check if user exists
 		const user = await db.user.findUnique({
@@ -255,7 +272,7 @@ export const sendPasswordReset = os.auth.sendPasswordReset
 
 		return {
 			success: true,
-			message: "If an account exists with this email, a password reset link has been sent.",
+			message: authErrors.passwordResetEmailSent(locale),
 		};
 	});
 
@@ -264,6 +281,8 @@ export const resetPassword = os.auth.resetPassword
 	.handler(async ({ input, context }) => {
 		const { token, newPassword } = input;
 		const { db } = context;
+		// Get user locale from request headers
+		const locale: Locale = "ja"; // Default to Japanese for now
 		const now = Math.floor(Date.now() / 1000);
 
 		// Find valid reset token
@@ -280,7 +299,7 @@ export const resetPassword = os.auth.resetPassword
 		});
 
 		if (!reset) {
-			throw new ORPCError("BAD_REQUEST", { message: "Invalid or expired token" });
+			throw new ORPCError("BAD_REQUEST", { message: authErrors.invalidToken(locale) });
 		}
 
 		// Hash new password
@@ -309,71 +328,75 @@ export const resetPassword = os.auth.resetPassword
 
 		return {
 			success: true,
-			message: "Password reset successfully",
+			message: authErrors.passwordResetSuccess(locale),
 		};
 	});
 
 export const sendVerification = os.auth.sendVerification
 	.use(dbProvider)
 	.handler(async ({ input, context }) => {
-		const { email, locale } = input;
+		const { email, locale: inputLocale } = input;
 		const { db, env } = context;
+		const locale: Locale = (inputLocale as Locale) || "ja"; // Default to Japanese if not provided
 
 		try {
 			const { EmailVerificationService } = await import("~/server/services/emailVerification");
 			const emailVerificationService = new EmailVerificationService(db, env);
 
 			// Send verification email (returns true even if email doesn't exist for security)
-			const sent = await emailVerificationService.resendVerificationEmail(email, locale);
+			const sent = await emailVerificationService.resendVerificationEmail(email, inputLocale);
 
 			if (sent) {
 				return {
 					success: true,
-					message:
-						"If this email address exists and is not already verified, a verification email has been sent.",
+					message: authErrors.emailResendSuccess(locale),
 				};
 			}
 
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Failed to send verification email. Please try again.",
+				message: authErrors.emailResendFailed(locale),
 			});
 		} catch (error) {
 			if (error instanceof ORPCError) {
 				throw error;
 			}
-			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Internal server error" });
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: authErrors.internalServerError(locale),
+			});
 		}
 	});
 
 export const logout = os.auth.logout.use(dbProvider).handler(async ({ input, context }) => {
 	const { refreshToken } = input;
 	const { env } = context;
+	// Get user locale from request headers
+	const locale: Locale = "ja"; // Default to Japanese for now
 
 	try {
 		// Verify refresh token
 		const { verifyRefreshToken } = await import("~/server/utils/jwt");
 		const userId = await verifyRefreshToken(refreshToken, env);
 		if (!userId) {
-			throw new ORPCError("UNAUTHORIZED", { message: "Invalid refresh token" });
+			throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidToken(locale) });
 		}
 
 		// In a JWT-based system, logout is typically handled client-side
 		// by removing the token. For simplicity, we'll just return success
 		return {
 			success: true,
-			message: "Successfully logged out",
+			message: authErrors.logoutSuccess(locale),
 		};
 	} catch (error) {
 		if (error instanceof ORPCError) {
 			throw error;
 		}
-		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Logout failed" });
+		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: authErrors.logoutFailed(locale) });
 	}
 });
 
 // OAuth initialization endpoints
 export const oauthInitialize = os.auth.oauthInitialize
-	.use(dbProvider)
+	.use(authRateLimit)
 	.handler(async ({ input, context }) => {
 		const { provider, redirectUrl, action } = input;
 		const { db, env } = context;
@@ -386,6 +409,10 @@ export const oauthInitialize = os.auth.oauthInitialize
 		};
 		const state = Buffer.from(JSON.stringify(stateData)).toString("base64url");
 		const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
+
+		// Clean up expired states before creating new one
+		const { cleanupExpiredOAuthStates } = await import("~/server/utils/oauthCleanup");
+		await cleanupExpiredOAuthStates(db);
 
 		// Store state in database
 		const { generateId } = await import("~/server/utils/crypto");
@@ -424,10 +451,12 @@ export const oauthInitialize = os.auth.oauthInitialize
 
 // OAuth callback handler
 export const oauthCallback = os.auth.oauthCallback
-	.use(dbProvider)
+	.use(authRateLimit)
 	.handler(async ({ input, context }) => {
 		const { provider, code, state } = input;
 		const { db, env } = context;
+		// Get user locale from request headers
+		const locale: Locale = "ja"; // Default to Japanese for now
 
 		console.log("OAuth callback started:", {
 			provider,
@@ -443,7 +472,7 @@ export const oauthCallback = os.auth.oauthCallback
 			stateData = JSON.parse(Buffer.from(state, "base64url").toString());
 		} catch (e) {
 			console.error("Failed to decode state:", e);
-			throw new ORPCError("BAD_REQUEST", { message: "Invalid state format" });
+			throw new ORPCError("BAD_REQUEST", { message: authErrors.invalidState(locale) });
 		}
 
 		// Verify state
@@ -451,20 +480,19 @@ export const oauthCallback = os.auth.oauthCallback
 			where: { state: stateData.random },
 		});
 
-		console.log("State record found:", stateRecord);
+		console.log("State record found:", stateRecord ? "yes" : "no");
 		console.log("Action from state:", stateData.action);
 
-		if (
-			!stateRecord ||
-			stateRecord.provider !== provider ||
-			stateRecord.expiresAt < Math.floor(Date.now() / 1000)
-		) {
-			console.error("State validation failed:", {
-				stateRecord,
-				provider,
-				currentTime: Math.floor(Date.now() / 1000),
-			});
-			throw new ORPCError("BAD_REQUEST", { message: "Invalid or expired state" });
+		// Timing-safe state validation
+		const isValidState =
+			stateRecord &&
+			safeCompare(stateRecord.state, stateData.random) &&
+			safeCompare(stateRecord.provider, provider) &&
+			stateRecord.expiresAt >= Math.floor(Date.now() / 1000);
+
+		if (!isValidState) {
+			console.error("State validation failed");
+			throw new ORPCError("BAD_REQUEST", { message: authErrors.invalidState(locale) });
 		}
 
 		// Clean up state
@@ -476,7 +504,7 @@ export const oauthCallback = os.auth.oauthCallback
 
 			if (provider === "google") {
 				if (!stateRecord.codeVerifier) {
-					throw new ORPCError("BAD_REQUEST", { message: "Missing code verifier" });
+					throw new ORPCError("BAD_REQUEST", { message: authErrors.invalidState(locale) });
 				}
 				tokens = await providers.google.validateAuthorizationCode(code, stateRecord.codeVerifier);
 
@@ -489,7 +517,7 @@ export const oauthCallback = os.auth.oauthCallback
 
 				if (!response.ok) {
 					throw new ORPCError("INTERNAL_SERVER_ERROR", {
-						message: "Failed to fetch user info from Google",
+						message: authErrors.oauthFailed(locale, "Google"),
 					});
 				}
 
@@ -537,7 +565,7 @@ export const oauthCallback = os.auth.oauthCallback
 						emailText: await emailResponse.text(),
 					});
 					throw new ORPCError("INTERNAL_SERVER_ERROR", {
-						message: "Failed to fetch user info from GitHub",
+						message: authErrors.oauthFailed(locale, "GitHub"),
 					});
 				}
 
@@ -555,7 +583,7 @@ export const oauthCallback = os.auth.oauthCallback
 
 				if (!primaryEmail) {
 					throw new ORPCError("BAD_REQUEST", {
-						message: "No email address found in GitHub account",
+						message: authErrors.oauthNoEmail(locale, "GitHub"),
 					});
 				}
 
@@ -675,7 +703,7 @@ export const oauthCallback = os.auth.oauthCallback
 			});
 
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: `OAuth authentication failed: ${errorMessage}`,
+				message: authErrors.oauthAuthFailed(locale, errorMessage),
 			});
 		}
 	});

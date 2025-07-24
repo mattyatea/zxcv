@@ -1,10 +1,6 @@
 import { oc } from "@orpc/contract";
 import * as z from "zod";
-import {
-	RuleNameSchema,
-	RuleVersionSchema,
-	SuccessResponseSchema,
-} from "../schemas/common";
+import { RuleNameSchema, RuleVersionSchema, SuccessResponseSchema } from "../schemas/common";
 
 export const rulesContract = {
 	getByPath: oc
@@ -39,11 +35,13 @@ export const rulesContract = {
 					username: z.string(),
 					email: z.string(),
 				}),
-				organization: z.object({
-					id: z.string(),
-					name: z.string(),
-					displayName: z.string(),
-				}).nullable(),
+				organization: z
+					.object({
+						id: z.string(),
+						name: z.string(),
+						displayName: z.string(),
+					})
+					.nullable(),
 				author: z.object({
 					id: z.string(),
 					username: z.string(),
@@ -92,11 +90,13 @@ export const rulesContract = {
 							username: z.string(),
 							email: z.string(),
 						}),
-						organization: z.object({
-							id: z.string(),
-							name: z.string(),
-							displayName: z.string(),
-						}).nullable(),
+						organization: z
+							.object({
+								id: z.string(),
+								name: z.string(),
+								displayName: z.string(),
+							})
+							.nullable(),
 						author: z.object({
 							id: z.string(),
 							username: z.string(),
@@ -144,11 +144,13 @@ export const rulesContract = {
 					username: z.string(),
 					email: z.string(),
 				}),
-				organization: z.object({
-					id: z.string(),
-					name: z.string(),
-					displayName: z.string(),
-				}).nullable(),
+				organization: z
+					.object({
+						id: z.string(),
+						name: z.string(),
+						displayName: z.string(),
+					})
+					.nullable(),
 				author: z.object({
 					id: z.string(),
 					username: z.string(),

@@ -3,46 +3,44 @@ import { os } from "~/server/orpc";
 import { dbWithAuth } from "~/server/orpc/middleware/combined";
 import { checkNamespaceAvailable } from "~/server/utils/namespace";
 
-export const list = os.organizations.list
-	.use(dbWithAuth)
-	.handler(async ({ context }) => {
-		const { db, user } = context;
+export const list = os.organizations.list.use(dbWithAuth).handler(async ({ context }) => {
+	const { db, user } = context;
 
-		const organizations = await db.organization.findMany({
-			where: {
-				members: {
-					some: {
-						userId: user.id,
-					},
+	const organizations = await db.organization.findMany({
+		where: {
+			members: {
+				some: {
+					userId: user.id,
 				},
 			},
-			include: {
-				owner: {
-					select: {
-						id: true,
-						username: true,
-						email: true,
-					},
-				},
-				// biome-ignore lint/style/useNamingConvention: Prisma の命名規則に従うため、_count を使用するしかない
-				_count: {
-					select: {
-						members: true,
-						rules: true,
-					},
+		},
+		include: {
+			owner: {
+				select: {
+					id: true,
+					username: true,
+					email: true,
 				},
 			},
-		});
-
-		return organizations.map((organization) => ({
-			id: organization.id,
-			name: organization.name,
-			displayName: organization.displayName,
-			owner: organization.owner,
-			memberCount: organization._count.members,
-			ruleCount: organization._count.rules,
-		}));
+			// biome-ignore lint/style/useNamingConvention: Prisma の命名規則に従うため、_count を使用するしかない
+			_count: {
+				select: {
+					members: true,
+					rules: true,
+				},
+			},
+		},
 	});
+
+	return organizations.map((organization) => ({
+		id: organization.id,
+		name: organization.name,
+		displayName: organization.displayName,
+		owner: organization.owner,
+		memberCount: organization._count.members,
+		ruleCount: organization._count.rules,
+	}));
+});
 
 export const create = os.organizations.create
 	.use(dbWithAuth)
@@ -151,60 +149,58 @@ export const create = os.organizations.create
 		};
 	});
 
-export const get = os.organizations.get
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
-		const { db, user } = context;
+export const get = os.organizations.get.use(dbWithAuth).handler(async ({ input, context }) => {
+	const { db, user } = context;
 
-		const organization = await db.organization.findUnique({
-			where: { id: input.id },
-			include: {
-				owner: {
-					select: {
-						id: true,
-						username: true,
-						email: true,
-					},
-				},
-				members: {
-					where: {
-						userId: user.id,
-					},
-					select: {
-						role: true,
-					},
-				},
-				// biome-ignore lint/style/useNamingConvention: Prisma _count field
-				_count: {
-					select: {
-						members: true,
-						rules: true,
-					},
+	const organization = await db.organization.findUnique({
+		where: { id: input.id },
+		include: {
+			owner: {
+				select: {
+					id: true,
+					username: true,
+					email: true,
 				},
 			},
-		});
-
-		if (!organization) {
-			throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
-		}
-
-		// Check if user is a member
-		if (organization.members.length === 0) {
-			throw new ORPCError("FORBIDDEN", { message: "You are not a member of this organization" });
-		}
-
-		return {
-			id: organization.id,
-			name: organization.name,
-			displayName: organization.displayName,
-			description: organization.description,
-			owner: organization.owner,
-			role: organization.members[0].role as "owner" | "member",
-			memberCount: organization._count.members,
-			ruleCount: organization._count.rules,
-			createdAt: organization.createdAt,
-		};
+			members: {
+				where: {
+					userId: user.id,
+				},
+				select: {
+					role: true,
+				},
+			},
+			// biome-ignore lint/style/useNamingConvention: Prisma _count field
+			_count: {
+				select: {
+					members: true,
+					rules: true,
+				},
+			},
+		},
 	});
+
+	if (!organization) {
+		throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
+	}
+
+	// Check if user is a member
+	if (organization.members.length === 0) {
+		throw new ORPCError("FORBIDDEN", { message: "You are not a member of this organization" });
+	}
+
+	return {
+		id: organization.id,
+		name: organization.name,
+		displayName: organization.displayName,
+		description: organization.description,
+		owner: organization.owner,
+		role: organization.members[0].role as "owner" | "member",
+		memberCount: organization._count.members,
+		ruleCount: organization._count.rules,
+		createdAt: organization.createdAt,
+	};
+});
 
 export const members = os.organizations.members
 	.use(dbWithAuth)
@@ -251,49 +247,47 @@ export const members = os.organizations.members
 		}));
 	});
 
-export const rules = os.organizations.rules
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
-		const { db, user } = context;
+export const rules = os.organizations.rules.use(dbWithAuth).handler(async ({ input, context }) => {
+	const { db, user } = context;
 
-		// Check if user is a member of the organization
-		const membership = await db.organizationMember.findFirst({
-			where: {
-				organizationId: input.organizationId,
-				userId: user.id,
-			},
-		});
+	// Check if user is a member of the organization
+	const membership = await db.organizationMember.findFirst({
+		where: {
+			organizationId: input.organizationId,
+			userId: user.id,
+		},
+	});
 
-		if (!membership) {
-			throw new ORPCError("FORBIDDEN", { message: "You are not a member of this organization" });
-		}
+	if (!membership) {
+		throw new ORPCError("FORBIDDEN", { message: "You are not a member of this organization" });
+	}
 
-		const rules = await db.rule.findMany({
-			where: {
-				organizationId: input.organizationId,
-			},
-			include: {
-				user: {
-					select: {
-						id: true,
-						username: true,
-					},
+	const rules = await db.rule.findMany({
+		where: {
+			organizationId: input.organizationId,
+		},
+		include: {
+			user: {
+				select: {
+					id: true,
+					username: true,
 				},
 			},
-			orderBy: {
-				updatedAt: "desc",
-			},
-		});
-
-		return rules.map((rule) => ({
-			id: rule.id,
-			name: rule.name,
-			description: rule.description,
-			version: rule.version,
-			updatedAt: rule.updatedAt,
-			author: rule.user,
-		}));
+		},
+		orderBy: {
+			updatedAt: "desc",
+		},
 	});
+
+	return rules.map((rule) => ({
+		id: rule.id,
+		name: rule.name,
+		description: rule.description,
+		version: rule.version,
+		updatedAt: rule.updatedAt,
+		author: rule.user,
+	}));
+});
 
 export const acceptInvitation = os.organizations.acceptInvitation
 	.use(dbWithAuth)
@@ -640,49 +634,47 @@ export const inviteMember = os.organizations.inviteMember
 		};
 	});
 
-export const leave = os.organizations.leave
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
-		const { db, user } = context;
+export const leave = os.organizations.leave.use(dbWithAuth).handler(async ({ input, context }) => {
+	const { db, user } = context;
 
-		// Check if user is a member
-		const membership = await db.organizationMember.findFirst({
+	// Check if user is a member
+	const membership = await db.organizationMember.findFirst({
+		where: {
+			organizationId: input.organizationId,
+			userId: user.id,
+		},
+	});
+
+	if (!membership) {
+		throw new ORPCError("NOT_FOUND", { message: "You are not a member of this organization" });
+	}
+
+	// Prevent the last owner from leaving
+	if (membership.role === "owner") {
+		const ownerCount = await db.organizationMember.count({
 			where: {
 				organizationId: input.organizationId,
-				userId: user.id,
+				role: "owner",
 			},
 		});
 
-		if (!membership) {
-			throw new ORPCError("NOT_FOUND", { message: "You are not a member of this organization" });
-		}
-
-		// Prevent the last owner from leaving
-		if (membership.role === "owner") {
-			const ownerCount = await db.organizationMember.count({
-				where: {
-					organizationId: input.organizationId,
-					role: "owner",
-				},
+		if (ownerCount <= 1) {
+			throw new ORPCError("BAD_REQUEST", {
+				message:
+					"The last owner cannot leave the organization. Transfer ownership or delete the organization instead.",
 			});
-
-			if (ownerCount <= 1) {
-				throw new ORPCError("BAD_REQUEST", {
-					message:
-						"The last owner cannot leave the organization. Transfer ownership or delete the organization instead.",
-				});
-			}
 		}
+	}
 
-		// Remove the membership
-		await db.organizationMember.delete({
-			where: {
-				id: membership.id,
-			},
-		});
-
-		return { success: true };
+	// Remove the membership
+	await db.organizationMember.delete({
+		where: {
+			id: membership.id,
+		},
 	});
+
+	return { success: true };
+});
 
 export const organizationsProcedures = {
 	list,

@@ -4,8 +4,8 @@ import {
 	EmailSchema,
 	PasswordSchema,
 	SuccessResponseSchema,
-	UserProfileSchema,
 	UsernameSchema,
+	UserProfileSchema,
 } from "../schemas/common";
 
 export const usersContract = {
