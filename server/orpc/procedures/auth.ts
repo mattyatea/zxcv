@@ -1,7 +1,11 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
 import { dbProvider } from "~/server/orpc/middleware/db";
-import { authRateLimit } from "~/server/orpc/middleware/rateLimit";
+import {
+	authRateLimit,
+	passwordResetRateLimit,
+	registerRateLimit,
+} from "~/server/orpc/middleware/rateLimit";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 import { authErrors, type Locale } from "~/server/utils/i18n";
 import { createJWT } from "~/server/utils/jwt";
@@ -12,97 +16,99 @@ import {
 	safeCompare,
 } from "~/server/utils/oauth";
 
-export const register = os.auth.register.use(authRateLimit).handler(async ({ input, context }) => {
-	const { username, email, password } = input;
-	const { db } = context;
-	// Get user locale from request headers
-	const locale: Locale = "ja"; // Default to Japanese for now
+export const register = os.auth.register
+	.use(registerRateLimit)
+	.handler(async ({ input, context }) => {
+		const { username, email, password } = input;
+		const { db } = context;
+		// Get user locale from request headers
+		const locale: Locale = "ja"; // Default to Japanese for now
 
-	// Check for existing user by email first (more likely to have index)
-	const existingUserByEmail = await db.user.findUnique({
-		where: { email: email.toLowerCase() },
-	});
-
-	if (existingUserByEmail) {
-		throw new ORPCError("CONFLICT", { message: authErrors.userExists(locale) });
-	}
-
-	// Then check by username
-	const existingUserByUsername = await db.user.findUnique({
-		where: { username: username.toLowerCase() },
-	});
-
-	if (existingUserByUsername) {
-		throw new ORPCError("CONFLICT", { message: authErrors.usernameExists(locale) });
-	}
-
-	// Check if username is available (not taken by organization)
-	const organizationExists = await db.organization.findUnique({
-		where: { name: username.toLowerCase() },
-	});
-
-	if (organizationExists) {
-		throw new ORPCError("CONFLICT", {
-			message: authErrors.usernameNotAvailable(locale),
+		// Check for existing user by email first (more likely to have index)
+		const existingUserByEmail = await db.user.findUnique({
+			where: { email: email.toLowerCase() },
 		});
-	}
 
-	// Hash password and generate user ID
-	const hashedPassword = await hashPassword(password);
-	const { generateId } = await import("~/server/utils/crypto");
-	const userId = generateId();
-
-	let user: Awaited<ReturnType<typeof db.user.create>>;
-	try {
-		// Create user
-		user = await db.user.create({
-			data: {
-				id: userId,
-				username: username.toLowerCase(),
-				email: email.toLowerCase(),
-				passwordHash: hashedPassword,
-				emailVerified: false,
-			},
-		});
-	} catch (error) {
-		console.error("User creation error:", error);
-		throw new ORPCError("INTERNAL_SERVER_ERROR", {
-			message: authErrors.registrationFailed(locale),
-		});
-	}
-
-	// Send verification email
-	try {
-		const { EmailVerificationService } = await import("~/server/services/emailVerification");
-		const emailService = new EmailVerificationService(db, context.env);
-		await emailService.sendVerificationEmail(user.id, user.email);
-	} catch (error) {
-		console.error("Email verification error:", error);
-		// Email sending failed, but user is created - delete the user
-		if (user && user.id) {
-			try {
-				await db.user.delete({
-					where: { id: user.id },
-				});
-			} catch (deleteError) {
-				console.error("Failed to delete user after email error:", deleteError);
-			}
+		if (existingUserByEmail) {
+			throw new ORPCError("CONFLICT", { message: authErrors.userExists(locale) });
 		}
-		throw new ORPCError("INTERNAL_SERVER_ERROR", {
-			message: authErrors.registrationFailedEmail(locale),
-		});
-	}
 
-	return {
-		success: true,
-		message: authErrors.registrationSuccess(locale),
-		user: {
-			id: user.id,
-			username: user.username,
-			email: user.email,
-		},
-	};
-});
+		// Then check by username
+		const existingUserByUsername = await db.user.findUnique({
+			where: { username: username.toLowerCase() },
+		});
+
+		if (existingUserByUsername) {
+			throw new ORPCError("CONFLICT", { message: authErrors.usernameExists(locale) });
+		}
+
+		// Check if username is available (not taken by organization)
+		const organizationExists = await db.organization.findUnique({
+			where: { name: username.toLowerCase() },
+		});
+
+		if (organizationExists) {
+			throw new ORPCError("CONFLICT", {
+				message: authErrors.usernameNotAvailable(locale),
+			});
+		}
+
+		// Hash password and generate user ID
+		const hashedPassword = await hashPassword(password);
+		const { generateId } = await import("~/server/utils/crypto");
+		const userId = generateId();
+
+		let user: Awaited<ReturnType<typeof db.user.create>>;
+		try {
+			// Create user
+			user = await db.user.create({
+				data: {
+					id: userId,
+					username: username.toLowerCase(),
+					email: email.toLowerCase(),
+					passwordHash: hashedPassword,
+					emailVerified: false,
+				},
+			});
+		} catch (error) {
+			console.error("User creation error:", error);
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: authErrors.registrationFailed(locale),
+			});
+		}
+
+		// Send verification email
+		try {
+			const { EmailVerificationService } = await import("~/server/services/emailVerification");
+			const emailService = new EmailVerificationService(db, context.env);
+			await emailService.sendVerificationEmail(user.id, user.email);
+		} catch (error) {
+			console.error("Email verification error:", error);
+			// Email sending failed, but user is created - delete the user
+			if (user && user.id) {
+				try {
+					await db.user.delete({
+						where: { id: user.id },
+					});
+				} catch (deleteError) {
+					console.error("Failed to delete user after email error:", deleteError);
+				}
+			}
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: authErrors.registrationFailedEmail(locale),
+			});
+		}
+
+		return {
+			success: true,
+			message: authErrors.registrationSuccess(locale),
+			user: {
+				id: user.id,
+				username: user.username,
+				email: user.email,
+			},
+		};
+	});
 
 export const login = os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
 	const { email, password } = input;
@@ -229,7 +235,7 @@ export const verifyEmail = os.auth.verifyEmail
 	});
 
 export const sendPasswordReset = os.auth.sendPasswordReset
-	.use(dbProvider)
+	.use(passwordResetRateLimit)
 	.handler(async ({ input, context }) => {
 		const { email } = input;
 		const { db, env } = context;
@@ -492,7 +498,11 @@ export const oauthCallback = os.auth.oauthCallback
 		console.log("State record found:", stateRecord ? "yes" : "no");
 		console.log("Action from state:", stateData.action);
 
-		// Timing-safe state validation
+		// Timing-safe state validation with CSRF protection
+		// 1. Check if state exists in database (prevents forged states)
+		// 2. Use timing-safe comparison to prevent timing attacks
+		// 3. Verify provider matches to prevent cross-provider attacks
+		// 4. Check expiration to prevent replay attacks
 		const isValidState =
 			stateRecord &&
 			safeCompare(stateRecord.state, stateData.random) &&
@@ -500,7 +510,11 @@ export const oauthCallback = os.auth.oauthCallback
 			stateRecord.expiresAt >= Math.floor(Date.now() / 1000);
 
 		if (!isValidState) {
-			console.error("State validation failed");
+			console.error("State validation failed", {
+				stateExists: !!stateRecord,
+				providerMatch: stateRecord ? stateRecord.provider === provider : false,
+				expired: stateRecord ? stateRecord.expiresAt < Math.floor(Date.now() / 1000) : false,
+			});
 			throw new ORPCError("BAD_REQUEST", { message: authErrors.invalidState(locale) });
 		}
 

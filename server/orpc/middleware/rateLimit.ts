@@ -127,6 +127,20 @@ export const authRateLimit = createRateLimitMiddleware({
 	keyPrefix: "auth",
 });
 
+// Stricter rate limit for registration to prevent spam
+export const registerRateLimit = createRateLimitMiddleware({
+	windowMs: 60 * 60 * 1000, // 1 hour
+	maxRequests: 3, // 3 registration attempts per hour
+	keyPrefix: "auth:register",
+});
+
+// Rate limit for password reset to prevent abuse
+export const passwordResetRateLimit = createRateLimitMiddleware({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	maxRequests: 3, // 3 reset attempts per 15 minutes
+	keyPrefix: "auth:reset",
+});
+
 export const apiRateLimit = createRateLimitMiddleware({
 	windowMs: 60 * 1000, // 1 minute
 	maxRequests: 60, // 60 requests per minute
