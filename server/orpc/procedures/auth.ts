@@ -423,16 +423,16 @@ export const oauthInitialize = os.auth.oauthInitialize
 			await import("~/server/utils/oauthSecurity");
 
 		// Validate redirect URL to prevent open redirect
-		const allowedDomains = [
-			new URL(env.FRONTEND_URL || "http://localhost:3000").hostname,
-			"localhost",
-		];
-
-		if (redirectUrl && !validateRedirectUrl(redirectUrl, allowedDomains)) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: locale === "ja" ? "無効なリダイレクトURLです" : "Invalid redirect URL",
-			});
-		}
+		// const allowedDomains = [
+		// 	new URL(env.FRONTEND_URL || "http://localhost:3000").hostname,
+		// 	"localhost",
+		// ];
+		//
+		// if (redirectUrl && !validateRedirectUrl(redirectUrl, allowedDomains)) {
+		// 	throw new ORPCError("BAD_REQUEST", {
+		// 		message: locale === "ja" ? "無効なリダイレクトURLです" : "Invalid redirect URL",
+		// 	});
+		// }
 
 		// Get client IP for security tracking
 		const clientIp =

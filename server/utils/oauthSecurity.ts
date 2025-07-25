@@ -51,14 +51,15 @@ export async function performOAuthSecurityChecks(
 	locale: Locale = "ja",
 ): Promise<void> {
 	// Check for too many pending states from the same IP
-	const pendingStatesCount = await db.oAuthState.count({
+	const pendingStates = await db.oAuthState.findMany({
 		where: {
-			clientIp,
+			clientIp: clientIp,
 			expiresAt: {
 				gte: Math.floor(Date.now() / 1000),
 			},
 		},
 	});
+	const pendingStatesCount = pendingStates.length;
 
 	if (pendingStatesCount >= OAUTH_CONFIG.MAX_PENDING_STATES_PER_IP) {
 		throw new ORPCError("TOO_MANY_REQUESTS", {

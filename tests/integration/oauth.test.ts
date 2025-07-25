@@ -4,10 +4,13 @@ import type { Router } from "~/server/orpc/router";
 import { createMockPrismaClient, setupCommonMocks } from "~/tests/helpers/test-db";
 import { generateId } from "~/server/utils/crypto";
 
-// Mock arctic OAuth library
+// Mock arctic OAuth library completely to avoid arctic internal calls
 vi.mock("arctic", () => {
 	class MockGoogle {
-		constructor() {}
+		constructor(clientId: string, clientSecret: string, redirectUrl: string) {
+			// Store params for verification if needed
+		}
+		
 		createAuthorizationURL(state: string, codeVerifier: string, scopes: string[]) {
 			const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 			url.searchParams.set("state", state);
@@ -15,22 +18,33 @@ vi.mock("arctic", () => {
 			url.searchParams.set("scope", scopes.join(" "));
 			return url;
 		}
-		validateAuthorizationCode = vi.fn().mockResolvedValue({
-			accessToken: () => "mock-access-token",
-		});
+		
+		async validateAuthorizationCode(code: string, codeVerifier: string) {
+			// Return a mock token response
+			return {
+				accessToken: () => "mock-access-token",
+			};
+		}
 	}
 
 	class MockGitHub {
-		constructor() {}
+		constructor(clientId: string, clientSecret: string) {
+			// Store params for verification if needed
+		}
+		
 		createAuthorizationURL(state: string, scopes: string[]) {
 			const url = new URL("https://github.com/login/oauth/authorize");
 			url.searchParams.set("state", state);
 			url.searchParams.set("scope", scopes.join(" "));
 			return url;
 		}
-		validateAuthorizationCode = vi.fn().mockResolvedValue({
-			accessToken: () => "mock-github-token",
-		});
+		
+		async validateAuthorizationCode(code: string) {
+			// Return a mock token response
+			return {
+				accessToken: () => "mock-github-token",
+			};
+		}
 	}
 
 	return {
@@ -66,6 +80,43 @@ vi.mock("~/server/utils/oauthSecurity", () => ({
 		},
 	},
 }));
+
+// Create mock OAuth providers to be used in tests
+const mockOAuthProviders = {
+	google: {
+		createAuthorizationURL: vi.fn((state: string, codeVerifier: string, scopes: string[]) => {
+			const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+			url.searchParams.set("state", state);
+			url.searchParams.set("code_challenge", codeVerifier);
+			url.searchParams.set("scope", scopes.join(" "));
+			return url;
+		}),
+		validateAuthorizationCode: vi.fn().mockResolvedValue({
+			accessToken: () => "mock-access-token",
+		}),
+	},
+	github: {
+		createAuthorizationURL: vi.fn((state: string, scopes: string[]) => {
+			const url = new URL("https://github.com/login/oauth/authorize");
+			url.searchParams.set("state", state);
+			url.searchParams.set("scope", scopes.join(" "));
+			return url;
+		}),
+		validateAuthorizationCode: vi.fn().mockResolvedValue({
+			accessToken: () => "mock-github-token",
+		}),
+	},
+};
+
+// Mock createOAuthProviders to return our mock providers
+vi.mock("~/server/utils/oauth", async () => {
+	const actual = await vi.importActual<typeof import("~/server/utils/oauth")>("~/server/utils/oauth");
+	
+	return {
+		...actual,
+		createOAuthProviders: vi.fn(() => mockOAuthProviders),
+	};
+});
 
 describe("OAuth Integration Tests", () => {
 	let client: ReturnType<typeof createTestORPCClient>["client"];
@@ -534,10 +585,8 @@ describe("OAuth Integration Tests", () => {
 
 		describe("Error Handling", () => {
 			it("should handle OAuth provider errors gracefully", async () => {
-				// Mock OAuth validation error using the already mocked Arctic library
-				const { Google } = await import("arctic");
-				const googleInstance = new Google("test-id", "test-secret", "test-redirect");
-				vi.mocked(googleInstance.validateAuthorizationCode).mockRejectedValueOnce(
+				// Mock OAuth validation error
+				mockOAuthProviders.google.validateAuthorizationCode.mockRejectedValueOnce(
 					new Error("Invalid authorization code")
 				);
 
@@ -548,6 +597,11 @@ describe("OAuth Integration Tests", () => {
 						state: validState,
 					})
 				).rejects.toThrow("OAuth認証に失敗しました");
+				
+				// Reset mock for next tests
+				mockOAuthProviders.google.validateAuthorizationCode.mockResolvedValue({
+					accessToken: () => "mock-access-token",
+				});
 			});
 
 			it("should handle API fetch errors", async () => {

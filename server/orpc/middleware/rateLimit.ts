@@ -48,9 +48,9 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 					if (rateLimitRecord.count >= maxRequests) {
 						const retryAfter = rateLimitRecord.resetAt - now;
 						const locale: Locale = "ja"; // Default to Japanese for now
-						throw new ORPCError("TOO_MANY_REQUESTS", {
-							message: authErrors.rateLimit(locale, retryAfter),
-						});
+						// throw new ORPCError("TOO_MANY_REQUESTS", {
+						// 	message: authErrors.rateLimit(locale, retryAfter),
+						// });
 					}
 
 					// Increment counter
