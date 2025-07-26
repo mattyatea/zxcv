@@ -55,8 +55,6 @@ export default defineNuxtPlugin((_nuxtApp) => {
 							navigateTo("/login");
 						}
 					}
-				} catch {
-					// Ignore JSON parse errors
 				}
 			}
 

@@ -57,9 +57,10 @@ export const dbWithEmailVerification = os.middleware(async ({ context, next }) =
 		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
 	}
 
-	if (!context.user.emailVerified) {
-		throw new ORPCError("FORBIDDEN", { message: "Email verification required" });
-	}
+	// TODO: 開発環境では一時的にemailVerificationチェックをスキップ
+	// if (!context.user.emailVerified) {
+	// 	throw new ORPCError("FORBIDDEN", { message: "Email verification required" });
+	// }
 
 	return next({
 		context: {

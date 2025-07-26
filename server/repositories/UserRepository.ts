@@ -158,7 +158,7 @@ export class UserRepository extends BaseRepository {
 	/**
 	 * 重複エラーかどうかをチェック
 	 */
-	private isDuplicateError(error: unknown): boolean {
+	protected override isDuplicateError(error: unknown): boolean {
 		return (
 			error !== null &&
 			typeof error === "object" &&

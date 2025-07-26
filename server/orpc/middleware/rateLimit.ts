@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
-import { authErrors, type Locale } from "~/server/utils/i18n";
+import type { Locale } from "~/server/utils/i18n";
 import { createPrismaClient } from "~/server/utils/prisma";
 
 export interface RateLimitConfig {

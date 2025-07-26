@@ -105,9 +105,10 @@ export class AuthService {
 		// トークン生成
 		const token = await generateToken(
 			{
-				id: user.id,
+				sub: user.id,
 				email: user.email,
 				username: user.username,
+				emailVerified: user.emailVerified,
 			},
 			this.env.JWT_SECRET,
 			"7d",
@@ -119,6 +120,7 @@ export class AuthService {
 				id: user.id,
 				username: user.username,
 				email: user.email,
+				emailVerified: user.emailVerified,
 			},
 		};
 	}
@@ -190,6 +192,34 @@ export class AuthService {
 				message: "無効または期限切れのトークンです",
 			});
 		}
+	}
+
+	/**
+	 * 確認メール再送信
+	 */
+	async resendVerificationEmail(userId: string, locale = "ja") {
+		const user = await this.userRepository.findById(userId);
+		if (!user) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "ユーザーが見つかりません",
+			});
+		}
+
+		if (user.emailVerified) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "メールアドレスは既に確認済みです",
+			});
+		}
+
+		const verificationToken = await generateToken(
+			{ userId: user.id, email: user.email },
+			this.env.JWT_SECRET,
+			"1h",
+		);
+
+		await this.sendVerificationEmail(user.email, verificationToken, locale);
+
+		return { message: "確認メールを再送信しました" };
 	}
 
 	/**
@@ -357,9 +387,10 @@ export class AuthService {
 		// トークン生成
 		const token = await generateToken(
 			{
-				id: user.id,
+				sub: user.id,
 				email: user.email,
 				username: user.username,
+				emailVerified: user.emailVerified,
 			},
 			this.env.JWT_SECRET,
 			"7d",
@@ -371,6 +402,7 @@ export class AuthService {
 				id: user.id,
 				username: user.username,
 				email: user.email,
+				emailVerified: user.emailVerified,
 			},
 		};
 	}

@@ -41,7 +41,7 @@ export abstract class BaseRepository {
 	/**
 	 * Prismaエラーかどうかをチェック
 	 */
-	private isPrismaError(error: unknown): boolean {
+	protected isPrismaError(error: unknown): boolean {
 		return (
 			error !== null &&
 			typeof error === "object" &&
@@ -52,16 +52,10 @@ export abstract class BaseRepository {
 	}
 
 	/**
-	 * トランザクション処理のラッパー
+	 * 重複エラーかどうかをチェック
 	 */
-	protected async transaction<T>(fn: (tx: PrismaClient) => Promise<T>): Promise<T> {
-		try {
-			return await this.db.$transaction(async (tx) => {
-				return await fn(tx as PrismaClient);
-			});
-		} catch (error) {
-			this.handleError(error, "トランザクション処理中にエラーが発生しました");
-		}
+	protected isDuplicateError(error: unknown): boolean {
+		return this.isPrismaError(error) && (error as { code: string }).code === "P2002";
 	}
 
 	/**

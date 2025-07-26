@@ -169,16 +169,14 @@ export class OrganizationRepository extends BaseRepository {
 	 */
 	async delete(id: string): Promise<void> {
 		try {
-			await this.transaction(async (tx) => {
-				// メンバーシップを削除
-				await tx.organizationMember.deleteMany({
-					where: { organizationId: id },
-				});
+			// メンバーシップを削除
+			await this.db.organizationMember.deleteMany({
+				where: { organizationId: id },
+			});
 
-				// 組織を削除
-				await tx.organization.delete({
-					where: { id },
-				});
+			// 組織を削除
+			await this.db.organization.delete({
+				where: { id },
 			});
 		} catch (error) {
 			this.handleError(error, "組織の削除に失敗しました");
@@ -206,6 +204,25 @@ export class OrganizationRepository extends BaseRepository {
 	}
 
 	/**
+	 * Find a specific member
+	 */
+	async findMember(orgId: string, userId: string): Promise<OrganizationMember | null> {
+		try {
+			return await this.db.organizationMember.findUnique({
+				where: {
+					// biome-ignore lint/style/useNamingConvention: Prisma composite key format
+					organizationId_userId: {
+						organizationId: orgId,
+						userId,
+					},
+				},
+			});
+		} catch (error) {
+			this.handleError(error, "Failed to find member");
+		}
+	}
+
+	/**
 	 * ユーザーが組織のオーナーかチェック
 	 */
 	async isOwner(orgId: string, userId: string): Promise<boolean> {
@@ -228,7 +245,7 @@ export class OrganizationRepository extends BaseRepository {
 	/**
 	 * 重複エラーかどうかをチェック
 	 */
-	private isDuplicateError(error: unknown): boolean {
+	protected override isDuplicateError(error: unknown): boolean {
 		return (
 			error !== null &&
 			typeof error === "object" &&

@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/server";
 import type { PrismaClient } from "@prisma/client";
 
 export function parseRulePath(path: string): {
-	owner: string;
+	owner?: string;
 	ruleName: string;
 } | null {
 	// Remove leading @ if present
@@ -11,14 +11,20 @@ export function parseRulePath(path: string): {
 	// Split by /
 	const parts = cleanPath.split("/");
 
-	if (parts.length !== 2) {
-		return null;
+	if (parts.length === 1) {
+		// Simple rule name without owner
+		return {
+			ruleName: parts[0],
+		};
+	} else if (parts.length === 2) {
+		// Owner/rule format
+		return {
+			owner: parts[0],
+			ruleName: parts[1],
+		};
 	}
 
-	return {
-		owner: parts[0],
-		ruleName: parts[1],
-	};
+	return null;
 }
 
 export async function validateRuleOwnership(
