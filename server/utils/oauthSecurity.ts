@@ -101,7 +101,9 @@ export function validateOAuthResponse(
 		};
 
 		const messageKey = errorKeyMap[params.error];
-		const message = messageKey ? t(messageKey, locale) : params.error_description || t("errors.oauth.authFailed", locale);
+		const message = messageKey
+			? t(messageKey, locale)
+			: params.error_description || t("errors.oauth.authFailed", locale);
 
 		throw new ORPCError("BAD_REQUEST", {
 			message,

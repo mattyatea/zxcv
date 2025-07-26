@@ -1,5 +1,5 @@
 import type { Env } from "~/server/types/env";
-import { t, type Locale } from "./i18n";
+import { t } from "./i18n";
 
 export interface EmailTemplate {
 	to: string;

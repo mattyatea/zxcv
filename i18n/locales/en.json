@@ -308,7 +308,8 @@
       "unsupportedResponseType": "Unsupported response type",
       "invalidScope": "Invalid scope",
       "serverError": "Authentication server error",
-      "temporarilyUnavailable": "Temporarily unavailable"
+      "temporarilyUnavailable": "Temporarily unavailable",
+      "registrationFailed": "Failed to create account with {provider}"
     }
   },
   "footer": {

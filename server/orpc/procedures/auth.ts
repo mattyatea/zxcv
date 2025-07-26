@@ -9,6 +9,7 @@ import {
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 import { authErrors, type Locale } from "~/server/utils/i18n";
 import { createJWT } from "~/server/utils/jwt";
+import { getLocaleFromRequest } from "~/server/utils/locale";
 import {
 	createOAuthProviders,
 	generateCodeVerifier,
@@ -20,9 +21,9 @@ export const register = os.auth.register
 	.use(registerRateLimit)
 	.handler(async ({ input, context }) => {
 		const { username, email, password } = input;
-		const { db } = context;
+		const { db, cloudflare } = context;
 		// Get user locale from request headers
-		const locale: Locale = "ja"; // Default to Japanese for now
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		// Check for existing user by email first (more likely to have index)
 		const existingUserByEmail = await db.user.findUnique({
@@ -85,7 +86,7 @@ export const register = os.auth.register
 		} catch (error) {
 			console.error("Email verification error:", error);
 			// Email sending failed, but user is created - delete the user
-			if (user && user.id) {
+			if (user?.id) {
 				try {
 					await db.user.delete({
 						where: { id: user.id },
@@ -112,9 +113,9 @@ export const register = os.auth.register
 
 export const login = os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
 	const { email, password } = input;
-	const { db, env } = context;
+	const { db, env, cloudflare } = context;
 	// Get user locale from request headers
-	const locale: Locale = "ja"; // Default to Japanese for now
+	const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 	try {
 		const user = await db.user.findUnique({
@@ -169,9 +170,9 @@ export const login = os.auth.login.use(authRateLimit).handler(async ({ input, co
 
 export const refresh = os.auth.refresh.use(dbProvider).handler(async ({ input, context }) => {
 	const { refreshToken } = input;
-	const { db, env } = context;
+	const { db, env, cloudflare } = context;
 	// Get user locale from request headers
-	const locale: Locale = "ja"; // Default to Japanese for now
+	const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 	// Verify refresh token
 	const { verifyRefreshToken, createRefreshToken } = await import("~/server/utils/jwt");
@@ -214,9 +215,9 @@ export const verifyEmail = os.auth.verifyEmail
 	.use(dbProvider)
 	.handler(async ({ input, context }) => {
 		const { token } = input;
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		// Get user locale from request headers
-		const locale: Locale = "ja"; // Default to Japanese for now
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 		const { EmailVerificationService } = await import("~/server/services/emailVerification");
 
 		const emailVerificationService = new EmailVerificationService(db, env);
@@ -238,9 +239,9 @@ export const sendPasswordReset = os.auth.sendPasswordReset
 	.use(passwordResetRateLimit)
 	.handler(async ({ input, context }) => {
 		const { email } = input;
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		// Get user locale from request headers
-		const locale: Locale = "ja"; // Default to Japanese for now
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		// Check if user exists
 		const user = await db.user.findUnique({
@@ -295,9 +296,9 @@ export const resetPassword = os.auth.resetPassword
 	.use(dbProvider)
 	.handler(async ({ input, context }) => {
 		const { token, newPassword } = input;
-		const { db } = context;
+		const { db, cloudflare } = context;
 		// Get user locale from request headers
-		const locale: Locale = "ja"; // Default to Japanese for now
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 		const now = Math.floor(Date.now() / 1000);
 
 		// Find valid reset token
@@ -351,8 +352,9 @@ export const sendVerification = os.auth.sendVerification
 	.use(dbProvider)
 	.handler(async ({ input, context }) => {
 		const { email, locale: inputLocale } = input;
-		const { db, env } = context;
-		const locale: Locale = (inputLocale as Locale) || "ja"; // Default to Japanese if not provided
+		const { db, env, cloudflare } = context;
+		const locale: Locale =
+			(inputLocale as Locale) || (getLocaleFromRequest(cloudflare?.request) as Locale);
 
 		try {
 			const { EmailVerificationService } = await import("~/server/services/emailVerification");
@@ -383,9 +385,9 @@ export const sendVerification = os.auth.sendVerification
 
 export const logout = os.auth.logout.use(dbProvider).handler(async ({ input, context }) => {
 	const { refreshToken } = input;
-	const { env } = context;
+	const { env, cloudflare } = context;
 	// Get user locale from request headers
-	const locale: Locale = "ja"; // Default to Japanese for now
+	const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 	try {
 		// Verify refresh token
@@ -416,7 +418,7 @@ export const oauthInitialize = os.auth.oauthInitialize
 		const { provider, redirectUrl, action } = input;
 		const { db, env, cloudflare } = context;
 		const providers = createOAuthProviders(env);
-		const locale: Locale = "ja"; // Default to Japanese for now
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		// Import security utilities
 		const { validateRedirectUrl, performOAuthSecurityChecks, generateNonce, OAUTH_CONFIG } =
@@ -498,9 +500,9 @@ export const oauthCallback = os.auth.oauthCallback
 	.use(authRateLimit)
 	.handler(async ({ input, context }) => {
 		const { provider, code, state } = input;
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		// Get user locale from request headers
-		const locale: Locale = "ja"; // Default to Japanese for now
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		console.log("OAuth callback started:", {
 			provider,

@@ -404,7 +404,7 @@ const handleSocialLogin = async (provider: string) => {
 
 		window.location.href = response.authorizationUrl;
 	} catch (err) {
-		error.value = err.message || `${provider}でのアカウント作成に失敗しました`;
+		error.value = err.message || t("errors.oauth.registrationFailed", { provider });
 		loading.value = false;
 	}
 };

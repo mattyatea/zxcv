@@ -51,13 +51,14 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "~/composables/useI18n";
 import { useSettingsStore } from "~/stores/settings";
 
-const { locale, availableLocales, setLocale, t } = useI18n();
+const { locale, availableLocales, setLocale, t, initLocale } = useI18n();
 const settingsStore = useSettingsStore();
 const isOpen = ref(false);
+const isInitialized = ref(false);
 
 const currentLocaleName = computed(() => {
-	const current = availableLocales.find((loc) => loc.code === settingsStore.language);
-	return current?.name || settingsStore.language;
+	const current = availableLocales.value.find((loc) => loc.code === locale.value);
+	return current?.name || locale.value;
 });
 
 const switchLocale = async (code: string) => {
@@ -67,12 +68,19 @@ const switchLocale = async (code: string) => {
 	isOpen.value = false;
 };
 
-// Sync store with locale changes
+// Sync store with locale changes - prevent circular updates
+watch(locale, (newLocale) => {
+	if (isInitialized.value && newLocale !== settingsStore.language) {
+		settingsStore.setLanguage(newLocale);
+	}
+});
+
+// Watch settings store changes
 watch(
-	() => locale,
-	(newLocale) => {
-		if (newLocale !== settingsStore.language) {
-			settingsStore.setLanguage(newLocale);
+	() => settingsStore.language,
+	(newLanguage) => {
+		if (isInitialized.value && newLanguage !== locale.value) {
+			setLocale(newLanguage as "ja" | "en");
 		}
 	},
 );
@@ -88,11 +96,9 @@ const handleClickOutside = (event: MouseEvent) => {
 onMounted(() => {
 	document.addEventListener("click", handleClickOutside);
 
-	// Initialize locale from saved language
-	const savedLanguage = settingsStore.language;
-	if (savedLanguage && savedLanguage !== locale) {
-		setLocale(savedLanguage as "ja" | "en");
-	}
+	// Initialize locale with proper priority handling
+	initLocale(settingsStore.language as "ja" | "en");
+	isInitialized.value = true;
 });
 
 onUnmounted(() => {

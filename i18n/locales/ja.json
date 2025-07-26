@@ -189,35 +189,6 @@
       "deleteError": "ルールの削除に失敗しました"
     }
   },
-  "organizations": {
-    "title": "組織",
-    "myOrganizations": "マイ組織",
-    "createOrganization": "新規組織作成",
-    "joinOrganization": "組織に参加",
-    "members": "メンバー",
-    "owner": "オーナー",
-    "admin": "管理者",
-    "member": "メンバー",
-    "actions": {
-      "invite": "招待",
-      "leave": "退出",
-      "remove": "削除",
-      "edit": "編集",
-      "manageMembers": "メンバー管理"
-    },
-    "form": {
-      "name": "組織名",
-      "description": "説明",
-      "inviteEmail": "招待するメールアドレス"
-    },
-    "messages": {
-      "created": "組織を作成しました",
-      "joined": "組織に参加しました",
-      "left": "組織から退出しました",
-      "invited": "招待を送信しました",
-      "inviteAccepted": "招待を承認しました"
-    }
-  },
   "profile": {
     "title": "プロフィール",
     "editProfile": "プロフィールを編集",
@@ -308,7 +279,8 @@
       "unsupportedResponseType": "サポートされていないレスポンスタイプです",
       "invalidScope": "無効なスコープです",
       "serverError": "認証サーバーでエラーが発生しました",
-      "temporarilyUnavailable": "一時的に利用できません"
+      "temporarilyUnavailable": "一時的に利用できません",
+      "registrationFailed": "{provider}でのアカウント作成に失敗しました"
     }
   },
   "footer": {
