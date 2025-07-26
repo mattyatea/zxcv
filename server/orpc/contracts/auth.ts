@@ -91,6 +91,7 @@ export const authContract = {
 		.input(
 			z.object({
 				email: EmailSchema,
+				locale: z.string().optional(),
 			}),
 		)
 		.output(SuccessResponseSchema),
