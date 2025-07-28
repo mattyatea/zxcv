@@ -27,13 +27,39 @@ export const useI18nStore = defineStore("i18n", () => {
 			if (translation && typeof translation === "object" && k in translation) {
 				translation = translation[k];
 			} else {
-				// Return key if translation not found
-				return key;
+				// Fallback handling
+				if (process.env.NODE_ENV === "development") {
+					console.warn(`Translation key not found: ${key} (locale: ${locale.value})`);
+				}
+
+				// Try fallback to English if current locale is not English
+				if (locale.value !== "en") {
+					let fallbackTranslation: string | Translations = translations.en;
+					for (const k of keys) {
+						if (
+							fallbackTranslation &&
+							typeof fallbackTranslation === "object" &&
+							k in fallbackTranslation
+						) {
+							fallbackTranslation = fallbackTranslation[k];
+						} else {
+							// Return formatted key if translation not found
+							return `[${key}]`;
+						}
+					}
+					if (typeof fallbackTranslation === "string") {
+						translation = fallbackTranslation;
+						break;
+					}
+				}
+
+				// Return formatted key if translation not found
+				return `[${key}]`;
 			}
 		}
 
 		if (typeof translation !== "string") {
-			return key;
+			return `[${key}]`;
 		}
 
 		// Replace parameters if provided

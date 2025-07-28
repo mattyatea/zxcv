@@ -7,15 +7,18 @@ import {
 	registerRateLimit,
 } from "~/server/orpc/middleware/rateLimit";
 import { AuthService } from "~/server/services/AuthService";
+import type { Locale } from "~/server/utils/i18n";
 import { generateToken } from "~/server/utils/jwt";
+import { getLocaleFromRequest } from "~/server/utils/locale";
 
 export const authProcedures = {
 	/**
 	 * ユーザー登録
 	 */
 	register: os.auth.register.use(registerRateLimit).handler(async ({ input, context }) => {
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		try {
 			const result = await authService.register(input);
@@ -45,8 +48,9 @@ export const authProcedures = {
 	 * ログイン
 	 */
 	login: os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		const result = await authService.login(input.email, input.password);
 		return {
@@ -60,18 +64,40 @@ export const authProcedures = {
 	/**
 	 * ログアウト
 	 */
-	logout: os.auth.logout.use(dbWithAuth).handler(async () => {
-		// JWTトークンベースの認証なので、サーバー側での処理は不要
-		// クライアント側でトークンを削除する
-		return { success: true, message: "Logged out successfully" };
+	logout: os.auth.logout.use(dbProvider).handler(async ({ input, context }) => {
+		const { refreshToken } = input;
+		const { env, cloudflare } = context;
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+
+		try {
+			// Verify refresh token
+			const { verifyRefreshToken } = await import("~/server/utils/jwt");
+			const userId = await verifyRefreshToken(refreshToken, env);
+			if (!userId) {
+				throw new ORPCError("UNAUTHORIZED", { message: "Invalid token" });
+			}
+
+			// In a JWT-based system, logout is typically handled client-side
+			// by removing the token. For simplicity, we'll just return success
+			return {
+				success: true,
+				message: "Logged out successfully",
+			};
+		} catch (error) {
+			if (error instanceof ORPCError) {
+				throw error;
+			}
+			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Logout failed" });
+		}
 	}),
 
 	/**
 	 * メール確認トークンの送信
 	 */
 	sendVerification: os.auth.sendVerification.use(dbProvider).handler(async ({ input, context }) => {
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		// Find user by email
 		const user = await db.user.findUnique({
@@ -94,8 +120,9 @@ export const authProcedures = {
 	 * メール確認
 	 */
 	verifyEmail: os.auth.verifyEmail.use(dbProvider).handler(async ({ input, context }) => {
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		await authService.verifyEmail(input.token);
 		return { success: true, message: "Email verified successfully" };
@@ -107,11 +134,12 @@ export const authProcedures = {
 	sendPasswordReset: os.auth.sendPasswordReset
 		.use(passwordResetRateLimit)
 		.handler(async ({ input, context }) => {
-			const { db, env } = context;
+			const { db, env, cloudflare } = context;
 			const authService = new AuthService(db, env);
+			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 			// パスワードリセットメール送信
-			await authService.requestPasswordReset(input.email, input.locale);
+			await authService.requestPasswordReset(input.email, locale);
 
 			return { success: true, message: "Password reset email sent" };
 		}),
@@ -120,8 +148,9 @@ export const authProcedures = {
 	 * パスワードリセット
 	 */
 	resetPassword: os.auth.resetPassword.use(dbProvider).handler(async ({ input, context }) => {
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		await authService.resetPassword(input.token, input.newPassword);
 		return { success: true, message: "Password reset successfully" };
@@ -130,104 +159,139 @@ export const authProcedures = {
 	/**
 	 * リフレッシュトークン
 	 */
-	refresh: os.auth.refresh.use(dbWithAuth).handler(async ({ context }) => {
-		const { env, user } = context;
+	refresh: os.auth.refresh.use(dbProvider).handler(async ({ input, context }) => {
+		const { refreshToken } = input;
+		const { db, env, cloudflare } = context;
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-		// 現在のユーザー情報から新しいトークンを生成
-		const token = await generateToken(
-			{
-				sub: user.id,
-				email: user.email,
-				username: user.username,
-				emailVerified: user.emailVerified,
-			},
-			env.JWT_SECRET,
-			"7d",
+		// Verify refresh token
+		const { verifyRefreshToken, createRefreshToken, createJWT } = await import(
+			"~/server/utils/jwt"
 		);
+		const userId = await verifyRefreshToken(refreshToken, env);
 
-		return {
-			accessToken: token,
-			refreshToken: token, // 現在の実装では同じトークンを返す
-			user: {
-				id: user.id,
-				username: user.username,
-				email: user.email,
-				emailVerified: user.emailVerified,
-			},
+		if (!userId) {
+			throw new ORPCError("UNAUTHORIZED", { message: "Invalid token" });
+		}
+
+		const user = await db.user.findUnique({
+			where: { id: userId },
+		});
+
+		if (!user) {
+			throw new ORPCError("UNAUTHORIZED", { message: "User not found" });
+		}
+
+		const authUser = {
+			id: user.id,
+			email: user.email,
+			username: user.username,
+			emailVerified: user.emailVerified,
 		};
+
+		const accessToken = await createJWT(
+			{
+				sub: authUser.id,
+				email: authUser.email,
+				username: authUser.username,
+				emailVerified: authUser.emailVerified,
+			},
+			env,
+		);
+		const newRefreshToken = await createRefreshToken(authUser.id, env);
+
+		return { accessToken, refreshToken: newRefreshToken, user: authUser };
 	}),
 
 	/**
 	 * OAuth初期化
 	 */
-	oauthInitialize: os.auth.oauthInitialize.use(dbProvider).handler(async ({ input, context }) => {
-		const { provider, redirectUrl, action } = input;
-		const { db, env } = context;
+	oauthInitialize: os.auth.oauthInitialize
+		.use(authRateLimit)
+		.handler(async ({ input, context }) => {
+			const { provider, redirectUrl, action } = input;
+			const { db, env, cloudflare } = context;
+			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-		const { createOAuthProviders, generateState, generateCodeVerifier } = await import(
-			"~/server/utils/oauth"
-		);
-		const providers = createOAuthProviders(env);
+			const { createOAuthProviders, generateState, generateCodeVerifier } = await import(
+				"~/server/utils/oauth"
+			);
+			const providers = createOAuthProviders(env);
 
-		// Clean up expired states before creating new one
-		const { cleanupExpiredOAuthStates } = await import("~/server/utils/oauthCleanup");
-		await cleanupExpiredOAuthStates(db);
+			// Import security utilities
+			const { validateRedirectUrl, performOAuthSecurityChecks, generateNonce, OAUTH_CONFIG } =
+				await import("~/server/utils/oauthSecurity");
 
-		// Generate state for CSRF protection with action encoded
-		const stateData = {
-			random: generateState(),
-			action,
-		};
-		const state = Buffer.from(JSON.stringify(stateData)).toString("base64url");
-		const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
+			// Get client IP for security tracking
+			const clientIp =
+				cloudflare?.request?.headers?.get("CF-Connecting-IP") ||
+				cloudflare?.request?.headers?.get("X-Forwarded-For") ||
+				"unknown";
 
-		// Store state in database
-		const { generateId } = await import("~/server/utils/crypto");
-		const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+			// Perform security checks
+			await performOAuthSecurityChecks(db, clientIp, locale);
 
-		await db.oAuthState.create({
-			data: {
-				id: generateId(),
-				state: stateData.random, // Store the random part, not the encoded state
-				provider,
-				codeVerifier,
-				redirectUrl: redirectUrl || "/",
-				expiresAt,
-			},
-		});
+			// Generate state for CSRF protection with action encoded
+			const stateData = {
+				random: generateState(),
+				action,
+				nonce: generateNonce(), // Additional entropy
+			};
+			const state = Buffer.from(JSON.stringify(stateData)).toString("base64url");
+			const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
 
-		// Generate authorization URL
-		let authorizationUrl: string;
-		if (provider === "github") {
-			const url = providers.github.createAuthorizationURL(state, ["user:email"]);
-			authorizationUrl = url.toString();
-		} else if (provider === "google") {
-			if (!codeVerifier) {
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: "コード検証が生成されませんでした",
-				});
+			// Clean up expired states before creating new one
+			const { cleanupExpiredOAuthStates } = await import("~/server/utils/oauthCleanup");
+			await cleanupExpiredOAuthStates(db);
+
+			// Store state in database
+			const { generateId } = await import("~/server/utils/crypto");
+			const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+
+			await db.oAuthState.create({
+				data: {
+					id: generateId(),
+					state: stateData.random, // Store the random part, not the encoded state
+					provider,
+					codeVerifier,
+					redirectUrl: redirectUrl || "/",
+					expiresAt,
+				},
+			});
+
+			// Generate authorization URL
+			let authorizationUrl: string;
+			if (provider === "github") {
+				const url = providers.github.createAuthorizationURL(state, ["user:email"]);
+				authorizationUrl = url.toString();
+			} else if (provider === "google") {
+				if (!codeVerifier) {
+					throw new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: "コード検証が生成されませんでした",
+					});
+				}
+				const url = providers.google.createAuthorizationURL(state, codeVerifier, [
+					"https://www.googleapis.com/auth/userinfo.email",
+					"https://www.googleapis.com/auth/userinfo.profile",
+				]);
+				authorizationUrl = url.toString();
+			} else {
+				throw new ORPCError("BAD_REQUEST", { message: "サポートされていないプロバイダーです" });
 			}
-			const url = providers.google.createAuthorizationURL(state, codeVerifier, [
-				"https://www.googleapis.com/auth/userinfo.email",
-				"https://www.googleapis.com/auth/userinfo.profile",
-			]);
-			authorizationUrl = url.toString();
-		} else {
-			throw new ORPCError("BAD_REQUEST", { message: "サポートされていないプロバイダーです" });
-		}
 
-		return {
-			authorizationUrl,
-		};
-	}),
+			return {
+				authorizationUrl,
+			};
+		}),
 
 	/**
 	 * OAuthコールバック
 	 */
 	oauthCallback: os.auth.oauthCallback.use(dbProvider).handler(async ({ input, context }) => {
 		const { provider, code, state } = input;
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		console.log("OAuth callback started:", {
 			provider,
@@ -237,6 +301,12 @@ export const authProcedures = {
 
 		const { createOAuthProviders } = await import("~/server/utils/oauth");
 		const providers = createOAuthProviders(env);
+
+		// Import security utilities
+		const { validateOAuthResponse } = await import("~/server/utils/oauthSecurity");
+
+		// Validate OAuth response parameters
+		validateOAuthResponse({ code, state }, locale);
 
 		// Decode state to extract action
 		let stateData: { random: string; action: string };

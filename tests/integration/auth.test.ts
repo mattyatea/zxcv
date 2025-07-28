@@ -447,35 +447,51 @@ describe("Auth Integration Tests", () => {
 	describe("Token Refresh Flow", () => {
 		it("should refresh tokens successfully", async () => {
 			const userId = "user_123";
-			const authenticatedUser = {
-				id: userId,
-				username: "testuser",
-				email: "test@example.com",
-				emailVerified: true,
-			};
+			const username = "testuser";
+			const email = "test@example.com";
 
-			// Create authenticated client
-			const authClient = createAuthenticatedTestClient(authenticatedUser, {
-				db: mockDb,
-				env: mockEnv,
-			}).client;
+			// First, set up a user in the mock database
+			mockDb.user.findUnique.mockImplementation(async ({ where }) => {
+				if (where.email === email || where.id === userId) {
+					return {
+						id: userId,
+						username,
+						email,
+						emailVerified: true,
+						passwordHash: "hashed_password123",
+						createdAt: new Date().toISOString(),
+						updatedAt: new Date().toISOString(),
+					};
+				}
+				return null;
+			});
 
+			// Login to get tokens
+			const loginResult = await client.auth.login({
+				email,
+				password: "password123",
+			});
 
-			const refreshResult = await authClient.auth.refresh();
+			// Use the refresh token to refresh
+			const refreshResult = await client.auth.refresh({
+				refreshToken: loginResult.refreshToken,
+			});
 
 			expect(refreshResult.accessToken).toBeDefined();
 			expect(refreshResult.refreshToken).toBeDefined();
 			expect(refreshResult.user).toMatchObject({
 				id: userId,
-				username: "testuser",
-				email: "test@example.com",
+				username,
+				email,
 			});
 		});
 
 		it("should reject when not authenticated", async () => {
-			// Use non-authenticated client - should fail without auth
+			// Use invalid refresh token
 			await expect(
-				client.auth.refresh()
+				client.auth.refresh({
+					refreshToken: "invalid-token",
+				})
 			).rejects.toThrow();
 		});
 	});

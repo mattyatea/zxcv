@@ -58,6 +58,11 @@ export const authContract = {
 			path: "/auth/refresh",
 			description: "Refresh access token",
 		})
+		.input(
+			z.object({
+				refreshToken: z.string(),
+			}),
+		)
 		.output(
 			TokensSchema.extend({
 				user: AuthUserSchema,
@@ -86,7 +91,6 @@ export const authContract = {
 		.input(
 			z.object({
 				email: EmailSchema,
-				locale: z.string().optional(),
 			}),
 		)
 		.output(SuccessResponseSchema),

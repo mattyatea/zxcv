@@ -189,35 +189,6 @@
       "deleteError": "ルールの削除に失敗しました"
     }
   },
-  "organizations": {
-    "title": "組織",
-    "myOrganizations": "マイ組織",
-    "createOrganization": "新規組織作成",
-    "joinOrganization": "組織に参加",
-    "members": "メンバー",
-    "owner": "オーナー",
-    "admin": "管理者",
-    "member": "メンバー",
-    "actions": {
-      "invite": "招待",
-      "leave": "退出",
-      "remove": "削除",
-      "edit": "編集",
-      "manageMembers": "メンバー管理"
-    },
-    "form": {
-      "name": "組織名",
-      "description": "説明",
-      "inviteEmail": "招待するメールアドレス"
-    },
-    "messages": {
-      "created": "組織を作成しました",
-      "joined": "組織に参加しました",
-      "left": "組織から退出しました",
-      "invited": "招待を送信しました",
-      "inviteAccepted": "招待を承認しました"
-    }
-  },
   "profile": {
     "title": "プロフィール",
     "editProfile": "プロフィールを編集",
@@ -296,7 +267,21 @@
     "forbidden": "アクセス権限がありません",
     "serverError": "サーバーエラーが発生しました",
     "networkError": "ネットワークエラーが発生しました",
-    "unknownError": "エラーが発生しました"
+    "unknownError": "エラーが発生しました",
+    "oauth": {
+      "authFailed": "OAuth認証に失敗しました",
+      "missingParams": "必要なパラメータが不足しています",
+      "invalidCode": "無効な認証コードです",
+      "invalidState": "無効なstateパラメータです",
+      "accessDenied": "ユーザーがアクセスを拒否しました",
+      "invalidRequest": "無効なリクエストです",
+      "unauthorizedClient": "認証されていないクライアントです",
+      "unsupportedResponseType": "サポートされていないレスポンスタイプです",
+      "invalidScope": "無効なスコープです",
+      "serverError": "認証サーバーでエラーが発生しました",
+      "temporarilyUnavailable": "一時的に利用できません",
+      "registrationFailed": "{provider}でのアカウント作成に失敗しました"
+    }
   },
   "footer": {
     "copyright": "© 2025 zxcv. All rights reserved.",
@@ -506,6 +491,32 @@
       "generalError": "エラーが発生しました。",
       "pageTitle": "メールアドレスの確認 - zxcv",
       "register": "新規登録"
+    }
+  },
+  "test": {
+    "orpc": {
+      "title": "oRPC テストページ",
+      "healthCheck": "ヘルスチェックテスト",
+      "ruleCreate": "ルール作成テスト（認証必須）"
+    }
+  },
+  "accessibility": {
+    "changeLanguage": "言語を変更",
+    "socialLinks": {
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "discord": "Discord"
+    }
+  },
+  "placeholders": {
+    "username": "johndoe",
+    "email": "john@example.com"
+  },
+  "email": {
+    "subjects": {
+      "passwordReset": "【zxcv】パスワードリセットのお知らせ",
+      "emailVerification": "【zxcv】メールアドレスの確認",
+      "organizationInvite": "【zxcv】{organizationName}への招待"
     }
   }
 }
