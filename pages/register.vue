@@ -27,7 +27,7 @@
               v-model="form.username"
               type="text"
               :label="$t('auth.register.username')"
-              placeholder="johndoe"
+              :placeholder="$t('placeholders.username')"
               :hint="$t('auth.register.usernameHint')"
               required
               pattern="[a-zA-Z0-9_-]+"
@@ -46,7 +46,7 @@
               v-model="form.email"
               type="email"
               :label="$t('auth.register.email')"
-              placeholder="your@email.com"
+              :placeholder="$t('placeholders.email')"
               required
               size="lg"
               :error="errors.email"
@@ -404,7 +404,7 @@ const handleSocialLogin = async (provider: string) => {
 
 		window.location.href = response.authorizationUrl;
 	} catch (err) {
-		error.value = err.message || `${provider}でのアカウント作成に失敗しました`;
+		error.value = err.message || t("errors.oauth.registrationFailed", { provider });
 		loading.value = false;
 	}
 };

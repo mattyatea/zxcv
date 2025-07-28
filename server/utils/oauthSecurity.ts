@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import type { Locale } from "./i18n";
-import { authErrors } from "./i18n";
+import { authErrors, t } from "./i18n";
 
 // OAuth security configuration
 export const OAUTH_CONFIG = {
@@ -80,46 +80,54 @@ export function generateNonce(): string {
 /**
  * Validate OAuth response parameters for additional security
  */
-export function validateOAuthResponse(params: {
-	code?: string;
-	state?: string;
-	error?: string;
-	error_description?: string;
-}): void {
+export function validateOAuthResponse(
+	params: {
+		code?: string;
+		state?: string;
+		error?: string;
+		error_description?: string;
+	},
+	locale: Locale = "ja",
+): void {
 	// Check for OAuth errors
 	if (params.error) {
-		const errorMessages: Record<string, string> = {
-			access_denied: "ユーザーがアクセスを拒否しました",
-			invalid_request: "無効なリクエストです",
-			unauthorized_client: "認証されていないクライアントです",
-			unsupported_response_type: "サポートされていないレスポンスタイプです",
-			invalid_scope: "無効なスコープです",
-			server_error: "認証サーバーでエラーが発生しました",
-			temporarily_unavailable: "一時的に利用できません",
+		const errorKeyMap: Record<string, string> = {
+			access_denied: "errors.oauth.accessDenied",
+			invalid_request: "errors.oauth.invalidRequest",
+			unauthorized_client: "errors.oauth.unauthorizedClient",
+			unsupported_response_type: "errors.oauth.unsupportedResponseType",
+			invalid_scope: "errors.oauth.invalidScope",
+			server_error: "errors.oauth.serverError",
+			temporarily_unavailable: "errors.oauth.temporarilyUnavailable",
 		};
 
+		const messageKey = errorKeyMap[params.error];
+		const message = messageKey
+			? t(messageKey, locale)
+			: params.error_description || t("errors.oauth.authFailed", locale);
+
 		throw new ORPCError("BAD_REQUEST", {
-			message: errorMessages[params.error] || params.error_description || "OAuth認証に失敗しました",
+			message,
 		});
 	}
 
 	// Validate required parameters
 	if (!params.code || !params.state) {
 		throw new ORPCError("BAD_REQUEST", {
-			message: "必要なパラメータが不足しています",
+			message: t("errors.oauth.missingParams", locale),
 		});
 	}
 
 	// Basic validation for code and state format
 	if (params.code.length < 10 || params.code.length > 1024) {
 		throw new ORPCError("BAD_REQUEST", {
-			message: "無効な認証コードです",
+			message: t("errors.oauth.invalidCode", locale),
 		});
 	}
 
 	if (params.state.length < 10 || params.state.length > 1024) {
 		throw new ORPCError("BAD_REQUEST", {
-			message: "無効なstateパラメータです",
+			message: t("errors.oauth.invalidState", locale),
 		});
 	}
 }

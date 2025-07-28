@@ -296,7 +296,21 @@
     "forbidden": "Access denied",
     "serverError": "Server error occurred",
     "networkError": "Network error occurred",
-    "unknownError": "An error occurred"
+    "unknownError": "An error occurred",
+    "oauth": {
+      "authFailed": "OAuth authentication failed",
+      "missingParams": "Required parameters are missing",
+      "invalidCode": "Invalid authentication code",
+      "invalidState": "Invalid state parameter",
+      "accessDenied": "User denied access",
+      "invalidRequest": "Invalid request",
+      "unauthorizedClient": "Unauthorized client",
+      "unsupportedResponseType": "Unsupported response type",
+      "invalidScope": "Invalid scope",
+      "serverError": "Authentication server error",
+      "temporarilyUnavailable": "Temporarily unavailable",
+      "registrationFailed": "Failed to create account with {provider}"
+    }
   },
   "footer": {
     "copyright": "© 2025 zxcv. All rights reserved.",
@@ -506,6 +520,32 @@
       "generalError": "An error occurred.",
       "pageTitle": "Verify Email - zxcv",
       "register": "Sign up"
+    }
+  },
+  "test": {
+    "orpc": {
+      "title": "oRPC Test Page",
+      "healthCheck": "Test Health Check",
+      "ruleCreate": "Test Rule Create (requires auth)"
+    }
+  },
+  "accessibility": {
+    "changeLanguage": "Change language",
+    "socialLinks": {
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "discord": "Discord"
+    }
+  },
+  "placeholders": {
+    "username": "johndoe",
+    "email": "john@example.com"
+  },
+  "email": {
+    "subjects": {
+      "passwordReset": "zxcv - Password Reset",
+      "emailVerification": "zxcv - Email Verification",
+      "organizationInvite": "zxcv - Invitation to {organizationName}"
     }
   }
 }
