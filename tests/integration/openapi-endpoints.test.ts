@@ -9,6 +9,7 @@ import { createMockPrismaClient } from "~/tests/helpers/test-db";
 vi.mock("~/server/utils/jwt", () => ({
 	createJWT: vi.fn().mockResolvedValue("mock_jwt_token"),
 	createRefreshToken: vi.fn().mockResolvedValue("mock_refresh_token"),
+	generateToken: vi.fn().mockResolvedValue("reset_token"),
 	verifyJWT: vi.fn().mockImplementation(async (token: string) => {
 		if (token === "mock_jwt_token") {
 			return {
@@ -28,6 +29,12 @@ vi.mock("~/server/utils/jwt", () => ({
 		}
 		return null;
 	}),
+	verifyToken: vi.fn().mockImplementation(async (token: string, secret?: string) => {
+		if (token === "reset_token") {
+			return { userId: "user_123" };
+		}
+		throw new Error("Invalid token");
+	}),
 	verifyRefreshToken: vi.fn().mockResolvedValue("user_123"),
 }));
 
@@ -46,6 +53,49 @@ vi.mock("~/server/services/emailVerification", () => ({
 	},
 }));
 
+vi.mock("~/server/services/AuthService", () => ({
+	AuthService: class MockAuthService {
+		constructor(db: any, env: any) {}
+		resetPassword = vi.fn().mockResolvedValue({ message: "Password reset successfully" });
+		verifyEmail = vi.fn().mockResolvedValue({ message: "Email verified successfully" });
+		requestPasswordReset = vi.fn().mockResolvedValue(true);
+		login = vi.fn().mockResolvedValue({
+			accessToken: "mock_jwt_token",
+			refreshToken: "mock_refresh_token",
+			user: {
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+				emailVerified: true,
+			},
+		});
+		register = vi.fn().mockResolvedValue({
+			user: {
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+			},
+		});
+		resendVerificationEmail = vi.fn().mockResolvedValue(true);
+		handleOAuthLogin = vi.fn().mockResolvedValue({
+			accessToken: "mock_jwt_token",
+			refreshToken: "mock_refresh_token",
+			user: {
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+				emailVerified: true,
+			},
+		});
+		getUserById = vi.fn().mockResolvedValue({
+			id: "user_123",
+			username: "testuser",
+			email: "test@example.com",
+			emailVerified: true,
+		});
+	},
+}));
+
 vi.mock("~/server/utils/email", () => ({
 	EmailService: class MockEmailService {
 		constructor(env: any) {}
@@ -58,6 +108,12 @@ vi.mock("~/server/utils/email", () => ({
 		});
 		sendEmail = vi.fn().mockResolvedValue(true);
 	},
+	sendEmail: vi.fn().mockImplementation((env: any, emailData: any) => {
+		console.log("[TEST] Email would be sent to:", emailData.to);
+		console.log("[TEST] Subject:", emailData.subject);
+		console.log("[DEV] Text content:", emailData.text);
+		return Promise.resolve();
+	}),
 }));
 
 describe("OpenAPI Endpoints via REST", () => {
@@ -658,7 +714,7 @@ describe("OpenAPI Endpoints via REST", () => {
 			});
 		});
 
-		it("POST /api/organizations/delete - should require ownership", async () => {
+		it("DELETE /api/organizations/:id - should require ownership", async () => {
 			const mockOrg = {
 				id: "org_123",
 				name: "test-org",
@@ -673,15 +729,11 @@ describe("OpenAPI Endpoints via REST", () => {
 				return callback(mockDb);
 			});
 
-			const request = new Request("http://localhost:3000/api/organizations/delete", {
-				method: "POST",
+			const request = new Request("http://localhost:3000/api/organizations/org_123", {
+				method: "DELETE",
 				headers: {
-					"Content-Type": "application/json",
 					Authorization: "Bearer mock_jwt_token",
 				},
-				body: JSON.stringify({
-					id: "org_123",
-				}),
 			});
 
 			const response = await handler.handle(request, {
@@ -1047,6 +1099,8 @@ describe("OpenAPI Endpoints via REST", () => {
 			});
 
 			expect(completeResetResponse.matched).toBe(true);
+			
+			
 			expect(completeResetResponse.response.status).toBe(200);
 
 			const completeData = await completeResetResponse.response.json();

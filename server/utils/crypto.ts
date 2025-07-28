@@ -101,3 +101,6 @@ export async function hashContent(content: string): Promise<string> {
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
 	return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+// Alias for backward compatibility
+export const comparePassword = verifyPassword;

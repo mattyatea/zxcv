@@ -1,1316 +1,496 @@
 import { ORPCError } from "@orpc/server";
+import { nanoid } from "nanoid";
 import { os } from "~/server/orpc";
-import { dbProvider, dbWithAuth, dbWithEmailVerification } from "~/server/orpc/middleware/combined";
-import { parseRulePath, validateRuleOwnership } from "~/server/utils/namespace";
+import {
+	dbWithAuth,
+	dbWithEmailVerification,
+	dbWithOptionalAuth,
+} from "~/server/orpc/middleware/combined";
+import { RuleService } from "~/server/services/RuleService";
+import { createLogger } from "~/server/utils/logger";
+import { parseRulePath } from "~/server/utils/namespace";
 
-// Individual rule procedure handlers
-export const getByPath = os.rules.getByPath.use(dbProvider).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	// Parse the path
-	const parsed = parseRulePath(input.path);
-	if (!parsed) {
-		throw new ORPCError("BAD_REQUEST", {
-			message: "Invalid rule path format. Expected @owner/rulename",
-		});
-	}
-
-	const { owner, ruleName } = parsed;
-
-	// Validate ownership and get the owner info
-	const ownerInfo = await validateRuleOwnership(db, owner);
-
-	// Find the rule
-	const rule = await db.rule.findFirst({
-		where: {
-			name: ruleName,
-			...(ownerInfo.userId
-				? { userId: ownerInfo.userId, organizationId: null }
-				: { organizationId: ownerInfo.organizationId }),
-		},
-		include: {
-			user: {
-				select: {
-					id: true,
-					username: true,
-					email: true,
-				},
-			},
-			organization: {
-				select: {
-					id: true,
-					name: true,
-					displayName: true,
-				},
-			},
-		},
-	});
-
-	if (!rule) {
-		throw new ORPCError("NOT_FOUND", {
-			message: "Rule not found",
-		});
-	}
-
-	// Check access permissions
-	if (rule.visibility === "private") {
-		if (!user) {
-			throw new ORPCError("UNAUTHORIZED", {
-				message: "Authentication required for private rules",
-			});
-		}
-
-		// Check if user is the owner
-		if (rule.userId === user.id) {
-			// Owner can always access
-		} else if (rule.organizationId) {
-			// Check if user is a member of the organization
-			const isMember = await db.organizationMember.findFirst({
-				where: {
-					organizationId: rule.organizationId,
-					userId: user.id,
-				},
-			});
-
-			if (!isMember) {
-				throw new ORPCError("FORBIDDEN", {
-					message: "Access denied to private organization rule",
-				});
-			}
-		} else {
-			// Not owner and not an organization rule
-			throw new ORPCError("FORBIDDEN", {
-				message: "Access denied to private rule",
-			});
-		}
-	}
-
-	// Format the owner information
-	const ownerData =
-		rule.organizationId && rule.organization
-			? {
-					type: "organization" as const,
-					id: rule.organization.id,
-					username: rule.organization.name,
-				}
-			: {
-					type: "user" as const,
-					id: rule.user.id,
-					username: rule.user.username,
-				};
-
-	return {
-		...rule,
-		author: rule.user,
-		tags: rule.tags ? JSON.parse(rule.tags) : [],
-	};
-});
-
-export const search = os.rules.search.use(dbProvider).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	const where: Record<string, unknown> = {};
-
-	// Filter out private rules unless user is logged in and searching for their own rules
-	if (!user) {
-		// Anonymous users can only see public rules
-		where.visibility = "public";
-	} else {
-		// Logged-in users can see:
-		// 1. Public rules
-		// 2. Their own private rules
-		// 3. Private rules from organizations they belong to
-		const orConditions: Record<string, unknown>[] = [
-			{ visibility: "public" },
-			{ AND: [{ visibility: "private" }, { userId: user.id }] },
-		];
-
-		// Get user's organizations
-		const userOrganizations = await db.organizationMember.findMany({
-			where: { userId: user.id },
-			select: { organizationId: true },
-		});
-
-		if (userOrganizations.length > 0) {
-			orConditions.push({
-				AND: [
-					{ visibility: "private" },
-					{ organizationId: { in: userOrganizations.map((org) => org.organizationId) } },
-				],
-			});
-		}
-
-		where.OR = orConditions;
-	}
-
-	if (input.query) {
-		// Add query conditions to existing OR conditions
-		if (where.OR) {
-			where.AND = [
-				{ OR: where.OR },
-				{
-					OR: [{ name: { contains: input.query } }, { description: { contains: input.query } }],
-				},
-			];
-			delete where.OR;
-		} else {
-			where.OR = [{ name: { contains: input.query } }, { description: { contains: input.query } }];
-		}
-	}
-
-	if (input.visibility && input.visibility !== "all") {
-		// Override the visibility filter if explicitly requested
-		where.visibility = input.visibility;
-	}
-
-	if (input.tags && input.tags.length > 0) {
-		where.tags = {
-			hasSome: input.tags,
-		};
-	}
-
-	if (input.author) {
-		where.user = {
-			username: input.author,
-		};
-	}
-
-	let orderBy: Record<string, string> = {};
-	switch (input.sortBy) {
-		case "downloads":
-			orderBy = { downloads: "desc" };
-			break;
-		case "created":
-			orderBy = { createdAt: "desc" };
-			break;
-		case "name":
-			orderBy = { name: "asc" };
-			break;
-		default:
-			orderBy = { updatedAt: "desc" };
-	}
-
-	const [rules, total] = await Promise.all([
-		db.rule.findMany({
-			where,
-			orderBy,
-			skip: (input.page - 1) * input.limit,
-			take: input.limit,
-			include: {
-				user: {
-					select: {
-						id: true,
-						username: true,
-						email: true,
-					},
-				},
-				organization: {
-					select: {
-						id: true,
-						name: true,
-						displayName: true,
-					},
-				},
-			},
-		}),
-		db.rule.count({ where }),
-	]);
-
-	return {
-		rules: rules.map((rule) => ({
-			...rule,
-			author: rule.user,
-			updated_at: rule.updatedAt,
-			created_at: rule.createdAt,
-			tags: rule.tags ? JSON.parse(rule.tags) : [],
-		})),
-		total,
-		page: input.page,
-		limit: input.limit,
-	};
-});
-
-export const get = os.rules.get.use(dbProvider).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	const rule = await db.rule.findUnique({
-		where: { id: input.id },
-		include: {
-			user: {
-				select: {
-					id: true,
-					username: true,
-					email: true,
-				},
-			},
-			organization: {
-				select: {
-					id: true,
-					name: true,
-					displayName: true,
-				},
-			},
-		},
-	});
-
-	if (!rule) {
-		throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-	}
-
-	// Check visibility permissions
-	if (rule.visibility === "private") {
-		// Private rules can only be accessed by:
-		// 1. The owner
-		// 2. Organization members if it's an organization rule
-		if (!user) {
-			throw new ORPCError("UNAUTHORIZED", {
-				message: "Authentication required for private rules",
-			});
-		}
-
-		// Check if user is the owner
-		if (rule.userId === user.id) {
-			// Owner can always access
-		} else if (rule.organizationId) {
-			// Check if user is a member of the organization
-			const isMember = await db.organizationMember.findFirst({
-				where: {
-					organizationId: rule.organizationId,
-					userId: user.id,
-				},
-			});
-
-			if (!isMember) {
-				throw new ORPCError("FORBIDDEN", {
-					message: "Access denied to private organization rule",
-				});
-			}
-		} else {
-			// Not owner and not an organization rule
-			throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
-		}
-	}
-	// Public rules can be accessed by anyone
-
-	return {
-		...rule,
-		author: rule.user,
-		updated_at: rule.updatedAt,
-		created_at: rule.createdAt,
-		tags: rule.tags ? JSON.parse(rule.tags) : [],
-	};
-});
-
-export const create = os.rules.create.use(dbWithAuth).handler(async ({ input, context }) => {
-	const { db, user, env } = context;
-
-	// Validate organization settings
-	let organizationId = input.organizationId ?? null;
-
-	// If posting to an organization, validate the organization and membership
-	if (input.organizationId) {
-		const organization = await db.organization.findUnique({
-			where: { id: input.organizationId },
-		});
-
-		if (!organization) {
-			throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
-		}
-
-		// Check if user is a member of the organization
-		const isMember = await db.organizationMember.findFirst({
-			where: {
-				organizationId: organization.id,
-				userId: user.id,
-			},
-		});
-
-		if (!isMember) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "You must be a member of the organization to post rules",
-			});
-		}
-
-		organizationId = organization.id;
-	} else {
-		// If no organization is specified, set organizationId to null
-		organizationId = null;
-	}
-
-	// Check if rule name already exists in the same context (user or organization)
-	const existingRule = await db.rule.findFirst({
-		where: organizationId
-			? {
-					name: input.name,
-					organizationId: organizationId,
-				}
-			: {
-					name: input.name,
-					userId: user.id,
-					organizationId: null,
-				},
-	});
-
-	if (existingRule) {
-		throw new ORPCError("CONFLICT", { message: "A rule with this name already exists" });
-	}
-
-	const { generateId, hashContent } = await import("~/server/utils/crypto");
-
-	// Generate IDs and hash content
-	const ruleId = generateId();
-	const versionId = generateId();
-	const contentHash = await hashContent(input.content);
-	const r2ObjectKey = `rules/${ruleId}/versions/${versionId}/content.md`;
-
-	// Store content in R2
-	try {
-		console.log("Attempting to store content in R2...");
-		console.log("R2 Object Key:", r2ObjectKey);
-		console.log("R2 Binding exists:", !!env.R2);
-
-		if (!env.R2) {
-			throw new Error("R2 binding not available");
-		}
-
-		await env.R2.put(r2ObjectKey, input.content);
-		console.log("Successfully stored content in R2");
-	} catch (error) {
-		console.error("Failed to store content in R2:", error);
-		console.error("Error details:", error instanceof Error ? error.message : error);
-		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to store content" });
-	}
-
-	// Create rule and version records
-	try {
-		console.log("Creating rule and version records...");
-		console.log("Rule data:", {
-			id: ruleId,
-			name: input.name,
-			visibility: input.visibility,
-			organizationId: organizationId,
-			userId: user.id,
-		});
-
-		// Create the rule first (without latestVersionId to avoid foreign key constraint)
-		const rule = await db.rule.create({
-			data: {
-				id: ruleId,
-				name: input.name,
-				description: input.description,
-				visibility: input.visibility,
-				organizationId: organizationId || null,
-				tags: JSON.stringify(input.tags),
-				userId: user.id,
-				version: "1.0",
-				latestVersionId: null,
-				createdAt: Math.floor(Date.now() / 1000),
-				updatedAt: Math.floor(Date.now() / 1000),
-			},
-		});
-
-		try {
-			// Create the initial version
-			const version = await db.ruleVersion.create({
-				data: {
-					id: versionId,
-					ruleId: ruleId,
-					versionNumber: "1.0",
-					contentHash,
-					r2ObjectKey,
-					createdBy: user.id,
-					changelog: null,
-					createdAt: Math.floor(Date.now() / 1000),
-				},
-			});
-
-			// Update the rule with the latestVersionId
-			await db.rule.update({
-				where: { id: ruleId },
-				data: { latestVersionId: versionId },
-			});
-
-			console.log("Rule and version created successfully");
-			return { id: rule.id };
-		} catch (versionError) {
-			// If version creation fails, delete the rule
-			console.error("Failed to create version, rolling back rule:", versionError);
-			await db.rule.delete({ where: { id: ruleId } });
-			throw versionError;
-		}
-	} catch (dbError) {
-		console.error("Database operation failed:", dbError);
-		console.error("Error details:", dbError instanceof Error ? dbError.message : dbError);
-
-		// Try to clean up R2 if database failed
-		try {
-			await env.R2.delete(r2ObjectKey);
-			console.log("Cleaned up R2 object after database failure");
-		} catch (cleanupError) {
-			console.error("Failed to clean up R2:", cleanupError);
-		}
-
-		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to create rule" });
-	}
-});
-
-export const update = os.rules.update
-	.use(dbWithEmailVerification)
-	.handler(async ({ input, context }) => {
+export const rulesProcedures = {
+	/**
+	 * パスによるルール取得
+	 */
+	getByPath: os.rules.getByPath.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
 		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-		const existingRule = await db.rule.findUnique({
-			where: { id: input.id },
-			include: {
-				organization: true,
-			},
-		});
+		// パスをパース
+		const parsed = parseRulePath(input.path);
 
-		if (!existingRule) {
-			throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-		}
-
-		// Check if user has permission to update
-		// 1. Owner can always update
-		// 2. Organization members can update organization rules
-		let canUpdate = false;
-
-		if (existingRule.userId === user.id) {
-			canUpdate = true;
-		} else if (existingRule.organizationId) {
-			const isMember = await db.organizationMember.findFirst({
-				where: {
-					organizationId: existingRule.organizationId,
-					userId: user.id,
-					role: { in: ["owner", "member"] }, // Allow both owners and members to update
-				},
-			});
-			canUpdate = !!isMember;
-		}
-
-		if (!canUpdate) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "You don't have permission to update this rule",
-			});
-		}
-
-		const { id, tags, content, changelog, isMajorVersionUp, name, ...updateData } = input;
-
-		// ルール名の変更は禁止
-		if (name && name !== existingRule.name) {
+		if (!parsed) {
 			throw new ORPCError("BAD_REQUEST", {
-				message: "Rule name cannot be changed",
+				message: "Invalid rule path format. Expected @owner/rulename or rulename",
 			});
 		}
 
-		// コンテンツの更新がある場合は新しいバージョンを作成
-		if (content) {
-			const { generateId, hashContent } = await import("~/server/utils/crypto");
+		const { owner, ruleName } = parsed;
 
-			// 現在のバージョンを取得
-			const currentVersion = await db.ruleVersion.findFirst({
-				where: {
-					ruleId: id,
-					versionNumber: existingRule.version,
-				},
-			});
+		const result = await ruleService.getRule(ruleName, owner, user?.id);
+		const { rule, version, content } = result;
 
-			if (!currentVersion) {
-				throw new ORPCError("NOT_FOUND", { message: "Current version not found" });
-			}
+		// Ensure we have the proper author object
+		const author = rule.user || { id: rule.userId || "", username: "Unknown", email: "" };
 
-			// 現在のコンテンツを取得して比較
-			let currentContent = "";
-			try {
-				const object = await env.R2.get(currentVersion.r2ObjectKey);
-				if (object) {
-					currentContent = await object.text();
-				}
-			} catch (error) {
-				console.error("Failed to fetch current content:", error);
-			}
-
-			// コンテンツが変更されていない場合はメタデータのみ更新
-			if (content === currentContent) {
-				await db.rule.update({
-					where: { id },
-					data: {
-						...updateData,
-						tags: tags ? JSON.stringify(tags) : undefined,
-						updatedAt: Math.floor(Date.now() / 1000),
-					},
-				});
-				return { success: true };
-			}
-
-			// 既存のバージョンを取得して最新バージョンを特定
-			const existingVersions = await db.ruleVersion.findMany({
-				where: { ruleId: id },
-				select: { versionNumber: true },
-				orderBy: { createdAt: "desc" },
-			});
-
-			console.log(
-				"Existing versions:",
-				existingVersions.map((v) => v.versionNumber),
-			);
-
-			// バージョン番号を正規化する関数（1.0.0 -> 1.0）
-			const normalizeVersion = (version: string): string => {
-				const parts = version.split(".");
-				const major = Number.parseInt(parts[0]) || 1;
-				const minor = Number.parseInt(parts[1]) || 0;
-				return `${major}.${minor}`;
-			};
-
-			// バージョン番号の比較関数
-			const compareVersions = (v1: string, v2: string): number => {
-				const norm1 = normalizeVersion(v1);
-				const norm2 = normalizeVersion(v2);
-				const [major1, minor1] = norm1.split(".").map((n) => Number.parseInt(n) || 0);
-				const [major2, minor2] = norm2.split(".").map((n) => Number.parseInt(n) || 0);
-
-				if (major1 !== major2) {
-					return major1 - major2;
-				}
-				return minor1 - minor2;
-			};
-
-			// 最新バージョンを取得
-			let latestVersion = existingRule.version;
-			if (existingVersions.length > 0) {
-				latestVersion = existingVersions.reduce((latest, current) => {
-					return compareVersions(current.versionNumber, latest) > 0
-						? current.versionNumber
-						: latest;
-				}, existingVersions[0].versionNumber);
-			}
-
-			// 新しいバージョン番号を生成
-			console.log("Latest version:", latestVersion);
-			console.log("isMajorVersionUp:", input.isMajorVersionUp);
-
-			const versionParts = latestVersion.split(".");
-			const currentMajorVersion = Number.parseInt(versionParts[0]) || 1;
-			const currentMinorVersion = Number.parseInt(versionParts[1]) || 0;
-
-			let newVersionNumber: string;
-			if (input.isMajorVersionUp) {
-				// メジャーバージョンを手動でインクリメント
-				newVersionNumber = `${currentMajorVersion + 1}.0`;
-			} else {
-				// マイナーバージョンを自動でインクリメント
-				newVersionNumber = `${currentMajorVersion}.${currentMinorVersion + 1}`;
-			}
-
-			console.log("New version number:", newVersionNumber);
-
-			// 新しいバージョンが既存のバージョンより大きいことを確認
-			const versionExists = existingVersions.some((v) => v.versionNumber === newVersionNumber);
-			if (versionExists) {
-				throw new ORPCError("BAD_REQUEST", {
-					message: `バージョン ${newVersionNumber} は既に存在します。`,
-				});
-			}
-
-			// 最新バージョンより大きいことを確認（バージョンが存在する場合のみ）
-			if (existingVersions.length > 0) {
-				const latestVersion = existingVersions.reduce((latest, current) => {
-					return compareVersions(current.versionNumber, latest.versionNumber) > 0
-						? current
-						: latest;
-				}, existingVersions[0]);
-
-				if (compareVersions(newVersionNumber, latestVersion.versionNumber) <= 0) {
-					throw new ORPCError("BAD_REQUEST", {
-						message: `新しいバージョン ${newVersionNumber} は最新バージョン ${latestVersion.versionNumber} より大きくなければなりません。`,
-					});
-				}
-			}
-
-			// 新しいバージョンのIDとコンテンツハッシュを生成
-			const versionId = generateId();
-			const contentHash = await hashContent(content);
-			const r2ObjectKey = `rules/${id}/versions/${versionId}/content.md`;
-
-			// R2にコンテンツを保存
-			try {
-				await env.R2.put(r2ObjectKey, content);
-			} catch (error) {
-				console.error("Failed to store content in R2:", error);
-				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to store content" });
-			}
-
-			// 新しいバージョンを作成
-			try {
-				console.log("Creating new version with data:", {
-					id: versionId,
-					ruleId: id,
-					versionNumber: newVersionNumber,
-					changelog: changelog || null,
-					contentHash,
-					r2ObjectKey,
-					createdBy: user.id,
-					createdAt: Math.floor(Date.now() / 1000),
-				});
-
-				await db.ruleVersion.create({
-					data: {
-						id: versionId,
-						ruleId: id,
-						versionNumber: newVersionNumber,
-						changelog: changelog || null,
-						contentHash,
-						r2ObjectKey,
-						createdBy: user.id,
-						createdAt: Math.floor(Date.now() / 1000),
-					},
-				});
-
-				// ルールのバージョンとlatestVersionIdを更新
-				await db.rule.update({
-					where: { id },
-					data: {
-						...updateData,
-						version: newVersionNumber,
-						latestVersionId: versionId,
-						tags: tags ? JSON.stringify(tags) : undefined,
-						updatedAt: Math.floor(Date.now() / 1000),
-					},
-				});
-			} catch (dbError) {
-				console.error("Database error creating version:", dbError);
-				console.error("Error details:", dbError instanceof Error ? dbError.message : dbError);
-
-				// R2のクリーンアップ
-				try {
-					await env.R2.delete(r2ObjectKey);
-				} catch (cleanupError) {
-					console.error("Failed to clean up R2:", cleanupError);
-				}
-
-				// エラーメッセージを詳細に
-				const errorMessage =
-					dbError instanceof Error
-						? `Failed to create new version: ${dbError.message}`
-						: "Failed to create new version";
-				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: errorMessage });
-			}
-		} else {
-			// コンテンツの更新がない場合は、メタデータのみ更新
-			await db.rule.update({
-				where: { id },
-				data: {
-					...updateData,
-					tags: tags ? JSON.stringify(tags) : undefined,
-					updatedAt: Math.floor(Date.now() / 1000),
-				},
-			});
-		}
-
-		return { success: true };
-	});
-
-export const deleteRule = os.rules.delete
-	.use(dbWithEmailVerification)
-	.handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-
-		const rule = await db.rule.findUnique({
-			where: { id: input.id },
-		});
-
-		if (!rule) {
-			throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-		}
-
-		// Check if user has permission to delete
-		// 1. Owner can always delete
-		// 2. Organization owners can delete organization rules
-		let canDelete = false;
-
-		if (rule.userId === user.id) {
-			canDelete = true;
-		} else if (rule.organizationId) {
-			const isMember = await db.organizationMember.findFirst({
-				where: {
-					organizationId: rule.organizationId,
-					userId: user.id,
-					role: "owner", // Only organization owners can delete
-				},
-			});
-			canDelete = !!isMember;
-		}
-
-		if (!canDelete) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "You don't have permission to delete this rule",
-			});
-		}
-
-		// Get all versions before deleting the rule
-		const versions = await db.ruleVersion.findMany({
-			where: { ruleId: input.id },
-			select: { r2ObjectKey: true },
-		});
-
-		// Delete from database first (cascade will delete versions)
-		await db.rule.delete({
-			where: { id: input.id },
-		});
-
-		// Clean up R2 storage after successful database deletion
-		if (env.R2 && versions.length > 0) {
-			try {
-				console.log(`Cleaning up ${versions.length} R2 objects for rule ${input.id}`);
-
-				// Delete all version content files from R2
-				const deletePromises = versions.map((version) =>
-					env.R2.delete(version.r2ObjectKey).catch((error) => {
-						console.error(`Failed to delete R2 object ${version.r2ObjectKey}:`, error);
-						// Continue with other deletions even if one fails
-					}),
-				);
-
-				await Promise.all(deletePromises);
-				console.log(`Successfully cleaned up R2 objects for rule ${input.id}`);
-			} catch (error) {
-				// Log error but don't fail the operation since database deletion already succeeded
-				console.error("Failed to clean up some R2 objects:", error);
-			}
-		}
-
-		return { success: true };
-	});
-
-export const getContent = os.rules.getContent
-	.use(dbProvider)
-	.handler(async ({ input, context }) => {
-		const { db, env, user } = context;
-		console.log("getContent called with:", { id: input.id, version: input.version });
-
-		// First get the rule to determine the version
-		const baseRule = await db.rule.findUnique({
-			where: { id: input.id },
-		});
-
-		if (!baseRule) {
-			throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-		}
-
-		// Now get the rule with the appropriate version
-		const rule = await db.rule.findUnique({
-			where: { id: input.id },
-			include: {
-				versions: {
-					where: {
-						versionNumber: input.version || baseRule.version,
-					},
-					take: 1,
-				},
-			},
-		});
-
-		if (!rule) {
-			throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-		}
-
-		// Check visibility permissions
-		if (rule.visibility === "private") {
-			// Private rules can only be accessed by:
-			// 1. The owner
-			// 2. Organization members if it's an organization rule
-			if (!user) {
-				throw new ORPCError("UNAUTHORIZED", {
-					message: "Authentication required for private rules",
-				});
-			}
-
-			// Check if user is the owner
-			if (rule.userId === user.id) {
-				// Owner can always access
-			} else if (rule.organizationId) {
-				// Check if user is a member of the organization
-				const isMember = await db.organizationMember.findFirst({
-					where: {
-						organizationId: rule.organizationId,
-						userId: user.id,
-					},
-				});
-
-				if (!isMember) {
-					throw new ORPCError("FORBIDDEN", {
-						message: "Access denied to private organization rule",
-					});
-				}
-			} else {
-				// Not owner and not an organization rule
-				throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
-			}
-		}
-		// Public rules can be accessed by anyone
-
-		const version = rule.versions[0];
-		console.log("Found versions:", rule.versions.length, version);
-		if (!version) {
-			throw new ORPCError("NOT_FOUND", { message: "Version not found" });
-		}
-
-		// Fetch content from R2
-		try {
-			console.log("Fetching from R2 with key:", version.r2ObjectKey);
-			console.log("R2 binding:", env.R2);
-			const object = await env.R2.get(version.r2ObjectKey);
-			if (!object) {
-				throw new ORPCError("NOT_FOUND", { message: "Content not found" });
-			}
-
-			const content = await object.text();
-			return {
-				id: rule.id,
-				name: rule.name,
-				version: version.versionNumber,
-				content,
-			};
-		} catch (error) {
-			console.error("Failed to fetch content from R2:", error);
-			if (error instanceof ORPCError) {
-				throw error;
-			}
-			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to fetch content" });
-		}
-	});
-
-export const versions = os.rules.versions.use(dbProvider).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	const rule = await db.rule.findUnique({
-		where: { id: input.id },
-	});
-
-	if (!rule) {
-		throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-	}
-
-	// Check visibility permissions for versions
-	if (rule.visibility === "private") {
-		if (!user) {
-			throw new ORPCError("UNAUTHORIZED", {
-				message: "Authentication required for private rules",
-			});
-		}
-
-		// Check if user is the owner or organization member
-		if (rule.userId === user.id) {
-			// Owner can access
-		} else if (rule.organizationId) {
-			const isMember = await db.organizationMember.findFirst({
-				where: {
-					organizationId: rule.organizationId,
-					userId: user.id,
-				},
-			});
-
-			if (!isMember) {
-				throw new ORPCError("FORBIDDEN", {
-					message: "Access denied to private organization rule",
-				});
-			}
-		} else {
-			throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
-		}
-	}
-
-	const versions = await db.ruleVersion.findMany({
-		where: { ruleId: input.id },
-		include: {
-			creator: {
-				select: {
-					id: true,
-					username: true,
-				},
-			},
-		},
-		orderBy: {
-			createdAt: "desc",
-		},
-	});
-
-	return versions.map((version) => ({
-		version: version.versionNumber,
-		changelog: version.changelog || "",
-		created_at: version.createdAt,
-		createdBy: version.creator,
-	}));
-});
-
-export const getVersion = os.rules.getVersion
-	.use(dbProvider)
-	.handler(async ({ input, context }) => {
-		const { db, env, user } = context;
-		const { id, version: versionNumber } = input;
-
-		// ルールの基本情報を取得
-		const rule = await db.rule.findUnique({
-			where: { id },
-			include: {
-				user: {
-					select: {
-						id: true,
-						username: true,
-					},
-				},
-				organization: {
-					select: {
-						id: true,
-						name: true,
-						displayName: true,
-					},
-				},
-			},
-		});
-
-		if (!rule) {
-			throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-		}
-
-		// アクセス権限のチェック
-		if (rule.visibility === "private") {
-			if (!user) {
-				throw new ORPCError("UNAUTHORIZED", {
-					message: "Authentication required for private rules",
-				});
-			}
-
-			if (rule.userId === user.id) {
-				// オーナーは常にアクセス可能
-			} else if (rule.organizationId) {
-				const isMember = await db.organizationMember.findFirst({
-					where: {
-						organizationId: rule.organizationId,
-						userId: user.id,
-					},
-				});
-
-				if (!isMember) {
-					throw new ORPCError("FORBIDDEN", {
-						message: "Access denied to private organization rule",
-					});
-				}
-			} else {
-				throw new ORPCError("FORBIDDEN", { message: "Access denied to private rule" });
-			}
-		}
-
-		// 指定されたバージョンを取得
-		const ruleVersion = await db.ruleVersion.findFirst({
-			where: {
-				ruleId: id,
-				versionNumber,
-			},
-			include: {
-				creator: {
-					select: {
-						id: true,
-						username: true,
-					},
-				},
-			},
-		});
-
-		if (!ruleVersion) {
-			throw new ORPCError("NOT_FOUND", { message: `Version ${versionNumber} not found` });
-		}
-
-		// R2からコンテンツを取得
-		try {
-			const object = await env.R2.get(ruleVersion.r2ObjectKey);
-			if (!object) {
-				throw new ORPCError("NOT_FOUND", { message: "Version content not found" });
-			}
-
-			const content = await object.text();
-
-			return {
-				id: rule.id,
-				name: rule.name,
-				description: rule.description,
-				version: ruleVersion.versionNumber,
-				content,
-				changelog: ruleVersion.changelog || "",
-				visibility: rule.visibility,
-				tags: rule.tags ? JSON.parse(rule.tags) : [],
-				author: rule.user,
-				organization: rule.organization,
-				createdAt: ruleVersion.createdAt,
-				createdBy: ruleVersion.creator,
-				isLatest: rule.version === ruleVersion.versionNumber,
-			};
-		} catch (error) {
-			console.error("Failed to fetch version content from R2:", error);
-			if (error instanceof ORPCError) {
-				throw error;
-			}
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Failed to fetch version content",
-			});
-		}
-	});
-
-export const related = os.rules.related.use(dbProvider).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	// Get the current rule to find related rules
-	const rule = await db.rule.findUnique({
-		where: { id: input.id },
-	});
-
-	if (!rule) {
-		throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-	}
-
-	// Find related rules based on tags or author
-	const tags = rule.tags ? JSON.parse(rule.tags) : [];
-
-	// Build visibility conditions based on user
-	const visibilityConditions: Record<string, unknown>[] = [{ visibility: "public" }];
-
-	if (user) {
-		// If logged in, also include:
-		// 1. User's own private rules
-		visibilityConditions.push({
-			AND: [{ visibility: "private" }, { userId: user.id }],
-		});
-
-		// 2. Private rules from user's organizations
-		const userOrganizations = await db.organizationMember.findMany({
-			where: { userId: user.id },
-			select: { organizationId: true },
-		});
-
-		if (userOrganizations.length > 0) {
-			visibilityConditions.push({
-				AND: [
-					{ visibility: "private" },
-					{ organizationId: { in: userOrganizations.map((org) => org.organizationId) } },
-				],
-			});
-		}
-	}
-
-	const relatedRules = await db.rule.findMany({
-		where: {
-			AND: [
-				{ id: { not: input.id } },
-				{ OR: visibilityConditions },
-				{
-					OR: [
-						// Same author
-						{ userId: rule.userId },
-						// Similar tags
-						...(tags.length > 0
-							? tags.map((tag: string) => ({
-									tags: { contains: tag },
-								}))
-							: []),
-					],
-				},
-			],
-		},
-		include: {
-			user: {
-				select: {
-					id: true,
-					username: true,
-				},
-			},
-		},
-		take: input.limit,
-		orderBy: [{ downloads: "desc" }, { updatedAt: "desc" }],
-	});
-
-	return relatedRules.map((rule) => ({
-		id: rule.id,
-		name: rule.name,
-		description: rule.description,
-		author: rule.user,
-		visibility: rule.visibility as "public" | "private" | "organization",
-		tags: rule.tags ? JSON.parse(rule.tags) : [],
-		version: rule.version,
-		updated_at: rule.updatedAt,
-	}));
-});
-
-export const list = os.rules.list.use(dbProvider).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	// Build visibility conditions
-	const visibilityConditions: Record<string, unknown>[] = [];
-
-	if (input.visibility === "public" || input.visibility === "all") {
-		visibilityConditions.push({ visibility: "public" });
-	}
-
-	if (user && (input.visibility === "private" || input.visibility === "all")) {
-		visibilityConditions.push({
-			AND: [{ visibility: "private" }, { userId: user.id }],
-		});
-	}
-
-	const whereConditions: Record<string, unknown> = {
-		OR: visibilityConditions,
-	};
-
-	// Add tag filter
-	if (input.tags && input.tags.length > 0) {
-		whereConditions.AND = whereConditions.AND || [];
-		(whereConditions.AND as unknown[]).push({
-			OR: input.tags.map((tag) => ({ tags: { contains: tag } })),
-		});
-	}
-
-	// Add author filter
-	if (input.author) {
-		whereConditions.user = {
-			username: input.author,
-		};
-	}
-
-	const rules = await db.rule.findMany({
-		where: whereConditions,
-		include: {
-			user: {
-				select: {
-					id: true,
-					username: true,
-				},
-			},
-		},
-		orderBy: { updatedAt: "desc" },
-		take: input.limit,
-		skip: input.offset,
-	});
-
-	const totalCount = await db.rule.count({ where: whereConditions });
-
-	return {
-		rules: rules.map((rule) => ({
+		return {
 			id: rule.id,
 			name: rule.name,
-			description: rule.description,
-			author: rule.user,
+			userId: rule.userId || null,
 			visibility: rule.visibility,
-			tags: rule.tags ? JSON.parse(rule.tags) : [],
-			version: rule.version,
+			description: rule.description,
+			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
+			createdAt: rule.createdAt,
+			updatedAt: rule.updatedAt,
+			publishedAt: rule.publishedAt,
+			version: version.versionNumber || rule.version || "1.0.0",
+			latestVersionId: rule.latestVersionId || version.id,
+			downloads: rule.downloads,
+			stars: rule.stars,
+			organizationId: rule.organizationId,
+			user: rule.user || author,
+			organization: rule.organization || null,
+			author,
+		};
+	}),
+
+	/**
+	 * ルール作成
+	 */
+	create: os.rules.create.use(dbWithEmailVerification).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
+
+		const logger = createLogger(env);
+		logger.debug("Create rule handler - user", { user });
+		const result = await ruleService.createRule(user.id, input);
+		return { id: result.rule.id };
+	}),
+
+	/**
+	 * ルール更新
+	 */
+	update: os.rules.update.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
+
+		const { id, ...updateData } = input;
+		await ruleService.updateRule(id, user.id, updateData);
+		return { success: true, message: "Rule updated successfully" };
+	}),
+
+	/**
+	 * ルール一覧
+	 */
+	list: os.rules.list.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
+
+		// Map contract inputs to service method
+		return await ruleService.listRules({
+			visibility: input.visibility,
+			tags: input.tags,
+			author: input.author,
+			limit: input.limit,
+			offset: input.offset,
+			userId: user?.id,
+		});
+	}),
+
+	/**
+	 * ルール検索
+	 */
+	search: os.rules.search.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
+
+		// Map contract inputs to service method
+		return await ruleService.searchRules({
+			query: input.query,
+			tags: input.tags,
+			author: input.author,
+			visibility: input.visibility,
+			sortBy: input.sortBy,
+			page: input.page,
+			limit: input.limit,
+			userId: user?.id,
+		});
+	}),
+
+	/**
+	 * ルールをLike
+	 */
+	like: os.rules.like.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user } = context;
+
+		// ルールが存在するか確認
+		const rule = await db.rule.findUnique({
+			where: { id: input.ruleId },
+		});
+
+		if (!rule) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Rule not found",
+			});
+		}
+
+		// 既にLikeしているか確認
+		const existingLike = await db.ruleStar.findUnique({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		if (existingLike) {
+			throw new ORPCError("CONFLICT", {
+				message: "Already liked this rule",
+			});
+		}
+
+		// Likeを追加
+		await db.ruleStar.create({
+			data: {
+				id: nanoid(),
+				ruleId: input.ruleId,
+				userId: user.id,
+				createdAt: Math.floor(Date.now() / 1000),
+			},
+		});
+
+		// スター数を増やす
+		await db.rule.update({
+			where: { id: input.ruleId },
+			data: { stars: { increment: 1 } },
+		});
+
+		return { success: true, message: "Rule liked successfully" };
+	}),
+
+	/**
+	 * ルールのLikeを解除
+	 */
+	unlike: os.rules.unlike.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user } = context;
+
+		// Likeが存在するか確認
+		const existingLike = await db.ruleStar.findUnique({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		if (!existingLike) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Like not found",
+			});
+		}
+
+		// Likeを削除
+		await db.ruleStar.delete({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		// スター数を減らす
+		await db.rule.update({
+			where: { id: input.ruleId },
+			data: { stars: { decrement: 1 } },
+		});
+
+		return { success: true, message: "Rule unliked successfully" };
+	}),
+
+	/**
+	 * ルールをIDで取得
+	 */
+	get: os.rules.get.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
+
+		const rule = await ruleService.getRuleById(input.id, user?.id);
+
+		// Ensure we have the proper author object
+		const author = rule.user || { id: rule.userId || "", username: "Unknown", email: "" };
+
+		return {
+			id: rule.id,
+			name: rule.name,
+			userId: rule.userId || null,
+			visibility: rule.visibility,
+			description: rule.description,
+			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
+			createdAt: rule.createdAt,
+			updatedAt: rule.updatedAt,
+			publishedAt: rule.publishedAt,
+			version: rule.version || "1.0.0",
+			latestVersionId: rule.latestVersionId,
+			downloads: rule.downloads,
+			stars: rule.stars,
+			organizationId: rule.organizationId,
+			user: rule.user || author,
+			organization: rule.organization || null,
+			author,
+			created_at: rule.createdAt,
 			updated_at: rule.updatedAt,
-		})),
-		total: totalCount,
-		limit: input.limit,
-		offset: input.offset,
-	};
-});
+		};
+	}),
 
-export const like = os.rules.like.use(dbWithAuth).handler(async ({ input, context }) => {
-	const { db, user } = context;
+	/**
+	 * ルールのコンテンツを取得
+	 */
+	getContent: os.rules.getContent.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-	// Check if rule exists
-	const rule = await db.rule.findUnique({
-		where: { id: input.ruleId },
-	});
+		return await ruleService.getRuleContent(input.id, input.version, user?.id);
+	}),
 
-	if (!rule) {
-		throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-	}
+	/**
+	 * ルールのバージョン一覧を取得
+	 */
+	versions: os.rules.versions.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-	// Check if already starred
-	const existingStar = await db.ruleStar.findFirst({
-		where: {
-			ruleId: input.ruleId,
-			userId: user.id,
-		},
-	});
+		const versions = await ruleService.getRuleVersions(input.id, user?.id);
 
-	if (existingStar) {
-		return { success: true, message: "Rule already starred" };
-	}
+		// Get creator information for each version
+		return await Promise.all(
+			versions.map(async (v) => {
+				const creator = await db.user.findUnique({
+					where: { id: v.createdBy },
+					select: { id: true, username: true },
+				});
+				return {
+					version: v.versionNumber,
+					changelog: v.changelog || "",
+					created_at: v.createdAt,
+					createdBy: creator || { id: v.createdBy, username: "Unknown" },
+				};
+			}),
+		);
+	}),
 
-	// Create star
-	const { generateId } = await import("~/server/utils/crypto");
-	await db.ruleStar.create({
-		data: {
-			id: generateId(),
-			ruleId: input.ruleId,
-			userId: user.id,
-		},
-	});
+	/**
+	 * ルールの特定バージョンを取得
+	 */
+	getVersion: os.rules.getVersion.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-	return { success: true, message: "Rule liked successfully" };
-});
+		const versionData = await ruleService.getRuleVersion(input.id, input.version, user?.id);
 
-export const unlike = os.rules.unlike.use(dbWithAuth).handler(async ({ input, context }) => {
-	const { db, user } = context;
+		// Ensure proper format for author and createdBy
+		const author = versionData.author
+			? {
+					id: versionData.author.id,
+					username: versionData.author.username,
+					email: versionData.author.email || "",
+				}
+			: { id: "", username: "Unknown", email: "" };
 
-	// Check if rule exists
-	const rule = await db.rule.findUnique({
-		where: { id: input.ruleId },
-	});
+		const createdBy = versionData.createdBy
+			? {
+					id: versionData.createdBy.id,
+					username: versionData.createdBy.username || "Unknown",
+				}
+			: { id: "", username: "Unknown" };
 
-	if (!rule) {
-		throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-	}
+		return {
+			...versionData,
+			changelog: versionData.changelog || "",
+			tags: Array.isArray(versionData.tags) ? versionData.tags : [],
+			author,
+			createdBy,
+		};
+	}),
 
-	// Remove star
-	await db.ruleStar.deleteMany({
-		where: {
-			ruleId: input.ruleId,
-			userId: user.id,
-		},
-	});
+	/**
+	 * 関連ルールを取得
+	 */
+	related: os.rules.related.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-	return { success: true, message: "Rule unliked successfully" };
-});
+		return await ruleService.getRelatedRules(input.id, input.limit, user?.id);
+	}),
 
-export const view = os.rules.view.use(dbProvider).handler(async ({ input, context }) => {
-	const { db, user } = context;
+	/**
+	 * ルールの閲覧を記録
+	 */
+	view: os.rules.view.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-	// Check if rule exists
-	const rule = await db.rule.findUnique({
-		where: { id: input.ruleId },
-	});
+		return await ruleService.recordView(input.ruleId, user?.id);
+	}),
 
-	if (!rule) {
-		throw new ORPCError("NOT_FOUND", { message: "Rule not found" });
-	}
+	/**
+	 * ルールを削除
+	 */
+	delete: os.rules.delete.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-	// Track download instead of view (using existing model)
-	const { generateId } = await import("~/server/utils/crypto");
-	await db.ruleDownload.create({
-		data: {
-			id: generateId(),
-			ruleId: input.ruleId,
-			userId: user?.id || null,
-			ipAddress: "127.0.0.1", // Default for test/dev
-			userAgent: "test-client",
-		},
-	});
+		const result = await ruleService.deleteRule(input.id, user.id);
+		return { success: true, message: result.message };
+	}),
 
-	return { success: true, message: "View tracked" };
-});
+	/**
+	 * 公開ルール一覧
+	 */
+	listPublic: os.rules.listPublic.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-// Export all procedures as a group for the router
-export const rulesProcedures = {
-	getByPath,
-	search,
-	get,
-	create,
-	update,
-	delete: deleteRule,
-	getContent,
-	versions,
-	getVersion,
-	related,
-	list,
-	like,
-	unlike,
-	view,
+		return await ruleService.listRules({
+			visibility: "public",
+			tags: input.tags,
+			author: input.author,
+			limit: input.limit,
+			offset: input.offset,
+			userId: user?.id,
+		});
+	}),
+
+	/**
+	 * ルールをスター
+	 */
+	star: os.rules.star.use(dbWithAuth).handler(async ({ input, context }) => {
+		// Re-implement star logic instead of calling like handler
+		const { db, user } = context;
+
+		// ルールが存在するか確認
+		const rule = await db.rule.findUnique({
+			where: { id: input.ruleId },
+		});
+
+		if (!rule) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Rule not found",
+			});
+		}
+
+		// 既にLikeしているか確認
+		const existingLike = await db.ruleStar.findUnique({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		if (existingLike) {
+			throw new ORPCError("CONFLICT", {
+				message: "Already liked this rule",
+			});
+		}
+
+		// Likeを追加
+		await db.ruleStar.create({
+			data: {
+				id: nanoid(),
+				ruleId: input.ruleId,
+				userId: user.id,
+				createdAt: Math.floor(Date.now() / 1000),
+			},
+		});
+
+		// スター数を増やす
+		await db.rule.update({
+			where: { id: input.ruleId },
+			data: { stars: { increment: 1 } },
+		});
+
+		return { success: true, message: "Rule starred successfully" };
+	}),
+
+	/**
+	 * ルールのスターを解除
+	 */
+	unstar: os.rules.unstar.use(dbWithAuth).handler(async ({ input, context }) => {
+		// Re-implement unstar logic instead of calling unlike handler
+		const { db, user } = context;
+
+		// Likeが存在するか確認
+		const existingLike = await db.ruleStar.findUnique({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		if (!existingLike) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Like not found",
+			});
+		}
+
+		// Likeを削除
+		await db.ruleStar.delete({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		// スター数を減らす
+		await db.rule.update({
+			where: { id: input.ruleId },
+			data: { stars: { decrement: 1 } },
+		});
+
+		return { success: true, message: "Rule unstarred successfully" };
+	}),
+
+	/**
+	 * ルールのバージョン履歴を取得
+	 */
+	getVersionHistory: os.rules.getVersionHistory
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
+
+			const versions = await ruleService.getRuleVersions(input.ruleId, user?.id);
+
+			// Get creator information for each version
+			return await Promise.all(
+				versions.map(async (v) => {
+					const creator = await db.user.findUnique({
+						where: { id: v.createdBy },
+						select: { id: true, username: true },
+					});
+					return {
+						version: v.versionNumber,
+						changelog: v.changelog || "",
+						created_at: v.createdAt,
+						createdBy: creator || { id: v.createdBy, username: "Unknown" },
+					};
+				}),
+			);
+		}),
 };

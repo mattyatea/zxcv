@@ -1,228 +1,204 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
-import { dbWithAuth } from "~/server/orpc/middleware/combined";
-import { checkNamespaceAvailable } from "~/server/utils/namespace";
+import { dbWithAuth, dbWithOptionalAuth } from "~/server/orpc/middleware/combined";
+import { OrganizationService } from "~/server/services/OrganizationService";
 
-export const list = os.organizations.list.use(dbWithAuth).handler(async ({ context }) => {
-	const { db, user } = context;
+export const organizationsProcedures = {
+	/**
+	 * 組織を作成
+	 */
+	create: os.organizations.create.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const organizationService = new OrganizationService(db, env);
 
-	const organizations = await db.organization.findMany({
-		where: {
-			members: {
-				some: {
-					userId: user.id,
-				},
-			},
-		},
-		include: {
-			owner: {
-				select: {
-					id: true,
-					username: true,
-					email: true,
-				},
-			},
-			// biome-ignore lint/style/useNamingConvention: Prisma の命名規則に従うため、_count を使用するしかない
-			_count: {
-				select: {
-					members: true,
-					rules: true,
-				},
-			},
-		},
-	});
+		const org = await organizationService.createOrganization(user.id, {
+			name: input.name,
+			displayName: input.displayName || input.name,
+			description: input.description,
+		});
+		return org;
+	}),
 
-	return organizations.map((organization) => ({
-		id: organization.id,
-		name: organization.name,
-		displayName: organization.displayName,
-		owner: organization.owner,
-		memberCount: organization._count.members,
-		ruleCount: organization._count.rules,
-	}));
-});
+	/**
+	 * 組織情報を取得
+	 */
+	get: os.organizations.get.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const organizationService = new OrganizationService(db, env);
 
-export const create = os.organizations.create
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
-		const { db, user } = context;
-		const { generateId } = await import("~/server/utils/crypto");
+		// The contract expects 'id' but we need to handle nameOrId
+		const result = await organizationService.getOrganization(input.id, user?.id);
 
-		// Check if organization name already exists
-		const existingOrganization = await db.organization.findFirst({
-			where: {
-				name: input.name,
-			},
+		// Get owner info
+		const owner = await db.user.findUnique({
+			where: { id: result.ownerId },
+			select: { id: true, username: true, email: true },
 		});
 
-		if (existingOrganization) {
-			throw new ORPCError("CONFLICT", {
-				message: "A organization with this name already exists",
-			});
-		}
-
-		// Check if name is available (not taken by user or organization)
-		const isAvailable = await checkNamespaceAvailable(db, input.name);
-		if (!isAvailable) {
-			throw new ORPCError("CONFLICT", {
-				message: "Organization name is already taken",
-			});
-		}
-
-		// Create organization
-		const organizationId = generateId();
-		const organization = await db.organization.create({
-			data: {
-				id: organizationId,
-				name: input.name,
-				displayName: input.displayName || input.name,
-				description: input.description,
-				ownerId: user.id,
-				members: {
-					create: {
-						id: generateId(),
-						userId: user.id,
-						role: "owner",
-					},
-				},
-			},
-			include: {
-				owner: {
-					select: {
-						id: true,
-						username: true,
-						email: true,
-					},
-				},
-			},
+		// Get member count
+		const memberCount = await db.organizationMember.count({
+			where: { organizationId: result.id },
 		});
 
-		// Send invite emails if provided
-		if (input.inviteEmails && input.inviteEmails.length > 0) {
-			const { EmailService } = await import("~/server/utils/email");
-			const emailService = new EmailService(context.env);
-			const { generateId } = await import("~/server/utils/crypto");
+		// Get rule count
+		const ruleCount = await db.rule.count({
+			where: { organizationId: result.id },
+		});
 
-			// Create invitation records and send emails
-			for (const email of input.inviteEmails) {
-				const invitationToken = generateId();
-				const expiresAt = Math.floor(Date.now() / 1000) + 604800; // 7 days
-
-				// Create invitation record
-				await db.organizationInvitation.create({
-					data: {
-						id: generateId(),
-						organizationId: organization.id,
-						email: email.toLowerCase(),
-						token: invitationToken,
-						invitedBy: user.id,
-						expiresAt,
-					},
-				});
-
-				// Send invitation email
-				const emailTemplate = emailService.generateOrganizationInvitationEmail({
-					email,
-					organizationName: organization.displayName || organization.name,
-					inviterName: user.username,
-					invitationToken,
-					userLocale: "ja", // Default to Japanese for now
-				});
-
-				try {
-					await emailService.sendEmail(emailTemplate);
-				} catch (error) {
-					console.error("Failed to send invitation email:", error);
-					// Continue with other invitations even if one fails
-				}
+		// Get current user's role if authenticated
+		let role: "owner" | "member" = "member";
+		if (user?.id) {
+			const membership = await db.organizationMember.findFirst({
+				where: { organizationId: result.id, userId: user.id },
+			});
+			if (membership) {
+				role = membership.role as "owner" | "member";
 			}
 		}
 
 		return {
-			id: organization.id,
-			name: organization.name,
-			displayName: organization.displayName,
-			description: organization.description,
-			ownerId: organization.ownerId,
-			createdAt: organization.createdAt,
-			updatedAt: organization.updatedAt,
+			id: result.id,
+			name: result.name,
+			displayName: result.displayName || result.name,
+			description: result.description,
+			owner: owner || { id: "", username: "Unknown", email: "" },
+			role,
+			memberCount,
+			ruleCount,
+			createdAt: result.createdAt,
 		};
-	});
+	}),
 
-export const get = os.organizations.get.use(dbWithAuth).handler(async ({ input, context }) => {
-	const { db, user } = context;
+	/**
+	 * 組織を更新
+	 */
+	update: os.organizations.update.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const organizationService = new OrganizationService(db, env);
 
-	const organization = await db.organization.findUnique({
-		where: { id: input.id },
-		include: {
-			owner: {
-				select: {
-					id: true,
-					username: true,
-					email: true,
-				},
-			},
-			members: {
-				where: {
-					userId: user.id,
-				},
-				select: {
-					role: true,
-				},
-			},
-			// biome-ignore lint/style/useNamingConvention: Prisma _count field
-			_count: {
-				select: {
-					members: true,
-					rules: true,
-				},
-			},
-		},
-	});
+		const { id, ...updateData } = input;
+		const result = await organizationService.updateOrganization(id, user.id, updateData);
+		return {
+			success: true,
+			message: "Organization updated successfully",
+			organization: result,
+		};
+	}),
 
-	if (!organization) {
-		throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
-	}
+	/**
+	 * 組織を削除
+	 */
+	delete: os.organizations.delete.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const organizationService = new OrganizationService(db, env);
 
-	// Check if user is a member
-	if (organization.members.length === 0) {
-		throw new ORPCError("FORBIDDEN", { message: "You are not a member of this organization" });
-	}
+		const result = await organizationService.deleteOrganization(input.id, user.id);
+		return { success: true, message: result.message || "Organization deleted successfully" };
+	}),
 
-	return {
-		id: organization.id,
-		name: organization.name,
-		displayName: organization.displayName,
-		description: organization.description,
-		owner: organization.owner,
-		role: organization.members[0].role as "owner" | "member",
-		memberCount: organization._count.members,
-		ruleCount: organization._count.rules,
-		createdAt: organization.createdAt,
-	};
-});
+	/**
+	 * メンバーを招待
+	 */
+	inviteMember: os.organizations.inviteMember
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
-export const members = os.organizations.members
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
+			const result = await organizationService.inviteMember(
+				input.organizationId,
+				user.id,
+				input.email,
+				input.locale || "ja",
+			);
+			return { success: true, message: result.message };
+		}),
+
+	/**
+	 * 招待を受け入れる
+	 */
+	acceptInvitation: os.organizations.acceptInvitation
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
+
+			const result = await organizationService.acceptInvitation(input.token, user.id);
+			return {
+				success: true,
+				message: "Invitation accepted successfully",
+				organization: result,
+			};
+		}),
+
+	/**
+	 * メンバーを削除
+	 */
+	removeMember: os.organizations.removeMember
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
+
+			const result = await organizationService.removeMember(
+				input.organizationId,
+				user.id,
+				input.userId,
+			);
+			return { success: true, message: result.message };
+		}),
+
+	/**
+	 * メンバーの役割を更新
+	 */
+	updateMemberRole: os.organizations.updateMemberRole
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
+
+			const result = await organizationService.updateMemberRole(
+				input.orgId,
+				user.id,
+				input.memberId,
+				input.role,
+			);
+			return { success: true, message: result.message };
+		}),
+
+	/**
+	 * ユーザーが所属する組織を取得
+	 */
+	list: os.organizations.list.use(dbWithAuth).handler(async ({ context }) => {
+		const { db, user, env } = context;
+		const organizationService = new OrganizationService(db, env);
+
+		return await organizationService.getUserOrganizations(user.id);
+	}),
+
+	/**
+	 * 組織のメンバーを取得
+	 */
+	listMembers: os.organizations.listMembers.use(dbWithAuth).handler(async ({ input, context }) => {
 		const { db, user } = context;
 
-		// Check if user is a member of the organization
-		const membership = await db.organizationMember.findFirst({
+		// メンバーかどうかチェック
+		const isMember = await db.organizationMember.findFirst({
 			where: {
-				organizationId: input.organizationId,
+				organizationId: input.orgId,
 				userId: user.id,
 			},
 		});
 
-		if (!membership) {
-			throw new ORPCError("FORBIDDEN", { message: "You are not a member of this organization" });
+		if (!isMember) {
+			throw new ORPCError("FORBIDDEN", {
+				message: "組織のメンバーのみ閲覧可能です",
+			});
 		}
 
+		// メンバー一覧を取得
 		const members = await db.organizationMember.findMany({
-			where: {
-				organizationId: input.organizationId,
-			},
+			where: { organizationId: input.orgId },
 			include: {
 				user: {
 					select: {
@@ -233,459 +209,186 @@ export const members = os.organizations.members
 				},
 			},
 			orderBy: [
-				{ role: "asc" }, // owners first
+				{ role: "asc" }, // オーナーが先
 				{ joinedAt: "asc" },
 			],
 		});
 
-		return members.map((member) => ({
-			id: member.user.id,
-			username: member.user.username,
-			email: member.user.email,
-			role: member.role as "owner" | "member",
-			joinedAt: member.joinedAt,
-		}));
-	});
+		return {
+			members: members.map((m) => ({
+				id: m.user.id,
+				username: m.user.username,
+				email: m.user.email,
+				role: m.role as "owner" | "member",
+				joinedAt: m.joinedAt,
+			})),
+		};
+	}),
 
-export const rules = os.organizations.rules.use(dbWithAuth).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	// Check if user is a member of the organization
-	const membership = await db.organizationMember.findFirst({
-		where: {
-			organizationId: input.organizationId,
-			userId: user.id,
-		},
-	});
-
-	if (!membership) {
-		throw new ORPCError("FORBIDDEN", { message: "You are not a member of this organization" });
-	}
-
-	const rules = await db.rule.findMany({
-		where: {
-			organizationId: input.organizationId,
-		},
-		include: {
-			user: {
-				select: {
-					id: true,
-					username: true,
-				},
-			},
-		},
-		orderBy: {
-			updatedAt: "desc",
-		},
-	});
-
-	return rules.map((rule) => ({
-		id: rule.id,
-		name: rule.name,
-		description: rule.description,
-		version: rule.version,
-		updatedAt: rule.updatedAt,
-		author: rule.user,
-	}));
-});
-
-export const acceptInvitation = os.organizations.acceptInvitation
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
+	/**
+	 * 組織のルールを取得
+	 */
+	listRules: os.organizations.listRules.use(dbWithAuth).handler(async ({ input, context }) => {
 		const { db, user } = context;
-		const now = Math.floor(Date.now() / 1000);
 
-		// Find valid invitation
-		const invitation = await db.organizationInvitation.findUnique({
-			where: { token: input.token },
-			include: {
-				organization: {
-					include: {
-						owner: {
-							select: {
-								id: true,
-								username: true,
-								email: true,
-							},
+		// メンバーかどうかチェック
+		const isMember = await db.organizationMember.findFirst({
+			where: {
+				organizationId: input.orgId,
+				userId: user.id,
+			},
+		});
+
+		if (!isMember) {
+			throw new ORPCError("FORBIDDEN", {
+				message: "組織のメンバーのみ閲覧可能です",
+			});
+		}
+
+		// ページネーション計算
+		const skip = (input.page - 1) * input.pageSize;
+
+		// ルール一覧を取得
+		const [rules, total] = await Promise.all([
+			db.rule.findMany({
+				where: { organizationId: input.orgId },
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
 						},
+					},
+				},
+				orderBy: { updatedAt: "desc" },
+				skip,
+				take: input.pageSize,
+			}),
+			db.rule.count({
+				where: { organizationId: input.orgId },
+			}),
+		]);
+
+		return {
+			rules: rules.map((r) => ({
+				id: r.id,
+				name: r.name,
+				description: r.description,
+				visibility: r.visibility as "public" | "private" | "team",
+				isPublished: r.publishedAt !== null,
+				downloadCount: r.downloads,
+				starCount: r.stars,
+				createdAt: r.createdAt,
+				updatedAt: r.updatedAt,
+				user: r.user,
+				latestVersion: r.version || "1.0.0",
+			})),
+			total,
+			page: input.page,
+			pageSize: input.pageSize,
+			totalPages: Math.ceil(total / input.pageSize),
+		};
+	}),
+
+	/**
+	 * 組織のメンバーサマリーを取得
+	 */
+	members: os.organizations.members.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user } = context;
+
+		// メンバーかどうかチェック
+		const isMember = await db.organizationMember.findFirst({
+			where: {
+				organizationId: input.organizationId,
+				userId: user.id,
+			},
+		});
+
+		if (!isMember) {
+			throw new ORPCError("FORBIDDEN", {
+				message: "組織のメンバーのみ閲覧可能です",
+			});
+		}
+
+		// メンバーサマリーを取得
+		const members = await db.organizationMember.findMany({
+			where: { organizationId: input.organizationId },
+			include: {
+				user: {
+					select: {
+						id: true,
+						username: true,
+						email: true,
 					},
 				},
 			},
 		});
 
-		if (!invitation || invitation.expiresAt < now) {
-			throw new ORPCError("BAD_REQUEST", { message: "Invalid or expired invitation" });
-		}
+		return members.map((m) => ({
+			id: m.user.id,
+			username: m.user.username,
+			email: m.user.email,
+			role: m.role as "owner" | "member",
+			joinedAt: m.joinedAt,
+		}));
+	}),
 
-		// Check if user's email matches the invitation email
-		if (user.email.toLowerCase() !== invitation.email.toLowerCase()) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "This invitation was sent to a different email address",
-			});
-		}
-
-		// Check if user is already a member
-		const existingMember = await db.organizationMember.findUnique({
-			where: {
-				// biome-ignore lint/style/useNamingConvention: Prismaの命名規則に従うしかない
-				organizationId_userId: {
-					organizationId: invitation.organizationId,
-					userId: user.id,
-				},
-			},
-		});
-
-		if (existingMember) {
-			// Delete the invitation since they're already a member
-			await db.organizationInvitation.delete({
-				where: { id: invitation.id },
-			});
-
-			return {
-				success: true,
-				message: "You are already a member of this organization",
-				organization: invitation.organization,
-			};
-		}
-
-		// Create organization membership
-		const { generateId } = await import("~/server/utils/crypto");
-		await db.organizationMember.create({
-			data: {
-				id: generateId(),
-				organizationId: invitation.organizationId,
-				userId: user.id,
-				role: "member",
-			},
-		});
-
-		// Delete the invitation
-		await db.organizationInvitation.delete({
-			where: { id: invitation.id },
-		});
-
-		return {
-			success: true,
-			message: "Successfully joined the organization",
-			organization: invitation.organization,
-		};
-	});
-
-export const update = os.organizations.update
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
-		const { db, user } = context;
-		const { id, ...updateData } = input;
-
-		// Check if user is the owner of the organization
-		const membership = await db.organizationMember.findFirst({
-			where: {
-				organizationId: id,
-				userId: user.id,
-				role: "owner",
-			},
-		});
-
-		if (!membership) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "Only organization owners can update organization details",
-			});
-		}
-
-		// Check if new name is already taken
-		if (updateData.name) {
-			const existingOrg = await db.organization.findFirst({
-				where: {
-					name: updateData.name,
-					id: { not: id },
-				},
-			});
-
-			if (existingOrg) {
-				throw new ORPCError("CONFLICT", {
-					message: "An organization with this name already exists",
-				});
-			}
-		}
-
-		const updated = await db.organization.update({
-			where: { id },
-			data: updateData,
-		});
-
-		return {
-			success: true,
-			organization: updated,
-		};
-	});
-
-export const deleteOrganization = os.organizations.delete
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
+	/**
+	 * 組織のルールサマリーを取得
+	 */
+	rules: os.organizations.rules.use(dbWithAuth).handler(async ({ input, context }) => {
 		const { db, user } = context;
 
-		// Check if user is the owner of the organization
-		const membership = await db.organizationMember.findFirst({
-			where: {
-				organizationId: input.id,
-				userId: user.id,
-				role: "owner",
-			},
-		});
-
-		if (!membership) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "Only organization owners can delete the organization",
-			});
-		}
-
-		// Delete the organization (cascade will handle related records)
-		await db.organization.delete({
-			where: { id: input.id },
-		});
-
-		return { success: true };
-	});
-
-export const removeMember = os.organizations.removeMember
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
-		const { db, user } = context;
-
-		// Check if user is an owner of the organization
-		const requesterMembership = await db.organizationMember.findFirst({
+		// メンバーかどうかチェック
+		const isMember = await db.organizationMember.findFirst({
 			where: {
 				organizationId: input.organizationId,
 				userId: user.id,
-				role: "owner",
 			},
 		});
 
-		if (!requesterMembership) {
+		if (!isMember) {
 			throw new ORPCError("FORBIDDEN", {
-				message: "Only organization owners can remove members",
+				message: "組織のメンバーのみ閲覧可能です",
 			});
 		}
 
-		// Check if target user is a member
-		const targetMembership = await db.organizationMember.findFirst({
-			where: {
-				organizationId: input.organizationId,
-				userId: input.userId,
-			},
-		});
-
-		if (!targetMembership) {
-			throw new ORPCError("NOT_FOUND", { message: "User is not a member of this organization" });
-		}
-
-		// Prevent removing the last owner
-		if (targetMembership.role === "owner") {
-			const ownerCount = await db.organizationMember.count({
-				where: {
-					organizationId: input.organizationId,
-					role: "owner",
-				},
-			});
-
-			if (ownerCount <= 1) {
-				throw new ORPCError("BAD_REQUEST", {
-					message: "Cannot remove the last owner of the organization",
-				});
-			}
-		}
-
-		// Remove the member
-		await db.organizationMember.delete({
-			where: {
-				id: targetMembership.id,
-			},
-		});
-
-		return { success: true };
-	});
-
-export const inviteMember = os.organizations.inviteMember
-	.use(dbWithAuth)
-	.handler(async ({ input, context }) => {
-		const { db, user } = context;
-		const { organizationId, username } = input;
-
-		// Check if user is an owner of the organization
-		const membership = await db.organizationMember.findFirst({
-			where: {
-				organizationId,
-				userId: user.id,
-				role: "owner",
-			},
-		});
-
-		if (!membership) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "Only organization owners can invite members",
-			});
-		}
-
-		// Find user by username
-		const invitedUser = await db.user.findUnique({
-			where: { username: username.toLowerCase() },
+		// ルールサマリーを取得
+		const rules = await db.rule.findMany({
+			where: { organizationId: input.organizationId },
 			select: {
 				id: true,
-				email: true,
-				username: true,
-			},
-		});
-
-		if (!invitedUser) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
-		}
-
-		// Check if user is already a member
-		const existingMember = await db.organizationMember.findUnique({
-			where: {
-				// biome-ignore lint/style/useNamingConvention: Prismaの命名規則に従うしかない
-				organizationId_userId: {
-					organizationId,
-					userId: invitedUser.id,
-				},
-			},
-		});
-
-		if (existingMember) {
-			throw new ORPCError("CONFLICT", {
-				message: "User is already a member of this organization",
-			});
-		}
-
-		// Check if invitation already exists
-		const existingInvitation = await db.organizationInvitation.findFirst({
-			where: {
-				organizationId,
-				email: invitedUser.email.toLowerCase(),
-				expiresAt: {
-					gte: Math.floor(Date.now() / 1000),
-				},
-			},
-		});
-
-		if (existingInvitation) {
-			throw new ORPCError("CONFLICT", {
-				message: "An invitation has already been sent to this user",
-			});
-		}
-
-		// Get organization details
-		const organization = await db.organization.findUnique({
-			where: { id: organizationId },
-			select: {
 				name: true,
-				displayName: true,
+				description: true,
+				version: true,
+				updatedAt: true,
+				user: {
+					select: {
+						id: true,
+						username: true,
+					},
+				},
 			},
+			orderBy: { updatedAt: "desc" },
 		});
 
-		if (!organization) {
-			throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
-		}
+		return rules.map((r) => ({
+			id: r.id,
+			name: r.name,
+			description: r.description,
+			version: r.version || "1.0.0",
+			updatedAt: r.updatedAt,
+			author: r.user,
+		}));
+	}),
 
-		// Create invitation
-		const { generateId } = await import("~/server/utils/crypto");
-		const invitationToken = generateId();
-		const expiresAt = Math.floor(Date.now() / 1000) + 604800; // 7 days
+	/**
+	 * 組織から離脱
+	 */
+	leave: os.organizations.leave.use(dbWithAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const organizationService = new OrganizationService(db, env);
 
-		await db.organizationInvitation.create({
-			data: {
-				id: generateId(),
-				organizationId,
-				email: invitedUser.email.toLowerCase(),
-				token: invitationToken,
-				invitedBy: user.id,
-				expiresAt,
-			},
-		});
-
-		// Send invitation email
-		const { EmailService } = await import("~/server/utils/email");
-		const emailService = new EmailService(context.env);
-
-		const emailTemplate = emailService.generateOrganizationInvitationEmail({
-			email: invitedUser.email,
-			organizationName: organization.displayName || organization.name,
-			inviterName: user.username,
-			invitationToken,
-			userLocale: "ja", // Default to Japanese
-		});
-
-		try {
-			await emailService.sendEmail(emailTemplate);
-		} catch (error) {
-			console.error("Failed to send invitation email:", error);
-			// Delete the invitation if email fails
-			await db.organizationInvitation.delete({
-				where: { token: invitationToken },
-			});
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Failed to send invitation email",
-			});
-		}
-
-		return {
-			success: true,
-			message: "Invitation sent successfully",
-		};
-	});
-
-export const leave = os.organizations.leave.use(dbWithAuth).handler(async ({ input, context }) => {
-	const { db, user } = context;
-
-	// Check if user is a member
-	const membership = await db.organizationMember.findFirst({
-		where: {
-			organizationId: input.organizationId,
-			userId: user.id,
-		},
-	});
-
-	if (!membership) {
-		throw new ORPCError("NOT_FOUND", { message: "You are not a member of this organization" });
-	}
-
-	// Prevent the last owner from leaving
-	if (membership.role === "owner") {
-		const ownerCount = await db.organizationMember.count({
-			where: {
-				organizationId: input.organizationId,
-				role: "owner",
-			},
-		});
-
-		if (ownerCount <= 1) {
-			throw new ORPCError("BAD_REQUEST", {
-				message:
-					"The last owner cannot leave the organization. Transfer ownership or delete the organization instead.",
-			});
-		}
-	}
-
-	// Remove the membership
-	await db.organizationMember.delete({
-		where: {
-			id: membership.id,
-		},
-	});
-
-	return { success: true };
-});
-
-export const organizationsProcedures = {
-	list,
-	create,
-	get,
-	members,
-	rules,
-	acceptInvitation,
-	update,
-	delete: deleteOrganization,
-	removeMember,
-	inviteMember,
-	leave,
+		return await organizationService.leaveOrganization(input.organizationId, user.id);
+	}),
 };

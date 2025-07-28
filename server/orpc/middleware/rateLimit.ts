@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
-import { authErrors, type Locale } from "~/server/utils/i18n";
+import { createLogger } from "~/server/utils/logger";
 import { createPrismaClient } from "~/server/utils/prisma";
 
 export interface RateLimitConfig {
@@ -47,10 +47,9 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 					// Check if limit exceeded
 					if (rateLimitRecord.count >= maxRequests) {
 						const retryAfter = rateLimitRecord.resetAt - now;
-						const locale: Locale = "ja"; // Default to Japanese for now
-						// throw new ORPCError("TOO_MANY_REQUESTS", {
-						// 	message: authErrors.rateLimit(locale, retryAfter),
-						// });
+						throw new ORPCError("TOO_MANY_REQUESTS", {
+							message: `リクエストが多すぎます。${retryAfter}秒後に再試行してください。`,
+						});
 					}
 
 					// Increment counter
@@ -92,7 +91,8 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 			if (error instanceof ORPCError) {
 				throw error;
 			}
-			console.error("Rate limit middleware error:", error);
+			const logger = createLogger(env);
+			logger.error("Rate limit middleware error", error as Error);
 			// On error, allow the request to proceed
 			return next({
 				context: {
@@ -106,7 +106,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 
 /**
  * Get client identifier from context
- * In a real-world scenario, this would extract IP from headers
+ * Extracts IP address from Cloudflare headers or falls back to user ID
  */
 function getClientIdentifier(context: any): string {
 	// Check if user is authenticated
@@ -114,9 +114,25 @@ function getClientIdentifier(context: any): string {
 		return `user:${context.user.id}`;
 	}
 
-	// In Cloudflare Workers, we can get CF headers
-	// For now, use a placeholder
-	// In production, you'd extract from request headers like CF-Connecting-IP
+	// In Cloudflare Workers, extract IP from CF headers
+	const request = context.request;
+	if (request && request.headers) {
+		// CF-Connecting-IP is provided by Cloudflare and contains the real client IP
+		const cfConnectingIp = request.headers.get("CF-Connecting-IP");
+		if (cfConnectingIp) {
+			return `anonymous:${cfConnectingIp}`;
+		}
+
+		// Fallback to X-Forwarded-For if CF-Connecting-IP is not available
+		const xForwardedFor = request.headers.get("X-Forwarded-For");
+		if (xForwardedFor) {
+			// X-Forwarded-For can contain multiple IPs, get the first one
+			const firstIp = xForwardedFor.split(",")[0].trim();
+			return `anonymous:${firstIp}`;
+		}
+	}
+
+	// Final fallback
 	return "anonymous:default";
 }
 

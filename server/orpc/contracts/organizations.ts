@@ -48,6 +48,11 @@ export const organizationsContract = {
 		.output(OrganizationSchema),
 
 	get: oc
+		.route({
+			method: "GET",
+			path: "/organizations/:id",
+			description: "Get organization details",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -72,6 +77,11 @@ export const organizationsContract = {
 		),
 
 	members: oc
+		.route({
+			method: "GET",
+			path: "/organizations/:organizationId/members/summary",
+			description: "Get organization members summary",
+		})
 		.input(
 			z.object({
 				organizationId: z.string(),
@@ -80,6 +90,11 @@ export const organizationsContract = {
 		.output(z.array(OrganizationMemberSchema)),
 
 	rules: oc
+		.route({
+			method: "GET",
+			path: "/organizations/:organizationId/rules/summary",
+			description: "Get organization rules summary",
+		})
 		.input(
 			z.object({
 				organizationId: z.string(),
@@ -102,6 +117,11 @@ export const organizationsContract = {
 		),
 
 	acceptInvitation: oc
+		.route({
+			method: "POST",
+			path: "/organizations/accept-invitation",
+			description: "Accept organization invitation",
+		})
 		.input(
 			z.object({
 				token: z.string(),
@@ -127,6 +147,11 @@ export const organizationsContract = {
 		),
 
 	update: oc
+		.route({
+			method: "PATCH",
+			path: "/organizations/:id",
+			description: "Update organization",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -142,6 +167,11 @@ export const organizationsContract = {
 		),
 
 	delete: oc
+		.route({
+			method: "DELETE",
+			path: "/organizations/:id",
+			description: "Delete organization",
+		})
 		.input(
 			z.object({
 				id: z.string(),
@@ -150,6 +180,11 @@ export const organizationsContract = {
 		.output(SuccessResponseSchema),
 
 	removeMember: oc
+		.route({
+			method: "DELETE",
+			path: "/organizations/:organizationId/members/:userId",
+			description: "Remove member from organization",
+		})
 		.input(
 			z.object({
 				organizationId: z.string(),
@@ -159,19 +194,110 @@ export const organizationsContract = {
 		.output(SuccessResponseSchema),
 
 	inviteMember: oc
+		.route({
+			method: "POST",
+			path: "/organizations/:organizationId/invite",
+			description: "Invite member to organization",
+		})
 		.input(
 			z.object({
 				organizationId: z.string(),
-				username: z.string().min(1),
+				email: z.string().email(),
+				locale: z.enum(["ja", "en"]).optional(),
 			}),
 		)
 		.output(SuccessResponseSchema),
 
 	leave: oc
+		.route({
+			method: "POST",
+			path: "/organizations/:organizationId/leave",
+			description: "Leave organization",
+		})
 		.input(
 			z.object({
 				organizationId: z.string(),
 			}),
 		)
 		.output(SuccessResponseSchema),
+
+	updateMemberRole: oc
+		.route({
+			method: "PATCH",
+			path: "/organizations/:orgId/members/:memberId/role",
+			description: "Update member role in organization",
+		})
+		.input(
+			z.object({
+				orgId: z.string(),
+				memberId: z.string(),
+				role: z.enum(["owner", "member"]),
+			}),
+		)
+		.output(SuccessResponseSchema),
+
+	listMembers: oc
+		.route({
+			method: "GET",
+			path: "/organizations/:orgId/members",
+			description: "List organization members",
+		})
+		.input(
+			z.object({
+				orgId: z.string(),
+			}),
+		)
+		.output(
+			z.object({
+				members: z.array(
+					z.object({
+						id: z.string(),
+						username: z.string(),
+						email: z.string(),
+						role: z.enum(["owner", "member"]),
+						joinedAt: z.number(),
+					}),
+				),
+			}),
+		),
+
+	listRules: oc
+		.route({
+			method: "GET",
+			path: "/organizations/:orgId/rules",
+			description: "List organization rules",
+		})
+		.input(
+			z.object({
+				orgId: z.string(),
+				page: z.number().int().positive().default(1),
+				pageSize: z.number().int().min(1).max(100).default(10),
+			}),
+		)
+		.output(
+			z.object({
+				rules: z.array(
+					z.object({
+						id: z.string(),
+						name: z.string(),
+						description: z.string().nullable(),
+						visibility: z.enum(["public", "private", "team"]),
+						isPublished: z.boolean(),
+						downloadCount: z.number(),
+						starCount: z.number(),
+						createdAt: z.number(),
+						updatedAt: z.number(),
+						user: z.object({
+							id: z.string(),
+							username: z.string(),
+						}),
+						latestVersion: z.string(),
+					}),
+				),
+				total: z.number(),
+				page: z.number(),
+				pageSize: z.number(),
+				totalPages: z.number(),
+			}),
+		),
 };

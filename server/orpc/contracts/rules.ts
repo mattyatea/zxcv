@@ -400,4 +400,92 @@ export const rulesContract = {
 			}),
 		)
 		.output(SuccessResponseSchema),
+
+	listPublic: oc
+		.route({
+			method: "POST",
+			path: "/rules/listPublic",
+			description: "List public rules",
+		})
+		.input(
+			z.object({
+				tags: z.array(z.string()).optional(),
+				author: z.string().optional(),
+				limit: z.number().min(1).max(100).default(20),
+				offset: z.number().min(0).default(0),
+			}),
+		)
+		.output(
+			z.object({
+				rules: z.array(
+					z.object({
+						id: z.string(),
+						name: z.string(),
+						description: z.string().nullable(),
+						author: z.object({
+							id: z.string(),
+							username: z.string(),
+						}),
+						visibility: z.string(),
+						tags: z.array(z.string()),
+						version: z.string(),
+						updated_at: z.number(),
+					}),
+				),
+				total: z.number(),
+				limit: z.number(),
+				offset: z.number(),
+			}),
+		),
+
+	star: oc
+		.route({
+			method: "POST",
+			path: "/rules/star",
+			description: "Star a rule",
+		})
+		.input(
+			z.object({
+				ruleId: z.string(),
+			}),
+		)
+		.output(SuccessResponseSchema),
+
+	unstar: oc
+		.route({
+			method: "POST",
+			path: "/rules/unstar",
+			description: "Unstar a rule",
+		})
+		.input(
+			z.object({
+				ruleId: z.string(),
+			}),
+		)
+		.output(SuccessResponseSchema),
+
+	getVersionHistory: oc
+		.route({
+			method: "POST",
+			path: "/rules/getVersionHistory",
+			description: "Get version history of a rule",
+		})
+		.input(
+			z.object({
+				ruleId: z.string(),
+			}),
+		)
+		.output(
+			z.array(
+				z.object({
+					version: z.string(),
+					changelog: z.string(),
+					created_at: z.number(),
+					createdBy: z.object({
+						id: z.string(),
+						username: z.string(),
+					}),
+				}),
+			),
+		),
 };

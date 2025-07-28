@@ -22,15 +22,28 @@ export default defineNuxtPlugin((_nuxtApp) => {
 		fetch: async (url, options) => {
 			const response = await fetch(url, options);
 
-			// Handle authentication errors
-			if (!response.ok && import.meta.client) {
-				const clonedResponse = response.clone();
-				try {
-					const data = (await clonedResponse.json()) as { message?: string };
+			// レスポンスのクローンを作成してボディを読む
+			const clonedResponse = response.clone();
+			const text = await clonedResponse.text();
+			let data: unknown;
+
+			try {
+				data = JSON.parse(text);
+			} catch {
+				// JSONパースエラーの場合はそのまま返す
+				return response;
+			}
+
+			// エラーレスポンスの場合
+			if (!response.ok) {
+				// クライアントサイドでのみ実行
+				if (process.client) {
+					// 認証エラーまたはユーザー不在エラーの場合
 					if (
 						response.status === 401 ||
-						(response.status === 500 && data?.message?.includes("User not found")) ||
-						(response.status === 500 && data?.message?.includes("FOREIGN KEY constraint failed"))
+						(response.status === 500 && (data as any)?.message?.includes("User not found")) ||
+						(response.status === 500 &&
+							(data as any)?.message?.includes("FOREIGN KEY constraint failed"))
 					) {
 						console.log("Authentication error detected, clearing auth data...");
 						localStorage.removeItem("access_token");
@@ -42,8 +55,6 @@ export default defineNuxtPlugin((_nuxtApp) => {
 							navigateTo("/login");
 						}
 					}
-				} catch {
-					// Ignore JSON parse errors
 				}
 			}
 

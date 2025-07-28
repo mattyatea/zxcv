@@ -1,5 +1,22 @@
 import type { Env } from "~/server/types/env";
 import { t } from "./i18n";
+import { createLogger } from "./logger";
+
+// Legacy sendEmail function for backward compatibility
+export async function sendEmail(
+	env: Env,
+	to: string,
+	subject: string,
+	body: string,
+): Promise<boolean> {
+	const emailService = new EmailService(env);
+	return await emailService.sendEmail({
+		to,
+		subject,
+		html: body,
+		text: body.replace(/<[^>]*>/g, ""), // Simple HTML strip
+	});
+}
 
 export interface EmailTemplate {
 	to: string;
@@ -34,11 +51,13 @@ export class EmailService {
 	private readonly fromEmail: string;
 	private readonly baseUrl: string;
 	private readonly env: Env;
+	private readonly logger;
 
 	constructor(env: Env) {
 		this.fromEmail = env.EMAIL_FROM || "noreply@prism-project.net";
 		this.baseUrl = env.APP_URL || env.FRONTEND_URL || "https://zxcv.dev";
 		this.env = env;
+		this.logger = createLogger(env);
 	}
 
 	async sendEmail(template: EmailTemplate): Promise<boolean> {
