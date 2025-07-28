@@ -7,6 +7,7 @@ import {
 	dbWithOptionalAuth,
 } from "~/server/orpc/middleware/combined";
 import { RuleService } from "~/server/services/RuleService";
+import { createLogger } from "~/server/utils/logger";
 import { parseRulePath } from "~/server/utils/namespace";
 
 export const rulesProcedures = {
@@ -62,7 +63,8 @@ export const rulesProcedures = {
 		const { db, user, env } = context;
 		const ruleService = new RuleService(db, env.R2, env);
 
-		console.log("Create rule handler - user:", user);
+		const logger = createLogger(env);
+		logger.debug("Create rule handler - user", { user });
 		const result = await ruleService.createRule(user.id, input);
 		return { id: result.rule.id };
 	}),

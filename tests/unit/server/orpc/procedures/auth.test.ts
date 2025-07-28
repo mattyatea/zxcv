@@ -108,7 +108,7 @@ describe("auth procedures", () => {
 
 			expect(error).toBeInstanceOf(ORPCError);
 			expect((error as ORPCError<any, any>).code).toBe("CONFLICT");
-			expect((error as ORPCError<any, any>).message).toBe("このメールアドレスは既に登録されています");
+			expect((error as ORPCError<any, any>).message).toBe("このメールアドレスは既に使用されています");
 		});
 
 		it("should throw CONFLICT error when username is not available", async () => {
@@ -155,7 +155,8 @@ describe("auth procedures", () => {
 
 			// Mock AuthService to throw an email service error
 			const { AuthService } = await import("~/server/services/AuthService");
-			const mockRegister = vi.fn().mockRejectedValue(new Error("Email service error"));
+			const { EmailServiceError } = await import("~/server/types/errors");
+			const mockRegister = vi.fn().mockRejectedValue(new EmailServiceError("Email service error"));
 			vi.spyOn(AuthService.prototype, "register").mockImplementation(mockRegister);
 
 			const error = await expectORPCError(

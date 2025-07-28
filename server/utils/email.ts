@@ -1,5 +1,7 @@
 import type { Env } from "~/server/types/env";
+import { EmailServiceError } from "~/server/types/errors";
 import { t } from "./i18n";
+import { createLogger } from "./logger";
 
 // Legacy sendEmail function for backward compatibility
 export async function sendEmail(
@@ -50,29 +52,35 @@ export class EmailService {
 	private readonly fromEmail: string;
 	private readonly baseUrl: string;
 	private readonly env: Env;
+	private readonly logger;
 
 	constructor(env: Env) {
 		this.fromEmail = env.EMAIL_FROM || "noreply@prism-project.net";
 		this.baseUrl = env.APP_URL || env.FRONTEND_URL || "https://zxcv.dev";
 		this.env = env;
+		this.logger = createLogger(env);
 	}
 
 	async sendEmail(template: EmailTemplate): Promise<boolean> {
 		try {
 			// In test environment, use mock email sender
 			if (this.isTestEnvironment()) {
-				console.log(`[TEST] Email would be sent to: ${template.to}`);
-				console.log(`[TEST] Subject: ${template.subject}`);
-				console.log(`[DEV] Text content: ${template.text}`);
+				this.logger.debug("[TEST] Email would be sent", {
+					to: template.to,
+					subject: template.subject,
+					textContent: template.text,
+				});
 				return true;
 			}
 
 			// Check if EMAIL_SENDER binding is available
 			if (!this.env.EMAIL_SENDER) {
-				console.error("EMAIL_SENDER binding is not configured");
-				console.log(`[DEV] Email would be sent to: ${template.to}`);
-				console.log(`[DEV] Subject: ${template.subject}`);
-				console.log(`[DEV] Text content: ${template.text}`);
+				this.logger.error("EMAIL_SENDER binding is not configured");
+				this.logger.debug("[DEV] Email would be sent", {
+					to: template.to,
+					subject: template.subject,
+					textContent: template.text,
+				});
 				return false;
 			}
 
@@ -106,8 +114,8 @@ export class EmailService {
 
 			return true;
 		} catch (error) {
-			console.error("Email sending error:", error);
-			return false;
+			this.logger.error("Email sending error", error as Error);
+			throw new EmailServiceError(error instanceof Error ? error.message : "Failed to send email");
 		}
 	}
 

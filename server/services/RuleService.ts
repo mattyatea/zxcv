@@ -4,18 +4,21 @@ import type { PrismaClient } from "@prisma/client";
 import { nanoid } from "nanoid";
 import { OrganizationRepository, RuleRepository } from "~/server/repositories";
 import type { CloudflareEnv } from "../types/env";
+import { createLogger } from "../utils/logger";
 
 export class RuleService {
 	private ruleRepository: RuleRepository;
 	private organizationRepository: OrganizationRepository;
+	private logger;
 
 	constructor(
 		private db: PrismaClient,
 		private r2: R2Bucket,
-		_env: CloudflareEnv,
+		env: CloudflareEnv,
 	) {
 		this.ruleRepository = new RuleRepository(db);
 		this.organizationRepository = new OrganizationRepository(db);
+		this.logger = createLogger(env);
 	}
 
 	/**
@@ -33,11 +36,11 @@ export class RuleService {
 		},
 	) {
 		// ユーザーの存在確認
-		console.log("Creating rule for userId:", userId);
+		this.logger.debug("Creating rule for userId", { userId });
 		const user = await this.db.user.findUnique({
 			where: { id: userId },
 		});
-		console.log("User found:", user);
+		this.logger.debug("User found", { user });
 
 		if (!user) {
 			console.error("User not found:", userId);
@@ -116,12 +119,12 @@ export class RuleService {
 	 * ルールを取得
 	 */
 	async getRule(nameOrId: string, owner?: string, userId?: string) {
-		console.log("getRule called with:", { nameOrId, owner, userId });
+		this.logger.debug("getRule called with", { nameOrId, owner, userId });
 		let rule: any | null = null;
 
 		if (owner) {
 			// オーナー（ユーザーまたは組織）スコープのルール
-			console.log("Looking for owner:", owner);
+			this.logger.debug("Looking for owner", { owner });
 
 			// まずユーザーとして検索
 			const user = await this.db.user.findUnique({
@@ -130,7 +133,7 @@ export class RuleService {
 			});
 
 			if (user) {
-				console.log("Owner is a user:", user);
+				this.logger.debug("Owner is a user", { user });
 				// ユーザーのルールを検索
 				rule = await this.ruleRepository.findByNameAndUserId(nameOrId, user.id);
 			} else {
@@ -141,12 +144,12 @@ export class RuleService {
 						message: `オーナー '${owner}' が見つかりません`,
 					});
 				}
-				console.log("Owner is an organization:", org);
+				this.logger.debug("Owner is an organization", { org });
 				rule = await this.ruleRepository.findByName(nameOrId, org.id);
 			}
 		} else {
 			// IDまたは名前で検索
-			console.log("Looking for rule by ID or name:", nameOrId);
+			this.logger.debug("Looking for rule by ID or name", { nameOrId });
 			rule = await this.ruleRepository.findById(nameOrId, true);
 			if (!rule) {
 				rule = await this.ruleRepository.findByName(nameOrId);

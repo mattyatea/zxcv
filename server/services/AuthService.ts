@@ -3,8 +3,10 @@ import type { PrismaClient, User } from "@prisma/client";
 import { nanoid } from "nanoid";
 import { UserRepository } from "../repositories/UserRepository";
 import type { CloudflareEnv } from "../types/env";
+import { EmailServiceError } from "../types/errors";
 import { hashPassword, verifyPassword } from "../utils/crypto";
 import { sendEmail } from "../utils/email";
+import { authErrors, type Locale } from "../utils/i18n";
 import { createJWT, createRefreshToken, generateToken, verifyToken } from "../utils/jwt";
 
 export class AuthService {
@@ -24,15 +26,17 @@ export class AuthService {
 		// 既存ユーザーチェック
 		const existingUser = await this.userRepository.findByEmail(data.email);
 		if (existingUser) {
+			const locale = (data.locale as Locale) || "ja";
 			throw new ORPCError("CONFLICT", {
-				message: "このメールアドレスは既に登録されています",
+				message: authErrors.emailAlreadyInUse(locale),
 			});
 		}
 
 		const existingUsername = await this.userRepository.findByUsername(data.username);
 		if (existingUsername) {
+			const locale = (data.locale as Locale) || "ja";
 			throw new ORPCError("CONFLICT", {
-				message: "このユーザー名は既に使用されています",
+				message: authErrors.usernameAlreadyInUse(locale),
 			});
 		}
 
@@ -56,7 +60,15 @@ export class AuthService {
 			"1h",
 		);
 
-		await this.sendVerificationEmail(user.email, verificationToken, data.locale || "ja");
+		try {
+			await this.sendVerificationEmail(user.email, verificationToken, data.locale || "ja");
+		} catch (error) {
+			// ユーザーは作成されたが、メール送信に失敗した
+			if (error instanceof EmailServiceError) {
+				throw error;
+			}
+			throw new EmailServiceError("Failed to send verification email");
+		}
 
 		return {
 			success: true,
@@ -72,30 +84,30 @@ export class AuthService {
 	/**
 	 * ログイン
 	 */
-	async login(email: string, password: string) {
+	async login(email: string, password: string, locale: Locale = "ja") {
 		const user = await this.userRepository.findByEmail(email);
 		if (!user) {
 			throw new ORPCError("UNAUTHORIZED", {
-				message: "メールアドレスまたはパスワードが正しくありません",
+				message: authErrors.invalidCredentials(locale),
 			});
 		}
 
 		if (!user.passwordHash) {
 			throw new ORPCError("UNAUTHORIZED", {
-				message: "メールアドレスまたはパスワードが正しくありません",
+				message: authErrors.invalidCredentials(locale),
 			});
 		}
 
 		const isValid = await verifyPassword(password, user.passwordHash);
 		if (!isValid) {
 			throw new ORPCError("UNAUTHORIZED", {
-				message: "メールアドレスまたはパスワードが正しくありません",
+				message: authErrors.invalidCredentials(locale),
 			});
 		}
 
 		if (!user.emailVerified) {
 			throw new ORPCError("FORBIDDEN", {
-				message: "メールアドレスの確認が必要です",
+				message: authErrors.emailNotVerified(locale),
 			});
 		}
 
@@ -173,7 +185,14 @@ export class AuthService {
 			"1h",
 		);
 
-		await this.sendPasswordResetEmail(email, resetToken, locale);
+		try {
+			await this.sendPasswordResetEmail(email, resetToken, locale);
+		} catch (error) {
+			if (error instanceof EmailServiceError) {
+				throw error;
+			}
+			throw new EmailServiceError("Failed to send password reset email");
+		}
 
 		return { message: "パスワードリセットメールを送信しました" };
 	}
@@ -220,7 +239,14 @@ export class AuthService {
 			"1h",
 		);
 
-		await this.sendVerificationEmail(user.email, verificationToken, locale);
+		try {
+			await this.sendVerificationEmail(user.email, verificationToken, locale);
+		} catch (error) {
+			if (error instanceof EmailServiceError) {
+				throw error;
+			}
+			throw new EmailServiceError("Failed to send verification email");
+		}
 
 		return { message: "確認メールを再送信しました" };
 	}

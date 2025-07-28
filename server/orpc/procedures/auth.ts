@@ -7,9 +7,11 @@ import {
 	registerRateLimit,
 } from "~/server/orpc/middleware/rateLimit";
 import { AuthService } from "~/server/services/AuthService";
+import { EmailServiceError } from "~/server/types/errors";
 import type { Locale } from "~/server/utils/i18n";
 import { generateToken } from "~/server/utils/jwt";
 import { getLocaleFromRequest } from "~/server/utils/locale";
+import { createLogger } from "~/server/utils/logger";
 
 export const authProcedures = {
 	/**
@@ -33,7 +35,7 @@ export const authProcedures = {
 			};
 		} catch (error) {
 			// If it's an email sending error and user was created, clean up
-			if (error instanceof Error && error.message.includes("Email service error")) {
+			if (error instanceof EmailServiceError) {
 				// This would need to be implemented in the actual service
 				throw new ORPCError("INTERNAL_SERVER_ERROR", {
 					message:
@@ -52,12 +54,12 @@ export const authProcedures = {
 		const authService = new AuthService(db, env);
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-		const result = await authService.login(input.email, input.password);
+		const result = await authService.login(input.email, input.password, locale);
 		return {
 			accessToken: result.accessToken,
 			refreshToken: result.refreshToken,
 			user: result.user,
-			message: "Login successful",
+			message: locale === "ja" ? "ログインに成功しました" : "Login successful",
 		};
 	}),
 
@@ -256,6 +258,7 @@ export const authProcedures = {
 					codeVerifier,
 					redirectUrl: redirectUrl || "/",
 					expiresAt,
+					clientIp, // Store the client IP for verification
 				},
 			});
 
@@ -293,7 +296,8 @@ export const authProcedures = {
 		const authService = new AuthService(db, env);
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-		console.log("OAuth callback started:", {
+		const logger = createLogger(env);
+		logger.debug("OAuth callback started", {
 			provider,
 			code: `${code?.substring(0, 10)}...`,
 			state,
@@ -313,7 +317,7 @@ export const authProcedures = {
 		try {
 			stateData = JSON.parse(Buffer.from(state, "base64url").toString());
 		} catch (e) {
-			console.error("Failed to decode state:", e);
+			logger.error("Failed to decode state", e as Error);
 			throw new ORPCError("BAD_REQUEST", { message: "無効または期限切れの状態です" });
 		}
 
@@ -322,20 +326,37 @@ export const authProcedures = {
 			where: { state: stateData.random },
 		});
 
-		console.log("State record found:", stateRecord);
-		console.log("Action from state:", stateData.action);
+		logger.debug("State record found", { stateRecord });
+		logger.debug("Action from state", { action: stateData.action });
 
 		if (
 			!stateRecord ||
 			stateRecord.provider !== provider ||
 			stateRecord.expiresAt < Math.floor(Date.now() / 1000)
 		) {
-			console.error("State validation failed:", {
+			logger.error("State validation failed", undefined, {
 				stateRecord,
 				provider,
 				currentTime: Math.floor(Date.now() / 1000),
 			});
 			throw new ORPCError("BAD_REQUEST", { message: "無効または期限切れの状態です" });
+		}
+
+		// Verify client IP matches (if stored)
+		if (stateRecord.clientIp && stateRecord.clientIp !== "unknown") {
+			const currentClientIp =
+				cloudflare?.request?.headers?.get("CF-Connecting-IP") ||
+				cloudflare?.request?.headers?.get("X-Forwarded-For") ||
+				"unknown";
+
+			if (stateRecord.clientIp !== currentClientIp) {
+				logger.warn("OAuth callback IP mismatch", {
+					stored: stateRecord.clientIp,
+					current: currentClientIp,
+				});
+				// For now, just log the mismatch but don't block the request
+				// In a high-security environment, you might want to throw an error here
+			}
 		}
 
 		// Clean up state
@@ -346,9 +367,9 @@ export const authProcedures = {
 			let userInfo: { id: string; email: string; username?: string };
 
 			if (provider === "github") {
-				console.log("Validating GitHub authorization code...");
+				logger.debug("Validating GitHub authorization code");
 				tokens = await providers.github.validateAuthorizationCode(code);
-				console.log("GitHub token obtained");
+				logger.debug("GitHub token obtained");
 
 				// Fetch user info from GitHub
 				const [userResponse, emailResponse] = await Promise.all([
@@ -366,13 +387,13 @@ export const authProcedures = {
 					}),
 				]);
 
-				console.log("GitHub API responses:", {
+				logger.debug("GitHub API responses", {
 					userStatus: userResponse.status,
 					emailStatus: emailResponse.status,
 				});
 
 				if (!userResponse.ok || !emailResponse.ok) {
-					console.error("GitHub API error:", {
+					logger.error("GitHub API error", undefined, {
 						userStatus: userResponse.status,
 						userText: await userResponse.text(),
 						emailStatus: emailResponse.status,
@@ -407,7 +428,7 @@ export const authProcedures = {
 					username: githubUser.login,
 				};
 			} else if (provider === "google") {
-				console.log("Validating Google authorization code...");
+				logger.debug("Validating Google authorization code");
 
 				// Get code verifier from state record
 				if (!stateRecord.codeVerifier) {
@@ -417,7 +438,7 @@ export const authProcedures = {
 				}
 
 				tokens = await providers.google.validateAuthorizationCode(code, stateRecord.codeVerifier);
-				console.log("Google token obtained");
+				logger.debug("Google token obtained");
 
 				// Fetch user info from Google
 				const googleUserResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
@@ -426,12 +447,12 @@ export const authProcedures = {
 					},
 				});
 
-				console.log("Google API response:", {
+				logger.debug("Google API response", {
 					status: googleUserResponse.status,
 				});
 
 				if (!googleUserResponse.ok) {
-					console.error("Google API error:", {
+					logger.error("Google API error", undefined, {
 						status: googleUserResponse.status,
 						text: await googleUserResponse.text(),
 					});
@@ -472,14 +493,14 @@ export const authProcedures = {
 				redirectUrl: stateRecord.redirectUrl || "/",
 			};
 		} catch (error) {
-			console.error("OAuth callback error:", error);
+			logger.error("OAuth callback error", error as Error);
 			if (error instanceof ORPCError) {
 				throw error;
 			}
 
 			// Provide more detailed error information for debugging
 			const errorMessage = error instanceof Error ? error.message : "Unknown error";
-			console.error("Detailed error:", {
+			logger.error("Detailed error", undefined, {
 				message: errorMessage,
 				stack: error instanceof Error ? error.stack : undefined,
 				error: error,
