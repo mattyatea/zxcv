@@ -17,6 +17,7 @@
     "format": "pnpm -r format",
     "format:check": "pnpm -r format:check",
     "typecheck": "pnpm -r typecheck",
+    "typecheck:server": "pnpm -F server typecheck",
     "check": "pnpm -r check",
     "check:fix": "pnpm -r check:fix",
     "prisma:generate": "pnpm -F server prisma:generate",
