@@ -1,0 +1,2 @@
+const a=".fade-enter-active[data-v-c268a4d8],.fade-leave-active[data-v-c268a4d8]{transition:all .3s ease}.fade-enter-from[data-v-c268a4d8]{opacity:0;transform:translateY(-10px)}.fade-leave-to[data-v-c268a4d8]{opacity:0;transform:translateY(10px)}";export{a as l};
+//# sourceMappingURL=login-styles-1.mjs-DnECPrcH.mjs.map

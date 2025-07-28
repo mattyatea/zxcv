@@ -1,97 +1,149 @@
 # zxcv - AI Coding Rules Sharing Platform
 
-zxcvは、AIコーディングルールを管理・共有するためのフルスタックアプリケーションです。
+zxcvは、AIコーディングルールを管理・共有するためのモノレポプロジェクトです。
 
-## 機能
+## 🏗️ プロジェクト構成
 
-- AIコーディングルールの作成・管理・共有
-- バージョン管理
-- チーム機能
-- Google/GitHubでのソーシャルログイン
-- 全文検索
-- レート制限
+このプロジェクトは、pnpmワークスペースを使用したモノレポ構成になっています：
 
-## Setup
+```
+zxcv/
+├── server/          # Nuxt.js + Cloudflare Workersベースのウェブアプリケーション (Node.js)
+├── cli/             # Bunベースのコマンドラインツール
+├── pnpm-workspace.yaml
+└── package.json     # ルートパッケージ（ワークスペース管理）
+```
 
-Make sure to install dependencies:
+### server/ - Webアプリケーション
+- **フレームワーク**: Nuxt 3 + Vue 3
+- **ランタイム**: Node.js + Cloudflare Workers
+- **データベース**: Cloudflare D1 (SQLite) + Prisma ORM
+- **認証**: JWT + OAuth 2.0 (Google, GitHub)
+
+### cli/ - コマンドラインツール
+- **ランタイム**: Bun
+- **ビルドツール**: Bun bundler
+- **用途**: AIコーディングルールの管理、プッシュ/プル操作
+
+## ✨ 機能
+
+- 📝 AIコーディングルールの作成・管理・共有
+- 🔄 バージョン管理
+- 👥 チーム/組織機能
+- 🔐 Google/GitHubでのソーシャルログイン
+- 🔍 全文検索
+- ⚡ レート制限
+- 🌐 i18n対応（日本語・英語）
+
+## 🚀 セットアップ
+
+### 前提条件
+
+- Node.js 18+
+- pnpm 10.12.1
+- Bun 1.0+ (CLIツール用)
+
+### 依存関係のインストール
 
 ```bash
-# npm
-npm install
-
-# pnpm
+# ルートディレクトリで実行（両方のプロジェクトの依存関係をインストール）
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+### 環境変数の設定
 
-Start the development server on `http://localhost:3000`:
+1. サーバー用の環境変数:
+```bash
+cd server
+cp .env.example .env
+# .envファイルを編集して必要な値を設定
+```
+
+2. CLI用の設定:
+```bash
+cd cli
+# 必要に応じて設定ファイルを作成
+```
+
+## 💻 開発
+
+### 開発サーバーの起動
 
 ```bash
-# npm
-npm run dev
+# サーバーの開発環境を起動 (http://localhost:3000)
+pnpm dev:server
 
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+# CLIの開発環境を起動（別ターミナルで）
+pnpm dev:cli
 ```
 
-## Production
-
-Build the application for production:
+### テストの実行
 
 ```bash
-# npm
-npm run build
+# すべてのテストを実行
+pnpm test
 
-# pnpm
-pnpm build
+# サーバーのテストのみ
+pnpm -F server test
 
-# yarn
-yarn build
-
-# bun
-bun run build
+# CLIのテストのみ
+pnpm -F cli test
 ```
 
-Locally preview production build:
+### コード品質チェック
 
 ```bash
-# npm
-npm run preview
+# リント
+pnpm lint
+pnpm lint:fix     # 自動修正
 
-# pnpm
-pnpm preview
+# フォーマット
+pnpm format       # フォーマット実行
+pnpm format:check # フォーマットチェックのみ
 
-# yarn
-yarn preview
+# 型チェック
+pnpm typecheck
 
-# bun
-bun run preview
+# すべてのチェック
+pnpm check        # リント + フォーマットチェック
+pnpm check:fix    # リント + フォーマット自動修正
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+### データベース操作
 
-## デプロイ
+```bash
+# Prismaクライアントの生成
+pnpm prisma:generate
 
-### GitHub Actionsを使用した自動デプロイ
+# マイグレーション（ローカル）
+pnpm migrate:local
+
+# マイグレーション（本番）
+pnpm migrate:prod
+```
+
+## 🏭 ビルド
+
+```bash
+# サーバーをビルド
+pnpm build:server
+
+# CLIをビルド
+pnpm build:cli
+
+# サーバーのプレビュー（Cloudflare Workers環境）
+pnpm preview:server
+```
+
+## 📦 デプロイ
+
+### サーバーのデプロイ (Cloudflare Workers)
+
+#### GitHub Actionsを使用した自動デプロイ
 
 このプロジェクトはGitHub Actionsを使用してCloudflare Workersに自動デプロイされます。
 
-#### 必要なGitHub Secrets
-
-以下のSecretsをGitHubリポジトリに設定してください：
+**必要なGitHub Secrets:**
 
 1. **Cloudflare関連**
    - `CLOUDFLARE_API_TOKEN`: Cloudflare APIトークン
@@ -108,31 +160,19 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 詳細な設定方法は[GitHub Secretsガイド](./docs/GITHUB_SECRETS.md)を参照してください。
 
-#### デプロイフロー
-
+**デプロイフロー:**
 - `main`ブランチにプッシュ → 本番環境にデプロイ
 - `dev`ブランチにプッシュ → ステージング環境にデプロイ
 
-### ローカル開発
-
-ローカル開発環境では`.env`ファイルを作成して環境変数を設定してください：
+### CLIの配布
 
 ```bash
-cp .env.example .env
-# .envファイルを編集して必要な値を設定
+cd cli
+bun build
+# dist/index.js が生成される
 ```
 
-## 技術スタック
-
-- **Frontend**: Nuxt 3, Vue 3, Tailwind CSS, Pinia
-- **Backend**: oRPC, Cloudflare Workers
-- **Database**: Cloudflare D1 (SQLite), Prisma ORM
-- **Storage**: Cloudflare R2
-- **Authentication**: JWT, OAuth 2.0 (Google, GitHub)
-- **Development**: TypeScript, Biome, Vitest
-- **API Documentation**: OpenAPI 3.0, Swagger UI
-
-## API Documentation
+## 📚 API Documentation
 
 本プロジェクトはOpenAPI 3.0仕様に準拠したREST APIを提供しています。
 
@@ -140,12 +180,10 @@ cp .env.example .env
 
 開発サーバーを起動後、以下のURLでアクセスできます：
 
-- **Swagger UI (インタラクティブドキュメント)**: http://localhost:3000/api-docs
-- **OpenAPI仕様書 (JSON形式)**: http://localhost:3000/api-spec.json
+- **Swagger UI**: http://localhost:3000/api-docs
+- **OpenAPI仕様書**: http://localhost:3000/api-spec.json
 
-### APIエンドポイント
-
-APIのベースURLは `/api` です。主なエンドポイント：
+### 主なAPIエンドポイント
 
 - `/api/auth/*` - 認証関連
 - `/api/rules/*` - ルール管理
@@ -153,10 +191,33 @@ APIのベースURLは `/api` です。主なエンドポイント：
 - `/api/users/*` - ユーザー管理
 - `/api/health` - ヘルスチェック
 
-### 認証
+## 🛠️ 技術スタック
 
-保護されたエンドポイントへのアクセスには、Bearerトークン認証が必要です：
+### サーバー
+- **Frontend**: Nuxt 3, Vue 3, Tailwind CSS, Pinia
+- **Backend**: oRPC, Cloudflare Workers
+- **Database**: Cloudflare D1 (SQLite), Prisma ORM
+- **Storage**: Cloudflare R2
+- **Authentication**: JWT, OAuth 2.0
 
-```bash
-curl -H "Authorization: Bearer YOUR_JWT_TOKEN" http://localhost:3000/api/users/me
-```
+### CLI
+- **Runtime**: Bun
+- **Language**: TypeScript
+- **Testing**: Bun test
+
+### 共通
+- **Code Quality**: Biome (linting/formatting)
+- **Version Control**: Git + GitHub
+- **Package Manager**: pnpm (workspace)
+
+## 📝 ライセンス
+
+MIT License
+
+## 🤝 コントリビューション
+
+プルリクエストは歓迎します。大きな変更の場合は、まずissueを開いて変更内容について議論してください。
+
+## 📞 サポート
+
+質問や問題がある場合は、GitHubのissueを作成してください。

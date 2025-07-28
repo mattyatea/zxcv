@@ -1,0 +1,5 @@
+const Badge_vue_vue_type_style_index_0_scoped_bb0bdee7_lang = ".badge-icon[data-v-bb0bdee7]{align-items:center;display:flex;margin-left:-.125rem;margin-right:.375rem}.badge-dot[data-v-bb0bdee7]{background-color:currentColor;height:.5rem;width:.5rem}.badge-close[data-v-bb0bdee7],.badge-dot[data-v-bb0bdee7]{border-radius:9999px}.badge-close[data-v-bb0bdee7]{align-items:center;display:inline-flex;justify-content:center;margin-left:.375rem;margin-right:-.125rem;padding:.125rem;transition-duration:.15s;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1)}.badge-close[data-v-bb0bdee7]:hover{background-color:#0000001a}.badge-close[data-v-bb0bdee7]:hover:is(.dark *){background-color:#ffffff1a}.badge .badge-icon svg[data-v-bb0bdee7]{height:.875rem;width:.875rem}.badge.text-xs .badge-icon svg[data-v-bb0bdee7]{height:.75rem;width:.75rem}.badge.text-base .badge-icon svg[data-v-bb0bdee7]{height:1rem;width:1rem}";
+export {
+  Badge_vue_vue_type_style_index_0_scoped_bb0bdee7_lang as default
+};
+//# sourceMappingURL=Badge-styles-1.mjs-BazZYdlQ.js.map

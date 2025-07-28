@@ -1,3 +1,7 @@
+packages:
+  - 'server'
+  - 'cli'
+
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@prisma/client'

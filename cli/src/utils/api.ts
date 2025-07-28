@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance } from "axios";
 import type { ConfigManager } from "../config";
 import type { Rule } from "../types";
+import { debugLogger } from "./debug";
 
 export class ApiClient {
 	private client: AxiosInstance;
@@ -20,8 +21,20 @@ export class ApiClient {
 			if (token) {
 				config.headers.Authorization = `Bearer ${token}`;
 			}
+			debugLogger.logRequest(config);
 			return config;
 		});
+
+		this.client.interceptors.response.use(
+			(response) => {
+				debugLogger.logResponse(response);
+				return response;
+			},
+			(error) => {
+				debugLogger.logError(error);
+				return Promise.reject(error);
+			},
+		);
 	}
 
 	async login(username: string, password: string): Promise<{ token: string }> {

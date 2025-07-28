@@ -2,6 +2,7 @@
 
 import chalk from "chalk";
 import { Command } from "commander";
+import { debugLogger } from "./utils/debug";
 import { createAddCommand } from "./commands/add";
 import { createAuthCommand } from "./commands/auth";
 import { createInitCommand } from "./commands/init";
@@ -15,7 +16,18 @@ import { createUpdateCommand } from "./commands/update";
 
 const program = new Command();
 
-program.name("zxcv").description("AI coding rules management CLI tool").version("0.1.0");
+program
+	.name("zxcv")
+	.description("AI coding rules management CLI tool")
+	.version("0.1.0")
+	.option("-d, --debug", "Enable debug mode to show API requests and responses")
+	.hook("preAction", (thisCommand) => {
+		const opts = thisCommand.opts();
+		if (opts.debug) {
+			debugLogger.setEnabled(true);
+			debugLogger.log("Debug mode enabled");
+		}
+	});
 
 // Add commands
 program.addCommand(createInitCommand());

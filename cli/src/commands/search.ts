@@ -29,8 +29,10 @@ export function createSearchCommand(): Command {
 						tags?: string[];
 						owner?: string;
 						visibility?: "public" | "private";
+						page?: number;
 					} = {
 						limit: Number.parseInt(options?.limit || "20"),
+						page: 1, 
 					};
 
 					if (query) {

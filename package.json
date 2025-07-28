@@ -1,92 +1,40 @@
 {
-	"name": "nuxt-app",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"build": "nuxt build",
-		"dev": "pnpm migrate:local && nuxt dev",
-		"generate": "nuxt generate",
-		"preview": "pnpm run build && wrangler dev",
-		"postinstall": "nuxt prepare",
-		"deploy": "pnpm run build && wrangler deploy",
-		"cf-typegen": "wrangler types",
-		"prisma:generate": "prisma generate",
-		"migrate:local": "wrangler d1 migrations apply zxcv-db --local",
-		"migrate:prod": "wrangler d1 migrations apply zxcv-db --remote",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
-		"test:unit": "vitest run tests/unit",
-		"test:integration": "vitest run tests/integration",
-		"test:vue": "vitest run --config vitest.config.vue.mts",
-		"test:vue:watch": "vitest --config vitest.config.vue.mts",
-		"lint": "biome lint .",
-		"lint:fix": "biome lint --write .",
-		"format": "biome format --write .",
-		"format:check": "biome format .",
-		"check": "biome check .",
-		"check:fix": "biome check --write .",
-		"check:fix:hard": "biome check --write --unsafe .",
-		"typecheck": "tsc --noEmit",
-		"prepare": "husky"
-	},
-	"packageManager": "pnpm@10.12.1",
-	"dependencies": {
-		"@cloudflare/workers-types": "^4.20250719.0",
-		"@hono/zod-validator": "^0.7.1",
-		"@nuxtjs/tailwindcss": "^6.14.0",
-		"@orpc/client": "^1.7.4",
-		"@orpc/contract": "^1.7.4",
-		"@orpc/openapi": "^1.7.4",
-		"@orpc/openapi-client": "^1.7.4",
-		"@orpc/server": "^1.7.4",
-		"@orpc/zod": "^1.7.4",
-		"@pinia/nuxt": "^0.11.2",
-		"@prisma/adapter-d1": "^6.12.0",
-		"@prisma/client": "^6.12.0",
-		"arctic": "^3.7.0",
-		"chanfana": "2.8.1",
-		"hono": "4.8.2",
-		"jose": "^6.0.12",
-		"marked": "^16.1.1",
-		"mimetext": "^3.0.27",
-		"nanoid": "^5.1.5",
-		"nuxt": "^3.17.7",
-		"pinia": "^3.0.3",
-		"vue": "^3.5.17",
-		"vue-router": "^4.5.1",
-		"zod": "4.0.5"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.1.2",
-		"@cloudflare/vitest-pool-workers": "0.8.44",
-		"@nuxt/test-utils": "^3.19.2",
-		"@nuxtjs/icon": "2.6.0",
-		"@tailwindcss/forms": "^0.5.10",
-		"@tailwindcss/typography": "^0.5.16",
-		"@testing-library/vue": "^8.1.0",
-		"@types/node": "^24.0.14",
-		"@vitejs/plugin-vue": "^6.0.0",
-		"@vitest/coverage-v8": "^3.2.4",
-		"@vue/language-server": "^3.0.3",
-		"@vue/test-utils": "^2.4.6",
-		"h3": "^1.15.3",
-		"happy-dom": "^18.0.1",
-		"husky": "^9.1.7",
-		"lint-staged": "^16.1.2",
-		"nitro-cloudflare-dev": "^0.2.2",
-		"nitropack": "^2.12.3",
-		"prisma": "^6.12.0",
-		"typescript": "5.8.3",
-		"vitest": "^3.2.4",
-		"wrangler": "^4.26.0"
-	},
-	"lint-staged": {
-		"*.{ts,tsx,js,jsx,vue}": [
-			"pnpm biome check --write --no-errors-on-unmatched"
-		],
-		"*.{ts,tsx}": [
-			"bash -c 'pnpm typecheck'"
-		]
-	}
+  "name": "zxcv-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "dev:server": "pnpm -F server dev",
+    "dev:cli": "pnpm -F cli dev",
+    "build:server": "pnpm -F server build",
+    "build:cli": "pnpm -F cli build",
+    "preview:server": "pnpm -F server preview",
+    "deploy:server": "pnpm -F server deploy",
+    "test": "pnpm -r test",
+    "test:server": "pnpm -F server test",
+    "test:cli": "pnpm -F cli test",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "pnpm -r format",
+    "format:check": "pnpm -r format:check",
+    "typecheck": "pnpm -r typecheck",
+    "check": "pnpm -r check",
+    "check:fix": "pnpm -r check:fix",
+    "prisma:generate": "pnpm -F server prisma:generate",
+    "migrate:local": "pnpm -F server migrate:local",
+    "migrate:prod": "pnpm -F server migrate:prod",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,vue}": [
+      "biome format --write"
+    ],
+    "*.ts": [
+      "tsc --noEmit"
+    ]
+  }
 }

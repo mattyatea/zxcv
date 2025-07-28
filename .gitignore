@@ -1,10 +1,13 @@
 # Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
+server/.output
+server/.data
+server/.nuxt
+server/.nitro
+server/.cache
+server/dist
+
+# CLI build outputs
+cli/dist
 
 # Node dependencies
 node_modules
@@ -20,8 +23,8 @@ logs
 
 # Local env files
 .env
-.env.*
-!.env.example
+.dev.vars.example
+!.dev.vars.example
 
 # wrangler files
 .wrangler
