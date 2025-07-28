@@ -22,7 +22,8 @@
     "prisma:generate": "pnpm -F server prisma:generate",
     "migrate:local": "pnpm -F server migrate:local",
     "migrate:prod": "pnpm -F server migrate:prod",
-    "prepare": "husky"
+    "prepare": "husky",
+    "cf-typegen": "pnpm -F server cf-typegen"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
