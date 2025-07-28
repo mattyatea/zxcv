@@ -1,0 +1,41 @@
+export interface Rule {
+	id: string;
+	name: string;
+	content: string;
+	visibility: "public" | "private";
+	owner?: string;
+	organization?: string;
+	tags: string[];
+	version: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ZxcvConfig {
+	rulesDir: string;
+	symlinkDir: string;
+	apiUrl: string;
+	auth?: {
+		token?: string;
+	};
+}
+
+export interface ProjectConfig {
+	rulesDir?: string;
+	remoteUrl?: string;
+}
+
+export interface ZxcvMetadata {
+	version: string;
+	lastSync: string;
+	rules: PulledRule[];
+}
+
+export interface PulledRule {
+	name: string;
+	path: string;
+	owner?: string;
+	organization?: string;
+	version: string;
+	pulledAt: string;
+}

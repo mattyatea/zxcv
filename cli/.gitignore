@@ -1,0 +1,16 @@
+node_modules/
+dist/
+zxcv
+.env
+.env.local
+*.log
+.DS_Store
+coverage/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.zxcv/
+zxcv-metadata.json
+.*.bun-build
