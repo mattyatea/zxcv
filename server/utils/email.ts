@@ -1,5 +1,4 @@
 import type { Env } from "~/server/types/env";
-import { EmailServiceError } from "~/server/types/errors";
 import { t } from "./i18n";
 import { createLogger } from "./logger";
 
@@ -65,22 +64,18 @@ export class EmailService {
 		try {
 			// In test environment, use mock email sender
 			if (this.isTestEnvironment()) {
-				this.logger.debug("[TEST] Email would be sent", {
-					to: template.to,
-					subject: template.subject,
-					textContent: template.text,
-				});
+				console.log(`[TEST] Email would be sent to: ${template.to}`);
+				console.log(`[TEST] Subject: ${template.subject}`);
+				console.log(`[DEV] Text content: ${template.text}`);
 				return true;
 			}
 
 			// Check if EMAIL_SENDER binding is available
 			if (!this.env.EMAIL_SENDER) {
-				this.logger.error("EMAIL_SENDER binding is not configured");
-				this.logger.debug("[DEV] Email would be sent", {
-					to: template.to,
-					subject: template.subject,
-					textContent: template.text,
-				});
+				console.error("EMAIL_SENDER binding is not configured");
+				console.log(`[DEV] Email would be sent to: ${template.to}`);
+				console.log(`[DEV] Subject: ${template.subject}`);
+				console.log(`[DEV] Text content: ${template.text}`);
 				return false;
 			}
 
@@ -114,8 +109,8 @@ export class EmailService {
 
 			return true;
 		} catch (error) {
-			this.logger.error("Email sending error", error as Error);
-			throw new EmailServiceError(error instanceof Error ? error.message : "Failed to send email");
+			console.error("Email sending error:", error);
+			return false;
 		}
 	}
 

@@ -327,7 +327,7 @@ describe("Auth Integration Tests", () => {
 
 			await expect(
 				client.auth.register(registerInput)
-			).rejects.toThrow("このメールアドレスは既に登録されています");
+			).rejects.toThrow("このメールアドレスは既に使用されています");
 		});
 	});
 
