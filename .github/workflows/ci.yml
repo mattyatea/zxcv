@@ -37,7 +37,7 @@ jobs:
         run: pnpm run cf-typegen
 
       - name: Type check
-        run: pnpm run typecheck
+        run: pnpm run typecheck:server
 
       - name: Lint and format check
         run: pnpm run check
