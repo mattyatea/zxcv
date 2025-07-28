@@ -29,9 +29,10 @@ vi.mock("~/server/utils/jwt", () => ({
 		}
 		return null;
 	}),
-	verifyToken: vi.fn().mockImplementation(async (token: string) => {
+	verifyToken: vi.fn().mockImplementation(async (token: string, secret?: string) => {
+		console.log("[TEST] verifyToken called with:", token, secret);
 		if (token === "reset_token") {
-			return { userId: "user_123", email: "reset@example.com" };
+			return { userId: "user_123" };
 		}
 		throw new Error("Invalid token");
 	}),
@@ -50,6 +51,49 @@ vi.mock("~/server/services/emailVerification", () => ({
 		sendVerificationEmail = vi.fn().mockResolvedValue(true);
 		verifyEmail = vi.fn().mockResolvedValue({ success: true });
 		resendVerificationEmail = vi.fn().mockResolvedValue(true);
+	},
+}));
+
+vi.mock("~/server/services/AuthService", () => ({
+	AuthService: class MockAuthService {
+		constructor(db: any, env: any) {}
+		resetPassword = vi.fn().mockResolvedValue({ message: "Password reset successfully" });
+		verifyEmail = vi.fn().mockResolvedValue({ message: "Email verified successfully" });
+		requestPasswordReset = vi.fn().mockResolvedValue(true);
+		login = vi.fn().mockResolvedValue({
+			accessToken: "mock_jwt_token",
+			refreshToken: "mock_refresh_token",
+			user: {
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+				emailVerified: true,
+			},
+		});
+		register = vi.fn().mockResolvedValue({
+			user: {
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+			},
+		});
+		resendVerificationEmail = vi.fn().mockResolvedValue(true);
+		handleOAuthLogin = vi.fn().mockResolvedValue({
+			accessToken: "mock_jwt_token",
+			refreshToken: "mock_refresh_token",
+			user: {
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+				emailVerified: true,
+			},
+		});
+		getUserById = vi.fn().mockResolvedValue({
+			id: "user_123",
+			username: "testuser",
+			email: "test@example.com",
+			emailVerified: true,
+		});
 	},
 }));
 
@@ -1056,6 +1100,12 @@ describe("OpenAPI Endpoints via REST", () => {
 			});
 
 			expect(completeResetResponse.matched).toBe(true);
+			
+			if (completeResetResponse.response.status !== 200) {
+				const errorData = await completeResetResponse.response.json();
+				console.error("Password reset error:", errorData);
+			}
+			
 			expect(completeResetResponse.response.status).toBe(200);
 
 			const completeData = await completeResetResponse.response.json();

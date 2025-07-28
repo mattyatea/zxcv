@@ -59,11 +59,24 @@ vi.mock("~/server/utils/jwt", () => ({
 		if (token === "valid_token" || token === "mock_jwt_token") {
 			return { userId: "user_123", email: "test@example.com" };
 		}
-		if (token === "reset_token") {
+		if (token === "reset_token" || token === "valid_reset_token") {
 			// For password reset tokens
-			return { userId: "user_123", email: "reset@example.com" };
+			return { userId: "user_123" };
 		}
 		throw new Error("無効または期限切れのトークンです");
+	}),
+}));
+
+vi.mock("~/server/utils/email", () => ({
+	EmailService: class MockEmailService {
+		constructor(env: any) {}
+		sendVerificationEmail = vi.fn().mockResolvedValue(true);
+		sendResetPasswordEmail = vi.fn().mockResolvedValue(true);
+	},
+	sendEmail: vi.fn().mockImplementation((env: any, to: string, subject: string, body: string) => {
+		console.log("[E2E-TEST] Email sent to:", to);
+		console.log("[E2E-TEST] Subject:", subject);
+		return Promise.resolve();
 	}),
 }));
 
@@ -337,7 +350,7 @@ describe("E2E Authentication Flow Tests", () => {
 				email: userEmail,
 			});
 
-			const resetToken = "reset_token";
+			const resetToken = "valid_reset_token";
 			mockDb.passwordReset.create.mockResolvedValue({
 				id: generateId(),
 				userId,

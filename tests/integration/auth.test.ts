@@ -74,7 +74,7 @@ vi.mock("~/server/utils/jwt", async () => {
 			if (token === "valid_verification_token" || token === "valid_token" || token === "test_verification_token") {
 				return { userId: "user_123", email: "test@example.com" };
 			}
-			if (token === "valid_reset_token" || token === "test_reset_token") {
+			if (token === "valid_reset_token" || token === "test_reset_token" || token === "reset_token") {
 				return { userId: "user_123" };
 			}
 			throw new Error("Token expired");
@@ -194,6 +194,7 @@ describe("Auth Integration Tests", () => {
 					}
 					return null;
 				});
+				vi.mocked(jwtModule.generateToken).mockResolvedValue("mock_jwt_token");
 			} catch (error) {
 				console.log("[TEST] Failed to setup JWT mocks:", error);
 			}
