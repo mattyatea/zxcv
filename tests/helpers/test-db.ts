@@ -231,4 +231,7 @@ export function setupCommonMocks(mockDb: ReturnType<typeof createMockPrismaClien
 	// Mock user counts to return 0 by default
 	(mockDb.rule.count as any).mockResolvedValue(0);
 	(mockDb.organizationMember.count as any).mockResolvedValue(0);
+	
+	// Mock oAuthState.deleteMany to return count
+	(mockDb.oAuthState.deleteMany as any).mockResolvedValue({ count: 0 });
 }

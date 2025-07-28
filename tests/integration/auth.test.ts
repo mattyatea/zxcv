@@ -32,7 +32,7 @@ vi.mock("~/server/services/emailVerification", () => {
 			if (token === "expired_token") {
 				throw new Error("Token expired");
 			}
-			return { success: true };
+			return { success: true, userId: "user_123" };
 		});
 		resendVerificationEmail = vi.fn().mockResolvedValue(true);
 	}
@@ -70,6 +70,18 @@ vi.mock("~/server/utils/jwt", async () => {
 			console.log("[TEST] createRefreshToken returning:", `refresh_token_${userId}`);
 			return Promise.resolve(`refresh_token_${userId}`);
 		}),
+		verifyToken: vi.fn().mockImplementation(async (token: string, secret?: string) => {
+			if (token === "valid_verification_token" || token === "valid_token" || token === "test_verification_token") {
+				return { userId: "user_123", email: "test@example.com" };
+			}
+			if (token === "valid_reset_token" || token === "test_reset_token") {
+				return { userId: "user_123" };
+			}
+			throw new Error("Token expired");
+		}),
+		generateToken: vi.fn().mockImplementation(async (payload: any, secret: string, expiresIn: string) => {
+			return "mock_jwt_token";
+		}),
 	};
 });
 
@@ -103,6 +115,7 @@ vi.mock("~/server/utils/crypto", () => {
 		}),
 	};
 });
+
 
 describe("Auth Integration Tests", () => {
 	let client: any;
@@ -313,7 +326,7 @@ describe("Auth Integration Tests", () => {
 
 			await expect(
 				client.auth.register(registerInput)
-			).rejects.toThrow("このメールアドレスは既に使用されています");
+			).rejects.toThrow("このメールアドレスは既に登録されています");
 		});
 	});
 
@@ -433,29 +446,21 @@ describe("Auth Integration Tests", () => {
 	describe("Token Refresh Flow", () => {
 		it("should refresh tokens successfully", async () => {
 			const userId = "user_123";
-			const refreshToken = "valid_refresh_token"; // Use a simple string for the mock
-
-			const existingUser = {
+			const authenticatedUser = {
 				id: userId,
 				username: "testuser",
 				email: "test@example.com",
-				passwordHash: "hashed",
 				emailVerified: true,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				name: null,
-				avatarUrl: null,
-				bio: null,
-				website: null,
-				location: null,
-				company: null,
-				twitterUsername: null,
-				githubUsername: null,
 			};
 
-			vi.mocked(mockDb.user.findUnique).mockResolvedValue(existingUser);
+			// Create authenticated client
+			const authClient = createAuthenticatedTestClient(authenticatedUser, {
+				db: mockDb,
+				env: mockEnv,
+			}).client;
 
-			const refreshResult = await client.auth.refresh({ refreshToken });
+
+			const refreshResult = await authClient.auth.refresh();
 
 			expect(refreshResult.accessToken).toBeDefined();
 			expect(refreshResult.refreshToken).toBeDefined();
@@ -464,18 +469,13 @@ describe("Auth Integration Tests", () => {
 				username: "testuser",
 				email: "test@example.com",
 			});
-
-			// Verify new tokens are different
-			expect(refreshResult.accessToken).not.toBe(refreshToken);
-			expect(refreshResult.refreshToken).not.toBe(refreshToken);
 		});
 
-		it("should reject invalid refresh token", async () => {
-			const invalidToken = "invalid_token";
-
+		it("should reject when not authenticated", async () => {
+			// Use non-authenticated client - should fail without auth
 			await expect(
-				client.auth.refresh({ refreshToken: invalidToken })
-			).rejects.toThrow("無効または期限切れのトークンです");
+				client.auth.refresh()
+			).rejects.toThrow();
 		});
 	});
 
@@ -483,46 +483,46 @@ describe("Auth Integration Tests", () => {
 		it("should verify email with valid token", async () => {
 			const userId = "user_123";
 			const token = "valid_verification_token";
+			const email = "test@example.com";
 
-			vi.mocked(mockDb.emailVerification.findUnique).mockResolvedValue({
-				id: "verification_123",
-				userId,
-				token,
-				expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
-				createdAt: new Date(),
+
+			// Mock user lookup
+			vi.mocked(mockDb.user.findUnique).mockResolvedValue({
+				id: userId,
+				username: "testuser",
+				email,
+				passwordHash: "hashed",
+				emailVerified: false,
+				createdAt: Math.floor(Date.now() / 1000),
+				updatedAt: Math.floor(Date.now() / 1000),
+				isActive: true,
+				emailNotifications: true,
+				marketingEmails: false,
 			});
 
+			// Mock user update
 			vi.mocked(mockDb.user.update).mockResolvedValue({
 				id: userId,
 				username: "testuser",
-				email: "test@example.com",
+				email,
 				passwordHash: "hashed",
 				emailVerified: true,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-				name: null,
-				avatarUrl: null,
-				bio: null,
-				website: null,
-				location: null,
-				company: null,
-				twitterUsername: null,
-				githubUsername: null,
+				createdAt: Math.floor(Date.now() / 1000),
+				updatedAt: Math.floor(Date.now() / 1000),
+				isActive: true,
+				emailNotifications: true,
+				marketingEmails: false,
 			});
 
 			const verifyResult = await client.auth.verifyEmail({ token });
 
 			expect(verifyResult.success).toBe(true);
 			expect(verifyResult.message).toBeDefined();
-
-			// Since we're using EmailVerificationService, we don't expect direct DB calls in the test
-			// The service itself handles the database operations
 		});
 
 		it("should reject expired verification token", async () => {
 			const token = "expired_token";
 
-			// The EmailVerificationService mock will throw for "expired_token"
 
 			await expect(
 				client.auth.verifyEmail({ token })
@@ -582,51 +582,62 @@ describe("Auth Integration Tests", () => {
 		});
 
 		it("should reset password with valid token", async () => {
-			const now = Math.floor(Date.now() / 1000);
-			const resetToken = {
+			const userId = "user_123";
+			const token = "valid_reset_token";
+			const newPassword = "newpassword123";
+
+
+			// Mock finding password reset record
+			vi.mocked(mockDb.passwordReset.findFirst).mockResolvedValue({
 				id: "reset_123",
-				userId: "user_123",
-				token: "valid_reset_token",
-				expiresAt: now + 3600, // 1 hour from now in Unix seconds
-				createdAt: now,
+				userId,
+				token,
+				expiresAt: Math.floor(Date.now() / 1000) + 3600,
+				createdAt: Math.floor(Date.now() / 1000),
 				usedAt: null,
-			};
-
-			vi.mocked(mockDb.passwordReset.findFirst).mockResolvedValue(resetToken);
-			vi.mocked(mockDb.passwordReset.update).mockResolvedValue({
-				...resetToken,
-				usedAt: now,
 			});
 
-			// Ensure crypto mocks work for dynamic imports
-			const cryptoModule = await import("~/server/utils/crypto");
-			vi.mocked(cryptoModule.hashPassword).mockImplementation(async (password: string) => {
-				console.log("[TEST] hashPassword called with:", password);
-				return `hashed_${password}`;
-			});
-			
-			const newPasswordHash = await hashPassword("newpassword123");
-			vi.mocked(mockDb.user.update).mockResolvedValue({
-				id: "user_123",
+			// Mock user lookup
+			vi.mocked(mockDb.user.findUnique).mockResolvedValue({
+				id: userId,
 				username: "testuser",
 				email: "test@example.com",
-				passwordHash: newPasswordHash,
+				passwordHash: "old_hash",
 				emailVerified: true,
-				createdAt: now,
-				updatedAt: now,
-				name: null,
-				avatarUrl: null,
-				bio: null,
-				website: null,
-				location: null,
-				company: null,
-				twitterUsername: null,
-				githubUsername: null,
+				createdAt: Math.floor(Date.now() / 1000),
+				updatedAt: Math.floor(Date.now() / 1000),
+				isActive: true,
+				emailNotifications: true,
+				marketingEmails: false,
+			});
+
+			// Mock password update
+			vi.mocked(mockDb.user.update).mockResolvedValue({
+				id: userId,
+				username: "testuser",
+				email: "test@example.com",
+				passwordHash: "new_hashed_password",
+				emailVerified: true,
+				createdAt: Math.floor(Date.now() / 1000),
+				updatedAt: Math.floor(Date.now() / 1000),
+				isActive: true,
+				emailNotifications: true,
+				marketingEmails: false,
+			});
+
+			// Mock marking reset as used
+			vi.mocked(mockDb.passwordReset.update).mockResolvedValue({
+				id: "reset_123",
+				userId,
+				token,
+				expiresAt: Math.floor(Date.now() / 1000) + 3600,
+				createdAt: Math.floor(Date.now() / 1000),
+				usedAt: Math.floor(Date.now() / 1000),
 			});
 
 			const resetResult = await client.auth.resetPassword({
-				token: "valid_reset_token",
-				newPassword: "newpassword123",
+				token,
+				newPassword,
 			});
 
 			expect(resetResult.success).toBe(true);

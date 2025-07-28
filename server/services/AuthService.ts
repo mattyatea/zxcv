@@ -5,7 +5,7 @@ import { UserRepository } from "../repositories/UserRepository";
 import type { CloudflareEnv } from "../types/env";
 import { hashPassword, verifyPassword } from "../utils/crypto";
 import { sendEmail } from "../utils/email";
-import { generateToken, verifyToken } from "../utils/jwt";
+import { createJWT, createRefreshToken, generateToken, verifyToken } from "../utils/jwt";
 
 export class AuthService {
 	private userRepository: UserRepository;
@@ -102,20 +102,23 @@ export class AuthService {
 		// 最終ログイン時刻を更新
 		await this.userRepository.updateLastLogin(user.id);
 
-		// トークン生成
-		const token = await generateToken(
+		// アクセストークン生成
+		const accessToken = await createJWT(
 			{
 				sub: user.id,
 				email: user.email,
 				username: user.username,
 				emailVerified: user.emailVerified,
 			},
-			this.env.JWT_SECRET,
-			"7d",
+			this.env,
 		);
 
+		// リフレッシュトークン生成
+		const refreshToken = await createRefreshToken(user.id, this.env);
+
 		return {
-			token,
+			accessToken,
+			refreshToken,
 			user: {
 				id: user.id,
 				username: user.username,
@@ -385,7 +388,7 @@ export class AuthService {
 		await this.userRepository.updateLastLogin(user.id);
 
 		// トークン生成
-		const token = await generateToken(
+		const accessToken = await generateToken(
 			{
 				sub: user.id,
 				email: user.email,
@@ -393,11 +396,21 @@ export class AuthService {
 				emailVerified: user.emailVerified,
 			},
 			this.env.JWT_SECRET,
+			"1h",
+		);
+
+		const refreshToken = await generateToken(
+			{
+				sub: user.id,
+				type: "refresh",
+			},
+			this.env.JWT_SECRET,
 			"7d",
 		);
 
 		return {
-			token,
+			accessToken,
+			refreshToken,
 			user: {
 				id: user.id,
 				username: user.username,

@@ -1,6 +1,5 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
-import type { Locale } from "~/server/utils/i18n";
 import { createPrismaClient } from "~/server/utils/prisma";
 
 export interface RateLimitConfig {
@@ -47,10 +46,9 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 					// Check if limit exceeded
 					if (rateLimitRecord.count >= maxRequests) {
 						const retryAfter = rateLimitRecord.resetAt - now;
-						const locale: Locale = "ja"; // Default to Japanese for now
-						// throw new ORPCError("TOO_MANY_REQUESTS", {
-						// 	message: authErrors.rateLimit(locale, retryAfter),
-						// });
+						throw new ORPCError("TOO_MANY_REQUESTS", {
+							message: `リクエストが多すぎます。${retryAfter}秒後に再試行してください。`,
+						});
 					}
 
 					// Increment counter

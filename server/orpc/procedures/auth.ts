@@ -1,6 +1,11 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
 import { dbProvider, dbWithAuth } from "~/server/orpc/middleware/combined";
+import {
+	authRateLimit,
+	passwordResetRateLimit,
+	registerRateLimit,
+} from "~/server/orpc/middleware/rateLimit";
 import { AuthService } from "~/server/services/AuthService";
 import { generateToken } from "~/server/utils/jwt";
 
@@ -8,39 +13,46 @@ export const authProcedures = {
 	/**
 	 * ユーザー登録
 	 */
-	register: os.auth.register.use(dbProvider).handler(async ({ input, context }) => {
+	register: os.auth.register.use(registerRateLimit).handler(async ({ input, context }) => {
 		const { db, env } = context;
 		const authService = new AuthService(db, env);
 
-		const { user } = await authService.register(input);
-		return {
-			success: true,
-			message: "Registration successful",
-			user: {
-				id: user.id,
-				username: user.username,
-				email: user.email,
-			},
-		};
+		try {
+			const result = await authService.register(input);
+			return {
+				success: true,
+				message: "登録が完了しました。メールを確認してアカウントを有効化してください。",
+				user: {
+					id: result.user.id,
+					username: result.user.username,
+					email: result.user.email,
+				},
+			};
+		} catch (error) {
+			// If it's an email sending error and user was created, clean up
+			if (error instanceof Error && error.message.includes("Email service error")) {
+				// This would need to be implemented in the actual service
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message:
+						"登録に失敗しました。確認メールを送信できませんでした。サポートにお問い合わせください。",
+				});
+			}
+			throw error;
+		}
 	}),
 
 	/**
 	 * ログイン
 	 */
-	login: os.auth.login.use(dbProvider).handler(async ({ input, context }) => {
+	login: os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
 		const { db, env } = context;
 		const authService = new AuthService(db, env);
 
-		const { user, token } = await authService.login(input.email, input.password);
+		const result = await authService.login(input.email, input.password);
 		return {
-			accessToken: token,
-			refreshToken: token, // For now using same token
-			user: {
-				id: user.id,
-				username: user.username,
-				email: user.email,
-				emailVerified: user.emailVerified,
-			},
+			accessToken: result.accessToken,
+			refreshToken: result.refreshToken,
+			user: result.user,
 			message: "Login successful",
 		};
 	}),
@@ -93,7 +105,7 @@ export const authProcedures = {
 	 * パスワードリセットトークンの送信
 	 */
 	sendPasswordReset: os.auth.sendPasswordReset
-		.use(dbProvider)
+		.use(passwordResetRateLimit)
 		.handler(async ({ input, context }) => {
 			const { db, env } = context;
 			const authService = new AuthService(db, env);
@@ -157,6 +169,10 @@ export const authProcedures = {
 		);
 		const providers = createOAuthProviders(env);
 
+		// Clean up expired states before creating new one
+		const { cleanupExpiredOAuthStates } = await import("~/server/utils/oauthCleanup");
+		await cleanupExpiredOAuthStates(db);
+
 		// Generate state for CSRF protection with action encoded
 		const stateData = {
 			random: generateState(),
@@ -184,6 +200,17 @@ export const authProcedures = {
 		let authorizationUrl: string;
 		if (provider === "github") {
 			const url = providers.github.createAuthorizationURL(state, ["user:email"]);
+			authorizationUrl = url.toString();
+		} else if (provider === "google") {
+			if (!codeVerifier) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "コード検証が生成されませんでした",
+				});
+			}
+			const url = providers.google.createAuthorizationURL(state, codeVerifier, [
+				"https://www.googleapis.com/auth/userinfo.email",
+				"https://www.googleapis.com/auth/userinfo.profile",
+			]);
 			authorizationUrl = url.toString();
 		} else {
 			throw new ORPCError("BAD_REQUEST", { message: "サポートされていないプロバイダーです" });
@@ -217,7 +244,7 @@ export const authProcedures = {
 			stateData = JSON.parse(Buffer.from(state, "base64url").toString());
 		} catch (e) {
 			console.error("Failed to decode state:", e);
-			throw new ORPCError("BAD_REQUEST", { message: "無効な状態フォーマットです" });
+			throw new ORPCError("BAD_REQUEST", { message: "無効または期限切れの状態です" });
 		}
 
 		// Verify state
@@ -309,6 +336,58 @@ export const authProcedures = {
 					email: primaryEmail,
 					username: githubUser.login,
 				};
+			} else if (provider === "google") {
+				console.log("Validating Google authorization code...");
+
+				// Get code verifier from state record
+				if (!stateRecord.codeVerifier) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: "Code verifier not found for Google OAuth",
+					});
+				}
+
+				tokens = await providers.google.validateAuthorizationCode(code, stateRecord.codeVerifier);
+				console.log("Google token obtained");
+
+				// Fetch user info from Google
+				const googleUserResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+					headers: {
+						Authorization: `Bearer ${tokens.accessToken()}`,
+					},
+				});
+
+				console.log("Google API response:", {
+					status: googleUserResponse.status,
+				});
+
+				if (!googleUserResponse.ok) {
+					console.error("Google API error:", {
+						status: googleUserResponse.status,
+						text: await googleUserResponse.text(),
+					});
+					throw new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: "Google認証に失敗しました",
+					});
+				}
+
+				const googleUser = (await googleUserResponse.json()) as {
+					id: string;
+					email: string;
+					name?: string;
+					verified_email: boolean;
+				};
+
+				if (!googleUser.email) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: "Googleアカウントにメールアドレスが見つかりません",
+					});
+				}
+
+				userInfo = {
+					id: googleUser.id,
+					email: googleUser.email,
+					username: googleUser.email.split("@")[0], // Use email prefix as username
+				};
 			} else {
 				throw new ORPCError("BAD_REQUEST", { message: "サポートされていないプロバイダーです" });
 			}
@@ -317,8 +396,8 @@ export const authProcedures = {
 			const result = await authService.handleOAuthLogin(provider, userInfo);
 
 			return {
-				accessToken: result.token,
-				refreshToken: result.token, // For now using same token
+				accessToken: result.accessToken,
+				refreshToken: result.refreshToken,
 				user: result.user,
 				redirectUrl: stateRecord.redirectUrl || "/",
 			};

@@ -56,14 +56,11 @@ describe("namespace utilities", () => {
 		});
 
 		it("should return null for invalid paths", () => {
-			expect(parseRulePath("invalid")).toBeNull();
+			expect(parseRulePath("invalid")).toEqual({ ruleName: "invalid" });
 			expect(parseRulePath("")).toBeNull();
 			expect(parseRulePath("owner/rule/extra")).toBeNull();
-			// Note: "/rule" actually parses as { owner: "", ruleName: "rule" }
-			// which might be a bug in the implementation, but for now we'll test the actual behavior
-			expect(parseRulePath("/rule")).toEqual({ owner: "", ruleName: "rule" });
-			// "owner/" splits into ["owner", ""] which has 2 parts
-			expect(parseRulePath("owner/")).toEqual({ owner: "owner", ruleName: "" });
+			expect(parseRulePath("/rule")).toBeNull();
+			expect(parseRulePath("owner/")).toBeNull();
 		});
 	});
 

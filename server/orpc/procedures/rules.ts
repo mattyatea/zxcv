@@ -348,4 +348,147 @@ export const rulesProcedures = {
 		const result = await ruleService.deleteRule(input.id, user.id);
 		return { success: true, message: result.message };
 	}),
+
+	/**
+	 * 公開ルール一覧
+	 */
+	listPublic: os.rules.listPublic.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
+
+		return await ruleService.listRules({
+			visibility: "public",
+			tags: input.tags,
+			author: input.author,
+			limit: input.limit,
+			offset: input.offset,
+			userId: user?.id,
+		});
+	}),
+
+	/**
+	 * ルールをスター
+	 */
+	star: os.rules.star.use(dbWithAuth).handler(async ({ input, context }) => {
+		// Re-implement star logic instead of calling like handler
+		const { db, user } = context;
+
+		// ルールが存在するか確認
+		const rule = await db.rule.findUnique({
+			where: { id: input.ruleId },
+		});
+
+		if (!rule) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Rule not found",
+			});
+		}
+
+		// 既にLikeしているか確認
+		const existingLike = await db.ruleStar.findUnique({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		if (existingLike) {
+			throw new ORPCError("CONFLICT", {
+				message: "Already liked this rule",
+			});
+		}
+
+		// Likeを追加
+		await db.ruleStar.create({
+			data: {
+				id: nanoid(),
+				ruleId: input.ruleId,
+				userId: user.id,
+				createdAt: Math.floor(Date.now() / 1000),
+			},
+		});
+
+		// スター数を増やす
+		await db.rule.update({
+			where: { id: input.ruleId },
+			data: { stars: { increment: 1 } },
+		});
+
+		return { success: true, message: "Rule starred successfully" };
+	}),
+
+	/**
+	 * ルールのスターを解除
+	 */
+	unstar: os.rules.unstar.use(dbWithAuth).handler(async ({ input, context }) => {
+		// Re-implement unstar logic instead of calling unlike handler
+		const { db, user } = context;
+
+		// Likeが存在するか確認
+		const existingLike = await db.ruleStar.findUnique({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		if (!existingLike) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Like not found",
+			});
+		}
+
+		// Likeを削除
+		await db.ruleStar.delete({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				ruleId_userId: {
+					ruleId: input.ruleId,
+					userId: user.id,
+				},
+			},
+		});
+
+		// スター数を減らす
+		await db.rule.update({
+			where: { id: input.ruleId },
+			data: { stars: { decrement: 1 } },
+		});
+
+		return { success: true, message: "Rule unstarred successfully" };
+	}),
+
+	/**
+	 * ルールのバージョン履歴を取得
+	 */
+	getVersionHistory: os.rules.getVersionHistory
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
+
+			const versions = await ruleService.getRuleVersions(input.ruleId, user?.id);
+
+			// Get creator information for each version
+			return await Promise.all(
+				versions.map(async (v) => {
+					const creator = await db.user.findUnique({
+						where: { id: v.createdBy },
+						select: { id: true, username: true },
+					});
+					return {
+						version: v.versionNumber,
+						changelog: v.changelog || "",
+						created_at: v.createdAt,
+						createdBy: creator || { id: v.createdBy, username: "Unknown" },
+					};
+				}),
+			);
+		}),
 };

@@ -58,11 +58,6 @@ export const authContract = {
 			path: "/auth/refresh",
 			description: "Refresh access token",
 		})
-		.input(
-			z.object({
-				refreshToken: z.string(),
-			}),
-		)
 		.output(
 			TokensSchema.extend({
 				user: AuthUserSchema,
