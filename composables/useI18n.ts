@@ -104,9 +104,9 @@ export function useI18n() {
 	return {
 		t: store.t,
 		tp, // Plural translation
-		locale: store.locale,
+		locale: computed(() => store.locale),
 		setLocale: store.setLocale,
-		availableLocales: store.availableLocales,
+		availableLocales: computed(() => store.availableLocales),
 		detectBrowserLocale,
 		initLocale,
 		formatNumber,
