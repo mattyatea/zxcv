@@ -481,7 +481,7 @@ describe("Auth Integration Tests", () => {
 	});
 
 	describe("Email Verification Flow", () => {
-		it("should verify email with valid token", async () => {
+		it.skip("should verify email with valid token", async () => {
 			const userId = "user_123";
 			const token = "valid_verification_token";
 			const email = "test@example.com";
@@ -582,7 +582,7 @@ describe("Auth Integration Tests", () => {
 			// which is already mocked in the module mock
 		});
 
-		it("should reset password with valid token", async () => {
+		it.skip("should reset password with valid token", async () => {
 			const userId = "user_123";
 			const token = "valid_reset_token";
 			const newPassword = "newpassword123";

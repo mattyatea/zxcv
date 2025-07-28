@@ -30,7 +30,6 @@ vi.mock("~/server/utils/jwt", () => ({
 		return null;
 	}),
 	verifyToken: vi.fn().mockImplementation(async (token: string, secret?: string) => {
-		console.log("[TEST] verifyToken called with:", token, secret);
 		if (token === "reset_token") {
 			return { userId: "user_123" };
 		}
@@ -1101,10 +1100,6 @@ describe("OpenAPI Endpoints via REST", () => {
 
 			expect(completeResetResponse.matched).toBe(true);
 			
-			if (completeResetResponse.response.status !== 200) {
-				const errorData = await completeResetResponse.response.json();
-				console.error("Password reset error:", errorData);
-			}
 			
 			expect(completeResetResponse.response.status).toBe(200);
 
