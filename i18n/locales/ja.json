@@ -144,6 +144,22 @@
       "aiOptimized": {
         "title": "AI最適化",
         "description": "AI開発ツールに最適化された形式でルールを出力。開発効率を向上させます。"
+      },
+      "export": {
+        "title": "エクスポート機能",
+        "description": "ルールを様々な形式でエクスポート。お気に入りのAIツールですぐに使用できます。"
+      },
+      "search": {
+        "title": "高度な検索",
+        "description": "タグ、内容、作成者で瞬時に検索。必要なルールをすぐに見つけられます。"
+      },
+      "accessControl": {
+        "title": "アクセス制御",
+        "description": "きめ細かな権限設定で、チームのセキュリティを保ちながら協力できます。"
+      },
+      "api": {
+        "title": "API連携",
+        "description": "RESTful APIで既存のワークフローに統合。自動化と効率化を実現します。"
       }
     },
     "cta": {
@@ -154,12 +170,22 @@
   },
   "rules": {
     "title": "ルール",
+    "subtitle": "AIコーディングルールを検索・共有",
     "myRules": "マイルール",
     "publicRules": "公開ルール",
     "organizationRules": "組織ルール",
     "createRule": "新規ルール作成",
+    "createNewRule": "新しいルールを作成",
+    "createFirstRule": "最初のルールを作成しましょう",
+    "creating": "作成中...",
     "searchPlaceholder": "ルールを検索...",
+    "noRulesFound": "ルールが見つかりません",
+    "popularTags": "人気のタグ",
+    "basicInfo": "基本情報",
+    "ruleContent": "ルールの内容",
+    "shareWithCommunity": "コミュニティと共有して、みんなで開発効率を向上させましょう",
     "visibility": {
+      "all": "すべて",
       "public": "公開",
       "private": "非公開",
       "organization": "組織限定"
@@ -171,15 +197,35 @@
       "share": "共有",
       "duplicate": "複製",
       "download": "ダウンロード",
-      "version": "バージョン"
+      "version": "バージョン",
+      "copyRule": "ルールをコピー",
+      "copied": "コピーしました"
     },
     "form": {
       "name": "ルール名",
+      "namePlaceholder": "例: next-js-best-practices",
+      "nameHint": "URLに使用される識別子です。英数字とハイフンのみ使用可能。",
       "description": "説明",
+      "descriptionPlaceholder": "このルールの目的や使い方を説明してください",
       "content": "内容",
+      "contentPlaceholder": "# ルールの内容\n\nここにコーディングルールを記述します...\n\n## 例\n\n```javascript\n// コード例\n```",
       "tags": "タグ",
+      "tagsPlaceholder": "タグを入力してEnter",
+      "addTag": "タグを追加",
       "visibility": "公開設定",
-      "team": "組織"
+      "visibilityOptions": {
+        "public": "公開 - 誰でも閲覧可能",
+        "private": "非公開 - 自分だけが閲覧可能"
+      },
+      "team": "組織",
+      "organization": "組織",
+      "noOrganization": "組織なし",
+      "organizationHint": "組織を選択すると、その組織のメンバーがルールを編集できます。",
+      "urlPreview": "URL プレビュー:",
+      "markdownSupported": "Markdown形式をサポートしています",
+      "uploadMarkdown": "Markdownファイルをアップロード",
+      "writeDirectly": "直接入力する",
+      "basicInfo": "基本情報"
     },
     "messages": {
       "created": "ルールを作成しました",
@@ -187,6 +233,31 @@
       "deleted": "ルールを削除しました",
       "deleteConfirm": "このルールを削除してもよろしいですか？",
       "deleteError": "ルールの削除に失敗しました"
+    },
+    "detail": {
+      "notFound": "ルールが見つかりません",
+      "backToList": "ルール一覧に戻る",
+      "versionHistory": "バージョン履歴",
+      "latest": "最新",
+      "currentlyViewing": "現在表示中",
+      "viewLatestVersion": "最新バージョンを表示",
+      "viewingOldVersion": "古いバージョンを表示しています",
+      "relatedRules": "関連するルール"
+    },
+    "edit": {
+      "title": "ルールを編集",
+      "unsavedChanges": "未保存の変更があります",
+      "update": "更新する",
+      "showPreview": "プレビューを表示",
+      "hidePreview": "プレビューを非表示",
+      "changeLog": "変更履歴",
+      "changeLogPlaceholder": "このバージョンでの変更内容を記述してください",
+      "incrementMajorVersion": "メジャーバージョンを上げる"
+    },
+    "sort": {
+      "recentlyUpdated": "最近更新された順",
+      "recentlyCreated": "最近作成された順",
+      "alphabetical": "名前順"
     }
   },
   "profile": {
@@ -310,6 +381,8 @@
     "subtitle": "組織を作成してメンバーとルールを共有しましょう",
     "myOrganizations": "マイ組織",
     "createOrganization": "新しい組織",
+    "createTeam": "チームを作成",
+    "createNewTeam": "新しいチームを作成",
     "joinOrganization": "組織に参加",
     "members": "メンバー",
     "rules": "ルール",
@@ -362,6 +435,7 @@
       "goToOrganization": "組織ページへ",
       "loginRequired": "ログインが必要です",
       "loginToJoinOrganization": "組織に参加するにはログインが必要です",
+      "loginToJoin": "組織に参加するにはログインしてください",
       "login": "ログイン",
       "noToken": "招待トークンが見つかりません",
       "invalidToken": "無効な招待トークンです"

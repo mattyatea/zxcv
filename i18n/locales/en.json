@@ -144,6 +144,22 @@
       "aiOptimized": {
         "title": "AI Optimized",
         "description": "Output rules in formats optimized for AI development tools. Improve development efficiency."
+      },
+      "export": {
+        "title": "Export Features",
+        "description": "Export rules in various formats. Use immediately with your favorite AI tools."
+      },
+      "search": {
+        "title": "Advanced Search",
+        "description": "Search instantly by tags, content, or creator. Find the rules you need right away."
+      },
+      "accessControl": {
+        "title": "Access Control",
+        "description": "Collaborate while maintaining team security with fine-grained permission settings."
+      },
+      "api": {
+        "title": "API Integration",
+        "description": "Integrate with existing workflows through RESTful API. Achieve automation and efficiency."
       }
     },
     "cta": {
@@ -154,12 +170,22 @@
   },
   "rules": {
     "title": "Rules",
+    "subtitle": "Search and share AI coding rules",
     "myRules": "My Rules",
     "publicRules": "Public Rules",
     "organizationRules": "Organization Rules",
     "createRule": "Create new rule",
+    "createNewRule": "Create a New Rule",
+    "createFirstRule": "Create your first rule",
+    "creating": "Creating...",
     "searchPlaceholder": "Search rules...",
+    "noRulesFound": "No rules found",
+    "popularTags": "Popular Tags",
+    "basicInfo": "Basic Information",
+    "ruleContent": "Rule Content",
+    "shareWithCommunity": "Share with the community and improve development efficiency together",
     "visibility": {
+      "all": "All",
       "public": "Public",
       "private": "Private",
       "organization": "Organization only"
@@ -171,15 +197,35 @@
       "share": "Share",
       "duplicate": "Duplicate",
       "download": "Download",
-      "version": "Version"
+      "version": "Version",
+      "copyRule": "Copy Rule",
+      "copied": "Copied"
     },
     "form": {
       "name": "Rule name",
+      "namePlaceholder": "e.g. next-js-best-practices",
+      "nameHint": "This will be used as the URL identifier. Only letters, numbers, and hyphens allowed.",
       "description": "Description",
+      "descriptionPlaceholder": "Describe the purpose and usage of this rule",
       "content": "Content",
+      "contentPlaceholder": "# Rule Content\n\nWrite your coding rules here...\n\n## Example\n\n```javascript\n// Code example\n```",
       "tags": "Tags",
+      "tagsPlaceholder": "Enter a tag and press Enter",
+      "addTag": "Add Tag",
       "visibility": "Visibility",
-      "organization": "Organization"
+      "visibilityOptions": {
+        "public": "Public - Anyone can view",
+        "private": "Private - Only you can view"
+      },
+      "team": "Team",
+      "organization": "Organization",
+      "noOrganization": "No organization",
+      "organizationHint": "If you select an organization, members can edit the rule.",
+      "urlPreview": "URL Preview:",
+      "markdownSupported": "Markdown format is supported",
+      "uploadMarkdown": "Upload Markdown file",
+      "writeDirectly": "Write directly",
+      "basicInfo": "Basic Information"
     },
     "messages": {
       "created": "Rule created successfully",
@@ -187,12 +233,39 @@
       "deleted": "Rule deleted successfully",
       "deleteConfirm": "Are you sure you want to delete this rule?",
       "deleteError": "Failed to delete rule"
+    },
+    "detail": {
+      "notFound": "Rule not found",
+      "backToList": "Back to rules list",
+      "versionHistory": "Version History",
+      "latest": "latest",
+      "currentlyViewing": "Currently viewing",
+      "viewLatestVersion": "View latest version",
+      "viewingOldVersion": "Viewing an older version",
+      "relatedRules": "Related Rules"
+    },
+    "edit": {
+      "title": "Edit Rule",
+      "unsavedChanges": "You have unsaved changes",
+      "update": "Update",
+      "showPreview": "Show preview",
+      "hidePreview": "Hide preview",
+      "changeLog": "Change Log",
+      "changeLogPlaceholder": "Describe what changed in this version",
+      "incrementMajorVersion": "Increment major version"
+    },
+    "sort": {
+      "recentlyUpdated": "Recently updated",
+      "recentlyCreated": "Recently created",
+      "alphabetical": "Alphabetical"
     }
   },
   "organizations": {
     "title": "Organizations",
     "myOrganizations": "My Organizations",
     "createOrganization": "Create new organization",
+    "createTeam": "Create Team",
+    "createNewTeam": "Create New Team",
     "joinOrganization": "Join organization",
     "members": "Members",
     "owner": "Owner",
