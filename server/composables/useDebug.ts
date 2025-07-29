@@ -8,13 +8,17 @@ export const useDebug = () => {
 	});
 
 	const toggleDebugMode = () => {
-		if (!process.dev) return;
+		if (!process.dev) {
+			return;
+		}
 		isDebugMode.value = !isDebugMode.value;
 		localStorage.setItem("debugMode", isDebugMode.value.toString());
 	};
 
-	const debugLog = (label: string, data: any) => {
-		if (!isDebugMode.value) return;
+	const debugLog = (label: string, data: unknown) => {
+		if (!isDebugMode.value) {
+			return;
+		}
 
 		const timestamp = new Date().toISOString();
 		console.group(`🔍 [DEBUG ${timestamp}] ${label}`);
@@ -22,8 +26,10 @@ export const useDebug = () => {
 		console.groupEnd();
 	};
 
-	const debugError = (label: string, error: any) => {
-		if (!isDebugMode.value) return;
+	const debugError = (label: string, error: unknown) => {
+		if (!isDebugMode.value) {
+			return;
+		}
 
 		const timestamp = new Date().toISOString();
 		console.group(`❌ [DEBUG ERROR ${timestamp}] ${label}`);
@@ -31,8 +37,10 @@ export const useDebug = () => {
 		console.groupEnd();
 	};
 
-	const debugRequest = (method: string, path: string, data?: any) => {
-		if (!isDebugMode.value) return;
+	const debugRequest = (method: string, path: string, data?: unknown) => {
+		if (!isDebugMode.value) {
+			return;
+		}
 
 		const timestamp = new Date().toISOString();
 		console.group(`📡 [DEBUG REQUEST ${timestamp}] ${method} ${path}`);
@@ -42,8 +50,10 @@ export const useDebug = () => {
 		console.groupEnd();
 	};
 
-	const debugResponse = (method: string, path: string, status: number, data?: any) => {
-		if (!isDebugMode.value) return;
+	const debugResponse = (method: string, path: string, status: number, data?: unknown) => {
+		if (!isDebugMode.value) {
+			return;
+		}
 
 		const timestamp = new Date().toISOString();
 		const statusEmoji = status >= 200 && status < 300 ? "✅" : "⚠️";

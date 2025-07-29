@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
-import { dbProvider, dbWithAuth } from "~/server/orpc/middleware/combined";
+import { dbProvider } from "~/server/orpc/middleware/combined";
 import {
 	authRateLimit,
 	passwordResetRateLimit,
@@ -9,7 +9,6 @@ import {
 import { AuthService } from "~/server/services/AuthService";
 import { EmailServiceError } from "~/server/types/errors";
 import type { Locale } from "~/server/utils/i18n";
-import { generateToken } from "~/server/utils/jwt";
 import { getLocaleFromRequest } from "~/server/utils/locale";
 import { createLogger } from "~/server/utils/logger";
 

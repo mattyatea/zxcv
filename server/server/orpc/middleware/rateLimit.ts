@@ -16,7 +16,7 @@ export interface RateLimitConfig {
 export function createRateLimitMiddleware(config: RateLimitConfig) {
 	return os.middleware(async ({ context, next }) => {
 		// Use existing db from context if available (for testing), otherwise create new one
-		const db = (context as any).db || createPrismaClient(context.env.DB);
+		const db = context.db || createPrismaClient(context.env.DB);
 		const { env } = context;
 		const { windowMs, maxRequests, keyPrefix } = config;
 
@@ -108,15 +108,18 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
  * Get client identifier from context
  * Extracts IP address from Cloudflare headers or falls back to user ID
  */
-function getClientIdentifier(context: any): string {
+function getClientIdentifier(context: {
+	user?: { id: string };
+	cloudflare?: { request?: Request };
+}): string {
 	// Check if user is authenticated
 	if ("user" in context && context.user?.id) {
 		return `user:${context.user.id}`;
 	}
 
 	// In Cloudflare Workers, extract IP from CF headers
-	const request = context.request;
-	if (request && request.headers) {
+	const request = context.cloudflare?.request;
+	if (request?.headers) {
 		// CF-Connecting-IP is provided by Cloudflare and contains the real client IP
 		const cfConnectingIp = request.headers.get("CF-Connecting-IP");
 		if (cfConnectingIp) {

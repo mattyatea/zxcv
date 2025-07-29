@@ -1,7 +1,7 @@
 import type { ORPCErrorCode } from "@orpc/client";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
-import type { H3Event, H3EventContext as BaseH3EventContext } from "h3";
+import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { defineEventHandler, getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
 import { router } from "~/server/orpc/router";
 import type { H3EventContext } from "~/server/types/bindings";
@@ -104,7 +104,7 @@ export default defineEventHandler(async (event: H3Event) => {
 				},
 				props: {},
 			} as ExecutionContext,
-			request: new Request("http://localhost") as any,
+			request: new Request("http://localhost") as Request & { cf: IncomingRequestCfProperties },
 		};
 	}
 

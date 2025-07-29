@@ -2,8 +2,10 @@ export const isDebugMode = () => {
 	return process.env.NODE_ENV === "development" && process.env.DEBUG_MODE === "true";
 };
 
-export const debugLog = (label: string, data: any) => {
-	if (!isDebugMode()) return;
+export const debugLog = (label: string, data: unknown) => {
+	if (!isDebugMode()) {
+		return;
+	}
 
 	const timestamp = new Date().toISOString();
 	console.group(`🔍 [DEBUG ${timestamp}] ${label}`);
@@ -11,20 +13,24 @@ export const debugLog = (label: string, data: any) => {
 	console.groupEnd();
 };
 
-export const debugError = (label: string, error: any) => {
-	if (!isDebugMode()) return;
+export const debugError = (label: string, error: unknown) => {
+	if (!isDebugMode()) {
+		return;
+	}
 
 	const timestamp = new Date().toISOString();
 	console.group(`❌ [DEBUG ERROR ${timestamp}] ${label}`);
 	console.error(error);
-	if (error.stack) {
+	if (error && typeof error === "object" && "stack" in error) {
 		console.error("Stack trace:", error.stack);
 	}
 	console.groupEnd();
 };
 
-export const debugRequest = (method: string, path: string, data?: any) => {
-	if (!isDebugMode()) return;
+export const debugRequest = (method: string, path: string, data?: unknown) => {
+	if (!isDebugMode()) {
+		return;
+	}
 
 	const timestamp = new Date().toISOString();
 	console.group(`📡 [DEBUG REQUEST ${timestamp}] ${method} ${path}`);
@@ -34,8 +40,10 @@ export const debugRequest = (method: string, path: string, data?: any) => {
 	console.groupEnd();
 };
 
-export const debugResponse = (method: string, path: string, status: number, data?: any) => {
-	if (!isDebugMode()) return;
+export const debugResponse = (method: string, path: string, status: number, data?: unknown) => {
+	if (!isDebugMode()) {
+		return;
+	}
 
 	const timestamp = new Date().toISOString();
 	const statusEmoji = status >= 200 && status < 300 ? "✅" : "⚠️";

@@ -1,5 +1,7 @@
+import type { Router } from "~/server/orpc/router";
+
 interface NuxtAppWithRpc {
-	$rpc: any; // oRPC client type
+	$rpc: Router;
 }
 
 export default defineNuxtPlugin(async (nuxtApp) => {

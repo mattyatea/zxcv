@@ -1,4 +1,9 @@
-import { createError, getHeader, type H3Event, type H3EventContext as BaseH3EventContext } from "h3";
+import {
+	type H3EventContext as BaseH3EventContext,
+	createError,
+	getHeader,
+	type H3Event,
+} from "h3";
 import type { H3EventContext } from "~/server/types/bindings";
 import type { Env } from "~/server/types/env";
 import { verifyPassword } from "./crypto";
