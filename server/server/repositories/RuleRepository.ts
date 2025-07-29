@@ -283,4 +283,17 @@ export class RuleRepository extends BaseRepository {
 			this.handleError(error, "Failed to get rule version");
 		}
 	}
+
+	/**
+	 * バージョンを削除
+	 */
+	async deleteVersion(id: string): Promise<void> {
+		try {
+			await this.db.ruleVersion.delete({
+				where: { id },
+			});
+		} catch (error) {
+			this.handleError(error, "バージョンの削除に失敗しました");
+		}
+	}
 }

@@ -72,41 +72,68 @@ export class RuleService {
 			});
 		}
 
-		// ルール作成
+		// ルール作成（エラー時のクリーンアップを考慮）
 		const ruleId = nanoid();
-		const rule = await this.ruleRepository.create({
-			id: ruleId,
-			name: data.name,
-			userId, // 直接ID指定
-			description: data.description || null,
-			visibility: data.visibility,
-			tags: data.tags ? JSON.stringify(data.tags) : null,
-			publishedAt: null,
-			downloads: 0,
-			stars: 0,
-			version: "1.0.0",
-			latestVersionId: null,
-			organizationId: data.organizationId || null,
-		});
+		const versionId = nanoid();
+		let rule: Awaited<ReturnType<typeof this.ruleRepository.create>> | undefined;
+		let version: Awaited<ReturnType<typeof this.ruleRepository.createVersion>> | undefined;
 
-		// 初期バージョンを作成
-		const version = await this.ruleRepository.createVersion({
-			id: nanoid(),
-			ruleId, // 直接ID指定
-			versionNumber: "1.0.0",
-			contentHash: await this.hashContent(data.content),
-			changelog: "Initial version",
-			r2ObjectKey: `rules/${ruleId}/1.0.0`,
-			createdBy: userId, // 直接ID指定
-		});
+		try {
+			// バージョンIDを最初から設定してルールを作成
+			rule = await this.ruleRepository.create({
+				id: ruleId,
+				name: data.name,
+				userId,
+				description: data.description || null,
+				visibility: data.visibility,
+				tags: data.tags ? JSON.stringify(data.tags) : null,
+				publishedAt: null,
+				downloads: 0,
+				stars: 0,
+				version: "1.0.0",
+				latestVersionId: versionId, // 最初から設定
+				organizationId: data.organizationId || null,
+			});
 
-		// R2にコンテンツを保存
-		await this.saveContentToR2(ruleId, version.versionNumber, data.content);
+			// 初期バージョンを作成
+			version = await this.ruleRepository.createVersion({
+				id: versionId,
+				ruleId,
+				versionNumber: "1.0.0",
+				contentHash: await this.hashContent(data.content),
+				changelog: "Initial version",
+				r2ObjectKey: `rules/${ruleId}/versions/1.0.0/content.md`,
+				createdBy: userId,
+			});
 
-		// 最新バージョンIDを更新
-		await this.ruleRepository.update(ruleId, {
-			latestVersionId: version.id,
-		});
+			// R2にコンテンツを保存
+			await this.saveContentToR2(ruleId, version.versionNumber, data.content);
+		} catch (error) {
+			// エラーが発生した場合のクリーンアップ
+			this.logger.error(
+				"Failed to create rule, attempting cleanup",
+				error instanceof Error ? error : new Error(String(error)),
+			);
+
+			// 作成されたレコードを削除
+			if (version) {
+				await this.ruleRepository.deleteVersion(versionId).catch(() => {
+					// Ignore cleanup errors
+				});
+			}
+			if (rule) {
+				await this.ruleRepository.delete(ruleId).catch(() => {
+					// Ignore cleanup errors
+				});
+			}
+
+			// R2のコンテンツも削除
+			await this.deleteRuleContents(ruleId).catch(() => {
+				// Ignore cleanup errors
+			});
+
+			throw error;
+		}
 
 		return {
 			rule,
