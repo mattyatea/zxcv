@@ -45,7 +45,11 @@ export class ApiClient {
 		return response.data;
 	}
 
-	async register(username: string, email: string, password: string): Promise<void> {
+	async register(
+		username: string,
+		email: string,
+		password: string,
+	): Promise<void> {
 		await this.client.post("/api/auth/register", {
 			username,
 			email,
@@ -62,7 +66,7 @@ export class ApiClient {
 
 	async getRuleContent(ruleId: string): Promise<{ content: string }> {
 		const response = await this.client.post("/api/rules/getContent", {
-			ruleId,
+			id: ruleId,
 		});
 		return response.data;
 	}
