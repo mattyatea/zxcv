@@ -168,10 +168,40 @@ export class RuleService {
 
 		// 最新バージョンを取得
 		const latestVersion = await this.ruleRepository.getLatestVersion(rule.id);
+
 		if (!latestVersion) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "ルールのバージョンが見つかりません",
+			// バージョンが存在しない場合は、R2から利用可能なバージョンをスキャン
+			this.logger.warn("No version found in database, scanning R2 for available versions", {
+				ruleId: rule.id,
 			});
+
+			const availableVersions = await this.scanR2ForVersions(rule.id);
+
+			if (availableVersions.length === 0) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "ルールのコンテンツが見つかりません",
+				});
+			}
+
+			// 最新バージョンを取得（セマンティックバージョンでソート）
+			const latestVersionNumber = this.getLatestVersion(availableVersions);
+			this.logger.info("Found latest version in R2", {
+				ruleId: rule.id,
+				version: latestVersionNumber,
+			});
+
+			// コンテンツを取得
+			const content = await this.getContentFromR2(rule.id, latestVersionNumber);
+
+			return {
+				rule,
+				version: {
+					id: rule.latestVersionId || rule.id,
+					versionNumber: latestVersionNumber,
+					createdAt: rule.createdAt,
+				},
+				content,
+			};
 		}
 
 		// コンテンツを取得
@@ -901,19 +931,105 @@ export class RuleService {
 	}
 
 	/**
+	 * R2から利用可能なバージョンをスキャン
+	 */
+	private async scanR2ForVersions(ruleId: string): Promise<string[]> {
+		const versions: string[] = [];
+		const prefix = `rules/${ruleId}/versions/`;
+
+		try {
+			// R2のリスト機能を使用してバージョンフォルダをスキャン
+			const listed = await this.r2.list({ prefix, delimiter: "/" });
+
+			for (const item of listed.objects) {
+				// パスから"versions/"以降、"/content.md"より前の部分を抽出
+				const match = item.key.match(/versions\/([^/]+)\//);
+				if (match?.[1]) {
+					versions.push(match[1]);
+				}
+			}
+
+			// 共通プレフィックスからもバージョンを抽出
+			if (listed.delimitedPrefixes) {
+				for (const prefix of listed.delimitedPrefixes) {
+					const match = prefix.match(/versions\/([^/]+)\/$/);
+					if (match?.[1]) {
+						versions.push(match[1]);
+					}
+				}
+			}
+		} catch (error) {
+			this.logger.error(
+				`Failed to scan R2 for versions: ruleId=${ruleId}`,
+				error instanceof Error ? error : new Error(String(error)),
+			);
+		}
+
+		return [...new Set(versions)]; // 重複を除去
+	}
+
+	/**
+	 * バージョンリストから最新バージョンを取得
+	 */
+	private getLatestVersion(versions: string[]): string {
+		if (versions.length === 0) {
+			return "1.0.0";
+		}
+
+		// セマンティックバージョニングでソート
+		const sorted = versions.sort((a, b) => {
+			const aParts = a.split(".").map((p) => Number.parseInt(p) || 0);
+			const bParts = b.split(".").map((p) => Number.parseInt(p) || 0);
+
+			for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+				const aPart = aParts[i] || 0;
+				const bPart = bParts[i] || 0;
+
+				if (aPart > bPart) {
+					return -1;
+				}
+				if (aPart < bPart) {
+					return 1;
+				}
+			}
+
+			return 0;
+		});
+
+		return sorted[0];
+	}
+
+	/**
 	 * R2からコンテンツを取得
 	 */
 	private async getContentFromR2(ruleId: string, version: string): Promise<string> {
-		const key = `rules/${ruleId}/versions/${version}/content.md`;
-		const object = await this.r2.get(key);
-
-		if (!object) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "ルールのコンテンツが見つかりません",
-			});
+		// バージョンが指定されている場合は通常のパス
+		if (version) {
+			const key = `rules/${ruleId}/versions/${version}/content.md`;
+			const object = await this.r2.get(key);
+			if (object) {
+				return await object.text();
+			}
 		}
 
-		return await object.text();
+		// バージョンが空または見つからない場合は、いくつかのパスパターンを試す
+		const fallbackPaths = [
+			`rules/${ruleId}/content.md`,
+			`rules/${ruleId}/versions/1.0.0/content.md`,
+			`rules/${ruleId}/latest/content.md`,
+		];
+
+		for (const path of fallbackPaths) {
+			const object = await this.r2.get(path);
+			if (object) {
+				this.logger.info("Found content at fallback path", { ruleId, path });
+				return await object.text();
+			}
+		}
+
+		throw new ORPCError("NOT_FOUND", {
+			message: "ルールのコンテンツが見つかりません",
+		});
 	}
 
 	/**

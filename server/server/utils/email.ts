@@ -1,6 +1,5 @@
 import type { Env } from "~/server/types/env";
 import { t } from "./i18n";
-import { createLogger } from "./logger";
 
 // Legacy sendEmail function for backward compatibility
 export async function sendEmail(

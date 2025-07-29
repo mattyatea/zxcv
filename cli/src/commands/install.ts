@@ -64,13 +64,15 @@ export function createInstallCommand(): Command {
 
 						if (existingRule && !options?.force) {
 							spinner.fail(
-								chalk.yellow("Rule already exists. Use --force to overwrite."),
+								chalk.yellow(
+									`Rule already exists (version ${existingRule.version}). Use --force to overwrite.`,
+								),
 							);
 							return;
 						}
 
 						// Get rule content
-						spinner.text = "Downloading rule content...";
+						spinner.text = `Downloading rule content (version ${rule.version})...`;
 						const { content } = await api.getRuleContent(rule.id);
 
 						// Save rule
@@ -83,6 +85,13 @@ export function createInstallCommand(): Command {
 								(r) => r.name === ruleName && r.owner === owner,
 							);
 							metadata.rules[index] = pulledRule;
+							if (existingRule.version !== pulledRule.version) {
+								console.log(
+									chalk.blue(
+										`Updated from version ${existingRule.version} to ${pulledRule.version}`,
+									),
+								);
+							}
 						} else {
 							metadata.rules.push(pulledRule);
 						}
@@ -90,7 +99,11 @@ export function createInstallCommand(): Command {
 						metadata.lastSync = new Date().toISOString();
 						config.saveMetadata(metadata);
 
-						spinner.succeed(chalk.green(`Successfully installed ${path}`));
+						spinner.succeed(
+							chalk.green(
+								`Successfully installed ${path} (version ${pulledRule.version})`,
+							),
+						);
 						console.log(
 							chalk.gray(`Rule saved to: ${config.getSymlinkDir()}/${path}.md`),
 						);
@@ -98,7 +111,25 @@ export function createInstallCommand(): Command {
 						spinner.fail(chalk.red("Failed to install rule"));
 						if (axios.isAxiosError(error)) {
 							if (error.response?.status === 404) {
-								console.error(chalk.red("Rule not found"));
+								const errorMessage =
+									error.response?.data?.message || "Rule not found";
+								if (
+									errorMessage.includes("バージョンが見つかりません") ||
+									errorMessage.includes("version")
+								) {
+									console.error(
+										chalk.red(
+											`Rule exists but no version information found for ${path}`,
+										),
+									);
+									console.error(
+										chalk.yellow(
+											"This may be a legacy rule without proper versioning.",
+										),
+									);
+								} else {
+									console.error(chalk.red(`Rule not found: ${path}`));
+								}
 							} else if (error.response?.status === 401) {
 								console.error(
 									chalk.red("Authentication required. Please login first."),

@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
-import { dbProvider, dbWithAuth } from "~/server/orpc/middleware/combined";
+import { dbWithAuth } from "~/server/orpc/middleware/combined";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 import { authErrors, type Locale } from "~/server/utils/i18n";
 

@@ -33,7 +33,7 @@ export class Logger {
 	private minLevel: LogLevel;
 	private context: Record<string, unknown>;
 
-	constructor(minLevel: LogLevel = LogLevel.DEBUG) {
+	constructor(_minLevel: LogLevel = LogLevel.DEBUG) {
 		this.minLevel = LogLevel.DEBUG;
 		this.context = {};
 	}
