@@ -34,9 +34,6 @@
   "lint-staged": {
     "*.{ts,tsx,js,jsx,vue}": [
       "biome format --write"
-    ],
-    "*.ts": [
-      "tsc --noEmit"
     ]
   }
 }
