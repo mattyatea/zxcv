@@ -1,2 +1,0 @@
-const r=".card-header[data-v-81ced111]:first-child{border-top-left-radius:inherit;border-top-right-radius:inherit}.card-footer[data-v-81ced111]:last-child{border-bottom-left-radius:inherit;border-bottom-right-radius:inherit}.card[class*=p-0] .card-footer[data-v-81ced111],.card[class*=p-0] .card-header[data-v-81ced111]{margin:0}.card[data-v-81ced111]{transition:box-shadow .2s ease-out,transform .2s ease-out}";export{r as C};
-//# sourceMappingURL=Card-styles-1.mjs-BN9ijchP.mjs.map

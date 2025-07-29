@@ -1,2 +1,0 @@
-import{e as r,b as o,c as t,f as e}from"../../../../nitro/nitro.mjs";import"node:events";import"node:process";import"cloudflare:workers";import"node:buffer";import"node:timers";import"@prisma/client";import"node:util";const n=r(async r=>{const n=o(r,"provider"),s=t(r),i=new URLSearchParams;for(const[r,o]of Object.entries(s))null!=o&&i.append(r,String(o));const a=`/auth/callback/${n}?${i.toString()}`;return e(r,a)});export{n as default};
-//# sourceMappingURL=_provider_.mjs.map

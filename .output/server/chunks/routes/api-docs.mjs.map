@@ -1,1 +1,0 @@
-{"version":3,"file":"api-docs.mjs","sources":["../../../../server/routes/api-docs.ts"],"sourcesContent":null,"names":["apiDocs","defineEventHandler","async","Response","headers"],"mappings":"4LAAA,MAAAA,EAAAC,EAAAC,SAgBA,IAAAC,SAfA,oXAeA,CACAC,QAAA,CACA,eAAA"}

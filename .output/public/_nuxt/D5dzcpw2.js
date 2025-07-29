@@ -1,1 +1,0 @@
-import{U as a,G as r,n}from"./CyjY5H8A.js";import{u as s}from"./6jrzLyMP.js";const d=a(e=>{const{isAuthenticated:t}=r(s());if(!t.value){const o=e.fullPath;return n(`/login?redirect=${encodeURIComponent(o)}`)}});export{d as default};

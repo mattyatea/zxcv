@@ -1,1 +1,0 @@
-import{u as o}from"./CLdyUvtB.js";const t=()=>{const s=o();return{showToast:s.showToast,success:s.success,error:s.error,warning:s.warning,info:s.info,removeToast:s.removeToast,clearAllToasts:s.clearAllToasts}};export{t as u};
