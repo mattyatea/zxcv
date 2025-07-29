@@ -30,12 +30,24 @@ export function createInstallCommand(): Command {
 					const spinner = ora("Installing rule...").start();
 
 					try {
+						// Parse path and version
+						let packageName = path;
+						let requestedVersion: string | undefined;
+
+						// Check for version specification (e.g., @user/rule@1.0.0)
+						const versionIndex = path.lastIndexOf("@");
+						if (versionIndex > 0) {
+							// Not the first @ in @org/rule
+							packageName = path.substring(0, versionIndex);
+							requestedVersion = path.substring(versionIndex + 1);
+						}
+
 						// Parse path - must be @owner/rulename format
-						if (!path.startsWith("@")) {
+						if (!packageName.startsWith("@")) {
 							throw new Error("Rule path must be in @owner/rulename format");
 						}
 
-						const pathParts = path.split("/");
+						const pathParts = packageName.split("/");
 						if (pathParts.length !== 2) {
 							throw new Error("Rule path must be in @owner/rulename format");
 						}
@@ -47,9 +59,9 @@ export function createInstallCommand(): Command {
 							throw new Error("Invalid rule path format. Use @owner/rulename");
 						}
 
-						// Get rule from server
+						// Get rule from server (use packageName without version)
 						spinner.text = "Fetching rule information...";
-						const rule = await api.getRule(path);
+						const rule = await api.getRule(packageName);
 
 						// Check if rule already exists
 						const metadata = config.loadMetadata() || {
@@ -73,9 +85,18 @@ export function createInstallCommand(): Command {
 							return;
 						}
 
-						// Get rule content
-						spinner.text = `Downloading rule content (version ${rule.version})...`;
-						const { content } = await api.getRuleContent(rule.id);
+						// Get rule content with specific version if requested
+						const targetVersion = requestedVersion || rule.version;
+						spinner.text = `Downloading rule content (version ${targetVersion})...`;
+						const { content, version } = await api.getRuleContent(
+							rule.id,
+							requestedVersion,
+						);
+
+						// Update rule object with the actual version from content response
+						if (requestedVersion) {
+							rule.version = version;
+						}
 
 						// Save rule
 						spinner.text = "Saving rule...";
@@ -103,11 +124,13 @@ export function createInstallCommand(): Command {
 
 						spinner.succeed(
 							chalk.green(
-								`Successfully installed ${path} (version ${pulledRule.version})`,
+								`Successfully installed ${packageName} (version ${pulledRule.version})`,
 							),
 						);
 						console.log(
-							chalk.gray(`Rule saved to: ${config.getSymlinkDir()}/${path}.md`),
+							chalk.gray(
+								`Rule saved to: ${config.getSymlinkDir()}/${packageName}.md`,
+							),
 						);
 					} catch (error) {
 						spinner.fail(chalk.red("Failed to install rule"));

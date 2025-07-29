@@ -86,13 +86,14 @@ describe("add command", () => {
 
 		ApiClient.mockImplementation(() => ({
 			getRule: mock(() => Promise.resolve(mockRule)),
-			getRuleContent: mock(() => Promise.resolve({ content: mockContent })),
+			getRuleContent: mock(() =>
+				Promise.resolve({ content: mockContent, version: "1.0.0" }),
+			),
 		}));
 
 		FileManager.mockImplementation(() => ({
 			saveRule: mock(() => ({
 				name: "test-rule",
-				path: "test-rule-id",
 				version: "1.0.0",
 				pulledAt: new Date().toISOString(),
 			})),
@@ -149,7 +150,6 @@ describe("add command", () => {
 			rules: [
 				{
 					name: "existing-rule",
-					path: "existing-id",
 					version: "1.0.0",
 					pulledAt: new Date().toISOString(),
 				},
@@ -222,13 +222,14 @@ describe("add command", () => {
 					updatedAt: "2024-01-01T00:00:00Z",
 				});
 			}),
-			getRuleContent: mock(() => Promise.resolve({ content: "# Content" })),
+			getRuleContent: mock(() =>
+				Promise.resolve({ content: "# Content", version: "1.0.0" }),
+			),
 		}));
 
 		FileManager.mockImplementation(() => ({
 			saveRule: mock((rule: Rule) => ({
 				name: rule.name,
-				path: rule.id,
 				version: rule.version,
 				pulledAt: new Date().toISOString(),
 			})),
@@ -279,13 +280,14 @@ describe("add command", () => {
 					updatedAt: "2024-01-01T00:00:00Z",
 				}),
 			),
-			getRuleContent: mock(() => Promise.resolve({ content: "# Content" })),
+			getRuleContent: mock(() =>
+				Promise.resolve({ content: "# Content", version: "1.0.0" }),
+			),
 		}));
 
 		FileManager.mockImplementation(() => ({
 			saveRule: mock((rule: Rule) => ({
 				name: `@${rule.organization}/${rule.name}`,
-				path: rule.id,
 				version: rule.version,
 				pulledAt: new Date().toISOString(),
 			})),
@@ -335,13 +337,14 @@ describe("add command", () => {
 					updatedAt: "2024-01-01T00:00:00Z",
 				}),
 			),
-			getRuleContent: mock(() => Promise.resolve({ content: "# Content" })),
+			getRuleContent: mock(() =>
+				Promise.resolve({ content: "# Content", version: "1.0.0" }),
+			),
 		}));
 
 		FileManager.mockImplementation(() => ({
 			saveRule: mock((rule: Rule) => ({
-				name: `${rule.owner}/${rule.name}`,
-				path: rule.id,
+				name: `@${rule.owner}/${rule.name}`,
 				version: rule.version,
 				pulledAt: new Date().toISOString(),
 			})),
@@ -360,6 +363,68 @@ describe("add command", () => {
 		);
 
 		expect(metadata.rules).toHaveLength(1);
-		expect(metadata.rules[0].name).toBe("testuser/test-rule");
+		expect(metadata.rules[0].name).toBe("@testuser/test-rule");
+	});
+
+	test("should support version specification", async () => {
+		const freshMetadata: ZxcvMetadata = {
+			version: "1.0.0",
+			lastSync: new Date().toISOString(),
+			rules: [],
+		};
+		writeFileSync(
+			join(TEST_CWD, "zxcv-metadata.json"),
+			JSON.stringify(freshMetadata, null, 2),
+		);
+
+		const { ApiClient } = require("../../src/utils/api");
+		const { FileManager } = require("../../src/utils/file");
+
+		ApiClient.mockImplementation(() => ({
+			getRule: mock((path: string) => {
+				// Should receive @user/rule (without version)
+				expect(path).toBe("@myuser/test-rule");
+				return Promise.resolve({
+					id: "rule-123",
+					name: "test-rule",
+					user: { username: "myuser", id: "user-1", email: "test@example.com" },
+					content: "# Test",
+					visibility: "public",
+					tags: [],
+					version: "1.0.0", // Base version, will be overridden by getRuleContent
+					createdAt: "2024-01-01T00:00:00Z",
+					updatedAt: "2024-01-01T00:00:00Z",
+				});
+			}),
+			getRuleContent: mock((ruleId, version) => {
+				// Expect version 1.2.3 to be requested
+				expect(version).toBe("1.2.3");
+				return Promise.resolve({ content: "# Content", version: "1.2.3" });
+			}),
+		}));
+
+		FileManager.mockImplementation(() => ({
+			saveRule: mock((rule: Rule) => ({
+				name: `@${rule.user?.username}/${rule.name}`,
+				version: rule.version,
+				pulledAt: new Date().toISOString(),
+			})),
+		}));
+
+		const command = createAddCommand();
+		process.argv = ["node", "zxcv", "@myuser/test-rule@1.2.3"];
+
+		await new Promise<void>((resolve) => {
+			command.parse(process.argv);
+			setTimeout(resolve, 200);
+		});
+
+		const metadata: ZxcvMetadata = JSON.parse(
+			readFileSync(join(TEST_CWD, "zxcv-metadata.json"), "utf-8"),
+		);
+
+		expect(metadata.rules).toHaveLength(1);
+		expect(metadata.rules[0].name).toBe("@myuser/test-rule");
+		expect(metadata.rules[0].version).toBe("1.2.3");
 	});
 });

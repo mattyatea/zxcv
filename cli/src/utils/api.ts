@@ -64,9 +64,13 @@ export class ApiClient {
 		return response.data;
 	}
 
-	async getRuleContent(ruleId: string): Promise<{ content: string }> {
+	async getRuleContent(
+		ruleId: string,
+		version?: string,
+	): Promise<{ content: string; version: string }> {
 		const response = await this.client.post("/api/rules/getContent", {
 			id: ruleId,
+			...(version && { version }),
 		});
 		return response.data;
 	}

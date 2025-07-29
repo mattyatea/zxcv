@@ -12,7 +12,7 @@ export function createAddCommand(): Command {
 		.description("Add rules to your project")
 		.argument(
 			"<packages...>",
-			"Rule packages to add (e.g., rulename or @org/rulename)",
+			"Rule packages to add (e.g., @user/rule or @user/rule@1.0.0)",
 		)
 		.option("-D, --save-dev", "Save as development dependency")
 		.option("-E, --save-exact", "Save exact version")
@@ -34,8 +34,20 @@ export function createAddCommand(): Command {
 					try {
 						spinner.text = `Adding ${pkg}...`;
 
+						// Parse package path and version
+						let packageName = pkg;
+						let requestedVersion: string | undefined;
+
+						// Check for version specification (e.g., @user/rule@1.0.0)
+						const versionIndex = pkg.lastIndexOf("@");
+						if (versionIndex > 0) {
+							// Not the first @ in @org/rule
+							packageName = pkg.substring(0, versionIndex);
+							requestedVersion = pkg.substring(versionIndex + 1);
+						}
+
 						// Parse package path
-						const pathParts = pkg.split("/");
+						const pathParts = packageName.split("/");
 						let organization: string | undefined;
 						let owner: string | undefined;
 						let ruleName: string;
@@ -52,8 +64,8 @@ export function createAddCommand(): Command {
 							throw new Error("Invalid rule path format");
 						}
 
-						// Get rule from server
-						const rule = await api.getRule(pkg);
+						// Get rule from server (without version in path)
+						const rule = await api.getRule(packageName);
 
 						// Check if rule already exists
 						const metadata = config.loadMetadata() || {
@@ -62,30 +74,70 @@ export function createAddCommand(): Command {
 							rules: [],
 						};
 
-						// フルパス形式で比較
-						const fullName = organization
-							? `@${organization}/${ruleName}`
-							: owner
-								? `${owner}/${ruleName}`
-								: ruleName;
+						// フルパス形式で比較（すべて@プレフィックス付き）
+						// APIから取得したルールデータを優先
+						let fullName: string;
+						if (rule.organization) {
+							fullName = `@${rule.organization}/${rule.name}`;
+						} else if (rule.user?.username) {
+							fullName = `@${rule.user.username}/${rule.name}`;
+						} else if (rule.owner) {
+							fullName = `@${rule.owner}/${rule.name}`;
+						} else {
+							// パッケージ名から推測
+							fullName = organization
+								? `@${organization}/${ruleName}`
+								: owner
+									? `@${owner}/${ruleName}`
+									: ruleName;
+						}
 
 						const existingRule = metadata.rules.find(
 							(r) => r.name === fullName,
 						);
 
 						if (existingRule) {
-							spinner.info(chalk.yellow(`${pkg} is already added`));
-							continue;
+							// Check if specific version was requested
+							if (
+								requestedVersion &&
+								existingRule.version !== requestedVersion
+							) {
+								spinner.info(
+									chalk.yellow(
+										`${packageName} version ${existingRule.version} is installed. Updating to ${requestedVersion}...`,
+									),
+								);
+							} else {
+								spinner.info(chalk.yellow(`${packageName} is already added`));
+								continue;
+							}
 						}
 
-						// Get rule content
-						const { content } = await api.getRuleContent(rule.id);
+						// Get rule content with specific version if requested
+						const { content, version } = await api.getRuleContent(
+							rule.id,
+							requestedVersion,
+						);
+
+						// Update rule object with the actual version from content response
+						if (requestedVersion) {
+							rule.version = version;
+						}
 
 						// Save rule
 						const pulledRule = fileManager.saveRule(rule, content);
 
 						// Update metadata
-						metadata.rules.push(pulledRule);
+						if (existingRule) {
+							// Update existing rule
+							const index = metadata.rules.findIndex(
+								(r) => r.name === fullName,
+							);
+							metadata.rules[index] = pulledRule;
+						} else {
+							// Add new rule
+							metadata.rules.push(pulledRule);
+						}
 						metadata.lastSync = new Date().toISOString();
 						config.saveMetadata(metadata);
 

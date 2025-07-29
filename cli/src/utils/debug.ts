@@ -19,7 +19,7 @@ export class DebugLogger {
 	logRequest(config: AxiosRequestConfig) {
 		if (!this.enabled) return;
 
-		console.log(chalk.gray("\n" + "=".repeat(60)));
+		console.log(chalk.gray(`\n${"=".repeat(60)}`));
 		console.log(chalk.blue.bold("🔍 API Request"));
 		console.log(chalk.gray("=".repeat(60)));
 		console.log(chalk.cyan("Method:"), config.method?.toUpperCase());
@@ -75,7 +75,7 @@ export class DebugLogger {
 			}
 			console.log(JSON.stringify(dataCopy, null, 2));
 		}
-		console.log(chalk.gray("=".repeat(60) + "\n"));
+		console.log(chalk.gray(`${"=".repeat(60)}\n`));
 	}
 
 	logError(error: any) {
@@ -98,7 +98,7 @@ export class DebugLogger {
 		} else {
 			console.log(chalk.red("Error:"), error.message);
 		}
-		console.log(chalk.gray("=".repeat(60) + "\n"));
+		console.log(chalk.gray(`${"=".repeat(60)}\n`));
 	}
 
 	log(message: string, ...args: any[]) {

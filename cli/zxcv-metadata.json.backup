@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "lastSync": "2025-07-29T18:20:34.194Z",
+  "rules": [
+    {
+      "name": "test",
+      "path": "8lrg3Ed0PS8kxwMl1vObW",
+      "version": "1.0.1",
+      "pulledAt": "2025-07-29T18:20:34.192Z"
+    }
+  ]
+}

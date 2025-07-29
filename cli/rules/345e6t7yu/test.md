@@ -1,0 +1,1 @@
+../../../../../.zxcv/rules/345e6t7yu/test.md

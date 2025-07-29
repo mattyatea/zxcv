@@ -31,8 +31,8 @@ export function createSyncCommand(): Command {
 
 				for (const pulledRule of metadata.rules) {
 					try {
-						// Construct path in @owner/rulename format
-						const path = `@${pulledRule.owner || "unknown"}/${pulledRule.name}`;
+						// Use the rule name as stored in metadata (already in full path format)
+						const path = pulledRule.name;
 
 						// Get latest version from server
 						const rule = await api.getRule(path);

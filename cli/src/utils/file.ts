@@ -24,20 +24,14 @@ export class FileManager {
 	} {
 		const parts = fullName.split("/");
 		if (parts.length === 2 && parts[0].startsWith("@")) {
-			// @org/rulename
+			// @username/rulename or @org/rulename
+			const username = parts[0].substring(1);
 			return {
-				organization: parts[0].substring(1),
+				owner: username,
 				name: parts[1],
 			};
 		}
-		if (parts.length === 2) {
-			// username/rulename
-			return {
-				owner: parts[0],
-				name: parts[1],
-			};
-		}
-		// rulename only
+		// rulename only (legacy)
 		return {
 			name: fullName,
 		};
@@ -54,7 +48,7 @@ export class FileManager {
 		if (organization) {
 			parts.push(`@${organization}`);
 		} else if (owner) {
-			parts.push(owner);
+			parts.push(`@${owner}`);
 		}
 		parts.push(`${name}.md`);
 		return join(...parts);
@@ -71,24 +65,26 @@ export class FileManager {
 		if (organization) {
 			parts.push(`@${organization}`);
 		} else if (owner) {
-			parts.push(owner);
+			parts.push(`@${owner}`);
 		}
 		parts.push(`${name}.md`);
 		return join(...parts);
 	}
 
 	public saveRule(rule: Rule, content: string): PulledRule {
-		// フルパス形式の名前を構築
+		// フルパス形式の名前を構築（すべて@プレフィックス付き）
 		let fullName = rule.name;
 		if (rule.organization) {
 			fullName = `@${rule.organization}/${rule.name}`;
+		} else if (rule.user?.username) {
+			fullName = `@${rule.user.username}/${rule.name}`;
 		} else if (rule.owner) {
-			fullName = `${rule.owner}/${rule.name}`;
+			// 後方互換性のため
+			fullName = `@${rule.owner}/${rule.name}`;
 		}
 
 		const pulledRule: PulledRule = {
 			name: fullName,
-			path: rule.id,
 			version: rule.version,
 			pulledAt: new Date().toISOString(),
 		};
@@ -135,17 +131,16 @@ export class FileManager {
 		owner?: string,
 		organization?: string,
 	): string | null {
-		// フルパス形式の名前を構築
+		// フルパス形式の名前を構築（すべて@プレフィックス付き）
 		let fullName = name;
 		if (organization) {
 			fullName = `@${organization}/${name}`;
 		} else if (owner) {
-			fullName = `${owner}/${name}`;
+			fullName = `@${owner}/${name}`;
 		}
 
 		const rule: PulledRule = {
 			name: fullName,
-			path: "",
 			version: "",
 			pulledAt: "",
 		};

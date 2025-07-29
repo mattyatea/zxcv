@@ -38,7 +38,6 @@ export interface ZxcvMetadata {
 
 export interface PulledRule {
 	name: string; // フルパス形式 (@username/rulename or @org/rulename or rulename)
-	path: string;
 	version: string;
 	pulledAt: string;
 }

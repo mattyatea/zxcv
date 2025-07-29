@@ -49,7 +49,6 @@ describe("FileManager", () => {
 		// Check pulled rule data
 		expect(pulledRule.name).toBe("test-rule");
 		expect(pulledRule.version).toBe("1.0.0");
-		expect(pulledRule.path).toBe("test-id");
 	});
 
 	test("should save organization rule with proper directory structure", () => {
@@ -97,16 +96,16 @@ describe("FileManager", () => {
 		const pulledRule = fileManager.saveRule(rule, content);
 
 		// Check pulled rule has full path name
-		expect(pulledRule.name).toBe("testuser/user-rule");
+		expect(pulledRule.name).toBe("@testuser/user-rule");
 
 		// Check file path
-		const rulePath = join(config.getRulesDir(), "testuser", "user-rule.md");
+		const rulePath = join(config.getRulesDir(), "@testuser", "user-rule.md");
 		expect(existsSync(rulePath)).toBe(true);
 
 		// Check symlink path
 		const symlinkPath = join(
 			config.getSymlinkDir(),
-			"testuser",
+			"@testuser",
 			"user-rule.md",
 		);
 		expect(existsSync(symlinkPath)).toBe(true);
@@ -156,7 +155,6 @@ describe("FileManager", () => {
 		// Update the rule
 		const pulledRule: PulledRule = {
 			name: "update-test",
-			path: "update-test-id",
 			version: "1.0.1",
 			pulledAt: new Date().toISOString(),
 		};
@@ -185,7 +183,6 @@ describe("FileManager", () => {
 
 		const pulledRule: PulledRule = {
 			name: "exists-test",
-			path: "exists-test-id",
 			version: "1.0.0",
 			pulledAt: new Date().toISOString(),
 		};
@@ -194,7 +191,6 @@ describe("FileManager", () => {
 
 		const nonExistentRule: PulledRule = {
 			name: "non-existent",
-			path: "non-existent-id",
 			version: "1.0.0",
 			pulledAt: new Date().toISOString(),
 		};
@@ -256,11 +252,37 @@ describe("FileManager", () => {
 		expect(content).toBe("# Second Content");
 	});
 
+	test("should use user.username when available", () => {
+		const rule: Rule = {
+			id: "user-test-id",
+			name: "test-rule",
+			content: "# Test",
+			visibility: "public",
+			user: {
+				id: "user-123",
+				username: "myusername",
+				email: "user@example.com",
+			},
+			tags: [],
+			version: "1.0.0",
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		};
+
+		const pulledRule = fileManager.saveRule(rule, "# Content");
+
+		// Should use user.username instead of owner
+		expect(pulledRule.name).toBe("@myusername/test-rule");
+
+		// Check file is saved in correct location
+		const rulePath = join(config.getRulesDir(), "@myusername", "test-rule.md");
+		expect(existsSync(rulePath)).toBe(true);
+	});
+
 	test("should handle full path names in PulledRule", () => {
 		// Test with organization rule
 		const orgRule: PulledRule = {
 			name: "@myorg/test-rule",
-			path: "org-test-id",
 			version: "1.0.0",
 			pulledAt: new Date().toISOString(),
 		};
@@ -274,15 +296,18 @@ describe("FileManager", () => {
 
 		// Test with user rule
 		const userRule: PulledRule = {
-			name: "testuser/test-rule",
-			path: "user-test-id",
+			name: "@testuser/test-rule",
 			version: "1.0.0",
 			pulledAt: new Date().toISOString(),
 		};
 
 		// Create the file manually to test reading
-		const userRulePath = join(config.getRulesDir(), "testuser", "test-rule.md");
-		mkdirSync(join(config.getRulesDir(), "testuser"), { recursive: true });
+		const userRulePath = join(
+			config.getRulesDir(),
+			"@testuser",
+			"test-rule.md",
+		);
+		mkdirSync(join(config.getRulesDir(), "@testuser"), { recursive: true });
 		writeFileSync(userRulePath, "# User Rule Content");
 
 		expect(fileManager.ruleExists(userRule)).toBe(true);

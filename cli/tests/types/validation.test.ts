@@ -22,20 +22,18 @@ describe("Type validation", () => {
 	test("should validate PulledRule type", () => {
 		const pulledRule: PulledRule = {
 			name: "test-rule",
-			path: "test-path",
 			version: "1.0.0",
 			pulledAt: new Date().toISOString(),
 		};
 
 		expect(pulledRule.name).toBe("test-rule");
-		expect(pulledRule.path).toBe("test-path");
 		expect(pulledRule.version).toBe("1.0.0");
+		expect(pulledRule.pulledAt).toBeDefined();
 	});
 
 	test("should validate PulledRule with full path names", () => {
 		const orgRule: PulledRule = {
 			name: "@myorg/test-rule",
-			path: "org-rule-id",
 			version: "1.0.0",
 			pulledAt: new Date().toISOString(),
 		};
@@ -43,13 +41,12 @@ describe("Type validation", () => {
 		expect(orgRule.name).toBe("@myorg/test-rule");
 
 		const userRule: PulledRule = {
-			name: "testuser/test-rule",
-			path: "user-rule-id",
+			name: "@testuser/test-rule",
 			version: "1.0.0",
 			pulledAt: new Date().toISOString(),
 		};
 
-		expect(userRule.name).toBe("testuser/test-rule");
+		expect(userRule.name).toBe("@testuser/test-rule");
 	});
 
 	test("should validate ZxcvMetadata type", () => {

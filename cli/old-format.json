@@ -1,0 +1,20 @@
+{
+	"version": "1.0.0",
+	"lastSync": "2025-07-29T18:00:00.000Z",
+	"rules": [
+		{
+			"name": "test-rule",
+			"path": "rule-id-1",
+			"owner": "testuser",
+			"version": "1.0.0",
+			"pulledAt": "2025-07-29T18:00:00.000Z"
+		},
+		{
+			"name": "org-rule",
+			"path": "rule-id-2",
+			"organization": "myorg",
+			"version": "1.0.0",
+			"pulledAt": "2025-07-29T18:01:00.000Z"
+		}
+	]
+}

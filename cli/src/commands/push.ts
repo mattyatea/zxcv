@@ -61,11 +61,11 @@ export function createPushCommand(): Command {
 				// Check if rule exists in metadata
 				const metadata = config.loadMetadata();
 
-				// フルパス形式で比較
+				// フルパス形式で比較（すべて@プレフィックス付き）
 				const fullName = organization
 					? `@${organization}/${ruleName}`
 					: owner
-						? `${owner}/${ruleName}`
+						? `@${owner}/${ruleName}`
 						: ruleName;
 
 				const existingRule = metadata?.rules.find((r) => r.name === fullName);
