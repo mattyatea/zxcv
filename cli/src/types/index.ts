@@ -8,7 +8,12 @@ export interface Rule {
 	tags: string[];
 	version: string;
 	createdAt: string;
-	updatedAt: string;
+	updatedAt: string | number;
+	user?: {
+		id: string;
+		username: string;
+		email: string;
+	};
 }
 
 export interface ZxcvConfig {

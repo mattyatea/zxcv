@@ -83,16 +83,19 @@ export function createSearchCommand(): Command {
 
 					for (const rule of rules) {
 						// Always display as @owner/rulename format
-						const path = `@${rule.owner || "unknown"}/${rule.name}`;
+						const owner = rule.user?.username || rule.owner || "unknown";
+						const path = `@${owner}/${rule.name}`;
 						console.log(chalk.cyan(path));
 						if (rule.tags.length > 0) {
 							console.log(chalk.gray(`  Tags: ${rule.tags.join(", ")}`));
 						}
 						console.log(chalk.gray(`  Visibility: ${rule.visibility}`));
+						const updatedAt =
+							typeof rule.updatedAt === "number"
+								? rule.updatedAt * 1000
+								: new Date(rule.updatedAt).getTime();
 						console.log(
-							chalk.gray(
-								`  Updated: ${new Date(rule.updatedAt * 1000).toLocaleString()}`,
-							),
+							chalk.gray(`  Updated: ${new Date(updatedAt).toLocaleString()}`),
 						);
 						console.log();
 					}
