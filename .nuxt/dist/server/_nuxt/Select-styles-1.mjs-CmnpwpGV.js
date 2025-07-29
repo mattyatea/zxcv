@@ -1,5 +1,0 @@
-const Select_vue_vue_type_style_index_0_scoped_9b7836e5_lang = ".select-wrapper[data-v-9b7836e5]:focus-within{transform:translateY(-1px)}.select-wrapper:focus-within select[data-v-9b7836e5]{box-shadow:0 4px 12px -2px #3b82f626}.select-wrapper:focus-within .select-chevron[data-v-9b7836e5]{color:#3b82f6;transform:rotate(180deg)}.dark .select-wrapper:focus-within .select-chevron[data-v-9b7836e5]{color:#93c5fd}select[data-v-9b7836e5]:hover:not(:disabled){box-shadow:0 2px 8px -2px #0000001a;transform:translateY(-.5px)}.dark select[data-v-9b7836e5]:hover:not(:disabled){box-shadow:0 2px 8px -2px #0000004d}select[data-v-9b7836e5]:active:not(:disabled){transform:scale(.995)}";
-export {
-  Select_vue_vue_type_style_index_0_scoped_9b7836e5_lang as default
-};
-//# sourceMappingURL=Select-styles-1.mjs-CmnpwpGV.js.map
