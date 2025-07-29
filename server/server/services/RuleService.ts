@@ -120,6 +120,7 @@ export class RuleService {
 	 */
 	async getRule(nameOrId: string, owner?: string, userId?: string) {
 		this.logger.debug("getRule called with", { nameOrId, owner, userId });
+		// biome-ignore lint/suspicious/noExplicitAny: Rule type varies based on query
 		let rule: any | null = null;
 
 		if (owner) {
@@ -487,6 +488,7 @@ export class RuleService {
 			: [];
 
 		// 関連ルールを検索（同じタグを持つ、または同じ作者のルール）
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic where clause building
 		const where: any = {
 			AND: [
 				{ id: { not: ruleId } }, // 元のルールを除外
@@ -595,6 +597,7 @@ export class RuleService {
 		offset: number;
 		userId?: string;
 	}) {
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic Prisma where clause construction requires flexible typing
 		const where: any = {};
 
 		// 可視性フィルタ
@@ -684,6 +687,7 @@ export class RuleService {
 		limit: number;
 		userId?: string;
 	}) {
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic Prisma where clause construction requires flexible typing
 		const where: any = {};
 
 		// 可視性フィルタ
@@ -731,6 +735,7 @@ export class RuleService {
 		}
 
 		// ソート設定
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic Prisma orderBy clause construction requires flexible typing
 		const orderBy: any = {};
 		switch (params.sortBy) {
 			case "newest":
@@ -816,6 +821,7 @@ export class RuleService {
 	/**
 	 * ルールへのアクセス権限をチェック
 	 */
+	// biome-ignore lint/suspicious/noExplicitAny: Rule type is complex Prisma model with relations, using any for flexibility
 	private async checkRuleAccess(rule: any, userId?: string) {
 		// 公開されたパブリックルールは誰でもアクセス可能
 		if (rule.publishedAt && rule.visibility === "public") {
@@ -855,6 +861,7 @@ export class RuleService {
 	/**
 	 * ルール削除権限をチェック
 	 */
+	// biome-ignore lint/suspicious/noExplicitAny: Rule type is complex Prisma model with relations, using any for flexibility
 	private async canDeleteRule(rule: any, userId: string): Promise<boolean> {
 		// 作成者は削除可能
 		if (rule.userId === userId) {

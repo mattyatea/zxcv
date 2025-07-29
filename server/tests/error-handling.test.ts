@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { ORPCError } from "@orpc/server";
+import { describe, expect, it, vi } from "vitest";
 
 describe("Error Handling", () => {
 	describe("HTTP Status Code Mapping", () => {
@@ -42,15 +42,15 @@ describe("Error Handling", () => {
 
 	describe("Error Response Format", () => {
 		it("should have consistent error structure", () => {
-			const error = new ORPCError("UNAUTHORIZED", { 
+			const error = new ORPCError("UNAUTHORIZED", {
 				message: "Authentication required",
-				data: { field: "token" }
+				data: { field: "token" },
 			});
 
 			expect(error.code).toBe("UNAUTHORIZED");
 			expect(error.message).toBe("Authentication required");
 			expect(error.data).toMatchObject({
-				field: "token"
+				field: "token",
 			});
 		});
 
@@ -67,10 +67,10 @@ describe("Error Handling", () => {
 							expected: "email",
 							received: "string",
 							path: ["email"],
-							message: "Invalid email"
-						}
-					]
-				}
+							message: "Invalid email",
+						},
+					],
+				},
 			};
 
 			expect(validationError.code).toBe("BAD_REQUEST");
@@ -83,6 +83,7 @@ describe("Error Handling", () => {
 	describe("Middleware Error Handling", () => {
 		it("should throw UNAUTHORIZED when no user context", async () => {
 			const mockNext = vi.fn();
+			// biome-ignore lint/suspicious/noExplicitAny: Mock middleware for testing purposes
 			const authMiddleware = async ({ context, next }: any) => {
 				if (!context.user) {
 					throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
@@ -91,16 +92,15 @@ describe("Error Handling", () => {
 			};
 
 			const context = { user: null };
-			
-			await expect(
-				authMiddleware({ context, next: mockNext })
-			).rejects.toThrow(ORPCError);
+
+			await expect(authMiddleware({ context, next: mockNext })).rejects.toThrow(ORPCError);
 
 			expect(mockNext).not.toHaveBeenCalled();
 		});
 
 		it("should pass through when user is authenticated", async () => {
 			const mockNext = vi.fn().mockResolvedValue({ success: true });
+			// biome-ignore lint/suspicious/noExplicitAny: Mock middleware for testing purposes
 			const authMiddleware = async ({ context, next }: any) => {
 				if (!context.user) {
 					throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
@@ -128,9 +128,9 @@ describe("Error Handling", () => {
 								code: { type: "string" },
 								status: { type: "number" },
 								message: { type: "string" },
-								data: { type: "object" }
+								data: { type: "object" },
 							},
-							required: ["code", "status", "message"]
+							required: ["code", "status", "message"],
 						},
 						ValidationError: {
 							type: "object",
@@ -139,12 +139,12 @@ describe("Error Handling", () => {
 								code: { type: "string", default: "BAD_REQUEST" },
 								status: { type: "integer", default: 400 },
 								message: { type: "string", default: "Input validation failed" },
-								data: { type: "object" }
+								data: { type: "object" },
 							},
-							required: ["code", "status", "message"]
-						}
-					}
-				}
+							required: ["code", "status", "message"],
+						},
+					},
+				},
 			};
 
 			expect(mockSpec.components.schemas.ErrorResponse).toBeDefined();
@@ -158,31 +158,31 @@ describe("Error Handling", () => {
 			const mockEndpoint = {
 				responses: {
 					"200": { description: "Success" },
-					"400": { 
+					"400": {
 						description: "Bad Request - Validation Error",
 						content: {
 							"application/json": {
-								schema: { $ref: "#/components/schemas/ValidationError" }
-							}
-						}
+								schema: { "$ref": "#/components/schemas/ValidationError" },
+							},
+						},
 					},
 					"401": {
 						description: "Unauthorized - Authentication required",
 						content: {
 							"application/json": {
-								schema: { $ref: "#/components/schemas/ErrorResponse" }
-							}
-						}
+								schema: { "$ref": "#/components/schemas/ErrorResponse" },
+							},
+						},
 					},
 					"500": {
 						description: "Internal Server Error",
 						content: {
 							"application/json": {
-								schema: { $ref: "#/components/schemas/ErrorResponse" }
-							}
-						}
-					}
-				}
+								schema: { "$ref": "#/components/schemas/ErrorResponse" },
+							},
+						},
+					},
+				},
 			};
 
 			expect(mockEndpoint.responses["400"]).toBeDefined();

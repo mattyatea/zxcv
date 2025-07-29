@@ -31,6 +31,7 @@ export function createMockNuxtApp() {
 }
 
 // Helper to create mock Pinia store
+// biome-ignore lint/suspicious/noExplicitAny: Store state can contain any serializable values in tests
 export function createMockStore(storeName: string, initialState: Record<string, any> = {}) {
 	return {
 		[storeName]: {

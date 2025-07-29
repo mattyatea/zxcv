@@ -8,6 +8,7 @@ export function createMockRequest(
 		method: string;
 		url: string;
 		headers: Record<string, string>;
+		// biome-ignore lint/suspicious/noExplicitAny: Request body can be any JSON serializable value in tests
 		body: any;
 	}> = {},
 ): IncomingRequest {
@@ -36,10 +37,14 @@ export function createMockExecutionContext(): ExecutionContext {
 }
 
 // Helper to create mock Cloudflare environment
+// biome-ignore lint/suspicious/noExplicitAny: Mock environment needs flexible typing for test overrides
 export function createMockEnv(overrides: Partial<any> = {}): any {
 	return {
+		// biome-ignore lint/suspicious/noExplicitAny: Mock database bindings for test environment
 		DB: {} as any,
+		// biome-ignore lint/suspicious/noExplicitAny: Mock database bindings for test environment
 		ZXCV_DB: {} as any,
+		// biome-ignore lint/suspicious/noExplicitAny: Mock R2 storage bindings for test environment
 		ZXCV_R2: {} as any,
 		JWT_SECRET: "test-jwt-secret",
 		JWT_ALGORITHM: "HS256",
@@ -49,6 +54,7 @@ export function createMockEnv(overrides: Partial<any> = {}): any {
 		FRONTEND_URL: "http://localhost:3000",
 		EMAIL_SEND: {
 			send: vi.fn().mockResolvedValue({ success: true }),
+		// biome-ignore lint/suspicious/noExplicitAny: Mock email service for test environment
 		} as any,
 		GITHUB_CLIENT_ID: "test-github-client-id",
 		GITHUB_CLIENT_SECRET: "test-github-client-secret",
@@ -58,6 +64,7 @@ export function createMockEnv(overrides: Partial<any> = {}): any {
 			put: vi.fn(),
 			get: vi.fn(),
 			delete: vi.fn(),
+		// biome-ignore lint/suspicious/noExplicitAny: Mock R2 API for test environment
 		} as any,
 		...overrides,
 	};
@@ -66,13 +73,17 @@ export function createMockEnv(overrides: Partial<any> = {}): any {
 // Helper to create mock oRPC context
 export function createMockContext(overrides: Partial<Context> = {}): Context {
 	const env = overrides.env || createMockEnv();
+	// biome-ignore lint/suspicious/noExplicitAny: Mock database client for test environment
 	const db = overrides.db || ({} as any);
 
 	return {
 		env,
 		db,
+		// biome-ignore lint/suspicious/noExplicitAny: User can be null or user object in tests
 		user: null as any,
+		// biome-ignore lint/suspicious/noExplicitAny: Type casting needed for optional override properties
 		request: (overrides as any).request || createMockRequest(),
+		// biome-ignore lint/suspicious/noExplicitAny: Type casting needed for optional override properties
 		executionContext: (overrides as any).executionContext || createMockExecutionContext(),
 		cloudflare: {
 			env,
@@ -85,6 +96,7 @@ export function createMockContext(overrides: Partial<Context> = {}): Context {
 			}),
 		},
 		...overrides,
+	// biome-ignore lint/suspicious/noExplicitAny: Context type has complex structure, casting needed for tests
 	} as any;
 }
 
@@ -95,12 +107,13 @@ export function createAuthenticatedContext(
 ): Context {
 	return createMockContext({
 		...overrides,
+		// biome-ignore lint/suspicious/noExplicitAny: User object structure varies in tests
 		user: { ...user, emailVerified: user.emailVerified ?? true } as any,
 	});
 }
 
 // Helper to mock R2 object
-export function createMockR2Object(content: string = "# Test Rule Content") {
+export function createMockR2Object(content = "# Test Rule Content") {
 	return {
 		body: {
 			text: vi.fn().mockResolvedValue(content),
@@ -122,9 +135,11 @@ export function createMockR2Object(content: string = "# Test Rule Content") {
 
 // Helper to mock R2 bucket
 export function createMockR2Bucket() {
+	// biome-ignore lint/suspicious/noExplicitAny: Storage values can be any type in R2 mock
 	const storage = new Map<string, any>();
 
 	return {
+		// biome-ignore lint/suspicious/noExplicitAny: R2 accepts any serializable value
 		put: vi.fn().mockImplementation(async (key: string, value: any) => {
 			storage.set(key, value);
 			return createMockR2Object(value);
@@ -155,6 +170,7 @@ export function createMockEmailSender() {
 	const sentEmails: Array<{ to: string; subject: string; body: string }> = [];
 
 	return {
+		// biome-ignore lint/suspicious/noExplicitAny: Email structure varies by provider in tests
 		send: vi.fn().mockImplementation(async (email: any) => {
 			sentEmails.push({
 				to: email.to?.[0]?.email || email.to,

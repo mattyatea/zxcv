@@ -222,6 +222,30 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": ["plugins/**/*.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useNamingConvention": {
+							"level": "off"
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["tests/**/*.ts", "tests/**/*.js"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useNamingConvention": {
+							"level": "off"
+						}
+					}
+				}
+			}
 		}
 	]
 }

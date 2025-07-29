@@ -1,6 +1,6 @@
 import type { ORPCErrorCode } from "@orpc/client";
 import { ORPCError } from "@orpc/server";
-import type { H3Event, H3EventContext as BaseH3EventContext } from "h3";
+import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
 import type { H3EventContext } from "~/server/types/bindings";
 import type { Env } from "~/server/types/env";
@@ -78,6 +78,7 @@ export function ensureCloudflareContext(event: H3Event): void {
 				},
 				props: {},
 			} as ExecutionContext,
+			// biome-ignore lint/suspicious/noExplicitAny: Type mismatch between Node's Request and Cloudflare's Request
 			request: new Request("http://localhost") as any,
 		};
 	}
@@ -111,6 +112,7 @@ export async function createRequestFromEvent(event: H3Event): Promise<Request> {
 	});
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Return type varies based on response content type
 export async function sendResponse(event: H3Event, response: Response): Promise<any> {
 	// Send the fetch Response back through H3
 	setResponseStatus(event, response.status);
@@ -128,6 +130,7 @@ export async function sendResponse(event: H3Event, response: Response): Promise<
 	return await response.text();
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Error response format varies and needs to be flexible
 export async function handleError(event: H3Event, error: unknown): Promise<any> {
 	console.error("Handler Error:", error);
 	console.error("Error type:", error?.constructor?.name);
@@ -184,4 +187,3 @@ export async function handleError(event: H3Event, error: unknown): Promise<any> 
 		message: "Internal server error",
 	};
 }
-

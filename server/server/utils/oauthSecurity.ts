@@ -46,6 +46,7 @@ export function validateRedirectUrl(url: string, allowedDomains: string[]): bool
  * Additional security checks for OAuth state
  */
 export async function performOAuthSecurityChecks(
+	// biome-ignore lint/suspicious/noExplicitAny: Database client type is dynamically provided by context
 	db: any,
 	clientIp: string,
 	locale: Locale = "ja",

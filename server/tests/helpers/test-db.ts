@@ -93,7 +93,7 @@ export function createMockPrismaClient(): PrismaClient {
 		},
 		$transaction: vi.fn().mockImplementation((callback) => {
 			// Simple transaction mock that just executes the callback
-			if (typeof callback === 'function') {
+			if (typeof callback === "function") {
 				return callback(mockDb);
 			}
 			// For array of promises
@@ -226,12 +226,16 @@ export function createMockPrismaClient(): PrismaClient {
 // Helper to set up common mock responses
 export function setupCommonMocks(mockDb: ReturnType<typeof createMockPrismaClient>) {
 	// Mock organization.findUnique to return null by default (no organization with username)
+	// biome-ignore lint/suspicious/noExplicitAny: Type casting needed to access mock function methods
 	(mockDb.organization.findUnique as any).mockResolvedValue(null);
-	
+
 	// Mock user counts to return 0 by default
+	// biome-ignore lint/suspicious/noExplicitAny: Type casting needed to access mock function methods
 	(mockDb.rule.count as any).mockResolvedValue(0);
+	// biome-ignore lint/suspicious/noExplicitAny: Type casting needed to access mock function methods
 	(mockDb.organizationMember.count as any).mockResolvedValue(0);
-	
+
 	// Mock oAuthState.deleteMany to return count
+	// biome-ignore lint/suspicious/noExplicitAny: Type casting needed to access mock function methods
 	(mockDb.oAuthState.deleteMany as any).mockResolvedValue({ count: 0 });
 }

@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 // Mock PrismaClient for test environment
 export const PrismaClient = vi.fn().mockImplementation(() => ({
@@ -40,27 +40,29 @@ export const PrismaD1 = vi.fn();
 // Mock Prisma namespace and error classes
 export const Prisma = {
 	PrismaClientKnownRequestError: class PrismaClientKnownRequestError extends Error {
+		// biome-ignore lint/suspicious/noExplicitAny: Prisma error metadata can have various structures
 		constructor(message: string, { code, clientVersion, meta }: any) {
 			super(message);
 			this.code = code;
 			this.clientVersion = clientVersion;
 			this.meta = meta;
-			this.name = 'PrismaClientKnownRequestError';
+			this.name = "PrismaClientKnownRequestError";
 		}
 		code: string;
 		clientVersion: string;
+		// biome-ignore lint/suspicious/noExplicitAny: Prisma error metadata can have various structures
 		meta?: any;
 	},
 	PrismaClientValidationError: class PrismaClientValidationError extends Error {
 		constructor(message: string) {
 			super(message);
-			this.name = 'PrismaClientValidationError';
+			this.name = "PrismaClientValidationError";
 		}
 	},
 	PrismaClientInitializationError: class PrismaClientInitializationError extends Error {
 		constructor(message: string, clientVersion: string, errorCode?: string) {
 			super(message);
-			this.name = 'PrismaClientInitializationError';
+			this.name = "PrismaClientInitializationError";
 			this.clientVersion = clientVersion;
 			this.errorCode = errorCode;
 		}
