@@ -31,13 +31,8 @@ export function createSyncCommand(): Command {
 
 				for (const pulledRule of metadata.rules) {
 					try {
-						// Construct path
-						let path = pulledRule.name;
-						if (pulledRule.organization) {
-							path = `@${pulledRule.organization}/${pulledRule.name}`;
-						} else if (pulledRule.owner) {
-							path = `${pulledRule.owner}/${pulledRule.name}`;
-						}
+						// Construct path in @owner/rulename format
+						const path = `@${pulledRule.owner || "unknown"}/${pulledRule.name}`;
 
 						// Get latest version from server
 						const rule = await api.getRule(path);
@@ -84,7 +79,9 @@ export function createSyncCommand(): Command {
 			} catch (error) {
 				spinner.fail(chalk.red("Failed to sync rules"));
 				if (axios.isAxiosError(error)) {
-					console.error(chalk.red(error.response?.data?.message || error.message));
+					console.error(
+						chalk.red(error.response?.data?.message || error.message),
+					);
 				} else {
 					console.error(chalk.red("An unexpected error occurred"));
 				}

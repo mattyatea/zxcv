@@ -82,13 +82,8 @@ export function createSearchCommand(): Command {
 					console.log(chalk.gray("─".repeat(60)));
 
 					for (const rule of rules) {
-						let path = rule.name;
-						if (rule.organization) {
-							path = `@${rule.organization}/${rule.name}`;
-						} else if (rule.owner) {
-							path = `${rule.owner}/${rule.name}`;
-						}
-
+						// Always display as @owner/rulename format
+						const path = `@${rule.owner || "unknown"}/${rule.name}`;
 						console.log(chalk.cyan(path));
 						if (rule.tags.length > 0) {
 							console.log(chalk.gray(`  Tags: ${rule.tags.join(", ")}`));
@@ -103,7 +98,9 @@ export function createSearchCommand(): Command {
 					}
 
 					console.log(chalk.gray("─".repeat(60)));
-					console.log(chalk.gray(`Use 'zxcv pull <path>' to download a rule`));
+					console.log(
+						chalk.gray(`Use 'zxcv pull @owner/rulename' to download a rule`),
+					);
 				} catch (error) {
 					spinner.fail(chalk.red("Search failed"));
 					if (axios.isAxiosError(error)) {
