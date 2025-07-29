@@ -51,13 +51,11 @@ export class EmailService {
 	private readonly fromEmail: string;
 	private readonly baseUrl: string;
 	private readonly env: Env;
-	private readonly logger: ReturnType<typeof createLogger>;
 
 	constructor(env: Env) {
 		this.fromEmail = env.EMAIL_FROM || "noreply@prism-project.net";
 		this.baseUrl = env.APP_URL || env.FRONTEND_URL || "https://zxcv.dev";
 		this.env = env;
-		this.logger = createLogger(env);
 	}
 
 	async sendEmail(template: EmailTemplate): Promise<boolean> {
