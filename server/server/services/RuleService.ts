@@ -734,11 +734,14 @@ export class RuleService {
 		// biome-ignore lint/suspicious/noExplicitAny: Dynamic Prisma orderBy clause construction requires flexible typing
 		const orderBy: any = {};
 		switch (params.sortBy) {
-			case "newest":
+			case "created":
 				orderBy.createdAt = "desc";
 				break;
 			case "updated":
 				orderBy.updatedAt = "desc";
+				break;
+			case "name":
+				orderBy.name = "asc";
 				break;
 			case "downloads":
 				orderBy.downloads = "desc";
