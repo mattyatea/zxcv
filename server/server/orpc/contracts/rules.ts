@@ -488,4 +488,28 @@ export const rulesContract = {
 				}),
 			),
 		),
+
+	// デバッグ用エンドポイント
+	debug: oc
+		.route({
+			method: "POST",
+			path: "/rules/debug",
+			description: "Debug endpoint to check all rules in database",
+		})
+		.input(z.object({}))
+		.output(
+			z.object({
+				totalRules: z.number(),
+				publicRules: z.number(),
+				rules: z.array(
+					z.object({
+						id: z.string(),
+						name: z.string(),
+						visibility: z.string(),
+						userId: z.string().nullable(),
+						username: z.string().optional(),
+					}),
+				),
+			}),
+		),
 };

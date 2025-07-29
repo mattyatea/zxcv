@@ -602,18 +602,15 @@ export class RuleService {
 
 		// 可視性フィルタ
 		if (params.visibility === "public") {
-			where.AND = [{ visibility: "public" }, { publishedAt: { not: null } }];
+			where.visibility = "public";
 		} else if (params.visibility === "private" && params.userId) {
 			where.AND = [{ visibility: "private" }, { userId: params.userId }];
 		} else if (params.visibility === "all" && params.userId) {
 			// 認証済みユーザーは自分のルール＋公開ルールを見れる
-			where.OR = [
-				{ userId: params.userId },
-				{ AND: [{ visibility: "public" }, { publishedAt: { not: null } }] },
-			];
+			where.OR = [{ userId: params.userId }, { visibility: "public" }];
 		} else {
 			// デフォルトは公開ルールのみ
-			where.AND = [{ visibility: "public" }, { publishedAt: { not: null } }];
+			where.visibility = "public";
 		}
 
 		// タグフィルタ
@@ -690,18 +687,17 @@ export class RuleService {
 		// biome-ignore lint/suspicious/noExplicitAny: Dynamic Prisma where clause construction requires flexible typing
 		const where: any = {};
 
+		this.logger.debug("searchRules params:", params);
+
 		// 可視性フィルタ
 		if (params.visibility) {
 			where.visibility = params.visibility;
 		} else if (!params.userId) {
-			// 未認証ユーザーは公開されたルールのみ
-			where.AND = [{ visibility: "public" }, { publishedAt: { not: null } }];
+			// 未認証ユーザーは公開ルールのみ
+			where.visibility = "public";
 		} else {
-			// 認証済みユーザーは自分のルールまたは公開されたルール
-			where.OR = [
-				{ userId: params.userId },
-				{ AND: [{ visibility: "public" }, { publishedAt: { not: null } }] },
-			];
+			// 認証済みユーザーは自分のルールまたは公開ルール
+			where.OR = [{ userId: params.userId }, { visibility: "public" }];
 		}
 
 		// クエリ検索（名前と説明）
@@ -757,6 +753,10 @@ export class RuleService {
 		// ページネーション計算
 		const skip = (params.page - 1) * params.limit;
 
+		this.logger.debug("searchRules where clause:", { where });
+		this.logger.debug("searchRules skip and limit:", { skip, limit: params.limit });
+		this.logger.debug("searchRules orderBy:", { orderBy });
+
 		// ルールを検索
 		const [rules, total] = await Promise.all([
 			this.db.rule.findMany({
@@ -783,6 +783,8 @@ export class RuleService {
 			}),
 			this.db.rule.count({ where }),
 		]);
+
+		this.logger.debug("searchRules found rules:", { count: rules.length, total });
 
 		// フォーマット
 		const formattedRules = rules.map((rule) => {
@@ -823,12 +825,12 @@ export class RuleService {
 	 */
 	// biome-ignore lint/suspicious/noExplicitAny: Rule type is complex Prisma model with relations, using any for flexibility
 	private async checkRuleAccess(rule: any, userId?: string) {
-		// 公開されたパブリックルールは誰でもアクセス可能
-		if (rule.publishedAt && rule.visibility === "public") {
+		// パブリックルールは誰でもアクセス可能（publishedAtに関係なく）
+		if (rule.visibility === "public") {
 			return;
 		}
 
-		// 未認証ユーザーはここで拒否
+		// 未認証ユーザーはここで拒否（プライベートまたはチームルール）
 		if (!userId) {
 			throw new ORPCError("UNAUTHORIZED", {
 				message: "このルールにアクセスするには認証が必要です",

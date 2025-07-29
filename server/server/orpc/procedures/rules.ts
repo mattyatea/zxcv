@@ -493,4 +493,35 @@ export const rulesProcedures = {
 				}),
 			);
 		}),
+
+	// デバッグ用エンドポイント
+	debug: os.rules.debug.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+		const { db } = context;
+
+		// すべてのルールを取得
+		const allRules = await db.rule.findMany({
+			include: {
+				user: {
+					select: {
+						username: true,
+					},
+				},
+			},
+		});
+
+		// パブリックルールの数をカウント
+		const publicRules = allRules.filter((rule) => rule.visibility === "public").length;
+
+		return {
+			totalRules: allRules.length,
+			publicRules,
+			rules: allRules.map((rule) => ({
+				id: rule.id,
+				name: rule.name,
+				visibility: rule.visibility,
+				userId: rule.userId,
+				username: rule.user?.username,
+			})),
+		};
+	}),
 };
