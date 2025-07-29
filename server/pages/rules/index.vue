@@ -152,7 +152,7 @@
       </div>
 
       <!-- ルール一覧 -->
-      <div v-else-if="rules.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-item stagger-5">
+      <div v-if="!loading && rules.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-item stagger-5">
         <NuxtLink
           v-for="(rule, index) in rules"
           :key="rule.id"
@@ -217,7 +217,7 @@
       </div>
 
       <!-- 空の状態 -->
-      <div v-else class="text-center py-12">
+      <div v-if="!loading && rules.length === 0" class="text-center py-12">
         <div v-if="hasActiveFilters" class="max-w-md mx-auto">
           <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
