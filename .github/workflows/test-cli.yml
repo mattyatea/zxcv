@@ -67,15 +67,15 @@ jobs:
 
       - name: Verify build output
         run: |
-          if [ -d "dist" ]; then
-            echo "✅ Build output directory exists"
+          if [ -f "dist/zxcv" ]; then
+            echo "✅ Build output exists"
             ls -la dist/
           else
-            echo "❌ Build output directory not found"
+            echo "❌ Build output not found"
             exit 1
           fi
 
       - name: Test CLI executable
         run: |
-          chmod +x dist/index.js
-          ./dist/index.js --version || echo "Version command not implemented yet"
+          chmod +x dist/zxcv
+          ./dist/zxcv --version || echo "Version command not implemented yet"

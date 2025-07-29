@@ -19,9 +19,6 @@ jobs:
   test-server:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: ./server
 
     steps:
       - name: Checkout code
@@ -39,22 +36,21 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: .
 
       - name: Generate Prisma Client
-        run: pnpm run prisma:generate
+        run: pnpm -F server prisma:generate
 
       - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
+        run: pnpm -F server cf-typegen
 
       - name: Type check
         run: pnpm run typecheck:server
 
       - name: Lint and format check
-        run: pnpm run check
+        run: pnpm -F server check
 
       - name: Run server tests
-        run: pnpm run test
+        run: pnpm -F server test
         env:
           NODE_ENV: test
           JWT_SECRET: test-jwt-secret-for-ci
@@ -64,9 +60,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: test-server
-    defaults:
-      run:
-        working-directory: ./server
 
     steps:
       - name: Checkout code
@@ -84,22 +77,21 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        working-directory: .
 
       - name: Generate Prisma Client
-        run: pnpm run prisma:generate
+        run: pnpm -F server prisma:generate
 
       - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
+        run: pnpm -F server cf-typegen
 
       - name: Build Nuxt application
-        run: pnpm run build
+        run: pnpm -F server build
 
       - name: Verify build output
         run: |
-          if [ -d ".output" ]; then
+          if [ -d "server/.output" ]; then
             echo "✅ Build output directory exists"
-            ls -la .output/
+            ls -la server/.output/
           else
             echo "❌ Build output directory not found"
             exit 1

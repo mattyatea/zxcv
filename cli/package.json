@@ -15,7 +15,8 @@
 		"test:coverage": "bun test --coverage",
 		"lint": "biome check --write",
 		"format": "biome format --write",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"check": "biome check"
 	},
 	"keywords": ["cli", "ai", "rules", "management"],
 	"author": "",

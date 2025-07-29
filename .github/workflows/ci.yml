@@ -50,8 +50,8 @@ jobs:
       - name: Lint and format check
         run: pnpm run check
 
-      - name: Run tests
-        run: pnpm run test
+      - name: Run server tests
+        run: pnpm run test:server
         env:
           NODE_ENV: test
           JWT_SECRET: test-jwt-secret-for-ci
