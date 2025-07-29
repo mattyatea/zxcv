@@ -21,7 +21,7 @@ export const usersContract = {
 				z.object({
 					id: z.string(),
 					username: z.string(),
-					email: z.string(),
+					email: z.string().nullable(),
 				}),
 			),
 		),
@@ -42,7 +42,7 @@ export const usersContract = {
 				user: z.object({
 					id: z.string(),
 					username: z.string(),
-					email: z.string(),
+					email: z.string().nullable(),
 					emailVerified: z.boolean(),
 					createdAt: z.number(),
 					updatedAt: z.number(),

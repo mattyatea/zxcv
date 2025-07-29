@@ -29,12 +29,16 @@ export const searchByUsername = os.users.searchByUsername
 			},
 		});
 
-		return users;
+		// Mask email addresses for other users
+		return users.map((u) => ({
+			...u,
+			email: u.id === context.user.id ? u.email : (null as any),
+		}));
 	});
 
 // Get user profile by username
 export const getProfile = os.users.getProfile
-	.use(dbProvider)
+	.use(dbWithAuth)
 	.handler(async ({ input, context }) => {
 		const { username } = input;
 		const { db } = context;
@@ -97,11 +101,14 @@ export const getProfile = os.users.getProfile
 			take: 5,
 		});
 
+		// Check if the requesting user is viewing their own profile
+		const isOwnProfile = context.user?.id === user.id;
+
 		return {
 			user: {
 				id: user.id,
 				username: user.username,
-				email: user.email,
+				email: isOwnProfile ? user.email : (null as any),
 				emailVerified: user.emailVerified,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,

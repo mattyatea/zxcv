@@ -13,6 +13,9 @@ mock.module("axios", () => ({
 				request: {
 					use: mock(),
 				},
+				response: {
+					use: mock(),
+				},
 			},
 		})),
 		isAxiosError: mock((error: any) => error.isAxiosError === true),
@@ -35,6 +38,9 @@ describe("ApiClient", () => {
 			post: mockPost,
 			interceptors: {
 				request: {
+					use: mock(),
+				},
+				response: {
 					use: mock(),
 				},
 			},

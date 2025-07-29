@@ -1177,7 +1177,12 @@ describe("OpenAPI Endpoints via REST", () => {
 			const response = await handler.handle(request, {
 				prefix: "/api",
 				context: {
-					user: undefined,
+					user: {
+						id: "user_456",
+						email: "viewer@example.com",
+						username: "viewer",
+						emailVerified: true,
+					},
 					env: {
 						JWT_SECRET: "test-secret",
 					} as any,
@@ -1194,6 +1199,7 @@ describe("OpenAPI Endpoints via REST", () => {
 				user: expect.objectContaining({
 					id: "user_123",
 					username: "testuser",
+					email: null, // Email should be hidden for other users
 				}),
 				stats: {
 					rulesCount: 5,
