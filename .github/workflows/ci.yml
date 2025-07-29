@@ -1,4 +1,4 @@
-name: CI
+name: Monorepo CI
 
 on:
   push:
@@ -17,6 +17,7 @@ on:
 
 jobs:
   test:
+    name: "Monorepo Tests"
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -58,6 +59,7 @@ jobs:
           REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
 
   security:
+    name: "Security Audit"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: true
@@ -87,6 +89,7 @@ jobs:
         run: pnpm audit --json | jq '.vulnerabilities | length' || echo "No vulnerabilities found"
 
   build:
+    name: "Build Verification"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [test, security]

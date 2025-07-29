@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Workers
+name: Manual Deploy
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Deploy
+    name: "Manual Deploy to Cloudflare"
     # 環境に応じて production または staging を使用
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     
