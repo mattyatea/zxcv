@@ -41,8 +41,8 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm run prisma:generate
 
-      - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
 
       - name: Type check
         run: pnpm run typecheck:server
@@ -122,17 +122,17 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm run prisma:generate
 
-      - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
 
       - name: Build Nuxt application
-        run: pnpm run build
+        run: pnpm run build:server
 
       - name: Verify build output
         run: |
-          if [ -d ".output" ]; then
+          if [ -d "server/.output" ]; then
             echo "✅ Build output directory exists"
-            ls -la .output/
+            ls -la server/.output/
           else
             echo "❌ Build output directory not found"
             exit 1

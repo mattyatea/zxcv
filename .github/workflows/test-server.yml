@@ -40,8 +40,8 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm -F server prisma:generate
 
-      - name: Generate Cloudflare types
-        run: pnpm -F server cf-typegen
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
 
       - name: Type check
         run: pnpm run typecheck:server
@@ -81,8 +81,8 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm -F server prisma:generate
 
-      - name: Generate Cloudflare types
-        run: pnpm -F server cf-typegen
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
 
       - name: Build Nuxt application
         run: pnpm -F server build
