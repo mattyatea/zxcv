@@ -58,8 +58,10 @@ export function createInstallCommand(): Command {
 							rules: [],
 						};
 
+						// フルパス形式で比較
+						const fullName = `@${owner}/${ruleName}`;
 						const existingRule = metadata.rules.find(
-							(r) => r.name === ruleName && r.owner === owner,
+							(r) => r.name === fullName,
 						);
 
 						if (existingRule && !options?.force) {
@@ -82,7 +84,7 @@ export function createInstallCommand(): Command {
 						// Update metadata
 						if (existingRule) {
 							const index = metadata.rules.findIndex(
-								(r) => r.name === ruleName && r.owner === owner,
+								(r) => r.name === fullName,
 							);
 							metadata.rules[index] = pulledRule;
 							if (existingRule.version !== pulledRule.version) {
@@ -169,8 +171,8 @@ export function createInstallCommand(): Command {
 								continue;
 							}
 
-							// Construct path
-							const path = `@${rule.owner || "unknown"}/${rule.name}`;
+							// rule.name にはすでにフルパス形式が入っている
+							const path = rule.name;
 							spinner.text = `Installing ${path}...`;
 
 							// Get rule from server
@@ -189,7 +191,8 @@ export function createInstallCommand(): Command {
 							installedCount++;
 						} catch (error) {
 							errorCount++;
-							const path = `@${rule.owner || "unknown"}/${rule.name}`;
+							// rule.name にはすでにフルパス形式が入っている
+							const path = rule.name;
 
 							if (axios.isAxiosError(error) && error.response?.status === 404) {
 								console.error(chalk.red(`\n✗ Rule not found: ${path}`));

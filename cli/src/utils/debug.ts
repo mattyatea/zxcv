@@ -1,10 +1,10 @@
-import chalk from "chalk";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
+import chalk from "chalk";
 
 export class DebugLogger {
 	private enabled: boolean;
 
-	constructor(enabled: boolean = false) {
+	constructor(enabled = false) {
 		this.enabled = enabled;
 	}
 
@@ -66,7 +66,10 @@ export class DebugLogger {
 
 		if (response.data) {
 			console.log(chalk.cyan("Response Body:"));
-			const dataCopy = typeof response.data === "object" ? { ...response.data } : response.data;
+			const dataCopy =
+				typeof response.data === "object"
+					? { ...response.data }
+					: response.data;
 			if (dataCopy.token) {
 				dataCopy.token = "***";
 			}
@@ -82,7 +85,11 @@ export class DebugLogger {
 		console.log(chalk.gray("-".repeat(60)));
 
 		if (error.response) {
-			console.log(chalk.cyan("Status:"), error.response.status, error.response.statusText);
+			console.log(
+				chalk.cyan("Status:"),
+				error.response.status,
+				error.response.statusText,
+			);
 			console.log(chalk.cyan("Error Response:"));
 			console.log(JSON.stringify(error.response.data, null, 2));
 		} else if (error.request) {

@@ -3,7 +3,8 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { ProjectConfig, ZxcvConfig, ZxcvMetadata } from "../types";
 
-const DEFAULT_API_URL = "https://zxcv-backend-and-frontend.mattya.workers.dev/api";
+const DEFAULT_API_URL =
+	"https://zxcv-backend-and-frontend.mattya.workers.dev/api";
 const PROJECT_CONFIG_FILE = ".zxcvrc.json";
 const METADATA_FILE = "zxcv-metadata.json";
 

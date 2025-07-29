@@ -27,7 +27,9 @@ describe("ConfigManager", () => {
 		expect(existsSync(configFile)).toBe(true);
 
 		const savedConfig = JSON.parse(readFileSync(configFile, "utf-8"));
-		expect(savedConfig.apiUrl).toBe("https://zxcv-backend-and-frontend.mattya.workers.dev/api");
+		expect(savedConfig.apiUrl).toBe(
+			"https://zxcv-backend-and-frontend.mattya.workers.dev/api",
+		);
 		expect(savedConfig.rulesDir).toBe(join(TEST_HOME, ".zxcv", "rules"));
 		expect(savedConfig.symlinkDir).toBe("rules");
 	});
@@ -45,7 +47,10 @@ describe("ConfigManager", () => {
 			},
 		};
 
-		writeFileSync(join(configDir, "config.json"), JSON.stringify(customConfig, null, 2));
+		writeFileSync(
+			join(configDir, "config.json"),
+			JSON.stringify(customConfig, null, 2),
+		);
 
 		const config = new ConfigManager();
 		expect(config.getApiUrl()).toBe("https://custom-api.example.com");
@@ -70,7 +75,10 @@ describe("ConfigManager", () => {
 			remoteUrl: "https://project-api.example.com",
 		};
 
-		writeFileSync(join(TEST_CWD, ".zxcvrc.json"), JSON.stringify(projectConfig, null, 2));
+		writeFileSync(
+			join(TEST_CWD, ".zxcvrc.json"),
+			JSON.stringify(projectConfig, null, 2),
+		);
 
 		const config = new ConfigManager();
 		const finalConfig = config.getConfig();

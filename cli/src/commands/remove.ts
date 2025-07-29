@@ -45,9 +45,14 @@ export function createRemoveCommand(): Command {
 					continue;
 				}
 
-				const ruleIndex = metadata.rules.findIndex(
-					(r) => r.name === ruleName && r.owner === owner && r.organization === organization,
-				);
+				// フルパス形式で比較
+				const fullName = organization
+					? `@${organization}/${ruleName}`
+					: owner
+						? `${owner}/${ruleName}`
+						: ruleName;
+
+				const ruleIndex = metadata.rules.findIndex((r) => r.name === fullName);
 
 				if (ruleIndex === -1) {
 					notFoundPackages.push(pkg);
@@ -78,7 +83,9 @@ export function createRemoveCommand(): Command {
 				if (confirm) {
 					config.saveMetadata(metadata);
 					console.log(
-						chalk.green(`\n✓ Removed ${removedCount} rule${removedCount > 1 ? "s" : ""}`),
+						chalk.green(
+							`\n✓ Removed ${removedCount} rule${removedCount > 1 ? "s" : ""}`,
+						),
 					);
 				} else {
 					console.log(chalk.yellow("\nRemoval cancelled"));
@@ -86,7 +93,9 @@ export function createRemoveCommand(): Command {
 			}
 
 			if (notFoundPackages.length > 0) {
-				console.log(chalk.yellow(`\n⚠ Not found: ${notFoundPackages.join(", ")}`));
+				console.log(
+					chalk.yellow(`\n⚠ Not found: ${notFoundPackages.join(", ")}`),
+				);
 			}
 		});
 }

@@ -56,7 +56,10 @@ describe("add command", () => {
 			lastSync: new Date().toISOString(),
 			rules: [],
 		};
-		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(metadata, null, 2));
+		writeFileSync(
+			join(TEST_CWD, "zxcv-metadata.json"),
+			JSON.stringify(metadata, null, 2),
+		);
 	});
 
 	afterEach(() => {
@@ -152,7 +155,10 @@ describe("add command", () => {
 				},
 			],
 		};
-		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(existingMetadata, null, 2));
+		writeFileSync(
+			join(TEST_CWD, "zxcv-metadata.json"),
+			JSON.stringify(existingMetadata, null, 2),
+		);
 
 		const { ApiClient } = require("../../src/utils/api");
 
@@ -193,7 +199,10 @@ describe("add command", () => {
 			lastSync: new Date().toISOString(),
 			rules: [],
 		};
-		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(freshMetadata, null, 2));
+		writeFileSync(
+			join(TEST_CWD, "zxcv-metadata.json"),
+			JSON.stringify(freshMetadata, null, 2),
+		);
 
 		const { ApiClient } = require("../../src/utils/api");
 		const { FileManager } = require("../../src/utils/file");
@@ -240,5 +249,117 @@ describe("add command", () => {
 
 		expect(metadata.rules).toHaveLength(3);
 		expect(metadata.rules.map((r) => r.name)).toEqual(rules);
+	});
+
+	test("should add rules with organization scope", async () => {
+		const freshMetadata: ZxcvMetadata = {
+			version: "1.0.0",
+			lastSync: new Date().toISOString(),
+			rules: [],
+		};
+		writeFileSync(
+			join(TEST_CWD, "zxcv-metadata.json"),
+			JSON.stringify(freshMetadata, null, 2),
+		);
+
+		const { ApiClient } = require("../../src/utils/api");
+		const { FileManager } = require("../../src/utils/file");
+
+		ApiClient.mockImplementation(() => ({
+			getRule: mock(() =>
+				Promise.resolve({
+					id: "org-rule-id",
+					name: "test-rule",
+					organization: "myorg",
+					content: "# Org Rule",
+					visibility: "public",
+					tags: [],
+					version: "1.0.0",
+					createdAt: "2024-01-01T00:00:00Z",
+					updatedAt: "2024-01-01T00:00:00Z",
+				}),
+			),
+			getRuleContent: mock(() => Promise.resolve({ content: "# Content" })),
+		}));
+
+		FileManager.mockImplementation(() => ({
+			saveRule: mock((rule: Rule) => ({
+				name: `@${rule.organization}/${rule.name}`,
+				path: rule.id,
+				version: rule.version,
+				pulledAt: new Date().toISOString(),
+			})),
+		}));
+
+		const command = createAddCommand();
+		process.argv = ["node", "zxcv", "@myorg/test-rule"];
+
+		await new Promise<void>((resolve) => {
+			command.parse(process.argv);
+			setTimeout(resolve, 200);
+		});
+
+		const metadata: ZxcvMetadata = JSON.parse(
+			readFileSync(join(TEST_CWD, "zxcv-metadata.json"), "utf-8"),
+		);
+
+		expect(metadata.rules).toHaveLength(1);
+		expect(metadata.rules[0].name).toBe("@myorg/test-rule");
+	});
+
+	test("should add rules with user scope", async () => {
+		const freshMetadata: ZxcvMetadata = {
+			version: "1.0.0",
+			lastSync: new Date().toISOString(),
+			rules: [],
+		};
+		writeFileSync(
+			join(TEST_CWD, "zxcv-metadata.json"),
+			JSON.stringify(freshMetadata, null, 2),
+		);
+
+		const { ApiClient } = require("../../src/utils/api");
+		const { FileManager } = require("../../src/utils/file");
+
+		ApiClient.mockImplementation(() => ({
+			getRule: mock(() =>
+				Promise.resolve({
+					id: "user-rule-id",
+					name: "test-rule",
+					owner: "testuser",
+					content: "# User Rule",
+					visibility: "public",
+					tags: [],
+					version: "1.0.0",
+					createdAt: "2024-01-01T00:00:00Z",
+					updatedAt: "2024-01-01T00:00:00Z",
+				}),
+			),
+			getRuleContent: mock(() => Promise.resolve({ content: "# Content" })),
+		}));
+
+		FileManager.mockImplementation(() => ({
+			saveRule: mock((rule: Rule) => ({
+				name: `${rule.owner}/${rule.name}`,
+				path: rule.id,
+				version: rule.version,
+				pulledAt: new Date().toISOString(),
+			})),
+		}));
+
+		const command = createAddCommand();
+		process.argv = ["node", "zxcv", "testuser/test-rule"];
+
+		await new Promise<void>((resolve) => {
+			command.parse(process.argv);
+			setTimeout(resolve, 200);
+		});
+
+		const metadata: ZxcvMetadata = JSON.parse(
+			readFileSync(join(TEST_CWD, "zxcv-metadata.json"), "utf-8"),
+		);
+
+		expect(metadata.rules).toHaveLength(1);
+		expect(metadata.rules[0].name).toBe("testuser/test-rule");
 	});
 });

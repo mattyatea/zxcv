@@ -10,7 +10,10 @@ import { FileManager } from "../utils/file";
 export function createAddCommand(): Command {
 	return new Command("add")
 		.description("Add rules to your project")
-		.argument("<packages...>", "Rule packages to add (e.g., rulename or @org/rulename)")
+		.argument(
+			"<packages...>",
+			"Rule packages to add (e.g., rulename or @org/rulename)",
+		)
 		.option("-D, --save-dev", "Save as development dependency")
 		.option("-E, --save-exact", "Save exact version")
 		.option("-g, --global", "Install globally")
@@ -59,8 +62,15 @@ export function createAddCommand(): Command {
 							rules: [],
 						};
 
+						// フルパス形式で比較
+						const fullName = organization
+							? `@${organization}/${ruleName}`
+							: owner
+								? `${owner}/${ruleName}`
+								: ruleName;
+
 						const existingRule = metadata.rules.find(
-							(r) => r.name === ruleName && r.owner === owner && r.organization === organization,
+							(r) => r.name === fullName,
 						);
 
 						if (existingRule) {
@@ -86,7 +96,9 @@ export function createAddCommand(): Command {
 							if (error.response?.status === 404) {
 								console.error(chalk.red(`\n✗ ${pkg} not found`));
 							} else if (error.response?.status === 401) {
-								console.error(chalk.red("\n✗ Authentication required. Please login first."));
+								console.error(
+									chalk.red("\n✗ Authentication required. Please login first."),
+								);
 								break;
 							} else {
 								console.error(
@@ -104,11 +116,17 @@ export function createAddCommand(): Command {
 				spinner.stop();
 
 				if (successCount > 0) {
-					console.log(chalk.green(`\n✓ Added ${successCount} rule${successCount > 1 ? "s" : ""}`));
+					console.log(
+						chalk.green(
+							`\n✓ Added ${successCount} rule${successCount > 1 ? "s" : ""}`,
+						),
+					);
 				}
 				if (errorCount > 0) {
 					console.log(
-						chalk.red(`\n✗ Failed to add ${errorCount} rule${errorCount > 1 ? "s" : ""}`),
+						chalk.red(
+							`\n✗ Failed to add ${errorCount} rule${errorCount > 1 ? "s" : ""}`,
+						),
 					);
 					process.exit(1);
 				}

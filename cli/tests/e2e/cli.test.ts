@@ -9,7 +9,9 @@ describe("CLI E2E tests", () => {
 
 	test("should show help", async () => {
 		const result = await $`bun ${cli} --help`.quiet();
-		expect(result.stdout.toString()).toContain("AI coding rules management CLI tool");
+		expect(result.stdout.toString()).toContain(
+			"AI coding rules management CLI tool",
+		);
 		expect(result.stdout.toString()).toContain("Commands:");
 		expect(result.stdout.toString()).toContain("init");
 		expect(result.stdout.toString()).toContain("add");
@@ -28,7 +30,9 @@ describe("CLI E2E tests", () => {
 		expect(result.exitCode).toBe(0);
 		expect(existsSync(join(TEST_CWD, "zxcv-metadata.json"))).toBe(true);
 
-		const metadata = JSON.parse(readFileSync(join(TEST_CWD, "zxcv-metadata.json"), "utf-8"));
+		const metadata = JSON.parse(
+			readFileSync(join(TEST_CWD, "zxcv-metadata.json"), "utf-8"),
+		);
 		expect(metadata.version).toBe("1.0.0");
 		expect(metadata.rules).toEqual([]);
 	});

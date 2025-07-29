@@ -65,6 +65,8 @@ export function createInitCommand(): Command {
 			if (rulesDir !== "rules") {
 				console.log(chalk.gray("  Created: .zxcvrc.json"));
 			}
-			console.log(chalk.gray(`\n  Run 'zxcv add <rule>' to add your first rule`));
+			console.log(
+				chalk.gray(`\n  Run 'zxcv add <rule>' to add your first rule`),
+			);
 		});
 }

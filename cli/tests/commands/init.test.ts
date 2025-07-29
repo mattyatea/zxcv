@@ -42,7 +42,9 @@ describe("init command", () => {
 		const metadataPath = join(TEST_CWD, "zxcv-metadata.json");
 		expect(existsSync(metadataPath)).toBe(true);
 
-		const metadata: ZxcvMetadata = JSON.parse(readFileSync(metadataPath, "utf-8"));
+		const metadata: ZxcvMetadata = JSON.parse(
+			readFileSync(metadataPath, "utf-8"),
+		);
 		expect(metadata.version).toBe("1.0.0");
 		expect(metadata.rules).toEqual([]);
 		expect(metadata.lastSync).toBeDefined();

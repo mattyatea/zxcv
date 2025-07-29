@@ -17,34 +17,78 @@ export class FileManager {
 		this.config = config;
 	}
 
-	private getRulePath(rule: PulledRule): string {
-		const parts = [this.config.getRulesDir()];
-		if (rule.organization) {
-			parts.push(`@${rule.organization}`);
-		} else if (rule.owner) {
-			parts.push(rule.owner);
+	private parseRuleName(fullName: string): {
+		name: string;
+		owner?: string;
+		organization?: string;
+	} {
+		const parts = fullName.split("/");
+		if (parts.length === 2 && parts[0].startsWith("@")) {
+			// @org/rulename
+			return {
+				organization: parts[0].substring(1),
+				name: parts[1],
+			};
 		}
-		parts.push(`${rule.name}.md`);
+		if (parts.length === 2) {
+			// username/rulename
+			return {
+				owner: parts[0],
+				name: parts[1],
+			};
+		}
+		// rulename only
+		return {
+			name: fullName,
+		};
+	}
+
+	private getRulePath(rule: PulledRule): string {
+		const parsed = this.parseRuleName(rule.name);
+		const parts = [this.config.getRulesDir()];
+
+		const organization = parsed.organization;
+		const owner = parsed.owner;
+		const name = parsed.name;
+
+		if (organization) {
+			parts.push(`@${organization}`);
+		} else if (owner) {
+			parts.push(owner);
+		}
+		parts.push(`${name}.md`);
 		return join(...parts);
 	}
 
 	private getSymlinkPath(rule: PulledRule): string {
+		const parsed = this.parseRuleName(rule.name);
 		const parts = [this.config.getSymlinkDir()];
-		if (rule.organization) {
-			parts.push(`@${rule.organization}`);
-		} else if (rule.owner) {
-			parts.push(rule.owner);
+
+		const organization = parsed.organization;
+		const owner = parsed.owner;
+		const name = parsed.name;
+
+		if (organization) {
+			parts.push(`@${organization}`);
+		} else if (owner) {
+			parts.push(owner);
 		}
-		parts.push(`${rule.name}.md`);
+		parts.push(`${name}.md`);
 		return join(...parts);
 	}
 
 	public saveRule(rule: Rule, content: string): PulledRule {
+		// フルパス形式の名前を構築
+		let fullName = rule.name;
+		if (rule.organization) {
+			fullName = `@${rule.organization}/${rule.name}`;
+		} else if (rule.owner) {
+			fullName = `${rule.owner}/${rule.name}`;
+		}
+
 		const pulledRule: PulledRule = {
-			name: rule.name,
+			name: fullName,
 			path: rule.id,
-			owner: rule.owner,
-			organization: rule.organization,
 			version: rule.version,
 			pulledAt: new Date().toISOString(),
 		};
@@ -86,12 +130,22 @@ export class FileManager {
 		}
 	}
 
-	public readLocalRule(name: string, owner?: string, organization?: string): string | null {
+	public readLocalRule(
+		name: string,
+		owner?: string,
+		organization?: string,
+	): string | null {
+		// フルパス形式の名前を構築
+		let fullName = name;
+		if (organization) {
+			fullName = `@${organization}/${name}`;
+		} else if (owner) {
+			fullName = `${owner}/${name}`;
+		}
+
 		const rule: PulledRule = {
-			name,
+			name: fullName,
 			path: "",
-			owner,
-			organization,
 			version: "",
 			pulledAt: "",
 		};

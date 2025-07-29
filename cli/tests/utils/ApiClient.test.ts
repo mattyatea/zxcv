@@ -115,7 +115,7 @@ describe("ApiClient", () => {
 		const result = await apiClient.getRuleContent("rule-123");
 
 		expect(mockPost).toHaveBeenCalledWith("/api/rules/getContent", {
-			ruleId: "rule-123",
+			id: "rule-123",
 		});
 		expect(result.content).toBe(mockContent.content);
 	});

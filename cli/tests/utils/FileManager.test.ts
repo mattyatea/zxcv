@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { ConfigManager } from "../../src/config";
 import type { PulledRule, Rule } from "../../src/types";
@@ -60,7 +66,10 @@ describe("FileManager", () => {
 		};
 
 		const content = "# Organization Rule";
-		fileManager.saveRule(rule, content);
+		const pulledRule = fileManager.saveRule(rule, content);
+
+		// Check pulled rule has full path name
+		expect(pulledRule.name).toBe("@myorg/org-rule");
 
 		// Check file path
 		const rulePath = join(config.getRulesDir(), "@myorg", "org-rule.md");
@@ -85,14 +94,21 @@ describe("FileManager", () => {
 		};
 
 		const content = "# User Rule Content";
-		fileManager.saveRule(rule, content);
+		const pulledRule = fileManager.saveRule(rule, content);
+
+		// Check pulled rule has full path name
+		expect(pulledRule.name).toBe("testuser/user-rule");
 
 		// Check file path
 		const rulePath = join(config.getRulesDir(), "testuser", "user-rule.md");
 		expect(existsSync(rulePath)).toBe(true);
 
 		// Check symlink path
-		const symlinkPath = join(config.getSymlinkDir(), "testuser", "user-rule.md");
+		const symlinkPath = join(
+			config.getSymlinkDir(),
+			"testuser",
+			"user-rule.md",
+		);
 		expect(existsSync(symlinkPath)).toBe(true);
 	});
 
@@ -238,5 +254,44 @@ describe("FileManager", () => {
 		// Read content through symlink
 		const content = readFileSync(symlinkPath, "utf-8");
 		expect(content).toBe("# Second Content");
+	});
+
+	test("should handle full path names in PulledRule", () => {
+		// Test with organization rule
+		const orgRule: PulledRule = {
+			name: "@myorg/test-rule",
+			path: "org-test-id",
+			version: "1.0.0",
+			pulledAt: new Date().toISOString(),
+		};
+
+		// Create the file manually to test reading
+		const orgRulePath = join(config.getRulesDir(), "@myorg", "test-rule.md");
+		mkdirSync(join(config.getRulesDir(), "@myorg"), { recursive: true });
+		writeFileSync(orgRulePath, "# Org Rule Content");
+
+		expect(fileManager.ruleExists(orgRule)).toBe(true);
+
+		// Test with user rule
+		const userRule: PulledRule = {
+			name: "testuser/test-rule",
+			path: "user-test-id",
+			version: "1.0.0",
+			pulledAt: new Date().toISOString(),
+		};
+
+		// Create the file manually to test reading
+		const userRulePath = join(config.getRulesDir(), "testuser", "test-rule.md");
+		mkdirSync(join(config.getRulesDir(), "testuser"), { recursive: true });
+		writeFileSync(userRulePath, "# User Rule Content");
+
+		expect(fileManager.ruleExists(userRule)).toBe(true);
+
+		// Test updating with full path names
+		fileManager.updateLocalRule(orgRule, "# Updated Org Content");
+		expect(readFileSync(orgRulePath, "utf-8")).toBe("# Updated Org Content");
+
+		fileManager.updateLocalRule(userRule, "# Updated User Content");
+		expect(readFileSync(userRulePath, "utf-8")).toBe("# Updated User Content");
 	});
 });

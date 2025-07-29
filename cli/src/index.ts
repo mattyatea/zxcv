@@ -2,7 +2,6 @@
 
 import chalk from "chalk";
 import { Command } from "commander";
-import { debugLogger } from "./utils/debug";
 import { createAddCommand } from "./commands/add";
 import { createAuthCommand } from "./commands/auth";
 import { createInitCommand } from "./commands/init";
@@ -13,6 +12,7 @@ import { createPushCommand } from "./commands/push";
 import { createRemoveCommand } from "./commands/remove";
 import { createSearchCommand } from "./commands/search";
 import { createUpdateCommand } from "./commands/update";
+import { debugLogger } from "./utils/debug";
 
 const program = new Command();
 
