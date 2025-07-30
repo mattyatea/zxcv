@@ -508,10 +508,12 @@
       "registerWith": "{provider}で登録",
       "accountCreated": "アカウントが作成されました！メールを確認してアカウントを有効化してください。",
       "accountCreatedShort": "アカウントを作成しました",
+      "oauthTermsWarning": "ソーシャルログインを使用するには、先に利用規約に同意してください",
       "errors": {
         "emailExists": "このメールアドレスは既に使用されています",
         "usernameExists": "このユーザー名は既に使用されています",
-        "generalError": "アカウントの作成に失敗しました"
+        "generalError": "アカウントの作成に失敗しました",
+        "termsRequired": "利用規約に同意してください"
       },
       "validation": {
         "usernameRequired": "ユーザー名を入力してください",

@@ -540,10 +540,12 @@
       "registerWith": "Sign up with {provider}",
       "accountCreated": "Account created! Please check your email to verify your account.",
       "accountCreatedShort": "Account created successfully",
+      "oauthTermsWarning": "To use social login, please agree to the terms and conditions first",
       "errors": {
         "emailExists": "This email address is already in use",
         "usernameExists": "This username is already taken",
-        "generalError": "Failed to create account"
+        "generalError": "Failed to create account",
+        "termsRequired": "Please agree to the terms and conditions"
       },
       "validation": {
         "usernameRequired": "Please enter a username",

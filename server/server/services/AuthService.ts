@@ -370,6 +370,7 @@ export class AuthService {
 			email: string;
 			username?: string;
 		},
+		action = "login",
 	): Promise<
 		| {
 				accessToken: string;
@@ -424,8 +425,16 @@ export class AuthService {
 			}
 		}
 
-		// 新規ユーザーの場合、一時トークンを作成して返す
+		// 新規ユーザーの場合
 		if (!user) {
+			// ログインアクションの場合はエラー
+			if (action === "login") {
+				throw new ORPCError("NOT_FOUND", {
+					message: "このアカウントは登録されていません。新規登録画面から登録してください。",
+				});
+			}
+
+			// 新規登録の場合は一時トークンを作成
 			// 一時登録レコードを作成
 			const tempToken = nanoid();
 			const expiresAt = Math.floor(Date.now() / 1000) + 3600; // 1時間後に期限切れ

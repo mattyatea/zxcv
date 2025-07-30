@@ -484,7 +484,7 @@ export const authProcedures = {
 			}
 
 			// Use AuthService to handle OAuth login
-			const result = await authService.handleOAuthLogin(provider, userInfo);
+			const result = await authService.handleOAuthLogin(provider, userInfo, stateData.action);
 
 			// Check if username is required
 			if ("requiresUsername" in result && result.requiresUsername) {
