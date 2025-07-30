@@ -1,0 +1,57 @@
+# Base configuration
+name = "zxcv-backend-and-frontend"
+main = "./.output/server/index.mjs"
+compatibility_date = "2025-07-15"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+# Production configuration (default)
+[[d1_databases]]
+binding = "DB"
+database_name = "zxcv-db"
+database_id = "ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "zxcv"
+
+[[send_email]]
+name = "EMAIL_SENDER"
+
+[vars]
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRES_IN = "7d"
+RATE_LIMIT_ANONYMOUS = "100"
+RATE_LIMIT_AUTHENTICATED = "1000"
+RATE_LIMIT_API_KEY = "5000"
+EMAIL_FROM = "noreply+zxcv@prism-project.net"
+FRONTEND_URL = "https://zxcv-backend-and-frontend.mattya.workers.dev/"
+APP_URL = "https://zxcv-backend-and-frontend.mattya.workers.dev"
+
+# Staging environment configuration
+[env.staging]
+name = "zxcv-backend-and-frontend-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "zxcv-staging"
+database_id = "e3bce64a-4462-4812-a343-c04c3ba7032a"
+
+[[env.staging.r2_buckets]]
+binding = "R2"
+bucket_name = "zxcv-staging"
+
+[[env.staging.send_email]]
+name = "EMAIL_SENDER"
+
+[env.staging.vars]
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRES_IN = "7d"
+RATE_LIMIT_ANONYMOUS = "100"
+RATE_LIMIT_AUTHENTICATED = "1000"
+RATE_LIMIT_API_KEY = "5000"
+EMAIL_FROM = "noreply+zxcv@prism-project.net"
+FRONTEND_URL = "https://zxcv-backend-and-frontend-staging.mattya.workers.dev/"
+APP_URL = "https://zxcv-backend-and-frontend-staging.mattya.workers.dev"
