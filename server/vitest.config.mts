@@ -36,7 +36,7 @@ export default defineWorkersConfig({
   },
   test: {
     setupFiles: ["./vitest.setup.mts", "./tests/apply-migrations.ts", "./tests/helpers/setup-env.ts", "./tests/helpers/setup.ts"],
-    exclude: ["**/node_modules/**", "**/dist/**", "**/tests/old/**", "**/tests/unit/components/**", "**/tests/unit/composables/**", "**/tests/unit/stores/**"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/tests/old/**", "**/tests/unit/components/**", "**/tests/unit/composables/**", "**/tests/unit/stores/**", "**/tests/e2e/**"],
     unstubGlobals: true,
     poolOptions: {
       workers: {
