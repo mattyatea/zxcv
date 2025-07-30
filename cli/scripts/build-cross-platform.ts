@@ -55,11 +55,11 @@ for (const platform of platforms) {
 		if (platform.output.endsWith(".exe")) {
 			// Windows executables need read permissions
 			chmodSync(outputPath, 0o644);
-			console.log(`  📝 Set permissions 644 for Windows executable`);
+			console.log("  📝 Set permissions 644 for Windows executable");
 		} else {
 			// Unix executables need execute permissions
 			chmodSync(outputPath, 0o755);
-			console.log(`  📝 Set permissions 755 for Unix executable`);
+			console.log("  📝 Set permissions 755 for Unix executable");
 		}
 
 		console.log(`✅ Successfully built: ${platform.output}`);
