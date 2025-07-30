@@ -16,6 +16,13 @@ export class FileManager {
 
 	constructor(config: ConfigManager) {
 		this.config = config;
+		// Debug log for CI
+		if (process.env.CI || process.env.GITHUB_ACTIONS) {
+			console.log("FileManager initialized with config:", {
+				rulesDir: config.getRulesDir(),
+				symlinkDir: config.getSymlinkDir(),
+			});
+		}
 	}
 
 	private parseRuleName(fullName: string): {
@@ -73,6 +80,16 @@ export class FileManager {
 	}
 
 	public saveRule(rule: Rule, content: string): PulledRule {
+		// Debug log for CI
+		if (process.env.CI || process.env.GITHUB_ACTIONS) {
+			console.log("saveRule called with:", {
+				name: rule.name,
+				organization: rule.organization,
+				owner: rule.owner,
+				user: rule.user,
+			});
+		}
+
 		// フルパス形式の名前を構築（すべて@プレフィックス付き）
 		let fullName = rule.name;
 		if (rule.organization) {
