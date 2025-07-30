@@ -81,9 +81,7 @@ jobs:
           cd server
           if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
             echo "Setting up staging configuration"
-            # Remove the production wrangler.jsonc to avoid conflicts
-            mv wrangler.jsonc wrangler.prod.jsonc
-            # Use staging config as the main config
+            # Override the default config with staging config
             cp wrangler.staging.jsonc wrangler.jsonc
           fi
           
