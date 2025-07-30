@@ -2,6 +2,7 @@ import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
+	realpathSync,
 	symlinkSync,
 	unlinkSync,
 	writeFileSync,
@@ -115,7 +116,17 @@ export class FileManager {
 			unlinkSync(symlinkPath);
 		}
 
-		const relativePath = relative(symlinkDir, rulePath);
+		// Resolve real paths to handle potential symlinks in the path
+		let relativePath: string;
+		try {
+			const realRulePath = realpathSync(rulePath);
+			const realSymlinkDir = realpathSync(symlinkDir);
+			relativePath = relative(realSymlinkDir, realRulePath);
+		} catch (err) {
+			// If realpath fails, fall back to original paths
+			relativePath = relative(symlinkDir, rulePath);
+		}
+
 		try {
 			// Try to create the symlink
 			symlinkSync(relativePath, symlinkPath, "file");
