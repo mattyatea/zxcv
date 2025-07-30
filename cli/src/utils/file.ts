@@ -22,15 +22,6 @@ export class FileManager {
 				rulesDir: config.getRulesDir(),
 				symlinkDir: config.getSymlinkDir(),
 			});
-			// Log available methods
-			console.log("FileManager methods:", {
-				saveRule: typeof this.saveRule,
-				readLocalRule: typeof this.readLocalRule,
-				updateLocalRule: typeof this.updateLocalRule,
-				ruleExists: typeof this.ruleExists,
-				createSymlink: typeof this.createSymlink,
-				removeSymlink: typeof this.removeSymlink,
-			});
 		}
 	}
 
