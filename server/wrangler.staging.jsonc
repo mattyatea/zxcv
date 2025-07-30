@@ -1,0 +1,43 @@
+/**
+ * Staging environment configuration for Wrangler
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "zxcv-backend-and-frontend-staging",
+	"main": "./.output/server/index.mjs",
+	"compatibility_date": "2025-07-15",
+	"observability": {
+		"enabled": true
+	},
+	"compatibility_flags": ["nodejs_compat"],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "zxcv-staging",
+			"database_id": "e3bce64a-4462-4812-a343-c04c3ba7032a"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "R2",
+			"bucket_name": "zxcv-staging"
+		}
+	],
+	"send_email": [
+		{
+			"name": "EMAIL_SENDER"
+		}
+	],
+	"vars": {
+		"JWT_ALGORITHM": "HS256",
+		"JWT_EXPIRES_IN": "7d",
+		"RATE_LIMIT_ANONYMOUS": "100",
+		"RATE_LIMIT_AUTHENTICATED": "1000",
+		"RATE_LIMIT_API_KEY": "5000",
+		"EMAIL_FROM": "noreply+zxcv@prism-project.net",
+		"FRONTEND_URL": "https://zxcv-backend-and-frontend-staging.mattya.workers.dev/",
+		"APP_URL": "https://zxcv-backend-and-frontend-staging.mattya.workers.dev"
+	}
+}

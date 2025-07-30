@@ -331,89 +331,9 @@ export class AuthService {
 	}
 
 	/**
-	 * OAuthログインを処理
+	 * トークンを生成
 	 */
-	async handleOAuthLogin(
-		provider: "google" | "github",
-		userInfo: {
-			id: string;
-			email: string;
-			username?: string;
-		},
-	) {
-		// OAuthアカウントが既に存在するかチェック
-		const existingOAuth = await this.db.oAuthAccount.findUnique({
-			where: {
-				// biome-ignore lint/style/useNamingConvention: Prisma compound key
-				provider_providerId: {
-					provider,
-					providerId: userInfo.id,
-				},
-			},
-			include: { user: true },
-		});
-
-		let user: User;
-		if (existingOAuth) {
-			// 既存のOAuthアカウント
-			user = existingOAuth.user;
-		} else {
-			// メールアドレスで既存ユーザーをチェック
-			const existingUser = await this.userRepository.findByEmail(userInfo.email);
-
-			if (existingUser) {
-				// 既存ユーザーにOAuthアカウントをリンク
-				await this.db.oAuthAccount.create({
-					data: {
-						id: nanoid(),
-						userId: existingUser.id,
-						provider,
-						providerId: userInfo.id,
-						email: userInfo.email,
-						username: userInfo.username,
-						createdAt: Math.floor(Date.now() / 1000),
-					},
-				});
-				user = existingUser;
-			} else {
-				// 新規ユーザーを作成
-				let username = (userInfo.username || userInfo.email.split("@")[0]).toLowerCase();
-
-				// ユニークなユーザー名を生成
-				let usernameCounter = 0;
-				while (await this.userRepository.findByUsername(username)) {
-					usernameCounter++;
-					username = `${(userInfo.username || userInfo.email.split("@")[0]).toLowerCase()}${usernameCounter}`;
-				}
-
-				user = await this.db.user.create({
-					data: {
-						id: nanoid(),
-						email: userInfo.email.toLowerCase(),
-						username,
-						passwordHash: null, // OAuthユーザーはパスワードなし
-						emailVerified: true, // OAuthプロバイダーはメールを検証済み
-						createdAt: Math.floor(Date.now() / 1000),
-						updatedAt: Math.floor(Date.now() / 1000),
-						oauthAccounts: {
-							create: {
-								id: nanoid(),
-								provider,
-								providerId: userInfo.id,
-								email: userInfo.email,
-								username: userInfo.username,
-								createdAt: Math.floor(Date.now() / 1000),
-							},
-						},
-					},
-				});
-			}
-		}
-
-		// 最終ログイン時刻を更新
-		await this.userRepository.updateLastLogin(user.id);
-
-		// トークン生成
+	async generateTokens(user: User) {
 		const accessToken = await generateToken(
 			{
 				sub: user.id,
@@ -437,6 +357,108 @@ export class AuthService {
 		return {
 			accessToken,
 			refreshToken,
+		};
+	}
+
+	/**
+	 * OAuthログインを処理
+	 */
+	async handleOAuthLogin(
+		provider: "google" | "github",
+		userInfo: {
+			id: string;
+			email: string;
+			username?: string;
+		},
+	): Promise<
+		| {
+				accessToken: string;
+				refreshToken: string;
+				user: {
+					id: string;
+					username: string;
+					email: string;
+					emailVerified: boolean;
+				};
+		  }
+		| {
+				tempToken: string;
+				provider: string;
+				requiresUsername: true;
+		  }
+	> {
+		// OAuthアカウントが既に存在するかチェック
+		const existingOAuth = await this.db.oAuthAccount.findUnique({
+			where: {
+				// biome-ignore lint/style/useNamingConvention: Prisma compound key
+				provider_providerId: {
+					provider,
+					providerId: userInfo.id,
+				},
+			},
+			include: { user: true },
+		});
+
+		let user: User | null = null;
+		if (existingOAuth) {
+			// 既存のOAuthアカウント
+			user = existingOAuth.user;
+		} else {
+			// メールアドレスで既存ユーザーをチェック
+			const existingUser = await this.userRepository.findByEmail(userInfo.email);
+
+			if (existingUser) {
+				// 既存ユーザーにOAuthアカウントをリンク
+				await this.db.oAuthAccount.create({
+					data: {
+						id: nanoid(),
+						userId: existingUser.id,
+						provider,
+						providerId: userInfo.id,
+						email: userInfo.email,
+						username: userInfo.username,
+						createdAt: Math.floor(Date.now() / 1000),
+					},
+				});
+				user = existingUser;
+			}
+		}
+
+		// 新規ユーザーの場合、一時トークンを作成して返す
+		if (!user) {
+			// 一時登録レコードを作成
+			const tempToken = nanoid();
+			const expiresAt = Math.floor(Date.now() / 1000) + 3600; // 1時間後に期限切れ
+
+			await this.db.oAuthTempRegistration.create({
+				data: {
+					id: nanoid(),
+					token: tempToken,
+					provider,
+					providerId: userInfo.id,
+					email: userInfo.email.toLowerCase(),
+					providerUsername: userInfo.username,
+					expiresAt,
+					createdAt: Math.floor(Date.now() / 1000),
+				},
+			});
+
+			return {
+				tempToken,
+				provider,
+				requiresUsername: true as const,
+			};
+		}
+
+		// 最終ログイン時刻を更新
+		await this.userRepository.updateLastLogin(user.id);
+
+		// トークン生成
+		const tokens = await this.generateTokens(user);
+
+		return {
+			accessToken: tokens.accessToken,
+			refreshToken: tokens.refreshToken,
 			user: {
 				id: user.id,
 				username: user.username,

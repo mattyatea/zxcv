@@ -169,9 +169,51 @@ export const authContract = {
 			}),
 		)
 		.output(
+			z.union([
+				TokensSchema.extend({
+					user: AuthUserSchema,
+					redirectUrl: z.string(),
+				}),
+				z.object({
+					tempToken: z.string(),
+					provider: z.string(),
+					requiresUsername: z.literal(true),
+				}),
+			]),
+		),
+
+	checkUsername: oc
+		.route({
+			method: "POST",
+			path: "/auth/checkUsername",
+			description: "Check if username is available",
+		})
+		.input(
+			z.object({
+				username: UsernameSchema,
+			}),
+		)
+		.output(
+			z.object({
+				available: z.boolean(),
+			}),
+		),
+
+	completeOAuthRegistration: oc
+		.route({
+			method: "POST",
+			path: "/auth/completeOAuthRegistration",
+			description: "Complete OAuth registration with username",
+		})
+		.input(
+			z.object({
+				tempToken: z.string(),
+				username: UsernameSchema,
+			}),
+		)
+		.output(
 			TokensSchema.extend({
 				user: AuthUserSchema,
-				redirectUrl: z.string(),
 			}),
 		),
 };

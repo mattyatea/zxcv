@@ -259,6 +259,21 @@ model OAuthState {
   @@map("oauth_states")
 }
 
+model OAuthTempRegistration {
+  id           String @id
+  token        String @unique
+  provider     String
+  providerId   String @map("provider_id")
+  email        String
+  providerUsername String? @map("provider_username")
+  expiresAt    Int    @map("expires_at")
+  createdAt    Int    @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("oauth_temp_registrations")
+}
+
 model OrganizationInvitation {
   id         String @id
   organizationId     String @map("organization_id")

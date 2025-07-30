@@ -77,7 +77,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+          command: deploy ${{ github.ref == 'refs/heads/main' && '' || '-c wrangler.staging.jsonc' }}
           workingDirectory: 'server'
           secrets: |
             JWT_SECRET

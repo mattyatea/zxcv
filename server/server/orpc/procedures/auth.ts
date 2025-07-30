@@ -8,6 +8,7 @@ import {
 } from "~/server/orpc/middleware/rateLimit";
 import { AuthService } from "~/server/services/AuthService";
 import { EmailServiceError } from "~/server/types/errors";
+import { generateId } from "~/server/utils/crypto";
 import type { Locale } from "~/server/utils/i18n";
 import { getLocaleFromRequest } from "~/server/utils/locale";
 import { createLogger } from "~/server/utils/logger";
@@ -485,10 +486,21 @@ export const authProcedures = {
 			// Use AuthService to handle OAuth login
 			const result = await authService.handleOAuthLogin(provider, userInfo);
 
+			// Check if username is required
+			if ("requiresUsername" in result && result.requiresUsername) {
+				return {
+					tempToken: result.tempToken,
+					provider: result.provider,
+					requiresUsername: true as const,
+				};
+			}
+
 			return {
-				accessToken: result.accessToken,
-				refreshToken: result.refreshToken,
-				user: result.user,
+				accessToken: (result as { accessToken: string; refreshToken: string; user: any })
+					.accessToken,
+				refreshToken: (result as { accessToken: string; refreshToken: string; user: any })
+					.refreshToken,
+				user: (result as { accessToken: string; refreshToken: string; user: any }).user,
 				redirectUrl: stateRecord.redirectUrl || "/",
 			};
 		} catch (error) {
@@ -510,4 +522,119 @@ export const authProcedures = {
 			});
 		}
 	}),
+
+	checkUsername: os.auth.checkUsername.use(dbProvider).handler(async ({ input, context }) => {
+		const { username } = input;
+		const db = context.db;
+
+		// Check if username is already taken
+		const existingUser = await db.user.findUnique({
+			where: { username: username.toLowerCase() },
+		});
+
+		return {
+			available: !existingUser,
+		};
+	}),
+
+	completeOAuthRegistration: os.auth.completeOAuthRegistration
+		.use(dbProvider)
+		.handler(async ({ input, context }) => {
+			const { tempToken, username } = input;
+			const db = context.db;
+			const logger = createLogger(context.env);
+
+			try {
+				// Get temp registration
+				const tempReg = await db.oAuthTempRegistration.findUnique({
+					where: { token: tempToken },
+				});
+
+				if (!tempReg) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: "無効なトークンです",
+					});
+				}
+
+				// Check if expired
+				if (tempReg.expiresAt < Math.floor(Date.now() / 1000)) {
+					// Clean up expired registration
+					await db.oAuthTempRegistration.delete({
+						where: { id: tempReg.id },
+					});
+					throw new ORPCError("BAD_REQUEST", {
+						message: "トークンの有効期限が切れています",
+					});
+				}
+
+				// Check if username is available
+				const existingUser = await db.user.findUnique({
+					where: { username: username.toLowerCase() },
+				});
+
+				if (existingUser) {
+					throw new ORPCError("CONFLICT", {
+						message: "このユーザー名は既に使用されています",
+					});
+				}
+
+				// Create user and OAuth account
+				const userId = generateId();
+				const oauthAccountId = generateId();
+				const now = Math.floor(Date.now() / 1000);
+
+				const user = await db.user.create({
+					data: {
+						id: userId,
+						email: tempReg.email.toLowerCase(),
+						username: username.toLowerCase(),
+						passwordHash: null, // OAuth users don't have passwords
+						emailVerified: true, // OAuth providers verify email
+						createdAt: now,
+						updatedAt: now,
+						oauthAccounts: {
+							create: {
+								id: oauthAccountId,
+								provider: tempReg.provider,
+								providerId: tempReg.providerId,
+								email: tempReg.email,
+								username: tempReg.providerUsername,
+								createdAt: now,
+								updatedAt: now,
+							},
+						},
+					},
+				});
+
+				// Clean up temp registration
+				await db.oAuthTempRegistration.delete({
+					where: { id: tempReg.id },
+				});
+
+				// Generate tokens
+				const authService = new AuthService(db, context.env);
+				const tokens = await authService.generateTokens(user);
+
+				logger.info("OAuth registration completed", { userId: user.id });
+
+				return {
+					accessToken: tokens.accessToken,
+					refreshToken: tokens.refreshToken,
+					user: {
+						id: user.id,
+						username: user.username,
+						email: user.email,
+						emailVerified: user.emailVerified,
+					},
+				};
+			} catch (error) {
+				logger.error("Complete OAuth registration error", error as Error);
+				if (error instanceof ORPCError) {
+					throw error;
+				}
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "登録の完了に失敗しました",
+				});
+			}
+		}),
 };

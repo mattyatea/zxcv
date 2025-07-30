@@ -124,6 +124,19 @@ const processOAuthCallback = async () => {
 			state: state as string,
 		});
 
+		// Check if username is required
+		if ("requiresUsername" in response && response.requiresUsername) {
+			// Redirect to username setup page
+			router.push({
+				path: "/auth/setup-username",
+				query: {
+					token: response.tempToken,
+					provider: response.provider,
+				},
+			});
+			return;
+		}
+
 		// 認証情報を保存
 		await authStore.setAuthData({
 			accessToken: response.accessToken,
