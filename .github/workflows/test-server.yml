@@ -192,12 +192,34 @@ jobs:
           command: d1 migrations apply ${{ github.ref == 'refs/heads/main' && 'zxcv-db' || 'zxcv-staging' }} --remote ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
           workingDirectory: 'server'
           
-      - name: Deploy to Cloudflare Workers
+      - name: Deploy to Cloudflare Workers (Production)
+        if: github.ref == 'refs/heads/main'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
+          command: deploy
+          workingDirectory: 'server'
+          secrets: |
+            JWT_SECRET
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GH_OAUTH_CLIENT_ID
+            GH_OAUTH_CLIENT_SECRET
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+
+      - name: Deploy to Cloudflare Workers (Staging)
+        if: github.ref == 'refs/heads/dev'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env staging
           workingDirectory: 'server'
           secrets: |
             JWT_SECRET
