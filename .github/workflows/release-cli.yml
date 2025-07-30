@@ -1,0 +1,142 @@
+name: Release CLI
+
+on:
+  push:
+    tags:
+      - 'cli-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: |
+          cd cli
+          bun install
+      
+      - name: Run tests
+        run: |
+          cd cli
+          bun test
+      
+      - name: Build for all platforms
+        run: |
+          cd cli
+          bun run build:cross
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          release_name: zxcv CLI ${{ github.event.inputs.version || github.ref_name }}
+          body: |
+            ## zxcv CLI Release
+            
+            ### Installation
+            
+            Download the appropriate binary for your platform and make it executable:
+            
+            #### Windows
+            ```powershell
+            # Download zxcv-win-x64.exe and add to PATH
+            ```
+            
+            #### macOS (Intel)
+            ```bash
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version || github.ref_name }}/zxcv-macos-x64 -o zxcv
+            chmod +x zxcv
+            sudo mv zxcv /usr/local/bin/
+            ```
+            
+            #### macOS (Apple Silicon)
+            ```bash
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version || github.ref_name }}/zxcv-macos-arm64 -o zxcv
+            chmod +x zxcv
+            sudo mv zxcv /usr/local/bin/
+            ```
+            
+            #### Linux x64
+            ```bash
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version || github.ref_name }}/zxcv-linux-x64 -o zxcv
+            chmod +x zxcv
+            sudo mv zxcv /usr/local/bin/
+            ```
+            
+            #### Linux ARM64
+            ```bash
+            curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version || github.ref_name }}/zxcv-linux-arm64 -o zxcv
+            chmod +x zxcv
+            sudo mv zxcv /usr/local/bin/
+            ```
+          draft: false
+          prerelease: false
+      
+      - name: Upload Windows x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./cli/release/zxcv-win-x64.exe
+          asset_name: zxcv-win-x64.exe
+          asset_content_type: application/octet-stream
+      
+      - name: Upload macOS x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./cli/release/zxcv-macos-x64
+          asset_name: zxcv-macos-x64
+          asset_content_type: application/octet-stream
+      
+      - name: Upload macOS ARM64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./cli/release/zxcv-macos-arm64
+          asset_name: zxcv-macos-arm64
+          asset_content_type: application/octet-stream
+      
+      - name: Upload Linux x64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./cli/release/zxcv-linux-x64
+          asset_name: zxcv-linux-x64
+          asset_content_type: application/octet-stream
+      
+      - name: Upload Linux ARM64 Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./cli/release/zxcv-linux-arm64
+          asset_name: zxcv-linux-arm64
+          asset_content_type: application/octet-stream
