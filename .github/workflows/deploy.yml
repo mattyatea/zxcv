@@ -77,21 +77,22 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
-          workingDirectory: 'server'
-          secrets: |
-            JWT_SECRET
-            GOOGLE_CLIENT_ID
-            GOOGLE_CLIENT_SECRET
-            GH_OAUTH_CLIENT_ID
-            GH_OAUTH_CLIENT_SECRET
+        run: |
+          cd server
+          
+          # Set secrets
+          echo "${{ secrets.JWT_SECRET }}" | npx wrangler secret put JWT_SECRET ${{ github.ref == 'refs/heads/main' && '' || '-c wrangler.staging.jsonc' }}
+          echo "${{ secrets.GOOGLE_CLIENT_ID }}" | npx wrangler secret put GOOGLE_CLIENT_ID ${{ github.ref == 'refs/heads/main' && '' || '-c wrangler.staging.jsonc' }}
+          echo "${{ secrets.GOOGLE_CLIENT_SECRET }}" | npx wrangler secret put GOOGLE_CLIENT_SECRET ${{ github.ref == 'refs/heads/main' && '' || '-c wrangler.staging.jsonc' }}
+          echo "${{ secrets.GH_OAUTH_CLIENT_ID }}" | npx wrangler secret put GH_OAUTH_CLIENT_ID ${{ github.ref == 'refs/heads/main' && '' || '-c wrangler.staging.jsonc' }}
+          echo "${{ secrets.GH_OAUTH_CLIENT_SECRET }}" | npx wrangler secret put GH_OAUTH_CLIENT_SECRET ${{ github.ref == 'refs/heads/main' && '' || '-c wrangler.staging.jsonc' }}
+          
+          # Deploy
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            npx wrangler deploy
+          else
+            npx wrangler deploy -c wrangler.staging.jsonc
+          fi
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
-          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
