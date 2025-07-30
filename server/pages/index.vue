@@ -1,179 +1,163 @@
 <template>
   <div>
     <!-- Hero section -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-primary-950 dark:via-primary-900 dark:to-primary-950">
-      <!-- Background pattern -->
-      <div class="absolute inset-0 bg-grid-gray-100/50 dark:bg-grid-gray-800/50 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
-      
-      <!-- Animated floating elements -->
+    <div class="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-primary-900 to-gray-900 dark:from-black dark:via-primary-950 dark:to-black">
+      <!-- Animated gradient background -->
       <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute top-20 left-10 w-20 h-20 bg-primary-400/10 rounded-full blur-xl animate-pulse float-animation" />
-        <div class="absolute bottom-20 right-10 w-32 h-32 bg-accent-500/10 rounded-full blur-xl animate-pulse delay-700 float-animation" />
-        <div class="absolute top-40 right-20 w-16 h-16 bg-primary-600/10 rounded-full blur-lg animate-pulse delay-1000 float-animation" />
-        <div class="absolute bottom-40 left-20 w-24 h-24 bg-accent-400/10 rounded-full blur-xl animate-pulse delay-500 float-animation" />
+        <div class="absolute -inset-[10px] opacity-50">
+          <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+          <div class="absolute top-0 -right-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+          <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+        </div>
       </div>
       
-      <div class="relative container-lg py-24 sm:py-32 lg:py-40">
-        <div class="text-center">
-          <div class="mb-8 flex justify-center stagger-item stagger-1">
-            <div class="relative rounded-full px-4 py-2 text-sm font-medium leading-6 text-gray-600 dark:text-gray-400 ring-1 ring-primary-200 dark:ring-primary-800 hover:ring-primary-300 dark:hover:ring-primary-700 transition-all duration-300 hover:scale-105 cursor-pointer glass">
-              {{ $t('home.hero.badge') }}
-              <span class="absolute -inset-1 rounded-full bg-gradient-to-r from-primary-500/20 to-accent-500/20 blur-lg" />
-            </div>
-          </div>
-          
-          <h1 class="text-5xl font-black tracking-tight text-gray-900 dark:text-white sm:text-6xl lg:text-7xl xl:text-8xl stagger-item stagger-2">
-            <span class="block mb-2">{{ $t('home.hero.title') }}</span>
-            <span class="block bg-gradient-to-r from-primary-600 via-accent-500 to-accent-600 bg-clip-text text-transparent">{{ $t('home.hero.titleHighlight') }}</span>
+      <!-- Grid overlay -->
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-gray-900/50 to-gray-900 opacity-50" />
+      
+      <div class="relative z-10 container-lg py-32">
+        <div class="text-center space-y-8">
+          <!-- Main heading with gradient text -->
+          <h1 class="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight animate-fade-in-up">
+            <span class="block text-white mb-4">{{ $t('home.hero.title') }}</span>
+            <span class="block bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient-x">
+              {{ $t('home.hero.titleHighlight') }}
+            </span>
           </h1>
           
-          <p class="mt-8 max-w-3xl mx-auto text-lg sm:text-xl lg:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed stagger-item stagger-3">
+          <!-- Description -->
+          <p class="max-w-3xl mx-auto text-xl md:text-2xl text-gray-300 leading-relaxed animate-fade-in-up animation-delay-200">
             {{ $t('home.hero.description') }}
           </p>
           
-          <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 stagger-item stagger-4">
+          <!-- CTA buttons -->
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8 animate-fade-in-up animation-delay-400">
             <CommonButton
               :tag="NuxtLink"
               to="/rules"
-              variant="gradient"
-              size="lg"
+              size="xl"
+              class="group relative inline-flex items-center px-8 py-4 overflow-hidden font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
             >
-              <span>{{ $t('home.hero.viewRules') }}</span>
-              <svg class="ml-2 -mr-1 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+              <span class="relative z-10 flex items-center">
+                {{ $t('home.hero.viewRules') }}
+                <svg class="w-5 h-5 ml-2 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </span>
+              <div class="absolute inset-0 bg-gradient-to-r from-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </CommonButton>
+            
             <CommonButton
               :tag="NuxtLink"
               to="/register"
-              variant="outline"
-              size="lg"
-              class="hover-lift shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+              size="xl"
+              class="group relative px-8 py-4 font-bold text-white border-2 border-white/30 rounded-lg backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
             >
               {{ $t('home.hero.getStarted') }}
             </CommonButton>
           </div>
         </div>
       </div>
+      
+      <!-- Scroll indicator -->
+      <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <svg class="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+      </div>
     </div>
 
     <!-- Features section -->
-    <div class="py-20 sm:py-24 lg:py-32 bg-gradient-to-b from-gray-50/50 to-white/50 dark:from-gray-900/50 dark:to-gray-950/50">
+    <div class="py-24 sm:py-32 lg:py-40 bg-gray-50 dark:bg-gray-950 relative overflow-hidden">
+      <!-- Background decoration -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary-200/20 dark:bg-primary-800/20 rounded-full blur-3xl" />
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-200/20 dark:bg-accent-800/20 rounded-full blur-3xl" />
+      </div>
       <div class="container-lg">
-        <div class="text-center stagger-item stagger-1">
-          <h2 class="text-base font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+        <div class="text-center relative z-10 max-w-4xl mx-auto">
+          <h2 class="inline-block text-sm font-bold text-transparent bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text uppercase tracking-widest">
             {{ $t('home.features.title') }}
           </h2>
-          <h3 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white">
+          <h3 class="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white">
             {{ $t('home.features.subtitle') }}
           </h3>
-          <p class="mt-6 max-w-3xl mx-auto text-lg sm:text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
+          <p class="mt-8 text-xl sm:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
             {{ $t('home.features.description') }}
           </p>
         </div>
 
-        <div class="mt-20 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <CommonCard variant="bordered" hover class="group stagger-item stagger-2 overflow-hidden relative transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div class="mt-24 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 relative z-10">
+          <!-- Version Control Feature -->
+          <div class="group relative bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-800">
+            <div class="absolute inset-0 bg-gradient-to-r from-primary-600/0 via-primary-600/5 to-primary-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
             <div class="relative">
-              <div class="mb-6 inline-flex p-4 rounded-2xl bg-gradient-to-br from-primary-500/10 to-primary-600/10 text-primary-600 dark:text-primary-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="inline-flex p-3 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg group-hover:shadow-primary-500/25 transition-all duration-300">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
+              <h3 class="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
                 {{ $t('home.features.versionControl.title') }}
               </h3>
-              <p class="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p class="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                 {{ $t('home.features.versionControl.description') }}
               </p>
+              <div class="mt-6 inline-flex items-center text-primary-600 dark:text-primary-400 font-medium group-hover:gap-2 transition-all duration-300">
+                <span>Learn more</span>
+                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
             </div>
-          </CommonCard>
+          </div>
 
-          <CommonCard variant="bordered" hover class="group stagger-item stagger-3 overflow-hidden relative transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-br from-accent-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <!-- Organization Collaboration Feature -->
+          <div class="group relative bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-800">
+            <div class="absolute inset-0 bg-gradient-to-r from-accent-600/0 via-accent-600/5 to-accent-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
             <div class="relative">
-              <div class="mb-6 inline-flex p-4 rounded-2xl bg-gradient-to-br from-accent-500/10 to-accent-600/10 text-accent-600 dark:text-accent-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="inline-flex p-3 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 text-white shadow-lg group-hover:shadow-accent-500/25 transition-all duration-300">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">
+              <h3 class="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
                 {{ $t('home.features.organizationCollaboration.title') }}
               </h3>
-              <p class="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p class="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                 {{ $t('home.features.organizationCollaboration.description') }}
               </p>
-            </div>
-          </CommonCard>
-
-          <CommonCard variant="bordered" hover class="group stagger-item stagger-4 overflow-hidden relative transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div class="relative">
-              <div class="mb-6 inline-flex p-4 rounded-2xl bg-gradient-to-br from-success/10 to-success-dark/10 text-success dark:text-success-light group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              <div class="mt-6 inline-flex items-center text-accent-600 dark:text-accent-400 font-medium group-hover:gap-2 transition-all duration-300">
+                <span>Learn more</span>
+                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-success dark:group-hover:text-success-light transition-colors duration-200">
-                {{ $t('home.features.export.title') }}
-              </h3>
-              <p class="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('home.features.export.description') }}
-              </p>
             </div>
-          </CommonCard>
+          </div>
 
-          <CommonCard variant="bordered" hover class="group stagger-item stagger-5 overflow-hidden relative transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-primary-700/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <!-- Search Feature -->
+          <div class="group relative bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-800">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/5 to-blue-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
             <div class="relative">
-              <div class="mb-6 inline-flex p-4 rounded-2xl bg-gradient-to-br from-primary-500/10 to-primary-600/10 text-primary-600 dark:text-primary-400 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="inline-flex p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
+                <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
+              <h3 class="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
                 {{ $t('home.features.search.title') }}
               </h3>
-              <p class="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p class="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
                 {{ $t('home.features.search.description') }}
               </p>
-            </div>
-          </CommonCard>
-
-          <CommonCard variant="bordered" hover class="group stagger-item stagger-6 overflow-hidden relative transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div class="relative">
-              <div class="mb-6 inline-flex p-4 rounded-2xl bg-gradient-to-br from-warning/10 to-warning-dark/10 text-warning dark:text-warning-light group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              <div class="mt-6 inline-flex items-center text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all duration-300">
+                <span>Learn more</span>
+                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-warning dark:group-hover:text-warning-light transition-colors duration-200">
-                {{ $t('home.features.accessControl.title') }}
-              </h3>
-              <p class="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('home.features.accessControl.description') }}
-              </p>
             </div>
-          </CommonCard>
-
-          <CommonCard variant="bordered" hover class="group stagger-item stagger-7 overflow-hidden relative transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-br from-info/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div class="relative">
-              <div class="mb-6 inline-flex p-4 rounded-2xl bg-gradient-to-br from-info/10 to-info-dark/10 text-info dark:text-info-light group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white group-hover:text-info dark:group-hover:text-info-light transition-colors duration-200">
-                {{ $t('home.features.api.title') }}
-              </h3>
-              <p class="mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('home.features.api.description') }}
-              </p>
-            </div>
-          </CommonCard>
+          </div>
         </div>
       </div>
     </div>
