@@ -333,8 +333,6 @@ const filters = ref({
 });
 const selectedTags = ref<string[]>([]);
 const popularTags = ref([
-	"eslint",
-	"prettier",
 	"typescript",
 	"react",
 	"vue",
