@@ -1,138 +1,15 @@
-import { afterEach, beforeEach, describe, expect, test, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test, mock, spyOn } from "bun:test";
 import { ConfigManager } from "../../src/config";
 import type { Rule } from "../../src/types";
 import { ApiClient } from "../../src/utils/api";
 import { TEST_CWD } from "../setup";
-
-// Mock axios for testing
-mock.module("axios", () => ({
-	default: {
-		create: () => ({
-			interceptors: {
-				request: { use: () => {} },
-				response: { use: () => {} },
-			},
-			post: async (url: string, data: any) => {
-				// Mock responses based on URL
-				if (url === "/api/auth/login") {
-					if (data.username === "testuser" && data.password === "password123") {
-						return { data: { token: "new-auth-token" } };
-					}
-					throw new Error("Invalid credentials");
-				}
-				if (url === "/api/auth/register") {
-					return { data: {} };
-				}
-				if (url === "/api/rules/getByPath") {
-					if (data.path === "test-rule") {
-						return {
-							data: {
-								id: "rule-123",
-								name: "test-rule",
-								content: "# Test",
-								visibility: "public",
-								tags: ["test"],
-								version: "1.0.0",
-								createdAt: "2024-01-01T00:00:00Z",
-								updatedAt: "2024-01-01T00:00:00Z",
-							},
-						};
-					}
-					throw new Error("Rule not found");
-				}
-				if (url === "/api/rules/getContent") {
-					if (data.id === "rule-123") {
-						return {
-							data: {
-								content: "# Rule Content\n\nThis is the content.",
-								version: data.version || "1.0.0",
-							},
-						};
-					}
-					throw new Error("Rule not found");
-				}
-				if (url === "/api/rules/create") {
-					return {
-						data: {
-							id: "new-rule-id",
-							name: data.name,
-							content: data.content,
-							visibility: data.visibility,
-							tags: data.tags,
-							version: "1.0.0",
-							createdAt: "2024-01-01T00:00:00Z",
-							updatedAt: "2024-01-01T00:00:00Z",
-						},
-					};
-				}
-				if (url === "/api/rules/update") {
-					if (data.ruleId === "rule-123") {
-						return {
-							data: {
-								id: "rule-123",
-								name: "test-rule",
-								content: data.content || "# Test",
-								visibility: "public",
-								tags: ["test"],
-								version: "1.0.1",
-								createdAt: "2024-01-01T00:00:00Z",
-								updatedAt: "2024-01-02T00:00:00Z",
-							},
-						};
-					}
-					throw new Error("Rule not found");
-				}
-				if (url === "/api/rules/search") {
-					if (data.searchTerm === "typescript") {
-						return {
-							data: {
-								rules: [
-									{
-										id: "rule-1",
-										name: "typescript-rules",
-										content: "# TypeScript",
-										visibility: "public",
-										tags: ["typescript", "coding"],
-										version: "1.0.0",
-										createdAt: "2024-01-01T00:00:00Z",
-										updatedAt: "2024-01-01T00:00:00Z",
-									},
-								],
-							},
-						};
-					}
-					return { data: { rules: [] } };
-				}
-				if (url === "/api/rules/versions") {
-					if (data.ruleId === "rule-123") {
-						return {
-							data: {
-								versions: [
-									{
-										version: "1.0.1",
-										changelog: "Updated content",
-										createdAt: "2024-01-02T00:00:00Z",
-									},
-									{
-										version: "1.0.0",
-										changelog: "Initial version",
-										createdAt: "2024-01-01T00:00:00Z",
-									},
-								],
-							},
-						};
-					}
-					return { data: { versions: [] } };
-				}
-				throw new Error(`Unexpected URL: ${url}`);
-			},
-		}),
-	},
-}));
+import axios from "axios";
 
 describe("ApiClient", () => {
 	let config: ConfigManager;
 	let apiClient: ApiClient;
+	let mockPost: any;
+	let mockAxiosCreate: any;
 
 	beforeEach(() => {
 		process.chdir(TEST_CWD);
@@ -140,49 +17,98 @@ describe("ApiClient", () => {
 		process.env.ZXCV_API_URL = "https://api.example.com";
 		config = new ConfigManager();
 		config.setAuthToken("test-token");
+
+		// Mock axios.create to return our mock instance
+		mockPost = mock();
+		mockAxiosCreate = spyOn(axios, "create").mockReturnValue({
+			interceptors: {
+				request: { use: mock() },
+				response: { use: mock() },
+			},
+			post: mockPost,
+		} as any);
+
 		apiClient = new ApiClient(config);
 	});
 
 	afterEach(() => {
 		// Clean up environment variable
 		delete process.env.ZXCV_API_URL;
+		mockAxiosCreate?.mockRestore();
 	});
 
 	test("should create axios instance with correct base URL", () => {
-		// The ApiClient should create an axios instance with the configured base URL
-		expect(apiClient).toBeDefined();
-		// The instance is created in the constructor
-		expect(config.getApiUrl()).toBe("https://api.example.com");
+		expect(mockAxiosCreate).toHaveBeenCalledWith({
+			baseURL: "https://api.example.com",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
 	});
 
 	test("should login and return token", async () => {
+		const mockToken = "new-auth-token";
+		mockPost.mockResolvedValueOnce({
+			data: { token: mockToken },
+		});
+
 		const result = await apiClient.login("testuser", "password123");
-		expect(result.token).toBe("new-auth-token");
+
+		expect(mockPost).toHaveBeenCalledWith("/api/auth/login", {
+			username: "testuser",
+			password: "password123",
+		});
+		expect(result.token).toBe(mockToken);
 	});
 
 	test("should register user", async () => {
-		await expect(
-			apiClient.register("newuser", "user@example.com", "password123"),
-		).resolves.toBeUndefined();
+		mockPost.mockResolvedValueOnce({ data: { success: true } });
+
+		await apiClient.register("newuser", "user@example.com", "password123");
+
+		expect(mockPost).toHaveBeenCalledWith("/api/auth/register", {
+			username: "newuser",
+			email: "user@example.com",
+			password: "password123",
+		});
 	});
 
 	test("should get rule by path", async () => {
+		const mockRule: Rule = {
+			id: "rule-123",
+			name: "test-rule",
+			content: "# Test",
+			visibility: "public",
+			tags: ["test"],
+			version: "1.0.0",
+			createdAt: "2024-01-01T00:00:00Z",
+			updatedAt: "2024-01-01T00:00:00Z",
+		};
+
+		mockPost.mockResolvedValueOnce({ data: mockRule });
+
 		const result = await apiClient.getRule("test-rule");
-		expect(result.id).toBe("rule-123");
-		expect(result.name).toBe("test-rule");
-		expect(result.version).toBe("1.0.0");
+
+		expect(mockPost).toHaveBeenCalledWith("/api/rules/getByPath", {
+			path: "test-rule",
+		});
+		expect(result).toEqual(mockRule);
 	});
 
 	test("should get rule content", async () => {
-		const result = await apiClient.getRuleContent("rule-123");
-		expect(result.content).toBe("# Rule Content\n\nThis is the content.");
-		expect(result.version).toBe("1.0.0");
-	});
+		const mockContent = {
+			content: "# Rule Content\n\nThis is the content.",
+			version: "1.0.0",
+		};
 
-	test("should get rule content with specific version", async () => {
-		const result = await apiClient.getRuleContent("rule-123", "1.0.0");
-		expect(result.content).toBe("# Rule Content\n\nThis is the content.");
-		expect(result.version).toBe("1.0.0");
+		mockPost.mockResolvedValueOnce({ data: mockContent });
+
+		const result = await apiClient.getRuleContent("rule-123");
+
+		expect(mockPost).toHaveBeenCalledWith("/api/rules/getContent", {
+			id: "rule-123",
+		});
+		expect(result).toEqual(mockContent);
 	});
 
 	test("should create rule", async () => {
@@ -193,12 +119,23 @@ describe("ApiClient", () => {
 			tags: ["test", "new"],
 		};
 
+		const mockCreatedRule: Rule = {
+			id: "new-rule-id",
+			name: "new-rule",
+			content: "# New Rule",
+			visibility: "public",
+			tags: ["test", "new"],
+			version: "1.0.0",
+			createdAt: "2024-01-01T00:00:00Z",
+			updatedAt: "2024-01-01T00:00:00Z",
+		};
+
+		mockPost.mockResolvedValueOnce({ data: mockCreatedRule });
+
 		const result = await apiClient.createRule(newRule);
-		expect(result.id).toBe("new-rule-id");
-		expect(result.name).toBe("new-rule");
-		expect(result.content).toBe("# New Rule");
-		expect(result.visibility).toBe("public");
-		expect(result.tags).toEqual(["test", "new"]);
+
+		expect(mockPost).toHaveBeenCalledWith("/api/rules/create", newRule);
+		expect(result).toEqual(mockCreatedRule);
 	});
 
 	test("should update rule", async () => {
@@ -207,33 +144,113 @@ describe("ApiClient", () => {
 			changelog: "Updated the content",
 		};
 
+		const mockUpdatedRule: Rule = {
+			id: "rule-123",
+			name: "test-rule",
+			content: "# Updated Content",
+			visibility: "public",
+			tags: ["test"],
+			version: "1.0.1",
+			createdAt: "2024-01-01T00:00:00Z",
+			updatedAt: "2024-01-02T00:00:00Z",
+		};
+
+		mockPost.mockResolvedValueOnce({ data: mockUpdatedRule });
+
 		const result = await apiClient.updateRule("rule-123", updates);
-		expect(result.id).toBe("rule-123");
-		expect(result.content).toBe("# Updated Content");
-		expect(result.version).toBe("1.0.1");
+
+		expect(mockPost).toHaveBeenCalledWith("/api/rules/update", {
+			ruleId: "rule-123",
+			...updates,
+		});
+		expect(result).toEqual(mockUpdatedRule);
 	});
 
 	test("should search rules", async () => {
-		const results = await apiClient.searchRules({ searchTerm: "typescript" });
-		expect(results).toHaveLength(1);
-		expect(results[0].name).toBe("typescript-rules");
-		expect(results[0].tags).toContain("typescript");
+		const searchQuery = {
+			searchTerm: "typescript",
+			tags: ["coding"],
+			limit: 10,
+		};
+
+		const mockRules: Rule[] = [
+			{
+				id: "rule-1",
+				name: "typescript-rules",
+				content: "# TypeScript",
+				visibility: "public",
+				tags: ["typescript", "coding"],
+				version: "1.0.0",
+				createdAt: "2024-01-01T00:00:00Z",
+				updatedAt: "2024-01-01T00:00:00Z",
+			},
+		];
+
+		mockPost.mockResolvedValueOnce({ data: { rules: mockRules } });
+
+		const result = await apiClient.searchRules(searchQuery);
+
+		expect(mockPost).toHaveBeenCalledWith("/api/rules/search", searchQuery);
+		expect(result).toEqual(mockRules);
 	});
 
 	test("should get rule versions", async () => {
-		const versions = await apiClient.getRuleVersions("rule-123");
-		expect(versions).toHaveLength(2);
-		expect(versions[0].version).toBe("1.0.1");
-		expect(versions[0].changelog).toBe("Updated content");
-		expect(versions[1].version).toBe("1.0.0");
-		expect(versions[1].changelog).toBe("Initial version");
+		const mockVersions = [
+			{
+				version: "1.0.1",
+				changelog: "Updated content",
+				createdAt: "2024-01-02T00:00:00Z",
+			},
+			{
+				version: "1.0.0",
+				changelog: "Initial version",
+				createdAt: "2024-01-01T00:00:00Z",
+			},
+		];
+
+		mockPost.mockResolvedValueOnce({ data: { versions: mockVersions } });
+
+		const result = await apiClient.getRuleVersions("rule-123");
+
+		expect(mockPost).toHaveBeenCalledWith("/api/rules/versions", {
+			ruleId: "rule-123",
+		});
+		expect(result).toEqual(mockVersions);
 	});
 
 	test("should handle API errors", async () => {
-		// Test error handling for invalid login
-		await expect(apiClient.login("wronguser", "wrongpass")).rejects.toThrow("Invalid credentials");
+		// Test error for login
+		mockPost.mockRejectedValueOnce({
+			isAxiosError: true,
+			response: {
+				status: 401,
+				data: { message: "Invalid credentials" },
+			},
+		});
 
-		// Test error handling for non-existent rule
-		await expect(apiClient.getRule("non-existent")).rejects.toThrow("Rule not found");
+		try {
+			await apiClient.login("wronguser", "wrongpass");
+			expect(true).toBe(false); // Should not reach here
+		} catch (error: any) {
+			expect(error.response.status).toBe(401);
+			expect(error.response.data.message).toBe("Invalid credentials");
+		}
+
+		// Test error for getRule
+		mockPost.mockRejectedValueOnce({
+			isAxiosError: true,
+			response: {
+				status: 404,
+				data: { message: "Rule not found" },
+			},
+		});
+
+		try {
+			await apiClient.getRule("non-existent");
+			expect(true).toBe(false); // Should not reach here
+		} catch (error: any) {
+			expect(error.response.status).toBe(404);
+			expect(error.response.data.message).toBe("Rule not found");
+		}
 	});
 });

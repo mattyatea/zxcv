@@ -96,16 +96,23 @@ export class FileManager {
 		if (
 			rule.organization &&
 			typeof rule.organization === "string" &&
-			rule.organization.length > 0
+			rule.organization.length > 0 &&
+			rule.organization !== "undefined"
 		) {
 			fullName = `@${rule.organization}/${rule.name}`;
 		} else if (
 			rule.user?.username &&
 			typeof rule.user.username === "string" &&
-			rule.user.username.length > 0
+			rule.user.username.length > 0 &&
+			rule.user.username !== "undefined"
 		) {
 			fullName = `@${rule.user.username}/${rule.name}`;
-		} else if (rule.owner && typeof rule.owner === "string" && rule.owner.length > 0) {
+		} else if (
+			rule.owner &&
+			typeof rule.owner === "string" &&
+			rule.owner.length > 0 &&
+			rule.owner !== "undefined"
+		) {
 			// 後方互換性のため
 			fullName = `@${rule.owner}/${rule.name}`;
 		}
