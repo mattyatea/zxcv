@@ -131,6 +131,8 @@ export class FileManager {
 			// Try to create the symlink
 			symlinkSync(relativePath, symlinkPath, "file");
 		} catch (error) {
+			const errorCode = (error as any).code;
+
 			// Log detailed error information
 			console.error("Failed to create symlink:", {
 				from: relativePath,
@@ -141,12 +143,12 @@ export class FileManager {
 				rulePathExists: existsSync(rulePath),
 				symlinkDirExists: existsSync(symlinkDir),
 				error: error instanceof Error ? error.message : error,
-				errorCode: (error as any).code,
+				errorCode,
 				platform: process.platform,
+				isCI: process.env.CI || process.env.GITHUB_ACTIONS,
 			});
 
-			// If this is a CI environment, we might want to skip symlink creation
-			// but for now, we'll re-throw to maintain test expectations
+			// Re-throw to maintain expected behavior
 			throw error;
 		}
 	}
