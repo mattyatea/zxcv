@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { existsSync, mkdirSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { $ } from "bun";
 
@@ -49,6 +49,18 @@ for (const platform of platforms) {
 		// --target: ターゲットプラットフォーム
 		// --outfile: 出力ファイル名
 		await $`bun build src/index.ts --compile --target=${platform.target} --outfile=${releaseDir}/${platform.output}`;
+
+		// Set appropriate permissions
+		const outputPath = resolve(releaseDir, platform.output);
+		if (platform.output.endsWith(".exe")) {
+			// Windows executables need read permissions
+			chmodSync(outputPath, 0o644);
+			console.log(`  📝 Set permissions 644 for Windows executable`);
+		} else {
+			// Unix executables need execute permissions
+			chmodSync(outputPath, 0o755);
+			console.log(`  📝 Set permissions 755 for Unix executable`);
+		}
 
 		console.log(`✅ Successfully built: ${platform.output}`);
 		successfulBuilds.push(`${platform.os}: ${platform.output}`);

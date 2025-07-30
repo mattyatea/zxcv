@@ -36,12 +36,18 @@ jobs:
           cd cli
           bun run build:cross
           
-      - name: Fix file permissions
+      - name: Debug - Check file permissions
         run: |
+          echo "=== Checking file permissions ==="
           cd cli/release
-          chmod 644 *.exe || true
-          chmod 755 zxcv-linux-* zxcv-macos-* || true
           ls -la
+          echo "=== File command output ==="
+          file * || true
+          echo "=== Testing read permissions ==="
+          for f in *; do
+            echo "Testing $f:"
+            head -c 10 "$f" > /dev/null && echo "  ✓ Readable" || echo "  ✗ Not readable"
+          done
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
