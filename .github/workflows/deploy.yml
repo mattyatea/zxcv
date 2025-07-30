@@ -15,6 +15,9 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     
     steps:
+      - name: Now Environment
+        run: |
+          echo "Deploying to environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
       - name: Checkout
         uses: actions/checkout@v4
 
