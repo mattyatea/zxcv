@@ -1,14 +1,23 @@
-name: CI
+name: Monorepo CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
+    paths-ignore:
+      - 'cli/**'
+      - 'server/**'
+      - '.github/workflows/test-*.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
+    paths-ignore:
+      - 'cli/**'
+      - 'server/**'
+      - '.github/workflows/test-*.yml'
   workflow_dispatch:
 
 jobs:
   test:
+    name: "Monorepo Tests"
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -17,37 +26,58 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
 
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.node-version'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm run prisma:generate
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm run prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
 
-      - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
 
       - name: Type check
-        run: pnpm run typecheck
+        run: pnpm run typecheck:server
 
       - name: Lint and format check
         run: pnpm run check
 
-      - name: Run tests
-        run: pnpm run test
+      - name: Run server tests
+        run: pnpm run test:server
         env:
           NODE_ENV: test
           JWT_SECRET: test-jwt-secret-for-ci
           REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
 
   security:
+    name: "Security Audit"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     continue-on-error: true
@@ -57,12 +87,14 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
 
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.node-version'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -75,6 +107,7 @@ jobs:
         run: pnpm audit --json | jq '.vulnerabilities | length' || echo "No vulnerabilities found"
 
   build:
+    name: "Build Verification"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [test, security]
@@ -84,12 +117,14 @@ jobs:
         uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
 
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.node-version'
+          node-version: '24'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -106,19 +141,37 @@ jobs:
             ${{ runner.os }}-nuxt-build-
 
       - name: Generate Prisma Client
-        run: pnpm run prisma:generate
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm run prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
 
-      - name: Generate Cloudflare types
-        run: pnpm run cf-typegen
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
 
       - name: Build Nuxt application
-        run: pnpm run build
+        run: pnpm run build:server
 
       - name: Verify build output
         run: |
-          if [ -d ".output" ]; then
+          if [ -d "server/.output" ]; then
             echo "✅ Build output directory exists"
-            ls -la .output/
+            ls -la server/.output/
           else
             echo "❌ Build output directory not found"
             exit 1

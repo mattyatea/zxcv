@@ -1,10 +1,12 @@
 # Nuxt dev/build outputs
-.output
+.output/
+
 .data
 .nuxt
 .nitro
 .cache
 dist
+.next
 
 # Node dependencies
 node_modules
@@ -21,11 +23,44 @@ logs
 # Local env files
 .env
 .env.*
-!.env.example
+\!.env.example
 
-# wrangler files
+# Cloudflare
 .wrangler
-.dev.vars*
+.dev.vars
 
-# Test database
-test.db
+# Database
+*.db
+*.db-journal
+.mf/
+
+# Test coverage
+coverage
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Editor directories and files
+.vscode/*
+\!.vscode/extensions.json
+\!.vscode/settings.json
+
+# Build outputs
+build/
+dist/
+
+# Temporary files
+*.tmp
+*.temp
+.temp/
+.tmp/
+
+# Lock files (keep only pnpm-lock.yaml)
+package-lock.json
+yarn.lock
+bun.lockb
+
+# OS files
+Thumbs.db

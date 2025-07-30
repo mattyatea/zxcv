@@ -1,0 +1,240 @@
+name: Server Tests & Deploy
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'server/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/test-server.yml'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'server/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/test-server.yml'
+  workflow_dispatch:
+
+jobs:
+  test-server:
+    name: "Server - Test & Lint"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm -F server prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
+
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
+
+      - name: Type check (Server)
+        run: pnpm run typecheck:server
+
+      - name: Lint and format check (Server)
+        run: pnpm -F server check
+
+      - name: Run server tests
+        run: pnpm -F server test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-for-ci
+          REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
+
+  build-server:
+    name: "Server - Build"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test-server
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm -F server prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
+
+      - name: Generate Cloudflare types (optional)
+        run: cd server && pnpm run cf-typegen || true
+
+      - name: Build Nuxt application
+        run: pnpm -F server build
+
+      - name: Verify build output
+        run: |
+          if [ -d "server/.output" ]; then
+            echo "✅ Build output directory exists"
+            ls -la server/.output/
+          else
+            echo "❌ Build output directory not found"
+            exit 1
+          fi
+
+  deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    needs: build-server
+    name: "Server - Deploy to Cloudflare"
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm -F server prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            pnpm build:server
+          else
+            CLOUDFLARE_ENV=staging pnpm build:server
+          fi
+
+      - name: Run migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply ${{ github.ref == 'refs/heads/main' && 'zxcv-db' || 'zxcv-staging' }} --remote ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
+          workingDirectory: 'server'
+          
+      - name: Deploy to Cloudflare Workers (Production)
+        if: github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          workingDirectory: 'server'
+          secrets: |
+            JWT_SECRET
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GH_OAUTH_CLIENT_ID
+            GH_OAUTH_CLIENT_SECRET
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+
+      - name: Deploy to Cloudflare Workers (Staging)
+        if: github.ref == 'refs/heads/dev'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          workingDirectory: 'server'
+          secrets: |
+            JWT_SECRET
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GH_OAUTH_CLIENT_ID
+            GH_OAUTH_CLIENT_SECRET
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}

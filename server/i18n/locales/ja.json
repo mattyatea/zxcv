@@ -1,0 +1,596 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "create": "作成",
+    "update": "更新",
+    "search": "検索",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "confirm": "確認",
+    "yes": "はい",
+    "no": "いいえ",
+    "or": "または",
+    "and": "と",
+    "all": "すべて",
+    "none": "なし",
+    "select": "選択",
+    "close": "閉じる",
+    "open": "開く",
+    "download": "ダウンロード",
+    "upload": "アップロード",
+    "share": "共有",
+    "copy": "コピー",
+    "copied": "コピーしました",
+    "error": "エラー",
+    "success": "成功",
+    "warning": "警告",
+    "info": "情報",
+    "required": "必須",
+    "optional": "任意",
+    "providers": {
+      "google": "Google",
+      "github": "GitHub"
+    }
+  },
+  "nav": {
+    "home": "ホーム",
+    "rules": "ルール",
+    "myRules": "マイルール",
+    "myOrganizations": "マイ組織",
+    "quickAccess": "クイックアクセス",
+    "organizations": "組織",
+    "profile": "プロフィール",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "login": "ログイン",
+    "register": "新規登録",
+    "guides": "ガイド"
+  },
+  "auth": {
+    "login": {
+      "title": "アカウントにログイン",
+      "subtitle": "まだアカウントをお持ちでない方は",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "rememberMe": "ログイン状態を保持",
+      "forgotPassword": "パスワードを忘れた方",
+      "loginButton": "ログイン",
+      "loggingIn": "ログイン中...",
+      "loginWith": "{provider}でログイン",
+      "errors": {
+        "invalidCredentials": "メールアドレスまたはパスワードが正しくありません",
+        "emailNotVerified": "メールアドレスを確認してからログインしてください。",
+        "generalError": "ログインに失敗しました"
+      },
+      "validation": {
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "passwordRequired": "パスワードを入力してください"
+      }
+    },
+    "register": {
+      "title": "アカウントを作成",
+      "subtitle": "すでにアカウントをお持ちの方は",
+      "username": "ユーザー名",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "confirmPassword": "パスワード（確認）",
+      "agreeToTerms": "利用規約に同意します",
+      "registerButton": "アカウントを作成",
+      "registering": "作成中...",
+      "registerWith": "{provider}で登録",
+      "errors": {
+        "emailExists": "このメールアドレスは既に使用されています",
+        "usernameExists": "このユーザー名は既に使用されています",
+        "generalError": "アカウントの作成に失敗しました"
+      },
+      "validation": {
+        "usernameRequired": "ユーザー名を入力してください",
+        "usernameLength": "ユーザー名は3文字以上20文字以下で入力してください",
+        "usernamePattern": "ユーザー名は英数字とアンダースコアのみ使用できます",
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "passwordRequired": "パスワードを入力してください",
+        "passwordLength": "パスワードは8文字以上で入力してください",
+        "passwordMismatch": "パスワードが一致しません",
+        "termsRequired": "利用規約に同意してください"
+      }
+    },
+    "forgotPassword": {
+      "title": "パスワードリセット",
+      "subtitle": "登録したメールアドレスを入力してください",
+      "email": "メールアドレス",
+      "sendButton": "リセットリンクを送信",
+      "sending": "送信中...",
+      "backToLogin": "ログインに戻る",
+      "success": "パスワードリセットのメールを送信しました",
+      "error": "メールの送信に失敗しました"
+    },
+    "verifyEmail": {
+      "title": "メールアドレスの確認",
+      "verifying": "確認中...",
+      "success": "メールアドレスが確認されました",
+      "error": "確認に失敗しました",
+      "invalidToken": "無効なトークンです",
+      "goToLogin": "ログインへ"
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "AIコーディングルール管理の新しいスタンダード",
+      "title": "コーディングルールを",
+      "titleHighlight": "共有・管理・活用",
+      "description": "組織全体でコーディング規約を統一。AIに最適化されたルール管理で、開発効率を最大化します。",
+      "viewRules": "ルールを見る",
+      "getStarted": "無料で始める"
+    },
+    "features": {
+      "title": "FEATURES",
+      "subtitle": "組織開発に必要なすべての機能",
+      "description": "コード品質を保ちながら、開発スピードを向上させる機能を提供",
+      "versionControl": {
+        "title": "バージョン管理",
+        "description": "ルールの変更履歴を自動的に記録。いつでも過去のバージョンに戻すことができます。"
+      },
+      "organizationCollaboration": {
+        "title": "組織連携",
+        "description": "組織メンバーと簡単に共有。権限管理で安全にルールを管理できます。"
+      },
+      "aiOptimized": {
+        "title": "AI最適化",
+        "description": "AI開発ツールに最適化された形式でルールを出力。開発効率を向上させます。"
+      },
+      "export": {
+        "title": "エクスポート機能",
+        "description": "ルールを様々な形式でエクスポート。お気に入りのAIツールですぐに使用できます。"
+      },
+      "search": {
+        "title": "高度な検索",
+        "description": "タグ、内容、作成者で瞬時に検索。必要なルールをすぐに見つけられます。"
+      },
+      "accessControl": {
+        "title": "アクセス制御",
+        "description": "きめ細かな権限設定で、チームのセキュリティを保ちながら協力できます。"
+      },
+      "api": {
+        "title": "API連携",
+        "description": "RESTful APIで既存のワークフローに統合。自動化と効率化を実現します。"
+      }
+    },
+    "cta": {
+      "title": "今すぐ始めよう",
+      "description": "無料アカウントを作成して、組織のコーディングルールを管理しましょう",
+      "button": "無料で始める"
+    }
+  },
+  "rules": {
+    "title": "ルール",
+    "subtitle": "AIコーディングルールを検索・共有",
+    "myRules": "マイルール",
+    "publicRules": "公開ルール",
+    "organizationRules": "組織ルール",
+    "createRule": "新規ルール作成",
+    "createNewRule": "新しいルールを作成",
+    "createFirstRule": "最初のルールを作成しましょう",
+    "creating": "作成中...",
+    "searchPlaceholder": "ルールを検索...",
+    "noRulesFound": "ルールが見つかりません",
+    "popularTags": "人気のタグ",
+    "basicInfo": "基本情報",
+    "ruleContent": "ルールの内容",
+    "shareWithCommunity": "コミュニティと共有して、みんなで開発効率を向上させましょう",
+    "visibility": {
+      "all": "すべて",
+      "public": "公開",
+      "private": "非公開",
+      "organization": "組織限定"
+    },
+    "actions": {
+      "view": "表示",
+      "edit": "編集",
+      "delete": "削除",
+      "share": "共有",
+      "duplicate": "複製",
+      "download": "ダウンロード",
+      "version": "バージョン",
+      "copyRule": "ルールをコピー",
+      "copied": "コピーしました"
+    },
+    "form": {
+      "name": "ルール名",
+      "namePlaceholder": "例: next-js-best-practices",
+      "nameHint": "URLに使用される識別子です。英数字とハイフンのみ使用可能。",
+      "description": "説明",
+      "descriptionPlaceholder": "このルールの目的や使い方を説明してください",
+      "content": "内容",
+      "contentPlaceholder": "# ルールの内容\n\nここにコーディングルールを記述します...\n\n## 例\n\n```javascript\n// コード例\n```",
+      "tags": "タグ",
+      "tagsPlaceholder": "タグを入力してEnter",
+      "addTag": "タグを追加",
+      "visibility": "公開設定",
+      "visibilityOptions": {
+        "public": "公開 - 誰でも閲覧可能",
+        "private": "非公開 - 自分だけが閲覧可能"
+      },
+      "team": "組織",
+      "organization": "組織",
+      "noOrganization": "組織なし",
+      "organizationHint": "組織を選択すると、その組織のメンバーがルールを編集できます。",
+      "urlPreview": "URL プレビュー:",
+      "markdownSupported": "Markdown形式をサポートしています",
+      "uploadMarkdown": "Markdownファイルをアップロード",
+      "writeDirectly": "直接入力する",
+      "basicInfo": "基本情報"
+    },
+    "messages": {
+      "created": "ルールを作成しました",
+      "updated": "ルールを更新しました",
+      "deleted": "ルールを削除しました",
+      "deleteConfirm": "このルールを削除してもよろしいですか？",
+      "deleteError": "ルールの削除に失敗しました"
+    },
+    "detail": {
+      "notFound": "ルールが見つかりません",
+      "backToList": "ルール一覧に戻る",
+      "versionHistory": "バージョン履歴",
+      "latest": "最新",
+      "currentlyViewing": "現在表示中",
+      "viewLatestVersion": "最新バージョンを表示",
+      "viewingOldVersion": "古いバージョンを表示しています",
+      "relatedRules": "関連するルール"
+    },
+    "edit": {
+      "title": "ルールを編集",
+      "unsavedChanges": "未保存の変更があります",
+      "update": "更新する",
+      "showPreview": "プレビューを表示",
+      "hidePreview": "プレビューを非表示",
+      "changeLog": "変更履歴",
+      "changeLogPlaceholder": "このバージョンでの変更内容を記述してください",
+      "incrementMajorVersion": "メジャーバージョンを上げる"
+    },
+    "sort": {
+      "recentlyUpdated": "最近更新された順",
+      "recentlyCreated": "最近作成された順",
+      "alphabetical": "名前順"
+    }
+  },
+  "profile": {
+    "title": "プロフィール",
+    "editProfile": "プロフィールを編集",
+    "username": "ユーザー名",
+    "email": "メールアドレス",
+    "bio": "自己紹介",
+    "website": "ウェブサイト",
+    "joined": "登録日",
+    "backToHome": "ホームに戻る",
+    "emailVerified": "メール認証済み",
+    "emailNotVerified": "メール未認証",
+    "createdRules": "作成したルール",
+    "belongingOrganizations": "所属組織",
+    "registrationDate": "登録日",
+    "recentActivity": "最近のアクティビティ",
+    "noActivityYet": "まだアクティビティがありません",
+    "changeAvatar": "アバターを変更",
+    "avatarChangeComingSoon": "アバター画像の変更は近日実装予定",
+    "usernameHint": "英数字、ハイフン、アンダースコアのみ使用可能",
+    "emailChangeWarning": "メールアドレスを変更すると再認証が必要になります",
+    "changePassword": "パスワードを変更",
+    "currentPassword": "現在のパスワード",
+    "newPassword": "新しいパスワード",
+    "newPasswordConfirm": "新しいパスワード（確認）",
+    "passwordHint": "8文字以上で設定してください",
+    "update": "更新",
+    "change": "変更",
+    "placeholders": {
+      "username": "username",
+      "email": "email@example.com",
+      "currentPassword": "現在のパスワードを入力",
+      "newPassword": "新しいパスワードを入力",
+      "newPasswordConfirm": "新しいパスワードを再入力"
+    },
+    "errors": {
+      "noUsername": "ユーザー名が指定されていません",
+      "loadFailed": "プロフィールの読み込みに失敗しました",
+      "usernameRequired": "ユーザー名は必須です",
+      "usernameInvalid": "英数字、ハイフン、アンダースコアのみ使用可能です",
+      "usernameMinLength": "3文字以上で入力してください",
+      "emailRequired": "メールアドレスは必須です",
+      "emailInvalid": "有効なメールアドレスを入力してください",
+      "passwordMinLength": "パスワードは8文字以上で設定してください",
+      "passwordMismatch": "パスワードが一致しません",
+      "usernameOrEmailTaken": "そのユーザー名またはメールアドレスは既に使用されています",
+      "updateFailed": "プロフィールの更新に失敗しました",
+      "wrongCurrentPassword": "現在のパスワードが正しくありません",
+      "passwordChangeFailed": "パスワードの変更に失敗しました"
+    },
+    "success": {
+      "profileUpdated": "プロフィールを更新しました",
+      "passwordChanged": "パスワードを変更しました"
+    },
+    "stats": {
+      "rules": "ルール",
+      "organizations": "組織",
+      "contributions": "貢献"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "account": "アカウント",
+    "security": "セキュリティ",
+    "notifications": "通知",
+    "preferences": "環境設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "changePassword": "パスワードを変更",
+    "twoFactor": "二要素認証",
+    "apiKeys": "APIキー",
+    "deleteAccount": "アカウントを削除"
+  },
+  "errors": {
+    "notFound": "ページが見つかりません",
+    "unauthorized": "認証が必要です",
+    "forbidden": "アクセス権限がありません",
+    "serverError": "サーバーエラーが発生しました",
+    "networkError": "ネットワークエラーが発生しました",
+    "unknownError": "エラーが発生しました",
+    "oauth": {
+      "authFailed": "OAuth認証に失敗しました",
+      "missingParams": "必要なパラメータが不足しています",
+      "invalidCode": "無効な認証コードです",
+      "invalidState": "無効なstateパラメータです",
+      "accessDenied": "ユーザーがアクセスを拒否しました",
+      "invalidRequest": "無効なリクエストです",
+      "unauthorizedClient": "認証されていないクライアントです",
+      "unsupportedResponseType": "サポートされていないレスポンスタイプです",
+      "invalidScope": "無効なスコープです",
+      "serverError": "認証サーバーでエラーが発生しました",
+      "temporarilyUnavailable": "一時的に利用できません",
+      "registrationFailed": "{provider}でのアカウント作成に失敗しました"
+    }
+  },
+  "footer": {
+    "copyright": "© 2025 zxcv. All rights reserved.",
+    "about": "zxcvについて",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "contact": "お問い合わせ",
+    "tagline": "AIコーディングルールを共有・管理・活用するプラットフォーム",
+    "product": "プロダクト",
+    "features": "機能",
+    "pricing": "料金",
+    "enterprise": "エンタープライズ",
+    "changelog": "更新履歴",
+    "resources": "リソース",
+    "docs": "ドキュメント",
+    "api": "API",
+    "blog": "ブログ",
+    "company": "会社情報",
+    "aboutUs": "会社概要",
+    "careers": "採用情報",
+    "partners": "パートナー",
+    "security": "セキュリティ"
+  },
+  "organizations": {
+    "title": "組織",
+    "subtitle": "組織を作成してメンバーとルールを共有しましょう",
+    "myOrganizations": "マイ組織",
+    "createOrganization": "新しい組織",
+    "createTeam": "チームを作成",
+    "createNewTeam": "新しいチームを作成",
+    "joinOrganization": "組織に参加",
+    "members": "メンバー",
+    "rules": "ルール",
+    "owner": "オーナー",
+    "admin": "管理者",
+    "member": "メンバー",
+    "noOrganizations": "まだ組織がありません",
+    "createFirstOrganization": "最初の組織を作成して、メンバーとコラボレーションを始めましょう",
+    "noDescription": "組織の説明はありません",
+    "actions": {
+      "invite": "招待",
+      "leave": "退出",
+      "remove": "削除",
+      "edit": "編集",
+      "manageMembers": "メンバー管理"
+    },
+    "form": {
+      "name": "組織名",
+      "namePlaceholder": "例: example-company",
+      "description": "説明",
+      "descriptionPlaceholder": "組織の目的や活動内容を記載してください",
+      "inviteEmail": "招待するメールアドレス",
+      "inviteMembers": "初期メンバーを招待（オプション）",
+      "addMember": "メンバーを追加"
+    },
+    "validation": {
+      "nameRequired": "組織名は必須です",
+      "nameFormat": "組織名は英数字とハイフンのみ使用できます",
+      "invalidEmail": "有効なメールアドレスを入力してください"
+    },
+    "messages": {
+      "created": "組織を作成しました",
+      "joined": "組織に参加しました",
+      "left": "組織から退出しました",
+      "invited": "招待を送信しました",
+      "inviteAccepted": "招待を承認しました",
+      "createError": "組織の作成に失敗しました",
+      "fetchError": "組織一覧の取得に失敗しました"
+    },
+    "pageTitle": "組織 - zxcv",
+    "newOrganizationTitle": "新しい組織作成 - zxcv",
+    "createNewOrganization": "新しい組織を作成",
+    "inviteAndCollaborate": "組織を作成してメンバーを招待しましょう",
+    "join": {
+      "verifying": "招待を確認しています...",
+      "failed": "招待の確認に失敗しました",
+      "backToOrganizations": "組織一覧へ",
+      "joined": "組織に参加しました！",
+      "welcome": "組織へようこそ",
+      "goToOrganization": "組織ページへ",
+      "loginRequired": "ログインが必要です",
+      "loginToJoinOrganization": "組織に参加するにはログインが必要です",
+      "loginToJoin": "組織に参加するにはログインしてください",
+      "login": "ログイン",
+      "noToken": "招待トークンが見つかりません",
+      "invalidToken": "無効な招待トークンです"
+    },
+    "detail": {
+      "settings": "設定",
+      "leaveOrganization": "組織を離れる",
+      "members": "メンバー",
+      "rules": "ルール",
+      "createdAt": "作成日",
+      "noRules": "まだルールがありません",
+      "inviteMembers": "メンバーを招待",
+      "notFound": "組織が見つかりませんでした",
+      "backToList": "組織一覧に戻る",
+      "removeMember": "メンバーを削除",
+      "confirmRemoveMember": "{{username}}さんを組織から削除してよろしいですか？",
+      "memberRemoved": "{{username}}さんを組織から削除しました",
+      "removeMemberError": "メンバーの削除に失敗しました"
+    },
+    "inviteMember": {
+      "title": "メンバーを招待",
+      "usernameLabel": "ユーザー名",
+      "usernamePlaceholder": "ユーザー名を入力...",
+      "invite": "招待を送信",
+      "success": "{{username}}さんに招待を送信しました",
+      "error": "招待の送信に失敗しました",
+      "alreadyMember": "このユーザーは既にメンバーです",
+      "alreadyInvited": "このユーザーには既に招待を送信済みです"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "アカウントにログイン",
+      "subtitle": "まだアカウントをお持ちでない方は",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "rememberMe": "ログイン状態を保持",
+      "forgotPassword": "パスワードを忘れた方",
+      "loginButton": "ログイン",
+      "loggingIn": "ログイン中...",
+      "loginWith": "{provider}でログイン",
+      "errors": {
+        "invalidCredentials": "メールアドレスまたはパスワードが正しくありません",
+        "emailNotVerified": "メールアドレスを確認してからログインしてください。",
+        "generalError": "ログインに失敗しました"
+      },
+      "validation": {
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "passwordRequired": "パスワードを入力してください"
+      }
+    },
+    "register": {
+      "title": "アカウントを作成",
+      "subtitle": "すでにアカウントをお持ちの方は",
+      "username": "ユーザー名",
+      "usernameHint": "英数字、アンダースコア、ハイフンのみ",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "passwordHint": "8文字以上",
+      "confirmPassword": "パスワード（確認）",
+      "passwordStrength": {
+        "weak": "弱い",
+        "fair": "普通",
+        "good": "強い",
+        "strong": "とても強い"
+      },
+      "agreeToTerms": "利用規約",
+      "and": "と",
+      "privacyPolicy": "プライバシーポリシー",
+      "agreeToTermsText": "に同意します",
+      "registerButton": "アカウントを作成",
+      "registering": "アカウント作成中...",
+      "registerWith": "{provider}で登録",
+      "accountCreated": "アカウントが作成されました！メールを確認してアカウントを有効化してください。",
+      "accountCreatedShort": "アカウントを作成しました",
+      "errors": {
+        "emailExists": "このメールアドレスは既に使用されています",
+        "usernameExists": "このユーザー名は既に使用されています",
+        "generalError": "アカウントの作成に失敗しました"
+      },
+      "validation": {
+        "usernameRequired": "ユーザー名を入力してください",
+        "usernameLength": "ユーザー名は3文字以上20文字以下で入力してください",
+        "usernamePattern": "ユーザー名は英数字とアンダースコアのみ使用できます",
+        "emailRequired": "メールアドレスを入力してください",
+        "emailInvalid": "有効なメールアドレスを入力してください",
+        "passwordRequired": "パスワードを入力してください",
+        "passwordLength": "パスワードは8文字以上で入力してください",
+        "passwordMismatch": "パスワードが一致しません",
+        "termsRequired": "利用規約に同意してください"
+      },
+      "pageTitle": "アカウント作成 - ZXCV"
+    },
+    "forgotPassword": {
+      "title": "パスワードをリセット",
+      "subtitle": "登録したメールアドレスを入力してください",
+      "email": "メールアドレス",
+      "sendButton": "パスワードリセットメールを送信",
+      "sending": "送信中...",
+      "backToLogin": "ログインに戻る",
+      "success": "パスワードリセットメールを送信しました",
+      "emailSent": "メールを送信しました",
+      "emailSentMessage": "入力されたメールアドレスがアカウントに登録されている場合、パスワードリセットの手順を記載したメールをお送りしました。",
+      "error": "メールの送信に失敗しました。もう一度お試しください。",
+      "pageTitle": "パスワードリセット - zxcv"
+    },
+    "verifyEmail": {
+      "title": "メールアドレスの確認",
+      "verifying": "アカウントを有効化しています...",
+      "success": "確認完了",
+      "successMessage": "メールアドレスの確認が完了しました。",
+      "successDescription": "ログインページからアカウントにアクセスできます。",
+      "error": "確認エラー",
+      "errorMessage": "メールアドレスの確認に失敗しました。",
+      "invalidToken": "無効または期限切れの確認トークンです。",
+      "invalidTokenDescription": "確認トークンが無効または期限切れです。新しい確認メールを送信してください。",
+      "goToLogin": "ログインページへ",
+      "resendEmail": "確認メールを再送信",
+      "resending": "送信中...",
+      "noToken": "確認トークンがありません",
+      "noTokenMessage": "メールアドレスの確認にはトークンが必要です。",
+      "noTokenDescription": "登録時に送信されたメールのリンクをクリックしてください。",
+      "enterEmail": "メールアドレスを入力してください:",
+      "emailResent": "確認メールを送信しました。メールをご確認ください。",
+      "resendError": "確認メールの送信に失敗しました。",
+      "generalError": "エラーが発生しました。",
+      "pageTitle": "メールアドレスの確認 - zxcv",
+      "register": "新規登録"
+    }
+  },
+  "test": {
+    "orpc": {
+      "title": "oRPC テストページ",
+      "healthCheck": "ヘルスチェックテスト",
+      "ruleCreate": "ルール作成テスト（認証必須）"
+    }
+  },
+  "accessibility": {
+    "changeLanguage": "言語を変更",
+    "socialLinks": {
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "discord": "Discord"
+    }
+  },
+  "placeholders": {
+    "username": "johndoe",
+    "email": "john@example.com"
+  },
+  "email": {
+    "subjects": {
+      "passwordReset": "【zxcv】パスワードリセットのお知らせ",
+      "emailVerification": "【zxcv】メールアドレスの確認",
+      "organizationInvite": "【zxcv】{organizationName}への招待"
+    }
+  }
+}

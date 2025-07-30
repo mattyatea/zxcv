@@ -1,0 +1,81 @@
+name: CLI Tests
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'cli/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/test-cli.yml'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'cli/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/test-cli.yml'
+  workflow_dispatch:
+
+jobs:
+  test-cli:
+    name: "CLI - Lint & Type Check"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ./cli
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.19
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Type check (CLI)
+        run: bun run typecheck
+
+      - name: Lint and format check (CLI)
+        run: bun run check
+
+
+  build-cli:
+    name: "CLI - Build"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test-cli
+    defaults:
+      run:
+        working-directory: ./cli
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.19
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build CLI
+        run: bun run build
+
+      - name: Verify build output
+        run: |
+          if [ -f "dist/zxcv" ]; then
+            echo "✅ Build output exists"
+            ls -la dist/
+          else
+            echo "❌ Build output not found"
+            exit 1
+          fi
+
+      - name: Test CLI executable
+        run: |
+          chmod +x dist/zxcv
+          ./dist/zxcv --version || echo "Version command not implemented yet"

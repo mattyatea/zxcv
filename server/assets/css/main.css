@@ -1,0 +1,410 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1:wght@300;400;500;600;700;800;900&display=swap');
+@import './patterns.css';
+@import './transitions.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: theme('colors.primary.500');
+    --color-primary-hover: theme('colors.primary.600');
+    --color-accent: theme('colors.accent.500');
+    --color-accent-hover: theme('colors.accent.600');
+    --color-border: theme('colors.gray.200');
+    --color-text: theme('colors.gray.900');
+    --color-text-secondary: theme('colors.gray.600');
+    --color-bg: theme('colors.gray.50');
+    --color-bg-card: theme('colors.white');
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  .dark {
+    --color-primary: theme('colors.primary.400');
+    --color-primary-hover: theme('colors.primary.300');
+    --color-accent: theme('colors.accent.400');
+    --color-accent-hover: theme('colors.accent.300');
+    --color-border: theme('colors.gray.800');
+    --color-text: theme('colors.gray.100');
+    --color-text-secondary: theme('colors.gray.400');
+    --color-bg: theme('colors.gray.950');
+    --color-bg-card: theme('colors.gray.900');
+  }
+
+  * {
+    @apply border-gray-200 dark:border-gray-800;
+  }
+  
+  /* Smooth transitions for interactive elements */
+  button, a, .card, input, select, textarea {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans antialiased transition-colors duration-300;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  /* フォーカススタイル */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-gray-50 dark:ring-offset-gray-950;
+  }
+
+  /* スクロールバーのスタイリング */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-600;
+  }
+
+  /* selection */
+  ::selection {
+    @apply bg-primary-500/20 text-primary-900 dark:bg-primary-400/30 dark:text-primary-100;
+  }
+}
+
+@layer components {
+  /* カード */
+  .card {
+    @apply bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  .card-hover {
+    @apply card hover:border-primary-500/20 cursor-pointer;
+  }
+
+  /* ボタン */
+  .btn {
+    @apply inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+  }
+
+  .btn-sm {
+    @apply text-sm px-3 py-1.5 rounded-md;
+  }
+
+  .btn-md {
+    @apply text-sm px-4 py-2 rounded-lg;
+  }
+
+  .btn-lg {
+    @apply text-base px-6 py-3 rounded-lg;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-500 text-white hover:bg-primary-600 focus-visible:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 focus-visible:ring-gray-500;
+  }
+
+  .btn-ghost {
+    @apply btn text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 focus-visible:ring-gray-500;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-600 focus-visible:ring-danger;
+  }
+
+  .btn-success {
+    @apply btn bg-success text-white hover:bg-green-600 focus-visible:ring-success;
+  }
+
+  /* フォーム要素 */
+  .input {
+    @apply w-full px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-gray-100 placeholder:text-gray-600 dark:placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors;
+  }
+
+  .input-error {
+    @apply input border-danger focus:border-danger focus:ring-danger;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5;
+  }
+
+  .error-message {
+    @apply text-danger text-sm mt-1;
+  }
+
+  .form-group {
+    @apply space-y-1.5;
+  }
+
+  /* タイポグラフィ */
+  .heading-1 {
+    @apply text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-semibold tracking-tight text-gray-900 dark:text-gray-100;
+  }
+
+  .heading-3 {
+    @apply text-2xl font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .heading-4 {
+    @apply text-xl font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .text-secondary {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  /* バッジ */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300;
+  }
+
+  .badge-success {
+    @apply badge bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300;
+  }
+
+  .badge-danger {
+    @apply badge bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300;
+  }
+
+  .badge-gray {
+    @apply badge bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300;
+  }
+
+  /* ローディング */
+  .spinner {
+    @apply inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-800 rounded;
+  }
+
+  /* コンテナ */
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-sm {
+    @apply container max-w-3xl;
+  }
+
+  .container-md {
+    @apply container max-w-5xl;
+  }
+
+  .container-lg {
+    @apply container max-w-7xl;
+  }
+
+  /* ディバイダー */
+  .divider {
+    @apply h-px bg-gray-200 dark:bg-gray-800;
+  }
+
+  .divider-vertical {
+    @apply w-px bg-gray-200 dark:bg-gray-800;
+  }
+
+  /* リンク */
+  .link {
+    @apply text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 underline-offset-4 hover:underline transition-colors;
+  }
+
+  /* トースト */
+  .toast {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg;
+  }
+
+  .toast-success {
+    @apply toast bg-green-50 text-green-900 dark:bg-green-900/20 dark:text-green-100;
+  }
+
+  .toast-error {
+    @apply toast bg-red-50 text-red-900 dark:bg-red-900/20 dark:text-red-100;
+  }
+
+  .toast-warning {
+    @apply toast bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-100;
+  }
+
+  .toast-info {
+    @apply toast bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100;
+  }
+}
+
+@layer utilities {
+  /* アニメーション */
+  .animate-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-out {
+    animation: fadeOut 0.3s ease-in;
+  }
+
+  /* アニメーション遅延 */
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+  .delay-700 {
+    animation-delay: 700ms;
+  }
+  .delay-1000 {
+    animation-delay: 1000ms;
+  }
+  
+  /* Animation delay utilities */
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .delay-500 {
+    animation-delay: 500ms;
+  }
+  
+  .delay-700 {
+    animation-delay: 700ms;
+  }
+  
+  .delay-1000 {
+    animation-delay: 1000ms;
+  }
+
+  /* グラスモーフィズム効果 */
+  .glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md;
+  }
+
+  /* テキストグラデーション（シンプル） */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400;
+  }
+
+  /* ホバー時の浮き上がり効果 */
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  /* マイクロインタラクション */
+  .micro-interaction {
+    @apply transition-all duration-200 active:scale-95;
+  }
+  
+  /* ボタンプレス効果 */
+  .button-press {
+    @apply active:scale-[0.97] active:transition-none;
+  }
+  
+  /* インタラクティブ要素のホバー */
+  .interactive {
+    @apply transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  /* スムーズな変形 */
+  .smooth-transform {
+    @apply transform-gpu transition-transform duration-300;
+  }
+  
+  /* バウンスアニメーション */
+  @keyframes bounce-once {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+  
+  .bounce-once {
+    animation: bounce-once 0.5s ease-out;
+  }
+  
+  /* シェイクアニメーション */
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+  }
+  
+  .shake {
+    animation: shake 0.3s ease-in-out;
+  }
+
+  /* ソフトなボーダー */
+  .border-soft {
+    @apply border border-gray-200/50 dark:border-gray-700/50;
+  }
+
+  /* コンテンツの最大幅 */
+  .content-width {
+    @apply max-w-2xl mx-auto;
+  }
+
+  /* グリッドレイアウト */
+  .grid-auto-fit {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  /* スペーシングユーティリティ */
+  .section-spacing {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+
+  /* シャドウユーティリティ */
+  .shadow-soft {
+    box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px -5px rgb(59 130 246 / 0.5);
+  }
+}

@@ -1,0 +1,18 @@
+{
+	"version": "1.0.0",
+	"lastSync": "2025-07-29T18:11:58.951Z",
+	"rules": [
+		{
+			"name": "test",
+			"path": "8lrg3Ed0PS8kxwMl1vObW",
+			"version": "1.0.1",
+			"pulledAt": "2025-07-29T18:10:18.930Z"
+		},
+		{
+			"name": "test",
+			"path": "8lrg3Ed0PS8kxwMl1vObW",
+			"version": "1.0.1",
+			"pulledAt": "2025-07-29T18:11:58.947Z"
+		}
+	]
+}
