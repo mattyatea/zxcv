@@ -64,23 +64,17 @@ jobs:
           DB_ID: ${{ github.ref == 'refs/heads/main' && 'ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e' || 'e3bce64a-4462-4812-a343-c04c3ba7032a' }}
           R2_BUCKET: ${{ github.ref == 'refs/heads/main' && 'zxcv' || 'zxcv-staging' }}
 
-      - name: Setup wrangler config for environment
+      - name: Run migrations
         run: |
           cd server
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "Using production config"
+            npx wrangler d1 migrations apply zxcv-db --remote
           else
-            echo "Using staging config"
-            cp wrangler.staging.jsonc wrangler.jsonc
+            npx wrangler d1 migrations apply zxcv-staging --remote -c wrangler.staging.jsonc
           fi
-          
-      - name: Run migrations
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply ${{ github.ref == 'refs/heads/main' && 'zxcv-db' || 'zxcv-staging' }} --remote
-          workingDirectory: 'server'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
