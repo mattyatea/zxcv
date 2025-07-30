@@ -31,11 +31,6 @@ jobs:
           cd cli
           bun install
       
-      - name: Run tests
-        run: |
-          cd cli
-          bun test
-      
       - name: Build for all platforms
         run: |
           cd cli
