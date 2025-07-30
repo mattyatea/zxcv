@@ -8,7 +8,7 @@ import {
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { ConfigManager } from "../../src/config";
 import type { PulledRule, Rule } from "../../src/types";
 import { FileManager } from "../../src/utils/file";
@@ -42,7 +42,19 @@ describe("FileManager", () => {
 			mkdirSync(dirname(testSymlinkPath), { recursive: true });
 			mkdirSync(dirname(testTargetPath), { recursive: true });
 			writeFileSync(testTargetPath, "test");
-			symlinkSync(testTargetPath, testSymlinkPath, "file");
+
+			// Try relative path first
+			const relativePath = relative(dirname(testSymlinkPath), testTargetPath);
+			try {
+				symlinkSync(relativePath, testSymlinkPath, "file");
+				console.log("Symlink test passed with relative path:", relativePath);
+			} catch (relErr) {
+				console.error("Relative symlink failed, trying absolute:", relErr);
+				// Try absolute path
+				symlinkSync(testTargetPath, testSymlinkPath, "file");
+				console.log("Symlink test passed with absolute path");
+			}
+
 			unlinkSync(testSymlinkPath);
 			unlinkSync(testTargetPath);
 		} catch (error) {
@@ -51,6 +63,7 @@ describe("FileManager", () => {
 				platform: process.platform,
 				uid: process.getuid?.(),
 				gid: process.getgid?.(),
+				errorCode: (error as any).code,
 			});
 		}
 
@@ -77,9 +90,12 @@ describe("FileManager", () => {
 		const symlinkPath = join(config.getSymlinkDir(), "test-rule.md");
 		try {
 			expect(existsSync(symlinkPath)).toBe(true);
-			// Verify it's actually a symlink
-			const stats = readlinkSync(symlinkPath);
-			expect(stats).toBeTruthy();
+			// Verify it's actually a symlink by reading its target
+			const linkTarget = readlinkSync(symlinkPath);
+			expect(linkTarget).toBeTruthy();
+			// Verify the symlink points to the correct file
+			const resolvedPath = join(dirname(symlinkPath), linkTarget);
+			expect(existsSync(resolvedPath)).toBe(true);
 		} catch (error) {
 			console.error("Symlink test failed:", {
 				symlinkPath,
@@ -87,6 +103,7 @@ describe("FileManager", () => {
 				rulesDir: config.getRulesDir(),
 				symlinkDir: config.getSymlinkDir(),
 				error: error instanceof Error ? error.message : error,
+				errorCode: (error as any).code,
 			});
 			throw error;
 		}
