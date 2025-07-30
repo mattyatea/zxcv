@@ -1,15 +1,15 @@
-import { afterEach, beforeEach, describe, expect, test, mock, spyOn } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
+import axios from "axios";
 import { ConfigManager } from "../../src/config";
 import type { Rule } from "../../src/types";
 import { ApiClient } from "../../src/utils/api";
 import { TEST_CWD } from "../setup";
-import axios from "axios";
 
 describe("ApiClient", () => {
 	let config: ConfigManager;
 	let apiClient: ApiClient;
-	let mockPost: any;
-	let mockAxiosCreate: any;
+	let mockPost: ReturnType<typeof mock>;
+	let mockAxiosCreate: ReturnType<typeof spyOn>;
 
 	beforeEach(() => {
 		process.chdir(TEST_CWD);
@@ -26,6 +26,7 @@ describe("ApiClient", () => {
 				response: { use: mock() },
 			},
 			post: mockPost,
+			// biome-ignore lint/suspicious/noExplicitAny: Mock type compatibility
 		} as any);
 
 		apiClient = new ApiClient(config);
@@ -33,7 +34,7 @@ describe("ApiClient", () => {
 
 	afterEach(() => {
 		// Clean up environment variable
-		delete process.env.ZXCV_API_URL;
+		process.env.ZXCV_API_URL = undefined;
 		mockAxiosCreate?.mockRestore();
 	});
 
@@ -231,9 +232,11 @@ describe("ApiClient", () => {
 		try {
 			await apiClient.login("wronguser", "wrongpass");
 			expect(true).toBe(false); // Should not reach here
-		} catch (error: any) {
-			expect(error.response.status).toBe(401);
-			expect(error.response.data.message).toBe("Invalid credentials");
+		} catch (error) {
+			// biome-ignore lint/suspicious/noExplicitAny: Test error type
+			expect((error as any).response.status).toBe(401);
+			// biome-ignore lint/suspicious/noExplicitAny: Test error type
+			expect((error as any).response.data.message).toBe("Invalid credentials");
 		}
 
 		// Test error for getRule
@@ -248,9 +251,11 @@ describe("ApiClient", () => {
 		try {
 			await apiClient.getRule("non-existent");
 			expect(true).toBe(false); // Should not reach here
-		} catch (error: any) {
-			expect(error.response.status).toBe(404);
-			expect(error.response.data.message).toBe("Rule not found");
+		} catch (error) {
+			// biome-ignore lint/suspicious/noExplicitAny: Test error type
+			expect((error as any).response.status).toBe(404);
+			// biome-ignore lint/suspicious/noExplicitAny: Test error type
+			expect((error as any).response.data.message).toBe("Rule not found");
 		}
 	});
 });
