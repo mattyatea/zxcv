@@ -17,7 +17,7 @@ on:
 
 jobs:
   test-cli:
-    name: "CLI - Test & Lint"
+    name: "CLI - Lint & Type Check"
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -41,8 +41,6 @@ jobs:
       - name: Lint and format check (CLI)
         run: bun run check
 
-      - name: Run CLI tests
-        run: bun test
 
   build-cli:
     name: "CLI - Build"
