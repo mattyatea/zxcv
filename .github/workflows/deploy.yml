@@ -64,12 +64,20 @@ jobs:
           DB_ID: ${{ github.ref == 'refs/heads/main' && 'ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e' || 'e3bce64a-4462-4812-a343-c04c3ba7032a' }}
           R2_BUCKET: ${{ github.ref == 'refs/heads/main' && 'zxcv' || 'zxcv-staging' }}
 
+      - name: Debug - List wrangler config files
+        run: |
+          cd server
+          echo "=== Listing wrangler config files ==="
+          ls -la wrangler* || echo "No wrangler files found"
+          echo "=== Checking for .output/server/wrangler.json ==="
+          ls -la .output/server/wrangler* 2>/dev/null || echo "No wrangler files in .output/server"
+          
       - name: Run migrations
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply ${{ github.ref == 'refs/heads/main' && 'zxcv-db' || 'zxcv-staging' }} --remote ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
+          command: d1 migrations apply ${{ github.ref == 'refs/heads/main' && 'zxcv-db' || 'zxcv-staging' }} --remote -c wrangler.toml ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
           workingDirectory: 'server'
           
       - name: Deploy to Cloudflare Workers
@@ -77,7 +85,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
+          command: deploy -c wrangler.toml ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
           workingDirectory: 'server'
           secrets: |
             JWT_SECRET
