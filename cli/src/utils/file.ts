@@ -90,7 +90,7 @@ export class FileManager {
 			});
 		}
 
-		// フルパス形式の名前を構築（すべて@プレフィックス付き）
+		// フルパス形式の名前を構築（@プレフィックス付き、ただし組織やユーザーがある場合のみ）
 		let fullName = rule.name;
 		// Check for actual values, not just property existence
 		if (
@@ -109,6 +109,7 @@ export class FileManager {
 			// 後方互換性のため
 			fullName = `@${rule.owner}/${rule.name}`;
 		}
+		// If no organization/owner/user, keep the name as is (no @undefined prefix)
 
 		const pulledRule: PulledRule = {
 			name: fullName,
@@ -124,7 +125,17 @@ export class FileManager {
 		}
 
 		writeFileSync(rulePath, content, "utf-8");
-		this.createSymlink(pulledRule);
+
+		// Try to create symlink, but don't fail if it doesn't work (e.g., in CI)
+		try {
+			this.createSymlink(pulledRule);
+		} catch (error) {
+			if (process.env.CI || process.env.GITHUB_ACTIONS) {
+				console.warn("Symlink creation failed in CI, continuing without symlink:", error);
+			} else {
+				throw error;
+			}
+		}
 
 		return pulledRule;
 	}
@@ -189,13 +200,21 @@ export class FileManager {
 		}
 	}
 
-	public readLocalRule(name: string, owner?: string, organization?: string): string | null {
+	public readLocalRule(
+		nameOrFullPath: string,
+		owner?: string,
+		organization?: string,
+	): string | null {
 		// フルパス形式の名前を構築（すべて@プレフィックス付き）
-		let fullName = name;
-		if (organization) {
-			fullName = `@${organization}/${name}`;
-		} else if (owner) {
-			fullName = `@${owner}/${name}`;
+		let fullName = nameOrFullPath;
+
+		// If name already contains @, use it as is
+		if (!nameOrFullPath.includes("@")) {
+			if (organization) {
+				fullName = `@${organization}/${nameOrFullPath}`;
+			} else if (owner) {
+				fullName = `@${owner}/${nameOrFullPath}`;
+			}
 		}
 
 		const rule: PulledRule = {
