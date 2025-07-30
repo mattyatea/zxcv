@@ -63,7 +63,10 @@ describe("FileManager", () => {
 				platform: process.platform,
 				uid: process.getuid?.(),
 				gid: process.getgid?.(),
-				errorCode: (error as any).code,
+				errorCode:
+					error instanceof Error && "code" in error
+						? (error as NodeJS.ErrnoException).code
+						: undefined,
 			});
 		}
 
@@ -103,7 +106,10 @@ describe("FileManager", () => {
 				rulesDir: config.getRulesDir(),
 				symlinkDir: config.getSymlinkDir(),
 				error: error instanceof Error ? error.message : error,
-				errorCode: (error as any).code,
+				errorCode:
+					error instanceof Error && "code" in error
+						? (error as NodeJS.ErrnoException).code
+						: undefined,
 			});
 			throw error;
 		}

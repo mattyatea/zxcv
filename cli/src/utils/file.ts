@@ -131,7 +131,10 @@ export class FileManager {
 			// Try to create the symlink
 			symlinkSync(relativePath, symlinkPath, "file");
 		} catch (error) {
-			const errorCode = (error as any).code;
+			const errorCode =
+				error instanceof Error && "code" in error
+					? (error as NodeJS.ErrnoException).code
+					: undefined;
 
 			// Log detailed error information
 			console.error("Failed to create symlink:", {
