@@ -411,20 +411,22 @@ describe("OAuth Integration Tests", () => {
 					}),
 				});
 
+				// Mock no existing OAuth account
+				mockDb.oAuthAccount.findUnique.mockResolvedValue(null);
 				// Mock no existing user
 				mockDb.user.findUnique.mockResolvedValue(null);
 
-				// Mock user creation
-				const newUserId = generateId();
-				mockDb.user.create.mockResolvedValue({
-					id: newUserId,
+				// Mock temp registration creation
+				const tempRegId = generateId();
+				mockDb.oAuthTempRegistration.create.mockResolvedValue({
+					id: tempRegId,
+					token: "temp-token-123",
+					provider: "google",
+					providerId: "google-123",
 					email: "newuser@example.com",
-					username: "newuser",
-					passwordHash: null,
-					emailVerified: true,
-					verificationToken: null,
+					providerUsername: null,
+					expiresAt: mockNow + 3600,
 					createdAt: mockNow,
-					updatedAt: mockNow,
 				});
 
 				const result = await client.auth.oauthCallback({
@@ -433,23 +435,25 @@ describe("OAuth Integration Tests", () => {
 					state: validState,
 				});
 
-				expect(result.accessToken).toBeDefined();
-				expect(result.refreshToken).toBeDefined();
-				expect(result.user).toMatchObject({
-					email: "newuser@example.com",
-					username: "newuser",
-					emailVerified: true,
+				// Should return temp token for username selection
+				expect(result).toMatchObject({
+					provider: "google",
+					requiresUsername: true,
 				});
+				expect(result.tempToken).toBeDefined();
+				expect(typeof result.tempToken).toBe("string");
 
-				// Verify user was created
-				expect(mockDb.user.create).toHaveBeenCalledWith({
+				// Verify temp registration was created
+				expect(mockDb.oAuthTempRegistration.create).toHaveBeenCalledWith({
 					data: expect.objectContaining({
+						provider: "google",
+						providerId: "google-123",
 						email: "newuser@example.com",
-						username: "newuser",
-						passwordHash: null,
-						emailVerified: true,
 					}),
 				});
+
+				// User should NOT be created yet
+				expect(mockDb.user.create).not.toHaveBeenCalled();
 			});
 
 			it("should link OAuth to existing user with same email", async () => {
@@ -541,20 +545,22 @@ describe("OAuth Integration Tests", () => {
 						],
 					});
 
+				// Mock no existing OAuth account
+				mockDb.oAuthAccount.findUnique.mockResolvedValue(null);
 				// Mock no existing user
 				mockDb.user.findUnique.mockResolvedValue(null);
 
-				// Mock user creation
-				const newUserId = generateId();
-				mockDb.user.create.mockResolvedValue({
-					id: newUserId,
+				// Mock temp registration creation
+				const tempRegId = generateId();
+				mockDb.oAuthTempRegistration.create.mockResolvedValue({
+					id: tempRegId,
+					token: "temp-token-github",
+					provider: "github",
+					providerId: "12345",
 					email: "primary@example.com",
-					username: "githubuser",
-					passwordHash: null,
-					emailVerified: true,
-					verificationToken: null,
+					providerUsername: "githubuser",
+					expiresAt: mockNow + 3600,
 					createdAt: mockNow,
-					updatedAt: mockNow,
 				});
 
 				const result = await client.auth.oauthCallback({
@@ -563,8 +569,13 @@ describe("OAuth Integration Tests", () => {
 					state: validState,
 				});
 
-				expect(result.user.email).toBe("primary@example.com");
-				expect(result.user.username).toBe("githubuser");
+				// Should return temp token for username selection
+				expect(result).toMatchObject({
+					provider: "github",
+					requiresUsername: true,
+				});
+				expect(result.tempToken).toBeDefined();
+				expect(typeof result.tempToken).toBe("string");
 			});
 
 			it("should handle missing GitHub email", async () => {

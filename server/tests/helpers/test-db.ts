@@ -180,6 +180,17 @@ export function createMockPrismaClient(): PrismaClient {
 			deleteMany: vi.fn(),
 			count: vi.fn().mockResolvedValue(0),
 		},
+		oAuthTempRegistration: {
+			findFirst: vi.fn(),
+			findUnique: vi.fn(),
+			findMany: vi.fn(),
+			create: vi.fn(),
+			update: vi.fn(),
+			updateMany: vi.fn(),
+			delete: vi.fn(),
+			deleteMany: vi.fn(),
+			count: vi.fn().mockResolvedValue(0),
+		},
 		organizationInvitation: {
 			findFirst: vi.fn(),
 			findUnique: vi.fn(),
