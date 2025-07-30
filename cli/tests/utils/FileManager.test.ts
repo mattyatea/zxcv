@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readlinkSync,
+	symlinkSync,
+	unlinkSync,
+	writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
 import { ConfigManager } from "../../src/config";
 import type { PulledRule, Rule } from "../../src/types";
 import { FileManager } from "../../src/utils/file";
@@ -14,9 +22,38 @@ describe("FileManager", () => {
 		process.chdir(TEST_CWD);
 		config = new ConfigManager();
 		fileManager = new FileManager(config);
+
+		// Debug info for CI
+		console.log("Test setup:", {
+			cwd: process.cwd(),
+			TEST_CWD,
+			rulesDir: config.getRulesDir(),
+			symlinkDir: config.getSymlinkDir(),
+			rulesDirExists: existsSync(config.getRulesDir()),
+			symlinkDirExists: existsSync(config.getSymlinkDir()),
+		});
 	});
 
 	test("should save rule and create symlink", () => {
+		// First check if we can create symlinks at all
+		const testSymlinkPath = join(config.getSymlinkDir(), "test-symlink");
+		const testTargetPath = join(config.getRulesDir(), "test-target");
+		try {
+			mkdirSync(dirname(testSymlinkPath), { recursive: true });
+			mkdirSync(dirname(testTargetPath), { recursive: true });
+			writeFileSync(testTargetPath, "test");
+			symlinkSync(testTargetPath, testSymlinkPath);
+			unlinkSync(testSymlinkPath);
+			unlinkSync(testTargetPath);
+		} catch (error) {
+			console.error("Cannot create symlinks in test environment:", error);
+			console.error("Environment:", {
+				platform: process.platform,
+				uid: process.getuid?.(),
+				gid: process.getgid?.(),
+			});
+		}
+
 		const rule: Rule = {
 			id: "test-id",
 			name: "test-rule",
@@ -38,7 +75,21 @@ describe("FileManager", () => {
 
 		// Check if symlink is created
 		const symlinkPath = join(config.getSymlinkDir(), "test-rule.md");
-		expect(existsSync(symlinkPath)).toBe(true);
+		try {
+			expect(existsSync(symlinkPath)).toBe(true);
+			// Verify it's actually a symlink
+			const stats = readlinkSync(symlinkPath);
+			expect(stats).toBeTruthy();
+		} catch (error) {
+			console.error("Symlink test failed:", {
+				symlinkPath,
+				exists: existsSync(symlinkPath),
+				rulesDir: config.getRulesDir(),
+				symlinkDir: config.getSymlinkDir(),
+				error: error instanceof Error ? error.message : error,
+			});
+			throw error;
+		}
 
 		// Check pulled rule data
 		expect(pulledRule.name).toBe("test-rule");

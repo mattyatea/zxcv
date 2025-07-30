@@ -116,7 +116,18 @@ export class FileManager {
 		}
 
 		const relativePath = relative(symlinkDir, rulePath);
-		symlinkSync(relativePath, symlinkPath);
+		try {
+			symlinkSync(relativePath, symlinkPath);
+		} catch (error) {
+			console.error("Failed to create symlink:", {
+				from: relativePath,
+				to: symlinkPath,
+				rulePath,
+				symlinkDir,
+				error: error instanceof Error ? error.message : error,
+			});
+			throw error;
+		}
 	}
 
 	public removeSymlink(rule: PulledRule): void {
