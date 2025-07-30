@@ -37,13 +37,10 @@ jobs:
           bun run build:cross
       
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version || github.ref_name }}
-          release_name: zxcv CLI ${{ github.event.inputs.version || github.ref_name }}
+          name: zxcv CLI ${{ github.event.inputs.version || github.ref_name }}
           body: |
             ## zxcv CLI Release
             
@@ -85,53 +82,9 @@ jobs:
             ```
           draft: false
           prerelease: false
-      
-      - name: Upload Windows x64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cli/release/zxcv-win-x64.exe
-          asset_name: zxcv-win-x64.exe
-          asset_content_type: application/octet-stream
-      
-      - name: Upload macOS x64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cli/release/zxcv-macos-x64
-          asset_name: zxcv-macos-x64
-          asset_content_type: application/octet-stream
-      
-      - name: Upload macOS ARM64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cli/release/zxcv-macos-arm64
-          asset_name: zxcv-macos-arm64
-          asset_content_type: application/octet-stream
-      
-      - name: Upload Linux x64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cli/release/zxcv-linux-x64
-          asset_name: zxcv-linux-x64
-          asset_content_type: application/octet-stream
-      
-      - name: Upload Linux ARM64 Binary
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./cli/release/zxcv-linux-arm64
-          asset_name: zxcv-linux-arm64
-          asset_content_type: application/octet-stream
+          files: |
+            ./cli/release/zxcv-win-x64.exe
+            ./cli/release/zxcv-macos-x64
+            ./cli/release/zxcv-macos-arm64
+            ./cli/release/zxcv-linux-x64
+            ./cli/release/zxcv-linux-arm64
