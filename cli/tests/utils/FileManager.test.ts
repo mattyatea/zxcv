@@ -32,6 +32,26 @@ describe("FileManager", () => {
 			rulesDirExists: existsSync(config.getRulesDir()),
 			symlinkDirExists: existsSync(config.getSymlinkDir()),
 		});
+
+		// Additional debug for CI
+		if (process.env.CI || process.env.GITHUB_ACTIONS) {
+			console.log("FileManager instance check:", {
+				isInstance: fileManager instanceof FileManager,
+				constructor: fileManager.constructor.name,
+				hasProto: Object.getPrototypeOf(fileManager) !== null,
+			});
+		}
+	});
+
+	test("FileManager instance is created correctly", () => {
+		expect(fileManager).toBeDefined();
+		expect(fileManager).toBeInstanceOf(FileManager);
+		expect(typeof fileManager.saveRule).toBe("function");
+		expect(typeof fileManager.readLocalRule).toBe("function");
+		expect(typeof fileManager.updateLocalRule).toBe("function");
+		expect(typeof fileManager.ruleExists).toBe("function");
+		expect(typeof fileManager.createSymlink).toBe("function");
+		expect(typeof fileManager.removeSymlink).toBe("function");
 	});
 
 	test("should save rule and create symlink", () => {
