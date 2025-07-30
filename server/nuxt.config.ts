@@ -15,7 +15,20 @@ export default defineNuxtConfig({
       deployConfig: true,
       nodeCompat: true,
       wrangler: {
-        name: process.env.WORKER_NAME || "zxcv-backend-and-frontend"
+        name: process.env.WORKER_NAME || "zxcv-backend-and-frontend",
+        d1_databases: [
+          {
+            binding: "DB",
+            database_name: process.env.DB_NAME || "zxcv-db",
+            database_id: process.env.DB_ID || "ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e"
+          }
+        ],
+        r2_buckets: [
+          {
+            binding: "R2",
+            bucket_name: process.env.R2_BUCKET || "zxcv"
+          }
+        ]
       }
     }
   },
