@@ -22,6 +22,15 @@ export class FileManager {
 				rulesDir: config.getRulesDir(),
 				symlinkDir: config.getSymlinkDir(),
 			});
+			// Log available methods
+			console.log("FileManager methods:", {
+				saveRule: typeof this.saveRule,
+				readLocalRule: typeof this.readLocalRule,
+				updateLocalRule: typeof this.updateLocalRule,
+				ruleExists: typeof this.ruleExists,
+				createSymlink: typeof this.createSymlink,
+				removeSymlink: typeof this.removeSymlink,
+			});
 		}
 	}
 
@@ -92,11 +101,20 @@ export class FileManager {
 
 		// フルパス形式の名前を構築（すべて@プレフィックス付き）
 		let fullName = rule.name;
-		if (rule.organization) {
+		// Check for actual values, not just property existence
+		if (
+			rule.organization &&
+			typeof rule.organization === "string" &&
+			rule.organization.length > 0
+		) {
 			fullName = `@${rule.organization}/${rule.name}`;
-		} else if (rule.user?.username) {
+		} else if (
+			rule.user?.username &&
+			typeof rule.user.username === "string" &&
+			rule.user.username.length > 0
+		) {
 			fullName = `@${rule.user.username}/${rule.name}`;
-		} else if (rule.owner) {
+		} else if (rule.owner && typeof rule.owner === "string" && rule.owner.length > 0) {
 			// 後方互換性のため
 			fullName = `@${rule.owner}/${rule.name}`;
 		}
