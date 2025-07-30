@@ -182,7 +182,12 @@ jobs:
           fi
 
       - name: Build
-        run: pnpm build:server
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            pnpm build:server
+          else
+            CLOUDFLARE_ENV=staging pnpm build:server
+          fi
 
       - name: Run migrations
         uses: cloudflare/wrangler-action@v3
@@ -219,7 +224,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --env staging
+          command: deploy
           workingDirectory: 'server'
           secrets: |
             JWT_SECRET
