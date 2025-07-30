@@ -33,8 +33,8 @@ export class Logger {
 	private minLevel: LogLevel;
 	private context: Record<string, unknown>;
 
-	constructor(_minLevel: LogLevel = LogLevel.DEBUG) {
-		this.minLevel = LogLevel.DEBUG;
+	constructor(minLevel: LogLevel = LogLevel.INFO) {
+		this.minLevel = minLevel;
 		this.context = {};
 	}
 
@@ -88,7 +88,7 @@ export class Logger {
 	}
 
 	debug(message: string, context?: Record<string, unknown>): void {
-		this.log(LogLevel.INFO, message, context);
+		this.log(LogLevel.DEBUG, message, context);
 	}
 
 	info(message: string, context?: Record<string, unknown>): void {
