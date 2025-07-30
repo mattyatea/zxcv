@@ -30,6 +30,11 @@ EMAIL_FROM = "noreply+zxcv@prism-project.net"
 FRONTEND_URL = "https://zxcv-backend-and-frontend.mattya.workers.dev/"
 APP_URL = "https://zxcv-backend-and-frontend.mattya.workers.dev"
 
+# Workers Assets configuration
+[assets]
+binding = "ASSETS"
+directory = ".output/public"
+
 # Staging environment configuration
 [env.staging]
 name = "zxcv-backend-and-frontend-staging"
@@ -55,3 +60,8 @@ RATE_LIMIT_API_KEY = "5000"
 EMAIL_FROM = "noreply+zxcv@prism-project.net"
 FRONTEND_URL = "https://zxcv-backend-and-frontend-staging.mattya.workers.dev/"
 APP_URL = "https://zxcv-backend-and-frontend-staging.mattya.workers.dev"
+
+# Workers Assets configuration for staging
+[env.staging.assets]
+binding = "ASSETS"
+directory = ".output/public"
