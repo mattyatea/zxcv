@@ -38,14 +38,8 @@ export default defineNuxtPlugin((_nuxtApp) => {
 			if (!response.ok) {
 				// クライアントサイドでのみ実行
 				if (process.client) {
-					// 認証エラーまたはユーザー不在エラーの場合
-					const errorData = data as { message?: string };
-					if (
-						response.status === 401 ||
-						(response.status === 500 && errorData?.message?.includes("User not found")) ||
-						(response.status === 500 &&
-							errorData?.message?.includes("FOREIGN KEY constraint failed"))
-					) {
+					// 認証エラーの場合のみ処理
+					if (response.status === 401) {
 						console.log("Authentication error detected, clearing auth data...");
 						localStorage.removeItem("access_token");
 						localStorage.removeItem("refresh_token");
