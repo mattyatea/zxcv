@@ -337,7 +337,7 @@ describe("requestTimingMiddleware", () => {
 		
 		// Add delay to ensure measurable duration
 		nextFn.mockImplementation(async () => {
-			await new Promise((resolve) => setTimeout(resolve, 10));
+			await new Promise((resolve) => setTimeout(resolve, 50));
 		});
 
 		await middleware(mockContext, nextFn);
@@ -348,6 +348,6 @@ describe("requestTimingMiddleware", () => {
 		const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
 		expect(loggedData.message).toBe("API request completed");
 		expect(loggedData.context.status).toBe(200);
-		expect(loggedData.context.duration).toBeGreaterThanOrEqual(1);
+		expect(loggedData.context.duration).toBeGreaterThanOrEqual(10);
 	});
 });
