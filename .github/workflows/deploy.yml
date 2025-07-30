@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Manual Deploy to Cloudflare"
     # 環境に応じて production または staging を使用
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    environment: ${{ github.event.workflow_run.head_branch == 'main' && 'production' ||  'staging' }}
     
     steps:
       - name: Checkout
