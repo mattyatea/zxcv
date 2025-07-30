@@ -35,6 +35,13 @@ jobs:
         run: |
           cd cli
           bun run build:cross
+          
+      - name: Fix file permissions
+        run: |
+          cd cli/release
+          chmod 644 *.exe || true
+          chmod 755 zxcv-linux-* zxcv-macos-* || true
+          ls -la
       
       - name: Create Release
         uses: softprops/action-gh-release@v2
