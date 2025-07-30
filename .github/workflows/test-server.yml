@@ -39,7 +39,25 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm -F server prisma:generate
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm -F server prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
 
       - name: Generate Cloudflare types (optional)
         run: cd server && pnpm run cf-typegen || true
@@ -81,7 +99,25 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm -F server prisma:generate
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm -F server prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
 
       - name: Generate Cloudflare types (optional)
         run: cd server && pnpm run cf-typegen || true
@@ -125,7 +161,25 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm -F server prisma:generate
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm -F server prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
 
       - name: Build
         run: pnpm build:server
