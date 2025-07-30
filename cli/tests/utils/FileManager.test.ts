@@ -42,7 +42,7 @@ describe("FileManager", () => {
 			mkdirSync(dirname(testSymlinkPath), { recursive: true });
 			mkdirSync(dirname(testTargetPath), { recursive: true });
 			writeFileSync(testTargetPath, "test");
-			symlinkSync(testTargetPath, testSymlinkPath);
+			symlinkSync(testTargetPath, testSymlinkPath, "file");
 			unlinkSync(testSymlinkPath);
 			unlinkSync(testTargetPath);
 		} catch (error) {

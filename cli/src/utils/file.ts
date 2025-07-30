@@ -117,13 +117,16 @@ export class FileManager {
 
 		const relativePath = relative(symlinkDir, rulePath);
 		try {
-			symlinkSync(relativePath, symlinkPath);
+			symlinkSync(relativePath, symlinkPath, "file");
 		} catch (error) {
 			console.error("Failed to create symlink:", {
 				from: relativePath,
 				to: symlinkPath,
 				rulePath,
 				symlinkDir,
+				relativePath,
+				rulePathExists: existsSync(rulePath),
+				symlinkDirExists: existsSync(symlinkDir),
 				error: error instanceof Error ? error.message : error,
 			});
 			throw error;
