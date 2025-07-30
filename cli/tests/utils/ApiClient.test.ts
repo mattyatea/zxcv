@@ -20,11 +20,7 @@ class MockApiClient {
 		throw new Error("Invalid credentials");
 	}
 
-	async register(
-		username: string,
-		email: string,
-		password: string,
-	): Promise<void> {
+	async register(username: string, email: string, password: string): Promise<void> {
 		// Mock successful registration
 		return;
 	}
@@ -229,8 +225,6 @@ describe("ApiClient", () => {
 	});
 
 	test("should handle API errors", async () => {
-		await expect(apiClient.getRule("non-existent")).rejects.toThrow(
-			"Rule not found",
-		);
+		await expect(apiClient.getRule("non-existent")).rejects.toThrow("Rule not found");
 	});
 });

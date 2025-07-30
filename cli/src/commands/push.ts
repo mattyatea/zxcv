@@ -22,9 +22,7 @@ export function createPushCommand(): Command {
 			try {
 				// Check authentication
 				if (!config.getAuthToken()) {
-					spinner.fail(
-						chalk.red("Authentication required. Please login first."),
-					);
+					spinner.fail(chalk.red("Authentication required. Please login first."));
 					process.exit(1);
 				}
 
@@ -48,11 +46,7 @@ export function createPushCommand(): Command {
 
 				// Read local rule
 				spinner.text = "Reading local rule...";
-				const content = fileManager.readLocalRule(
-					ruleName,
-					owner,
-					organization,
-				);
+				const content = fileManager.readLocalRule(ruleName, owner, organization);
 				if (!content) {
 					spinner.fail(chalk.red("Rule not found locally"));
 					process.exit(1);
@@ -81,8 +75,7 @@ export function createPushCommand(): Command {
 								type: "input",
 								name: "changelog",
 								message: "Enter changelog message:",
-								validate: (input) =>
-									input.length > 0 || "Changelog message is required",
+								validate: (input) => input.length > 0 || "Changelog message is required",
 							},
 						]);
 						changelog = answer.changelog;
@@ -113,15 +106,9 @@ export function createPushCommand(): Command {
 				spinner.fail(chalk.red("Failed to push rule"));
 				if (axios.isAxiosError(error)) {
 					if (error.response?.status === 403) {
-						console.error(
-							chalk.red(
-								"Permission denied. You can only update your own rules.",
-							),
-						);
+						console.error(chalk.red("Permission denied. You can only update your own rules."));
 					} else {
-						console.error(
-							chalk.red(error.response?.data?.message || error.message),
-						);
+						console.error(chalk.red(error.response?.data?.message || error.message));
 					}
 				} else {
 					console.error(chalk.red("An unexpected error occurred"));

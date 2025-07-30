@@ -17,7 +17,9 @@ export class DebugLogger {
 	}
 
 	logRequest(config: AxiosRequestConfig) {
-		if (!this.enabled) return;
+		if (!this.enabled) {
+			return;
+		}
 
 		console.log(chalk.gray(`\n${"=".repeat(60)}`));
 		console.log(chalk.blue.bold("🔍 API Request"));
@@ -54,7 +56,9 @@ export class DebugLogger {
 	}
 
 	logResponse(response: AxiosResponse) {
-		if (!this.enabled) return;
+		if (!this.enabled) {
+			return;
+		}
 
 		console.log(chalk.green.bold("✅ API Response"));
 		console.log(chalk.gray("-".repeat(60)));
@@ -66,10 +70,7 @@ export class DebugLogger {
 
 		if (response.data) {
 			console.log(chalk.cyan("Response Body:"));
-			const dataCopy =
-				typeof response.data === "object"
-					? { ...response.data }
-					: response.data;
+			const dataCopy = typeof response.data === "object" ? { ...response.data } : response.data;
 			if (dataCopy.token) {
 				dataCopy.token = "***";
 			}
@@ -78,31 +79,42 @@ export class DebugLogger {
 		console.log(chalk.gray(`${"=".repeat(60)}\n`));
 	}
 
-	logError(error: any) {
-		if (!this.enabled) return;
+	logError(error: unknown) {
+		if (!this.enabled) {
+			return;
+		}
 
 		console.log(chalk.red.bold("❌ API Error"));
 		console.log(chalk.gray("-".repeat(60)));
 
-		if (error.response) {
+		// Type guard for axios error
+		if (error && typeof error === "object" && "response" in error && error.response) {
+			const axiosError = error as {
+				response: { status: number; statusText: string; data: unknown };
+			};
 			console.log(
 				chalk.cyan("Status:"),
-				error.response.status,
-				error.response.statusText,
+				axiosError.response.status,
+				axiosError.response.statusText,
 			);
 			console.log(chalk.cyan("Error Response:"));
-			console.log(JSON.stringify(error.response.data, null, 2));
-		} else if (error.request) {
+			console.log(JSON.stringify(axiosError.response.data, null, 2));
+		} else if (error && typeof error === "object" && "request" in error && error.request) {
+			const axiosError = error as { request: unknown };
 			console.log(chalk.red("No response received from server"));
-			console.log(chalk.cyan("Request:"), error.request);
-		} else {
+			console.log(chalk.cyan("Request:"), axiosError.request);
+		} else if (error instanceof Error) {
 			console.log(chalk.red("Error:"), error.message);
+		} else {
+			console.log(chalk.red("Error:"), error);
 		}
 		console.log(chalk.gray(`${"=".repeat(60)}\n`));
 	}
 
-	log(message: string, ...args: any[]) {
-		if (!this.enabled) return;
+	log(message: string, ...args: unknown[]) {
+		if (!this.enabled) {
+			return;
+		}
 		console.log(chalk.yellow("[DEBUG]"), message, ...args);
 	}
 }

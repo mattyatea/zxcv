@@ -11,245 +11,207 @@ export function createInstallCommand(): Command {
 		.description("Install rules from remote server")
 		.alias("i")
 		.argument("[path]", "Rule path to install (@owner/rulename)")
-		.option(
-			"--frozen-lockfile",
-			"Don't update metadata, install exactly what's specified",
-		)
+		.option("--frozen-lockfile", "Don't update metadata, install exactly what's specified")
 		.option("-f, --force", "Force install even if rule already exists")
-		.action(
-			async (
-				path?: string,
-				options?: { frozenLockfile?: boolean; force?: boolean },
-			) => {
-				const config = new ConfigManager();
-				const api = new ApiClient(config);
-				const fileManager = new FileManager(config);
+		.action(async (path?: string, options?: { frozenLockfile?: boolean; force?: boolean }) => {
+			const config = new ConfigManager();
+			const api = new ApiClient(config);
+			const fileManager = new FileManager(config);
 
-				// If path is provided, install single rule
-				if (path) {
-					const spinner = ora("Installing rule...").start();
+			// If path is provided, install single rule
+			if (path) {
+				const spinner = ora("Installing rule...").start();
 
-					try {
-						// Parse path and version
-						let packageName = path;
-						let requestedVersion: string | undefined;
+				try {
+					// Parse path and version
+					let packageName = path;
+					let requestedVersion: string | undefined;
 
-						// Check for version specification (e.g., @user/rule@1.0.0)
-						const versionIndex = path.lastIndexOf("@");
-						if (versionIndex > 0) {
-							// Not the first @ in @org/rule
-							packageName = path.substring(0, versionIndex);
-							requestedVersion = path.substring(versionIndex + 1);
-						}
-
-						// Parse path - must be @owner/rulename format
-						if (!packageName.startsWith("@")) {
-							throw new Error("Rule path must be in @owner/rulename format");
-						}
-
-						const pathParts = packageName.split("/");
-						if (pathParts.length !== 2) {
-							throw new Error("Rule path must be in @owner/rulename format");
-						}
-
-						const owner = pathParts[0].substring(1); // Remove @ prefix
-						const ruleName = pathParts[1];
-
-						if (!owner || !ruleName) {
-							throw new Error("Invalid rule path format. Use @owner/rulename");
-						}
-
-						// Get rule from server (use packageName without version)
-						spinner.text = "Fetching rule information...";
-						const rule = await api.getRule(packageName);
-
-						// Check if rule already exists
-						const metadata = config.loadMetadata() || {
-							version: "1.0.0",
-							lastSync: new Date().toISOString(),
-							rules: [],
-						};
-
-						// フルパス形式で比較
-						const fullName = `@${owner}/${ruleName}`;
-						const existingRule = metadata.rules.find(
-							(r) => r.name === fullName,
-						);
-
-						if (existingRule && !options?.force) {
-							spinner.fail(
-								chalk.yellow(
-									`Rule already exists (version ${existingRule.version}). Use --force to overwrite.`,
-								),
-							);
-							return;
-						}
-
-						// Get rule content with specific version if requested
-						const targetVersion = requestedVersion || rule.version;
-						spinner.text = `Downloading rule content (version ${targetVersion})...`;
-						const { content, version } = await api.getRuleContent(
-							rule.id,
-							requestedVersion,
-						);
-
-						// Update rule object with the actual version from content response
-						if (requestedVersion) {
-							rule.version = version;
-						}
-
-						// Save rule
-						spinner.text = "Saving rule...";
-						const pulledRule = fileManager.saveRule(rule, content);
-
-						// Update metadata
-						if (existingRule) {
-							const index = metadata.rules.findIndex(
-								(r) => r.name === fullName,
-							);
-							metadata.rules[index] = pulledRule;
-							if (existingRule.version !== pulledRule.version) {
-								console.log(
-									chalk.blue(
-										`Updated from version ${existingRule.version} to ${pulledRule.version}`,
-									),
-								);
-							}
-						} else {
-							metadata.rules.push(pulledRule);
-						}
-
-						metadata.lastSync = new Date().toISOString();
-						config.saveMetadata(metadata);
-
-						spinner.succeed(
-							chalk.green(
-								`Successfully installed ${packageName} (version ${pulledRule.version})`,
-							),
-						);
-						console.log(
-							chalk.gray(
-								`Rule saved to: ${config.getSymlinkDir()}/${packageName}.md`,
-							),
-						);
-					} catch (error) {
-						spinner.fail(chalk.red("Failed to install rule"));
-						if (axios.isAxiosError(error)) {
-							if (error.response?.status === 404) {
-								const errorMessage =
-									error.response?.data?.message || "Rule not found";
-								if (
-									errorMessage.includes("バージョンが見つかりません") ||
-									errorMessage.includes("version")
-								) {
-									console.error(
-										chalk.red(
-											`Rule exists but no version information found for ${path}`,
-										),
-									);
-									console.error(
-										chalk.yellow(
-											"This may be a legacy rule without proper versioning.",
-										),
-									);
-								} else {
-									console.error(chalk.red(`Rule not found: ${path}`));
-								}
-							} else if (error.response?.status === 401) {
-								console.error(
-									chalk.red("Authentication required. Please login first."),
-								);
-							} else {
-								console.error(
-									chalk.red(error.response?.data?.message || error.message),
-								);
-							}
-						} else if (error instanceof Error) {
-							console.error(chalk.red(error.message));
-						} else {
-							console.error(chalk.red("An unexpected error occurred"));
-						}
-						process.exit(1);
+					// Check for version specification (e.g., @user/rule@1.0.0)
+					const versionIndex = path.lastIndexOf("@");
+					if (versionIndex > 0) {
+						// Not the first @ in @org/rule
+						packageName = path.substring(0, versionIndex);
+						requestedVersion = path.substring(versionIndex + 1);
 					}
-				} else {
-					// Install all rules from metadata
-					const spinner = ora("Installing rules...").start();
-					const metadata = config.loadMetadata();
-					if (!metadata || metadata.rules.length === 0) {
-						spinner.succeed(chalk.gray("No rules to install"));
+
+					// Parse path - must be @owner/rulename format
+					if (!packageName.startsWith("@")) {
+						throw new Error("Rule path must be in @owner/rulename format");
+					}
+
+					const pathParts = packageName.split("/");
+					if (pathParts.length !== 2) {
+						throw new Error("Rule path must be in @owner/rulename format");
+					}
+
+					const owner = pathParts[0].substring(1); // Remove @ prefix
+					const ruleName = pathParts[1];
+
+					if (!owner || !ruleName) {
+						throw new Error("Invalid rule path format. Use @owner/rulename");
+					}
+
+					// Get rule from server (use packageName without version)
+					spinner.text = "Fetching rule information...";
+					const rule = await api.getRule(packageName);
+
+					// Check if rule already exists
+					const metadata = config.loadMetadata() || {
+						version: "1.0.0",
+						lastSync: new Date().toISOString(),
+						rules: [],
+					};
+
+					// フルパス形式で比較
+					const fullName = `@${owner}/${ruleName}`;
+					const existingRule = metadata.rules.find((r) => r.name === fullName);
+
+					if (existingRule && !options?.force) {
+						spinner.fail(
+							chalk.yellow(
+								`Rule already exists (version ${existingRule.version}). Use --force to overwrite.`,
+							),
+						);
 						return;
 					}
 
-					spinner.text = `Installing ${metadata.rules.length} rule${metadata.rules.length > 1 ? "s" : ""}...`;
+					// Get rule content with specific version if requested
+					const targetVersion = requestedVersion || rule.version;
+					spinner.text = `Downloading rule content (version ${targetVersion})...`;
+					const { content, version } = await api.getRuleContent(rule.id, requestedVersion);
 
-					let installedCount = 0;
-					let errorCount = 0;
+					// Update rule object with the actual version from content response
+					if (requestedVersion) {
+						rule.version = version;
+					}
 
-					for (const rule of metadata.rules) {
-						try {
-							// Check if already exists
-							if (fileManager.ruleExists(rule)) {
-								fileManager.createSymlink(rule);
-								installedCount++;
-								continue;
-							}
+					// Save rule
+					spinner.text = "Saving rule...";
+					const pulledRule = fileManager.saveRule(rule, content);
 
-							// rule.name にはすでにフルパス形式が入っている
-							const path = rule.name;
-							spinner.text = `Installing ${path}...`;
+					// Update metadata
+					if (existingRule) {
+						const index = metadata.rules.findIndex((r) => r.name === fullName);
+						metadata.rules[index] = pulledRule;
+						if (existingRule.version !== pulledRule.version) {
+							console.log(
+								chalk.blue(`Updated from version ${existingRule.version} to ${pulledRule.version}`),
+							);
+						}
+					} else {
+						metadata.rules.push(pulledRule);
+					}
 
-							// Get rule from server
-							const serverRule = await api.getRule(path);
-							const { content } = await api.getRuleContent(serverRule.id);
+					metadata.lastSync = new Date().toISOString();
+					config.saveMetadata(metadata);
 
-							// Save rule
-							fileManager.saveRule(serverRule, content);
-
-							// Update version if not frozen
-							if (!options?.frozenLockfile) {
-								rule.version = serverRule.version;
-								rule.pulledAt = new Date().toISOString();
-							}
-
-							installedCount++;
-						} catch (error) {
-							errorCount++;
-							// rule.name にはすでにフルパス形式が入っている
-							const path = rule.name;
-
-							if (axios.isAxiosError(error) && error.response?.status === 404) {
-								console.error(chalk.red(`\n✗ Rule not found: ${path}`));
+					spinner.succeed(
+						chalk.green(`Successfully installed ${packageName} (version ${pulledRule.version})`),
+					);
+					console.log(chalk.gray(`Rule saved to: ${config.getSymlinkDir()}/${packageName}.md`));
+				} catch (error) {
+					spinner.fail(chalk.red("Failed to install rule"));
+					if (axios.isAxiosError(error)) {
+						if (error.response?.status === 404) {
+							const errorMessage = error.response?.data?.message || "Rule not found";
+							if (
+								errorMessage.includes("バージョンが見つかりません") ||
+								errorMessage.includes("version")
+							) {
+								console.error(
+									chalk.red(`Rule exists but no version information found for ${path}`),
+								);
+								console.error(chalk.yellow("This may be a legacy rule without proper versioning."));
 							} else {
-								console.error(chalk.red(`\n✗ Failed to install ${path}`));
+								console.error(chalk.red(`Rule not found: ${path}`));
 							}
+						} else if (error.response?.status === 401) {
+							console.error(chalk.red("Authentication required. Please login first."));
+						} else {
+							console.error(chalk.red(error.response?.data?.message || error.message));
+						}
+					} else if (error instanceof Error) {
+						console.error(chalk.red(error.message));
+					} else {
+						console.error(chalk.red("An unexpected error occurred"));
+					}
+					process.exit(1);
+				}
+			} else {
+				// Install all rules from metadata
+				const spinner = ora("Installing rules...").start();
+				const metadata = config.loadMetadata();
+				if (!metadata || metadata.rules.length === 0) {
+					spinner.succeed(chalk.gray("No rules to install"));
+					return;
+				}
+
+				spinner.text = `Installing ${metadata.rules.length} rule${metadata.rules.length > 1 ? "s" : ""}...`;
+
+				let installedCount = 0;
+				let errorCount = 0;
+
+				for (const rule of metadata.rules) {
+					try {
+						// Check if already exists
+						if (fileManager.ruleExists(rule)) {
+							fileManager.createSymlink(rule);
+							installedCount++;
+							continue;
+						}
+
+						// rule.name にはすでにフルパス形式が入っている
+						const path = rule.name;
+						spinner.text = `Installing ${path}...`;
+
+						// Get rule from server
+						const serverRule = await api.getRule(path);
+						const { content } = await api.getRuleContent(serverRule.id);
+
+						// Save rule
+						fileManager.saveRule(serverRule, content);
+
+						// Update version if not frozen
+						if (!options?.frozenLockfile) {
+							rule.version = serverRule.version;
+							rule.pulledAt = new Date().toISOString();
+						}
+
+						installedCount++;
+					} catch (error) {
+						errorCount++;
+						// rule.name にはすでにフルパス形式が入っている
+						const path = rule.name;
+
+						if (axios.isAxiosError(error) && error.response?.status === 404) {
+							console.error(chalk.red(`\n✗ Rule not found: ${path}`));
+						} else {
+							console.error(chalk.red(`\n✗ Failed to install ${path}`));
 						}
 					}
-
-					// Save updated metadata if not frozen
-					if (!options?.frozenLockfile && installedCount > 0) {
-						metadata.lastSync = new Date().toISOString();
-						config.saveMetadata(metadata);
-					}
-
-					spinner.stop();
-
-					if (installedCount > 0) {
-						console.log(
-							chalk.green(
-								`\n✓ Installed ${installedCount} rule${installedCount > 1 ? "s" : ""}`,
-							),
-						);
-					}
-
-					if (errorCount > 0) {
-						console.log(
-							chalk.red(
-								`\n✗ Failed to install ${errorCount} rule${errorCount > 1 ? "s" : ""}`,
-							),
-						);
-						process.exit(1);
-					}
 				}
-			},
-		);
+
+				// Save updated metadata if not frozen
+				if (!options?.frozenLockfile && installedCount > 0) {
+					metadata.lastSync = new Date().toISOString();
+					config.saveMetadata(metadata);
+				}
+
+				spinner.stop();
+
+				if (installedCount > 0) {
+					console.log(
+						chalk.green(`\n✓ Installed ${installedCount} rule${installedCount > 1 ? "s" : ""}`),
+					);
+				}
+
+				if (errorCount > 0) {
+					console.log(
+						chalk.red(`\n✗ Failed to install ${errorCount} rule${errorCount > 1 ? "s" : ""}`),
+					);
+					process.exit(1);
+				}
+			}
+		});
 }

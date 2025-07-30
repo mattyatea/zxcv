@@ -42,7 +42,7 @@ describe("add command", () => {
 		process.chdir(TEST_CWD);
 
 		// Mock process.exit
-		process.exit = mock() as any;
+		process.exit = mock();
 
 		// Reset all mocks
 		const { ApiClient } = require("../../src/utils/api");
@@ -56,10 +56,7 @@ describe("add command", () => {
 			lastSync: new Date().toISOString(),
 			rules: [],
 		};
-		writeFileSync(
-			join(TEST_CWD, "zxcv-metadata.json"),
-			JSON.stringify(metadata, null, 2),
-		);
+		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(metadata, null, 2));
 	});
 
 	afterEach(() => {
@@ -86,9 +83,7 @@ describe("add command", () => {
 
 		ApiClient.mockImplementation(() => ({
 			getRule: mock(() => Promise.resolve(mockRule)),
-			getRuleContent: mock(() =>
-				Promise.resolve({ content: mockContent, version: "1.0.0" }),
-			),
+			getRuleContent: mock(() => Promise.resolve({ content: mockContent, version: "1.0.0" })),
 		}));
 
 		FileManager.mockImplementation(() => ({
@@ -155,10 +150,7 @@ describe("add command", () => {
 				},
 			],
 		};
-		writeFileSync(
-			join(TEST_CWD, "zxcv-metadata.json"),
-			JSON.stringify(existingMetadata, null, 2),
-		);
+		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(existingMetadata, null, 2));
 
 		const { ApiClient } = require("../../src/utils/api");
 
@@ -199,10 +191,7 @@ describe("add command", () => {
 			lastSync: new Date().toISOString(),
 			rules: [],
 		};
-		writeFileSync(
-			join(TEST_CWD, "zxcv-metadata.json"),
-			JSON.stringify(freshMetadata, null, 2),
-		);
+		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(freshMetadata, null, 2));
 
 		const { ApiClient } = require("../../src/utils/api");
 		const { FileManager } = require("../../src/utils/file");
@@ -222,9 +211,7 @@ describe("add command", () => {
 					updatedAt: "2024-01-01T00:00:00Z",
 				});
 			}),
-			getRuleContent: mock(() =>
-				Promise.resolve({ content: "# Content", version: "1.0.0" }),
-			),
+			getRuleContent: mock(() => Promise.resolve({ content: "# Content", version: "1.0.0" })),
 		}));
 
 		FileManager.mockImplementation(() => ({
@@ -258,10 +245,7 @@ describe("add command", () => {
 			lastSync: new Date().toISOString(),
 			rules: [],
 		};
-		writeFileSync(
-			join(TEST_CWD, "zxcv-metadata.json"),
-			JSON.stringify(freshMetadata, null, 2),
-		);
+		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(freshMetadata, null, 2));
 
 		const { ApiClient } = require("../../src/utils/api");
 		const { FileManager } = require("../../src/utils/file");
@@ -280,9 +264,7 @@ describe("add command", () => {
 					updatedAt: "2024-01-01T00:00:00Z",
 				}),
 			),
-			getRuleContent: mock(() =>
-				Promise.resolve({ content: "# Content", version: "1.0.0" }),
-			),
+			getRuleContent: mock(() => Promise.resolve({ content: "# Content", version: "1.0.0" })),
 		}));
 
 		FileManager.mockImplementation(() => ({
@@ -315,10 +297,7 @@ describe("add command", () => {
 			lastSync: new Date().toISOString(),
 			rules: [],
 		};
-		writeFileSync(
-			join(TEST_CWD, "zxcv-metadata.json"),
-			JSON.stringify(freshMetadata, null, 2),
-		);
+		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(freshMetadata, null, 2));
 
 		const { ApiClient } = require("../../src/utils/api");
 		const { FileManager } = require("../../src/utils/file");
@@ -337,9 +316,7 @@ describe("add command", () => {
 					updatedAt: "2024-01-01T00:00:00Z",
 				}),
 			),
-			getRuleContent: mock(() =>
-				Promise.resolve({ content: "# Content", version: "1.0.0" }),
-			),
+			getRuleContent: mock(() => Promise.resolve({ content: "# Content", version: "1.0.0" })),
 		}));
 
 		FileManager.mockImplementation(() => ({
@@ -372,10 +349,7 @@ describe("add command", () => {
 			lastSync: new Date().toISOString(),
 			rules: [],
 		};
-		writeFileSync(
-			join(TEST_CWD, "zxcv-metadata.json"),
-			JSON.stringify(freshMetadata, null, 2),
-		);
+		writeFileSync(join(TEST_CWD, "zxcv-metadata.json"), JSON.stringify(freshMetadata, null, 2));
 
 		const { ApiClient } = require("../../src/utils/api");
 		const { FileManager } = require("../../src/utils/file");

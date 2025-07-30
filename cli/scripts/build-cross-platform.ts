@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
-import { $ } from "bun";
-import { mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { $ } from "bun";
 
 // Bunがサポートしているターゲット
 // 参考: https://developer.mamezou-tech.com/blogs/2024/05/20/bun-cross-compile/
@@ -34,7 +34,7 @@ if (!existsSync(releaseDir)) {
 }
 
 console.log("🚀 Building zxcv CLI for multiple platforms...");
-console.log(`Source: src/index.ts`);
+console.log("Source: src/index.ts");
 console.log(`Output directory: ${releaseDir}\n`);
 
 const successfulBuilds: string[] = [];
@@ -63,12 +63,16 @@ console.log("================");
 
 if (successfulBuilds.length > 0) {
 	console.log("\n✅ Successful builds:");
-	successfulBuilds.forEach((build) => console.log(`  - ${build}`));
+	for (const build of successfulBuilds) {
+		console.log(`  - ${build}`);
+	}
 }
 
 if (failedBuilds.length > 0) {
 	console.log("\n❌ Failed builds:");
-	failedBuilds.forEach((build) => console.log(`  - ${build}`));
+	for (const build of failedBuilds) {
+		console.log(`  - ${build}`);
+	}
 }
 
 if (failedBuilds.length === 0) {

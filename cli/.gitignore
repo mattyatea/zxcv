@@ -15,3 +15,6 @@ coverage/
 zxcv-metadata.json
 .*.bun-build
 release
+
+# Test-generated symlinks
+rules/

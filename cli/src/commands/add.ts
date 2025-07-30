@@ -10,10 +10,7 @@ import { FileManager } from "../utils/file";
 export function createAddCommand(): Command {
 	return new Command("add")
 		.description("Add rules to your project")
-		.argument(
-			"<packages...>",
-			"Rule packages to add (e.g., @user/rule or @user/rule@1.0.0)",
-		)
+		.argument("<packages...>", "Rule packages to add (e.g., @user/rule or @user/rule@1.0.0)")
 		.option("-D, --save-dev", "Save as development dependency")
 		.option("-E, --save-exact", "Save exact version")
 		.option("-g, --global", "Install globally")
@@ -92,16 +89,11 @@ export function createAddCommand(): Command {
 									: ruleName;
 						}
 
-						const existingRule = metadata.rules.find(
-							(r) => r.name === fullName,
-						);
+						const existingRule = metadata.rules.find((r) => r.name === fullName);
 
 						if (existingRule) {
 							// Check if specific version was requested
-							if (
-								requestedVersion &&
-								existingRule.version !== requestedVersion
-							) {
+							if (requestedVersion && existingRule.version !== requestedVersion) {
 								spinner.info(
 									chalk.yellow(
 										`${packageName} version ${existingRule.version} is installed. Updating to ${requestedVersion}...`,
@@ -114,10 +106,7 @@ export function createAddCommand(): Command {
 						}
 
 						// Get rule content with specific version if requested
-						const { content, version } = await api.getRuleContent(
-							rule.id,
-							requestedVersion,
-						);
+						const { content, version } = await api.getRuleContent(rule.id, requestedVersion);
 
 						// Update rule object with the actual version from content response
 						if (requestedVersion) {
@@ -130,9 +119,7 @@ export function createAddCommand(): Command {
 						// Update metadata
 						if (existingRule) {
 							// Update existing rule
-							const index = metadata.rules.findIndex(
-								(r) => r.name === fullName,
-							);
+							const index = metadata.rules.findIndex((r) => r.name === fullName);
 							metadata.rules[index] = pulledRule;
 						} else {
 							// Add new rule
@@ -148,9 +135,7 @@ export function createAddCommand(): Command {
 							if (error.response?.status === 404) {
 								console.error(chalk.red(`\n✗ ${pkg} not found`));
 							} else if (error.response?.status === 401) {
-								console.error(
-									chalk.red("\n✗ Authentication required. Please login first."),
-								);
+								console.error(chalk.red("\n✗ Authentication required. Please login first."));
 								break;
 							} else {
 								console.error(
@@ -168,17 +153,11 @@ export function createAddCommand(): Command {
 				spinner.stop();
 
 				if (successCount > 0) {
-					console.log(
-						chalk.green(
-							`\n✓ Added ${successCount} rule${successCount > 1 ? "s" : ""}`,
-						),
-					);
+					console.log(chalk.green(`\n✓ Added ${successCount} rule${successCount > 1 ? "s" : ""}`));
 				}
 				if (errorCount > 0) {
 					console.log(
-						chalk.red(
-							`\n✗ Failed to add ${errorCount} rule${errorCount > 1 ? "s" : ""}`,
-						),
+						chalk.red(`\n✗ Failed to add ${errorCount} rule${errorCount > 1 ? "s" : ""}`),
 					);
 					process.exit(1);
 				}

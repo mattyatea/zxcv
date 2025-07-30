@@ -11,10 +11,7 @@ export function createSearchCommand(): Command {
 		.argument("[query]", "Search query")
 		.option("-t, --tags <tags>", "Filter by tags (comma-separated)")
 		.option("-o, --owner <owner>", "Filter by owner")
-		.option(
-			"-v, --visibility <visibility>",
-			"Filter by visibility (public/private)",
-		)
+		.option("-v, --visibility <visibility>", "Filter by visibility (public/private)")
 		.option("-l, --limit <limit>", "Maximum number of results", "20")
 		.action(
 			async (
@@ -56,18 +53,11 @@ export function createSearchCommand(): Command {
 					}
 
 					if (options?.visibility) {
-						if (
-							options.visibility !== "public" &&
-							options.visibility !== "private"
-						) {
-							spinner.fail(
-								chalk.red("Invalid visibility. Must be 'public' or 'private'"),
-							);
+						if (options.visibility !== "public" && options.visibility !== "private") {
+							spinner.fail(chalk.red("Invalid visibility. Must be 'public' or 'private'"));
 							process.exit(1);
 						}
-						searchParams.visibility = options.visibility as
-							| "public"
-							| "private";
+						searchParams.visibility = options.visibility as "public" | "private";
 					}
 
 					const rules = await api.searchRules(searchParams);
@@ -94,22 +84,16 @@ export function createSearchCommand(): Command {
 							typeof rule.updatedAt === "number"
 								? rule.updatedAt * 1000
 								: new Date(rule.updatedAt).getTime();
-						console.log(
-							chalk.gray(`  Updated: ${new Date(updatedAt).toLocaleString()}`),
-						);
+						console.log(chalk.gray(`  Updated: ${new Date(updatedAt).toLocaleString()}`));
 						console.log();
 					}
 
 					console.log(chalk.gray("─".repeat(60)));
-					console.log(
-						chalk.gray(`Use 'zxcv pull @owner/rulename' to download a rule`),
-					);
+					console.log(chalk.gray(`Use 'zxcv pull @owner/rulename' to download a rule`));
 				} catch (error) {
 					spinner.fail(chalk.red("Search failed"));
 					if (axios.isAxiosError(error)) {
-						console.error(
-							chalk.red(error.response?.data?.message || error.message),
-						);
+						console.error(chalk.red(error.response?.data?.message || error.message));
 					} else {
 						console.error(chalk.red("An unexpected error occurred"));
 					}

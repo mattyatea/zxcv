@@ -42,16 +42,16 @@ afterEach(() => {
 	if (originalHome !== undefined) {
 		process.env.HOME = originalHome;
 	} else {
-		process.env.HOME = undefined as any;
+		process.env.HOME = undefined;
 	}
 
 	if (originalUserProfile !== undefined) {
 		process.env.USERPROFILE = originalUserProfile;
 	} else {
-		process.env.USERPROFILE = undefined as any;
+		process.env.USERPROFILE = undefined;
 	}
 
-	process.env.ZXCV_API_URL = undefined as any;
+	process.env.ZXCV_API_URL = undefined;
 
 	// Clean up test directories
 	try {

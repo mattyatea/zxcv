@@ -29,7 +29,8 @@
 			".nuxt/**",
 			".output/**",
 			"public/**",
-			"migrations/**"
+			"migrations/**",
+			"cli/**"
 		]
 	},
 	"formatter": {

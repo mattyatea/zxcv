@@ -45,11 +45,7 @@ export class ApiClient {
 		return response.data;
 	}
 
-	async register(
-		username: string,
-		email: string,
-		password: string,
-	): Promise<void> {
+	async register(username: string, email: string, password: string): Promise<void> {
 		await this.client.post("/api/auth/register", {
 			username,
 			email,

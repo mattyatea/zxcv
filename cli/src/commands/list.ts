@@ -22,18 +22,12 @@ export function createListCommand(): Command {
 				// rule.name にはすでにフルパス形式が入っている
 				console.log(chalk.cyan(rule.name));
 				console.log(chalk.gray(`  Version: ${rule.version}`));
-				console.log(
-					chalk.gray(`  Pulled: ${new Date(rule.pulledAt).toLocaleString()}`),
-				);
+				console.log(chalk.gray(`  Pulled: ${new Date(rule.pulledAt).toLocaleString()}`));
 				console.log();
 			}
 
 			console.log(chalk.gray("─".repeat(60)));
 			console.log(chalk.gray(`Total: ${metadata.rules.length} rules`));
-			console.log(
-				chalk.gray(
-					`Last sync: ${new Date(metadata.lastSync).toLocaleString()}`,
-				),
-			);
+			console.log(chalk.gray(`Last sync: ${new Date(metadata.lastSync).toLocaleString()}`));
 		});
 }

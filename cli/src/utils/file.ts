@@ -126,11 +126,7 @@ export class FileManager {
 		}
 	}
 
-	public readLocalRule(
-		name: string,
-		owner?: string,
-		organization?: string,
-	): string | null {
+	public readLocalRule(name: string, owner?: string, organization?: string): string | null {
 		// フルパス形式の名前を構築（すべて@プレフィックス付き）
 		let fullName = name;
 		if (organization) {

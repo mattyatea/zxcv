@@ -39,9 +39,7 @@ export function createAuthCommand(): Command {
 			} catch (error) {
 				spinner.fail(chalk.red("Login failed"));
 				if (axios.isAxiosError(error)) {
-					console.error(
-						chalk.red(error.response?.data?.message || error.message),
-					);
+					console.error(chalk.red(error.response?.data?.message || error.message));
 				} else {
 					console.error(chalk.red("An unexpected error occurred"));
 				}
@@ -85,8 +83,7 @@ export function createAuthCommand(): Command {
 					type: "password",
 					name: "confirmPassword",
 					message: "Confirm Password:",
-					validate: (input, answers) =>
-						input === answers?.password || "Passwords don't match",
+					validate: (input, answers) => input === answers?.password || "Passwords don't match",
 				},
 			]);
 
@@ -104,9 +101,7 @@ export function createAuthCommand(): Command {
 			} catch (error) {
 				spinner.fail(chalk.red("Registration failed"));
 				if (axios.isAxiosError(error)) {
-					console.error(
-						chalk.red(error.response?.data?.message || error.message),
-					);
+					console.error(chalk.red(error.response?.data?.message || error.message));
 				} else {
 					console.error(chalk.red("An unexpected error occurred"));
 				}

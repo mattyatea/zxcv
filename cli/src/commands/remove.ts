@@ -83,9 +83,7 @@ export function createRemoveCommand(): Command {
 				if (confirm) {
 					config.saveMetadata(metadata);
 					console.log(
-						chalk.green(
-							`\n✓ Removed ${removedCount} rule${removedCount > 1 ? "s" : ""}`,
-						),
+						chalk.green(`\n✓ Removed ${removedCount} rule${removedCount > 1 ? "s" : ""}`),
 					);
 				} else {
 					console.log(chalk.yellow("\nRemoval cancelled"));
@@ -93,9 +91,7 @@ export function createRemoveCommand(): Command {
 			}
 
 			if (notFoundPackages.length > 0) {
-				console.log(
-					chalk.yellow(`\n⚠ Not found: ${notFoundPackages.join(", ")}`),
-				);
+				console.log(chalk.yellow(`\n⚠ Not found: ${notFoundPackages.join(", ")}`));
 			}
 		});
 }

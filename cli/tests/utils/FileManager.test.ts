@@ -1,11 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	readlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ConfigManager } from "../../src/config";
 import type { PulledRule, Rule } from "../../src/types";
@@ -103,11 +97,7 @@ describe("FileManager", () => {
 		expect(existsSync(rulePath)).toBe(true);
 
 		// Check symlink path
-		const symlinkPath = join(
-			config.getSymlinkDir(),
-			"@testuser",
-			"user-rule.md",
-		);
+		const symlinkPath = join(config.getSymlinkDir(), "@testuser", "user-rule.md");
 		expect(existsSync(symlinkPath)).toBe(true);
 	});
 
@@ -302,11 +292,7 @@ describe("FileManager", () => {
 		};
 
 		// Create the file manually to test reading
-		const userRulePath = join(
-			config.getRulesDir(),
-			"@testuser",
-			"test-rule.md",
-		);
+		const userRulePath = join(config.getRulesDir(), "@testuser", "test-rule.md");
 		mkdirSync(join(config.getRulesDir(), "@testuser"), { recursive: true });
 		writeFileSync(userRulePath, "# User Rule Content");
 
