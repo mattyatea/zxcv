@@ -38,14 +38,5 @@
 		"EMAIL_FROM": "noreply+zxcv@prism-project.net",
 		"FRONTEND_URL": "https://zxcv-backend-and-frontend.mattya.workers.dev/",
 		"APP_URL": "https://zxcv-backend-and-frontend.mattya.workers.dev"
-	},
-	"env": {
-		"staging": {
-			"name": "zxcv-backend-and-frontend-staging",
-			"vars": {
-				"FRONTEND_URL": "https://zxcv-backend-and-frontend-staging.mattya.workers.dev/",
-				"APP_URL": "https://zxcv-backend-and-frontend-staging.mattya.workers.dev"
-			}
-		}
 	}
 }

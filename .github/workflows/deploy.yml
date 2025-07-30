@@ -58,6 +58,8 @@ jobs:
 
       - name: Build
         run: pnpm build:server
+        env:
+          WORKER_NAME: ${{ github.ref == 'refs/heads/main' && 'zxcv-backend-and-frontend' || 'zxcv-backend-and-frontend-staging' }}
 
       - name: Run migrations
         uses: cloudflare/wrangler-action@v3
@@ -72,7 +74,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy ${{ github.ref != 'refs/heads/main' && '--env staging' || '' }}
+          command: deploy
           workingDirectory: 'server'
           secrets: |
             JWT_SECRET
