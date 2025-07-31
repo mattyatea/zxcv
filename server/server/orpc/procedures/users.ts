@@ -1,6 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "~/server/orpc";
 import { dbWithAuth } from "~/server/orpc/middleware/combined";
+import { dbProvider } from "~/server/orpc/middleware/db";
 import { hashPassword, verifyPassword } from "~/server/utils/crypto";
 import { authErrors, type Locale } from "~/server/utils/i18n";
 
@@ -412,6 +413,101 @@ export const deleteAccount = os.users.deleteAccount
 		};
 	});
 
+// Get public user profile
+export const getPublicProfile = os.users.getPublicProfile
+	.use(dbProvider)
+	.handler(async ({ input, context }) => {
+		const { username } = input;
+		const { db } = context;
+
+		// Get user profile
+		const user = await db.user.findUnique({
+			where: { username: username.toLowerCase() },
+			select: {
+				id: true,
+				username: true,
+				createdAt: true,
+			},
+		});
+
+		if (!user) {
+			throw new ORPCError("NOT_FOUND", { message: "User not found" });
+		}
+
+		// Get public rules count and total stars
+		const [publicRulesCount, totalStarsResult] = await Promise.all([
+			db.rule.count({
+				where: {
+					userId: user.id,
+					visibility: "public",
+				},
+			}),
+			db.ruleStar.findMany({
+				where: {
+					rule: {
+						userId: user.id,
+						visibility: "public",
+					},
+				},
+				select: {
+					ruleId: true,
+				},
+			}),
+		]);
+
+		const totalStars = totalStarsResult.length;
+
+		// Get public rules with star count
+		const publicRules = await db.rule.findMany({
+			where: {
+				userId: user.id,
+				visibility: "public",
+			},
+			select: {
+				id: true,
+				name: true,
+				description: true,
+				createdAt: true,
+				updatedAt: true,
+				organization: {
+					select: {
+						name: true,
+					},
+				},
+				starredBy: {
+					select: {
+						id: true,
+					},
+				},
+			},
+			orderBy: {
+				updatedAt: "desc",
+			},
+			take: 20,
+		});
+
+		return {
+			user: {
+				id: user.id,
+				username: user.username,
+				createdAt: user.createdAt,
+			},
+			stats: {
+				publicRulesCount,
+				totalStars,
+			},
+			publicRules: publicRules.map((rule: any) => ({
+				id: rule.id,
+				name: rule.name,
+				description: rule.description || "",
+				stars: rule.starredBy.length,
+				createdAt: rule.createdAt,
+				updatedAt: rule.updatedAt,
+				organization: rule.organization,
+			})),
+		};
+	});
+
 export const usersProcedures = {
 	searchByUsername,
 	getProfile,
@@ -421,4 +517,5 @@ export const usersProcedures = {
 	settings,
 	updateSettings,
 	deleteAccount,
+	getPublicProfile,
 };

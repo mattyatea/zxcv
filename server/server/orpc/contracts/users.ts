@@ -69,6 +69,46 @@ export const usersContract = {
 			}),
 		),
 
+	getPublicProfile: oc
+		.route({
+			method: "GET",
+			path: "/users/:username/profile",
+			description: "Get public user profile information",
+		})
+		.input(
+			z.object({
+				username: z.string().min(1),
+			}),
+		)
+		.output(
+			z.object({
+				user: z.object({
+					id: z.string(),
+					username: z.string(),
+					createdAt: z.number(),
+				}),
+				stats: z.object({
+					publicRulesCount: z.number(),
+					totalStars: z.number(),
+				}),
+				publicRules: z.array(
+					z.object({
+						id: z.string(),
+						name: z.string(),
+						description: z.string(),
+						stars: z.number(),
+						createdAt: z.number(),
+						updatedAt: z.number(),
+						organization: z
+							.object({
+								name: z.string(),
+							})
+							.nullable(),
+					}),
+				),
+			}),
+		),
+
 	profile: oc
 		.route({
 			method: "GET",

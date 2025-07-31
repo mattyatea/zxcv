@@ -261,6 +261,47 @@ export const organizationsContract = {
 			}),
 		),
 
+	getPublicProfile: oc
+		.route({
+			method: "GET",
+			path: "/organizations/:name/profile",
+			description: "Get public organization profile information",
+		})
+		.input(
+			z.object({
+				name: z.string().min(1),
+			}),
+		)
+		.output(
+			z.object({
+				organization: z.object({
+					id: z.string(),
+					name: z.string(),
+					displayName: z.string(),
+					description: z.string().nullable(),
+					createdAt: z.number(),
+				}),
+				stats: z.object({
+					publicRulesCount: z.number(),
+					totalStars: z.number(),
+				}),
+				publicRules: z.array(
+					z.object({
+						id: z.string(),
+						name: z.string(),
+						description: z.string(),
+						stars: z.number(),
+						createdAt: z.number(),
+						updatedAt: z.number(),
+						user: z.object({
+							id: z.string(),
+							username: z.string(),
+						}),
+					}),
+				),
+			}),
+		),
+
 	listRules: oc
 		.route({
 			method: "GET",
