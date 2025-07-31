@@ -195,7 +195,12 @@
       "download": "ダウンロード",
       "version": "バージョン",
       "copyRule": "ルールをコピー",
-      "copied": "コピーしました"
+      "copied": "コピーしました",
+      "star": "スター",
+      "starred": "スター済み",
+      "copyUrl": "URLをコピー",
+      "shareOnX": "Xでシェア",
+      "copyMarkdown": "Markdownでコピー"
     },
     "form": {
       "name": "ルール名",
@@ -228,7 +233,12 @@
       "updated": "ルールを更新しました",
       "deleted": "ルールを削除しました",
       "deleteConfirm": "このルールを削除してもよろしいですか？",
-      "deleteError": "ルールの削除に失敗しました"
+      "deleteError": "ルールの削除に失敗しました",
+      "copyError": "コピーに失敗しました",
+      "copied": "コピーしました",
+      "viewingVersion": "バージョン {version} を表示しています",
+      "versionFetchError": "バージョンの取得に失敗しました",
+      "fetchError": "ルールの取得に失敗しました"
     },
     "detail": {
       "notFound": "ルールが見つかりません",
@@ -237,8 +247,23 @@
       "latest": "最新",
       "currentlyViewing": "現在表示中",
       "viewLatestVersion": "最新バージョンを表示",
-      "viewingOldVersion": "古いバージョンを表示しています",
-      "relatedRules": "関連するルール"
+      "viewingOldVersion": "バージョン {version} を表示しています（古いバージョン）",
+      "relatedRules": "関連するルール",
+      "notFoundDescription": "お探しのルールが見つかりませんでした。",
+      "stars": "スター",
+      "downloads": "ダウンロード",
+      "views": "ビュー",
+      "actions": "アクション",
+      "tags": "タグ",
+      "author": "作成者",
+      "rulesPublished": "{count} ルール公開",
+      "deleteConfirmDescription": "このルールを削除してもよろしいですか？この操作は取り消せません。",
+      "raw": "Raw",
+      "preview": "Preview",
+      "viewing": "表示中",
+      "loginRequired": "スターを付けるにはログインが必要です",
+      "starError": "スターの追加に失敗しました",
+      "unstarError": "スターの解除に失敗しました"
     },
     "edit": {
       "title": "ルールを編集",
@@ -253,8 +278,26 @@
     "sort": {
       "recentlyUpdated": "最近更新された順",
       "recentlyCreated": "最近作成された順",
-      "alphabetical": "名前順"
-    }
+      "alphabetical": "名前順",
+      "downloads": "ダウンロード数順",
+      "stars": "スター数順"
+    },
+    "filters": {
+      "visibility": "公開範囲",
+      "sortBy": "並び順",
+      "author": "作成者",
+      "authorPlaceholder": "ユーザー名で絞り込み",
+      "popularTags": "人気のタグ",
+      "clearTags": "タグをクリア",
+      "activeFilters": "アクティブなフィルター",
+      "resetAll": "すべてリセット"
+    },
+    "itemsCount": "({count}件)",
+    "gridView": "グリッドビュー",
+    "listView": "リストビュー",
+    "noRulesMessage": "現在のフィルター条件に一致するルールが見つかりませんでした。条件を変更してお試しください。",
+    "showing": "全{total}件中 {start} - {end}件を表示",
+    "searchHint": "または {key} で検索"
   },
   "profile": {
     "title": "プロフィール",

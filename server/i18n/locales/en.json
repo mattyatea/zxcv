@@ -199,7 +199,12 @@
       "download": "Download",
       "version": "Version",
       "copyRule": "Copy Rule",
-      "copied": "Copied"
+      "copied": "Copied",
+      "star": "Star",
+      "starred": "Starred",
+      "copyUrl": "Copy URL",
+      "shareOnX": "Share on X",
+      "copyMarkdown": "Copy as Markdown"
     },
     "form": {
       "name": "Rule name",
@@ -232,7 +237,12 @@
       "updated": "Rule updated successfully",
       "deleted": "Rule deleted successfully",
       "deleteConfirm": "Are you sure you want to delete this rule?",
-      "deleteError": "Failed to delete rule"
+      "deleteError": "Failed to delete rule",
+      "copyError": "Failed to copy",
+      "copied": "Copied",
+      "viewingVersion": "Viewing version {version}",
+      "versionFetchError": "Failed to fetch version",
+      "fetchError": "Failed to fetch rules"
     },
     "detail": {
       "notFound": "Rule not found",
@@ -241,8 +251,23 @@
       "latest": "latest",
       "currentlyViewing": "Currently viewing",
       "viewLatestVersion": "View latest version",
-      "viewingOldVersion": "Viewing an older version",
-      "relatedRules": "Related Rules"
+      "viewingOldVersion": "Viewing version {version} (older version)",
+      "relatedRules": "Related Rules",
+      "notFoundDescription": "The rule you are looking for could not be found.",
+      "stars": "Stars",
+      "downloads": "Downloads",
+      "views": "Views",
+      "actions": "Actions",
+      "tags": "Tags",
+      "author": "Author",
+      "rulesPublished": "{count} rules published",
+      "deleteConfirmDescription": "Are you sure you want to delete this rule? This action cannot be undone.",
+      "raw": "Raw",
+      "preview": "Preview",
+      "viewing": "Viewing",
+      "loginRequired": "Login required to star",
+      "starError": "Failed to add star",
+      "unstarError": "Failed to remove star"
     },
     "edit": {
       "title": "Edit Rule",
@@ -257,8 +282,26 @@
     "sort": {
       "recentlyUpdated": "Recently updated",
       "recentlyCreated": "Recently created",
-      "alphabetical": "Alphabetical"
-    }
+      "alphabetical": "Alphabetical",
+      "downloads": "Most downloads",
+      "stars": "Most stars"
+    },
+    "filters": {
+      "visibility": "Visibility",
+      "sortBy": "Sort by",
+      "author": "Author",
+      "authorPlaceholder": "Filter by username",
+      "popularTags": "Popular Tags",
+      "clearTags": "Clear tags",
+      "activeFilters": "Active filters",
+      "resetAll": "Reset all"
+    },
+    "itemsCount": "({count} items)",
+    "gridView": "Grid view",
+    "listView": "List view",
+    "noRulesMessage": "No rules found matching the current filter criteria. Please try changing the conditions.",
+    "showing": "Showing {start} - {end} of {total} items",
+    "searchHint": "or press {key} to search"
   },
   "organizations": {
     "title": "Organizations",
