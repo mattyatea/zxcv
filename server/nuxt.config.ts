@@ -12,7 +12,7 @@ export default defineNuxtConfig({
     },
 
     cloudflare: {
-      deployConfig: true,
+      deployConfig: false,  // GitHub Actionsで独自のwrangler.tomlを使用するため
       nodeCompat: true
     }
   },
