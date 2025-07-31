@@ -600,8 +600,8 @@ const fetchRuleDetails = async () => {
 		// 2. 組織のルールで、現在のユーザーが組織のオーナーの場合
 		if (user.value?.id === data.author.id) {
 			isOwner.value = true;
-		} else if (data.organization) {
-			// 組織のオーナーかどうかを確認
+		} else if (data.organization && user.value) {
+			// ログインしている場合のみ組織のオーナーかどうかを確認
 			try {
 				const organizations = await $rpc.organizations.list();
 				const isOrgOwner = organizations.some(
