@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <!-- ヘッダーバー -->
     <div class="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-      <div class="container-lg py-5">
+      <div class="container-lg py-3">
         <div class="flex items-center justify-between">
           <nav class="flex items-center gap-2 text-sm">
             <NuxtLink to="/rules" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
