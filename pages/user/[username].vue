@@ -117,7 +117,7 @@ async function fetchProfile() {
 		loading.value = true;
 		error.value = false;
 		const response = await $rpc.users.getPublicProfile({
-			username: username.value.replace("@", ""),
+			username: username.value,
 		});
 		profileData.value = response;
 	} catch (err) {

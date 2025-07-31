@@ -127,7 +127,7 @@ async function fetchProfile() {
 		loading.value = true;
 		error.value = false;
 		const response = await $rpc.organizations.getPublicProfile({
-			name: orgname.value.replace("@", ""),
+			name: orgname.value,
 		});
 		profileData.value = response;
 	} catch (err) {

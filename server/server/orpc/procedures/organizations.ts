@@ -419,27 +419,22 @@ export const organizationsProcedures = {
 			}
 
 			// Get public rules count and total stars
-			const [publicRulesCount, totalStarsResult] = await Promise.all([
+			const [publicRulesCount, totalStars] = await Promise.all([
 				db.rule.count({
 					where: {
 						organizationId: organization.id,
 						visibility: "public",
 					},
 				}),
-				db.ruleStar.findMany({
+				db.ruleStar.count({
 					where: {
 						rule: {
 							organizationId: organization.id,
 							visibility: "public",
 						},
 					},
-					select: {
-						ruleId: true,
-					},
 				}),
 			]);
-
-			const totalStars = totalStarsResult.length;
 
 			// Get public rules with star count
 			const publicRules = await db.rule.findMany({

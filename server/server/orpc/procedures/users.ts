@@ -33,7 +33,7 @@ export const searchByUsername = os.users.searchByUsername
 		// Mask email addresses for other users
 		return users.map((u) => ({
 			...u,
-			email: u.id === context.user.id ? u.email : (null as any),
+			email: u.id === context.user.id ? u.email : null,
 		}));
 	});
 
@@ -109,7 +109,7 @@ export const getProfile = os.users.getProfile
 			user: {
 				id: user.id,
 				username: user.username,
-				email: isOwnProfile ? user.email : (null as any),
+				email: isOwnProfile ? user.email : null,
 				emailVerified: user.emailVerified,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,
@@ -435,27 +435,22 @@ export const getPublicProfile = os.users.getPublicProfile
 		}
 
 		// Get public rules count and total stars
-		const [publicRulesCount, totalStarsResult] = await Promise.all([
+		const [publicRulesCount, totalStars] = await Promise.all([
 			db.rule.count({
 				where: {
 					userId: user.id,
 					visibility: "public",
 				},
 			}),
-			db.ruleStar.findMany({
+			db.ruleStar.count({
 				where: {
 					rule: {
 						userId: user.id,
 						visibility: "public",
 					},
 				},
-				select: {
-					ruleId: true,
-				},
 			}),
 		]);
-
-		const totalStars = totalStarsResult.length;
 
 		// Get public rules with star count
 		const publicRules = await db.rule.findMany({
