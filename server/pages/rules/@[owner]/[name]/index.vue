@@ -240,17 +240,6 @@
               <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
                 <nav class="flex gap-4">
                   <button
-                    @click="contentView = 'raw'"
-                    :class="[
-                      'pb-2 px-1 text-sm font-medium border-b-2 transition-colors',
-                      contentView === 'raw'
-                        ? 'text-primary-600 dark:text-primary-400 border-primary-600 dark:border-primary-400'
-                        : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-100'
-                    ]"
-                  >
-                    {{ $t('rules.detail.raw') }}
-                  </button>
-                  <button
                     @click="contentView = 'preview'"
                     :class="[
                       'pb-2 px-1 text-sm font-medium border-b-2 transition-colors',
@@ -261,17 +250,28 @@
                   >
                     {{ $t('rules.detail.preview') }}
                   </button>
+                  <button
+                    @click="contentView = 'raw'"
+                    :class="[
+                      'pb-2 px-1 text-sm font-medium border-b-2 transition-colors',
+                      contentView === 'raw'
+                        ? 'text-primary-600 dark:text-primary-400 border-primary-600 dark:border-primary-400'
+                        : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-100'
+                    ]"
+                  >
+                    {{ $t('rules.detail.raw') }}
+                  </button>
                 </nav>
               </div>
               
               <div class="relative">
-                <!-- Raw表示 -->
-                <pre v-if="contentView === 'raw'" class="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto"><code>{{ rule.content }}</code></pre>
-                
                 <!-- Preview表示 -->
-                <div v-else class="prose prose-gray dark:prose-invert max-w-none p-6 bg-gray-50 dark:bg-gray-800 rounded-lg max-h-[600px] overflow-y-auto">
+                <div v-if="contentView === 'preview'" class="prose prose-gray dark:prose-invert max-w-none p-6 bg-gray-50 dark:bg-gray-800 rounded-lg max-h-[600px] overflow-y-auto">
                   <div v-html="renderMarkdown(rule.content)"></div>
                 </div>
+                
+                <!-- Raw表示 -->
+                <pre v-else class="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto"><code>{{ rule.content }}</code></pre>
                 
                 <!-- コピー完了通知 -->
                 <transition name="fade">
@@ -613,7 +613,7 @@ const { user } = storeToRefs(authStore);
 const { success: toastSuccess, error: toastError } = useToast();
 const showDeleteModal = ref(false);
 const deleting = ref(false);
-const contentView = ref<"raw" | "preview">("raw");
+const contentView = ref<"raw" | "preview">("preview");
 const showShareMenu = ref(false);
 const isStarred = ref(false);
 const starLoading = ref(false);
