@@ -238,7 +238,8 @@
       "copied": "コピーしました",
       "viewingVersion": "バージョン {version} を表示しています",
       "versionFetchError": "バージョンの取得に失敗しました",
-      "fetchError": "ルールの取得に失敗しました"
+      "fetchError": "ルールの取得に失敗しました",
+      "cliCommandCopied": "CLIコマンドをコピーしました"
     },
     "detail": {
       "notFound": "ルールが見つかりません",
@@ -263,7 +264,11 @@
       "viewing": "表示中",
       "loginRequired": "スターを付けるにはログインが必要です",
       "starError": "スターの追加に失敗しました",
-      "unstarError": "スターの解除に失敗しました"
+      "unstarError": "スターの解除に失敗しました",
+      "cliCommand": "CLIコマンド",
+      "cliDescription": "zxcv CLIを使用してこのルールをインストールできます",
+      "organization": "組織",
+      "updatedBy": "更新者"
     },
     "edit": {
       "title": "ルールを編集",

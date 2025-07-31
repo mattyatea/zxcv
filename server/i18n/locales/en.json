@@ -242,7 +242,8 @@
       "copied": "Copied",
       "viewingVersion": "Viewing version {version}",
       "versionFetchError": "Failed to fetch version",
-      "fetchError": "Failed to fetch rules"
+      "fetchError": "Failed to fetch rules",
+      "cliCommandCopied": "CLI command copied to clipboard"
     },
     "detail": {
       "notFound": "Rule not found",
@@ -267,7 +268,11 @@
       "viewing": "Viewing",
       "loginRequired": "Login required to star",
       "starError": "Failed to add star",
-      "unstarError": "Failed to remove star"
+      "unstarError": "Failed to remove star",
+      "cliCommand": "CLI Command",
+      "cliDescription": "Install this rule using zxcv CLI",
+      "organization": "Organization",
+      "updatedBy": "Updated by"
     },
     "edit": {
       "title": "Edit Rule",

@@ -375,6 +375,36 @@
               </div>
             </div>
 
+            <!-- CLIコマンド -->
+            <div class="card">
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {{ $t('rules.detail.cliCommand') }}
+              </h3>
+              <div class="space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ $t('rules.detail.cliDescription') }}
+                </p>
+                <div class="relative">
+                  <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto pr-12"><code>zxcv install @{{ owner }}/{{ name }}</code></pre>
+                  <button
+                    @click="copyCliCommand"
+                    class="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-100 transition-colors"
+                    :title="$t('common.copy')"
+                  >
+                    <svg v-if="!cliCopied" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <svg v-else class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- タグ -->
             <div v-if="rule.tags && rule.tags.length > 0" class="card">
               <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
@@ -397,8 +427,47 @@
 
             <!-- 作成者情報 -->
             <div class="card">
-              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ $t('rules.detail.author') }}</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ rule.organization ? $t('rules.detail.organization') : $t('rules.detail.author') }}</h3>
+              
+              <!-- 組織の場合 -->
+              <div v-if="rule.organization">
+                <NuxtLink 
+                  :to="`/orgs/${rule.organization.name}`"
+                  class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
+                >
+                  <img 
+                    :src="`https://ui-avatars.com/api/?name=${rule.organization.displayName}&background=random`" 
+                    :alt="rule.organization.displayName"
+                    class="w-12 h-12 rounded-full"
+                  >
+                  <div>
+                    <p class="font-medium text-gray-900 dark:text-gray-100">{{ rule.organization.displayName }}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">@{{ rule.organization.name }}</p>
+                  </div>
+                </NuxtLink>
+                
+                <!-- 更新者情報 -->
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ $t('rules.detail.updatedBy') }}</p>
+                  <NuxtLink 
+                    :to="`/users/${rule.author.username}`"
+                    class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
+                  >
+                    <img 
+                      :src="`https://ui-avatars.com/api/?name=${rule.author.username}&background=random`" 
+                      :alt="rule.author.username"
+                      class="w-10 h-10 rounded-full"
+                    >
+                    <div>
+                      <p class="font-medium text-gray-900 dark:text-gray-100">{{ rule.author.username }}</p>
+                    </div>
+                  </NuxtLink>
+                </div>
+              </div>
+              
+              <!-- 個人の場合 -->
               <NuxtLink 
+                v-else
                 :to="`/users/${rule.author.username}`"
                 class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
               >
@@ -537,6 +606,7 @@ const relatedRules = ref<Rule[]>([]);
 const isOwner = ref(false);
 const copied = ref(false);
 const contentCopied = ref(false);
+const cliCopied = ref(false);
 const originalVersion = ref<string>("");
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
@@ -747,6 +817,25 @@ const copyContent = async () => {
 		}, 2000);
 	} catch (error) {
 		console.error("Failed to copy content:", error);
+		toastError(t("rules.messages.copyError"));
+	}
+};
+
+const copyCliCommand = async () => {
+	if (!rule.value) {
+		return;
+	}
+
+	try {
+		const command = `zxcv install @${owner.value}/${name.value}`;
+		await navigator.clipboard.writeText(command);
+		cliCopied.value = true;
+		toastSuccess(t("rules.messages.cliCommandCopied"));
+		setTimeout(() => {
+			cliCopied.value = false;
+		}, 2000);
+	} catch (error) {
+		console.error("Failed to copy CLI command:", error);
 		toastError(t("rules.messages.copyError"));
 	}
 };
