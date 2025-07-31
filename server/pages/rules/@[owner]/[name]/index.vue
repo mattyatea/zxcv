@@ -75,21 +75,18 @@
     <div class="container-lg py-12">
       <!-- ローディング -->
       <div v-if="loading" class="max-w-6xl mx-auto">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div class="lg:col-span-2">
-            <div class="skeleton h-12 w-3/4 mb-4"></div>
-            <div class="skeleton h-6 w-1/2 mb-8"></div>
-            <div class="card">
-              <div class="skeleton h-4 w-full mb-2"></div>
-              <div class="skeleton h-4 w-3/4 mb-2"></div>
-              <div class="skeleton h-4 w-1/2"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div v-for="i in 6" :key="i" class="card">
+            <div class="skeleton h-6 w-3/4 mb-3"></div>
+            <div class="skeleton h-4 w-1/2 mb-4"></div>
+            <div class="space-y-2 mb-4">
+              <div class="skeleton h-3 w-full"></div>
+              <div class="skeleton h-3 w-4/5"></div>
+              <div class="skeleton h-3 w-3/5"></div>
             </div>
-          </div>
-          <div>
-            <div class="card">
-              <div class="skeleton h-6 w-2/3 mb-4"></div>
-              <div class="skeleton h-4 w-full mb-2"></div>
-              <div class="skeleton h-4 w-3/4"></div>
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div class="skeleton h-5 w-20"></div>
+              <div class="skeleton h-5 w-16"></div>
             </div>
           </div>
         </div>
@@ -271,7 +268,7 @@
                 </div>
                 
                 <!-- Raw表示 -->
-                <pre v-else class="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto"><code>{{ rule.content }}</code></pre>
+                <pre v-else class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-6 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-700 dark:border-gray-800"><code>{{ rule.content }}</code></pre>
                 
                 <!-- コピー完了通知 -->
                 <transition name="fade">
@@ -388,7 +385,7 @@
                   {{ $t('rules.detail.cliDescription') }}
                 </p>
                 <div class="relative">
-                  <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto pr-12"><code>zxcv install @{{ owner }}/{{ name }}</code></pre>
+                  <pre class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-4 rounded-lg text-sm overflow-x-auto pr-12 border border-gray-700 dark:border-gray-800"><code>zxcv install @{{ owner }}/{{ name }}</code></pre>
                   <button
                     @click="copyCliCommand"
                     class="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-100 transition-colors"
@@ -958,13 +955,19 @@ const toggleStar = async () => {
 const renderMarkdown = (content: string) => {
 	// This is a very basic implementation. Consider using a proper markdown library
 	return content
-		.replace(/^# (.*$)/gim, "<h1>$1</h1>")
-		.replace(/^## (.*$)/gim, "<h2>$1</h2>")
-		.replace(/^### (.*$)/gim, "<h3>$1</h3>")
+		.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
+		.replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
+		.replace(/^### (.*$)/gim, '<h3 class="text-lg font-medium mb-2">$1</h3>')
 		.replace(/\*\*(.*)\*\*/g, "<strong>$1</strong>")
 		.replace(/\*(.*)\*/g, "<em>$1</em>")
-		.replace(/```(.*?)```/gs, "<pre><code>$1</code></pre>")
-		.replace(/`([^`]+)`/g, "<code>$1</code>")
+		.replace(
+			/```(.*?)```/gs,
+			'<pre class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-4 rounded-lg overflow-x-auto my-4 border border-gray-700 dark:border-gray-800"><code>$1</code></pre>',
+		)
+		.replace(
+			/`([^`]+)`/g,
+			'<code class="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-1 py-0.5 rounded text-sm">$1</code>',
+		)
 		.replace(/\n/g, "<br>");
 };
 
