@@ -567,6 +567,10 @@ const fetchRuleDetails = async () => {
 		// Fetch rule details by path
 		const data = await $rpc.rules.getByPath({ path });
 
+		// Debug log
+		console.log("Rule data:", data);
+		console.log("updated_at:", data.updated_at, typeof data.updated_at);
+
 		// Fetch content
 		const contentData = await $rpc.rules.getContent({ id: data.id });
 
@@ -590,7 +594,9 @@ const fetchRuleDetails = async () => {
 			updated_at:
 				typeof data.updated_at === "number"
 					? data.updated_at
-					: Math.floor(new Date(data.updated_at).getTime() / 1000),
+					: data.updated_at
+						? Math.floor(new Date(data.updated_at).getTime() / 1000)
+						: Math.floor(Date.now() / 1000),
 			downloads: data.downloads,
 			stars: data.stars,
 		};
@@ -639,6 +645,19 @@ const fetchRuleDetails = async () => {
 		if (user.value) {
 			// TODO: Check if the rule is starred
 			// isStarred.value = await $rpc.rules.isStarred({ ruleId: data.id });
+		}
+
+		// Fetch author's rule count
+		try {
+			const authorRules = await $rpc.rules.list({
+				author: data.author.username,
+				visibility: "public",
+				limit: 1,
+			});
+			userRuleCount.value = authorRules.total || 0;
+		} catch (error) {
+			console.error("Failed to fetch author rule count:", error);
+			userRuleCount.value = 0;
 		}
 
 		// Set page title
