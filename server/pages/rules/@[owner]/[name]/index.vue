@@ -429,7 +429,7 @@
               <!-- 組織の場合 -->
               <div v-if="rule.organization">
                 <NuxtLink 
-                  :to="`/orgs/${rule.organization.name}`"
+                  :to="`/org/${rule.organization.name}`"
                   class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
                 >
                   <img 
@@ -447,7 +447,7 @@
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ $t('rules.detail.updatedBy') }}</p>
                   <NuxtLink 
-                    :to="`/users/${rule.author.username}`"
+                    :to="`/user/${rule.author.username}`"
                     class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
                   >
                     <img 
