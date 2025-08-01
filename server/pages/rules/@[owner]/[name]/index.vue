@@ -118,7 +118,7 @@
               
               <div class="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
                 <NuxtLink 
-                  :to="`/users/${rule.author.username}`"
+                  :to="`/@${rule.author.username}`"
                   class="flex items-center gap-2 hover:text-primary-600 dark:hover:text-primary-400"
                 >
                   <img 
@@ -399,7 +399,7 @@
             <div class="card">
               <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ $t('rules.detail.author') }}</h3>
               <NuxtLink 
-                :to="`/users/${rule.author.username}`"
+                :to="`/@${rule.author.username}`"
                 class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
               >
                 <img 
@@ -426,7 +426,7 @@
                 >
                   <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ related.name }}</h4>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
-                    by {{ related.organization ? '@' + related.organization.name : related.author.username }}
+                    by {{ related.organization ? '@' + related.organization.name : '@' + related.author.username }}
                   </p>
                   <div class="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
                     <span class="flex items-center gap-1">

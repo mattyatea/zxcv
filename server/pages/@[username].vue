@@ -8,40 +8,40 @@
 
 			<!-- Error state -->
 			<div v-else-if="error" class="text-center py-12">
-				<h2 class="text-2xl font-semibold text-gray-800 mb-2">組織が見つかりません</h2>
-				<p class="text-gray-600">指定された組織は存在しないか、削除された可能性があります。</p>
+				<h2 class="text-2xl font-semibold text-gray-800 mb-2">ユーザーが見つかりません</h2>
+				<p class="text-gray-600">指定されたユーザーは存在しないか、削除された可能性があります。</p>
 			</div>
 
-			<!-- Organization profile -->
+			<!-- User profile -->
 			<div v-else-if="profileData" class="max-w-6xl mx-auto">
 				<!-- Profile header -->
 				<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
 					<div class="flex items-start justify-between">
 						<div>
 							<h1 class="text-3xl font-bold text-gray-900 mb-2">
-								{{ profileData.organization.displayName }}
+								@{{ profileData.user.username }}
 							</h1>
-							<p class="text-lg text-gray-600 mb-2">@{{ profileData.organization.name }}</p>
-							<p v-if="profileData.organization.description" class="text-gray-600 mb-4">
-								{{ profileData.organization.description }}
-							</p>
 							<div class="flex items-center gap-6 text-gray-600">
 								<div class="flex items-center gap-2">
 									<Icon name="ph:calendar" class="w-4 h-4" />
-									<span>設立日: {{ formatDate(profileData.organization.createdAt) }}</span>
+									<span>登録日: {{ formatDate(profileData.user.createdAt) }}</span>
 								</div>
 							</div>
 						</div>
 					</div>
 
 					<!-- Stats -->
-					<div class="grid grid-cols-2 gap-4 mt-6">
-						<div class="bg-gray-50 rounded-lg p-4 text-center">
-							<div class="text-3xl font-bold text-gray-900">{{ profileData.stats.publicRulesCount }}</div>
+					<div class="mt-6 pt-6 border-t grid grid-cols-2 md:grid-cols-4 gap-4">
+						<div>
+							<div class="text-2xl font-bold text-gray-900">
+								{{ profileData.stats.publicRulesCount }}
+							</div>
 							<div class="text-sm text-gray-600">公開ルール</div>
 						</div>
-						<div class="bg-gray-50 rounded-lg p-4 text-center">
-							<div class="text-3xl font-bold text-gray-900">{{ profileData.stats.totalStars }}</div>
+						<div>
+							<div class="text-2xl font-bold text-gray-900">
+								{{ profileData.stats.totalStars }}
+							</div>
 							<div class="text-sm text-gray-600">獲得スター</div>
 						</div>
 					</div>
@@ -50,37 +50,36 @@
 				<!-- Public rules -->
 				<div class="bg-white rounded-lg shadow-sm p-6">
 					<h2 class="text-xl font-semibold text-gray-900 mb-4">公開ルール</h2>
-					
 					<div v-if="profileData.publicRules.length === 0" class="text-center py-8 text-gray-500">
-						まだ公開されたルールはありません
+						まだ公開ルールがありません
 					</div>
-					
 					<div v-else class="space-y-4">
-						<div
+						<NuxtLink
 							v-for="rule in profileData.publicRules"
 							:key="rule.id"
-							class="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+							:to="`/rules/@${profileData.user.username}/${rule.name}`"
+							class="block p-4 border rounded-lg hover:border-blue-500 transition-colors"
 						>
 							<div class="flex items-start justify-between">
-								<div class="flex-1">
-									<NuxtLink
-										:to="`/rules/@${profileData.organization.name}/${rule.name}`"
-										class="text-lg font-semibold text-blue-600 hover:text-blue-800"
-									>
-										@{{ profileData.organization.name }}/{{ rule.name }}
-									</NuxtLink>
-									<p class="text-gray-600 mt-1">{{ rule.description }}</p>
+								<div>
+									<h3 class="text-lg font-medium text-gray-900">{{ rule.name }}</h3>
+									<p v-if="rule.description" class="text-gray-600 mt-1">
+										{{ rule.description }}
+									</p>
 									<div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
-										<div class="flex items-center gap-1">
+										<span v-if="rule.organization" class="flex items-center gap-1">
+											<Icon name="ph:building" class="w-4 h-4" />
+											@{{ rule.organization.name }}
+										</span>
+										<span class="flex items-center gap-1">
 											<Icon name="ph:star" class="w-4 h-4" />
-											<span>{{ rule.stars }}</span>
-										</div>
-										<span>作成者: {{ rule.user.username }}</span>
-										<span>更新日: {{ formatDate(rule.updatedAt) }}</span>
+											{{ rule.stars }}
+										</span>
+										<span>{{ formatDate(rule.updatedAt) }}</span>
 									</div>
 								</div>
 							</div>
-						</div>
+						</NuxtLink>
 					</div>
 				</div>
 			</div>
@@ -92,15 +91,16 @@
 const route = useRoute();
 const { $rpc } = useNuxtApp();
 
-const orgname = computed(() => route.params.orgname as string);
+// Get username from route
+const username = computed(() => route.params.username as string);
+
+// State
 const loading = ref(true);
 const error = ref(false);
 const profileData = ref<{
-	organization: {
+	user: {
 		id: string;
-		name: string;
-		displayName: string;
-		description: string | null;
+		username: string;
 		createdAt: number;
 	};
 	stats: {
@@ -114,24 +114,21 @@ const profileData = ref<{
 		stars: number;
 		createdAt: number;
 		updatedAt: number;
-		user: {
-			id: string;
-			username: string;
-		};
+		organization: { name: string } | null;
 	}>;
 } | null>(null);
 
-// Fetch organization profile
+// Fetch user profile
 async function fetchProfile() {
 	try {
 		loading.value = true;
 		error.value = false;
-		const response = await $rpc.organizations.getPublicProfile({
-			name: orgname.value,
+		const response = await $rpc.users.getPublicProfile({
+			username: username.value,
 		});
 		profileData.value = response;
 	} catch (err) {
-		console.error("Failed to fetch organization profile:", err);
+		console.error("Failed to fetch user profile:", err);
 		error.value = true;
 	} finally {
 		loading.value = false;
@@ -147,16 +144,13 @@ function formatDate(timestamp: number) {
 	});
 }
 
-// Set page meta
-useHead({
-	title: () =>
-		profileData.value
-			? `${profileData.value.organization.displayName} - zxcv`
-			: "組織プロフィール - zxcv",
+// Fetch profile on mount
+onMounted(() => {
+	fetchProfile();
 });
 
-// Fetch on mount
-onMounted(() => {
+// Watch for route changes
+watch(username, () => {
 	fetchProfile();
 });
 </script>

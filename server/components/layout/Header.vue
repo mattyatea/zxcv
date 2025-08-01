@@ -326,7 +326,7 @@ const navigation = computed(() => {
 const userMenuItems = computed(() => [
 	{
 		name: t("nav.profile"),
-		href: authStore.user ? `/profile/${authStore.user.username}` : "/profile",
+		href: authStore.user ? `/@${authStore.user.username}` : "/profile",
 		icon: "svg", // TODO: Add proper icon component
 	},
 	{
