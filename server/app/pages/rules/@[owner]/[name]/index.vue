@@ -747,30 +747,30 @@ const formatDate = (timestamp: number) => {
 
 	if (locale.value === "ja") {
 		if (diffDays === 0) {
-			return "今日";
+			return t("common.dates.today");
 		} else if (diffDays === 1) {
-			return "昨日";
+			return t("common.dates.yesterday");
 		} else if (diffDays < 7) {
-			return `${diffDays}日前`;
+			return t("common.dates.daysAgo", { days: diffDays });
 		} else if (diffDays < 30) {
-			return `${Math.floor(diffDays / 7)}週間前`;
+			return t("common.dates.weeksAgo", { weeks: Math.floor(diffDays / 7) });
 		} else if (diffDays < 365) {
-			return `${Math.floor(diffDays / 30)}ヶ月前`;
+			return t("common.dates.monthsAgo", { months: Math.floor(diffDays / 30) });
 		} else {
-			return date.toLocaleDateString("ja-JP");
+			return t("common.dates.yearsAgo", { years: Math.floor(diffDays / 365) });
 		}
 	} else if (diffDays === 0) {
-		return "Today";
+		return t("common.dates.today");
 	} else if (diffDays === 1) {
-		return "Yesterday";
+		return t("common.dates.yesterday");
 	} else if (diffDays < 7) {
-		return `${diffDays} days ago`;
+		return t("common.dates.daysAgo", { days: diffDays });
 	} else if (diffDays < 30) {
-		return `${Math.floor(diffDays / 7)} weeks ago`;
+		return t("common.dates.weeksAgo", { weeks: Math.floor(diffDays / 7) });
 	} else if (diffDays < 365) {
-		return `${Math.floor(diffDays / 30)} months ago`;
+		return t("common.dates.monthsAgo", { months: Math.floor(diffDays / 30) });
 	} else {
-		return date.toLocaleDateString("en-US");
+		return t("common.dates.yearsAgo", { years: Math.floor(diffDays / 365) });
 	}
 };
 

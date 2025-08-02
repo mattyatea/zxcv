@@ -23,7 +23,7 @@
       <div class="relative">
         <input
           v-model="inputValue"
-          :placeholder="placeholder"
+          :placeholder="placeholder || t('rules.form.tagsPlaceholder')"
           :disabled="disabled"
           :class="inputClasses"
           @keydown.enter.prevent="addTag"
@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "~/composables/useI18n";
 
 interface Props {
 	modelValue: string[];
@@ -51,8 +52,10 @@ interface Props {
 
 type Emits = (e: "update:modelValue", value: string[]) => void;
 
+const { t } = useI18n();
+
 const props = withDefaults(defineProps<Props>(), {
-	placeholder: "タグを入力してEnterキーを押してください",
+	placeholder: "",
 	disabled: false,
 	maxTags: 10,
 });

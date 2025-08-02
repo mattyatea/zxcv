@@ -35,6 +35,14 @@
     "providers": {
       "google": "Google",
       "github": "GitHub"
+    },
+    "dates": {
+      "today": "今日",
+      "yesterday": "昨日",
+      "daysAgo": "{days}日前",
+      "weeksAgo": "{weeks}週間前",
+      "monthsAgo": "{months}ヶ月前",
+      "yearsAgo": "{years}年前"
     }
   },
   "nav": {
@@ -87,7 +95,8 @@
       "errors": {
         "emailExists": "このメールアドレスは既に使用されています",
         "usernameExists": "このユーザー名は既に使用されています",
-        "generalError": "アカウントの作成に失敗しました"
+        "generalError": "アカウントの作成に失敗しました",
+        "emailSendFailed": "登録に失敗しました。確認メールを送信できませんでした。サポートにお問い合わせください。"
       },
       "validation": {
         "usernameRequired": "ユーザー名を入力してください",
@@ -99,7 +108,8 @@
         "passwordLength": "パスワードは8文字以上で入力してください",
         "passwordMismatch": "パスワードが一致しません",
         "termsRequired": "利用規約に同意してください"
-      }
+      },
+      "success": "登録が完了しました。メールを確認してアカウントを有効化してください。"
     },
     "forgotPassword": {
       "title": "パスワードリセット",
@@ -395,7 +405,32 @@
       "invalidScope": "無効なスコープです",
       "serverError": "認証サーバーでエラーが発生しました",
       "temporarilyUnavailable": "一時的に利用できません",
-      "registrationFailed": "{provider}でのアカウント作成に失敗しました"
+      "registrationFailed": "{provider}でのアカウント作成に失敗しました",
+      "invalidOrExpiredState": "無効または期限切れの状態です",
+      "unsupportedProvider": "サポートされていないプロバイダーです",
+      "codeVerifierNotGenerated": "コード検証が生成されませんでした",
+      "githubEmailNotFound": "GitHubアカウントにメールアドレスが見つかりません",
+      "googleEmailNotFound": "Googleアカウントにメールアドレスが見つかりません",
+      "invalidToken": "無効なトークンです",
+      "tokenExpired": "トークンの有効期限が切れています",
+      "usernameAlreadyTaken": "このユーザー名は既に使用されています",
+      "registrationCompleteFailed": "登録の完了に失敗しました",
+      "processing": "認証処理中...",
+      "creatingAccount": "{provider}アカウントでアカウントを作成しています...",
+      "loggingIn": "{provider}アカウントでログインしています...",
+      "errorTitle": "認証エラー",
+      "backToLogin": "ログインページに戻る",
+      "tryAgain": "もう一度試す",
+      "successTitle": "認証成功",
+      "redirecting": "リダイレクトしています...",
+      "cancelled": "認証がキャンセルされました",
+      "missingInfo": "認証情報が不足しています",
+      "accountCreatedWith": "{provider}でアカウントを作成しました",
+      "loggedInWith": "{provider}でログインしました",
+      "accountAlreadyUsed": "このアカウントは既に別のユーザーに使用されています",
+      "emailVerificationRequired": "メールアドレスの確認が必要です",
+      "processingError": "認証処理中にエラーが発生しました",
+      "pageTitle": "認証"
     }
   },
   "footer": {

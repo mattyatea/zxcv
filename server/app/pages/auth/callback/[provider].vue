@@ -6,10 +6,10 @@
         <div v-if="loading" class="space-y-4">
           <CommonLoadingSpinner size="lg" class="mx-auto" />
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            認証処理中...
+            {{ t('auth.oauth.processing') }}
           </h2>
           <p class="text-gray-600 dark:text-gray-400">
-            {{ providerName }}アカウントで{{ isRegistering ? 'アカウントを作成' : 'ログイン' }}しています
+            {{ isRegistering ? t('auth.oauth.creatingAccount', { provider: providerName }) : t('auth.oauth.loggingIn', { provider: providerName }) }}
           </p>
         </div>
 
@@ -21,17 +21,17 @@
             </svg>
           </div>
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            認証エラー
+            {{ t('auth.oauth.errorTitle') }}
           </h2>
           <p class="text-gray-600 dark:text-gray-400">
             {{ error }}
           </p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center mt-6">
             <CommonButton variant="primary" @click="navigateTo('/auth')">
-              ログインページに戻る
+              {{ t('auth.oauth.backToLogin') }}
             </CommonButton>
             <CommonButton variant="secondary" @click="retry">
-              もう一度試す
+              {{ t('auth.oauth.tryAgain') }}
             </CommonButton>
           </div>
         </div>
@@ -44,10 +44,10 @@
             </svg>
           </div>
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            認証成功
+            {{ t('auth.oauth.successTitle') }}
           </h2>
           <p class="text-gray-600 dark:text-gray-400">
-            リダイレクトしています...
+            {{ t('auth.oauth.redirecting') }}
           </p>
         </div>
       </CommonCard>
@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useI18n } from "~/composables/useI18n";
 
 // Props and route
 const route = useRoute();
@@ -65,6 +66,7 @@ const router = useRouter();
 const { $rpc } = useNuxtApp();
 const authStore = useAuthStore();
 const { success: toastSuccess, error: toastError } = useToast();
+const { t } = useI18n();
 
 // State
 const provider = computed(() => route.params.provider as string);
@@ -97,11 +99,11 @@ const processOAuthCallback = async () => {
 
 		// エラーチェック
 		if (oauthError) {
-			throw new Error("認証がキャンセルされました");
+			throw new Error(t('auth.oauth.cancelled'));
 		}
 
 		if (!code || !state) {
-			throw new Error("認証情報が不足しています");
+			throw new Error(t('auth.oauth.missingInfo'));
 		}
 
 		// stateから情報を取得（registering フラグなど）
@@ -148,8 +150,8 @@ const processOAuthCallback = async () => {
 		success.value = true;
 		toastSuccess(
 			isRegistering.value
-				? `${providerName.value}でアカウントを作成しました`
-				: `${providerName.value}でログインしました`,
+				? t('auth.oauth.accountCreatedWith', { provider: providerName.value })
+				: t('auth.oauth.loggedInWith', { provider: providerName.value }),
 		);
 
 		// リダイレクト
@@ -161,13 +163,13 @@ const processOAuthCallback = async () => {
 
 		// エラーメッセージの設定
 		if (err.message?.includes("already exists")) {
-			error.value = "このアカウントは既に別のユーザーに使用されています";
+			error.value = t('auth.oauth.accountAlreadyUsed');
 		} else if (err.message?.includes("email not verified")) {
-			error.value = "メールアドレスの確認が必要です";
+			error.value = t('auth.oauth.emailVerificationRequired');
 		} else if (err.message?.includes("cancelled")) {
-			error.value = "認証がキャンセルされました";
+			error.value = t('auth.oauth.cancelled');
 		} else {
-			error.value = err.message || "認証処理中にエラーが発生しました";
+			error.value = err.message || t('auth.oauth.processingError');
 		}
 
 		toastError(error.value);
@@ -188,7 +190,7 @@ onMounted(() => {
 
 // SEO
 useHead({
-	title: `${providerName.value}認証 - ZXCV`,
+	title: `${providerName.value} ${t('auth.oauth.pageTitle')} - ZXCV`,
 	meta: [{ name: "robots", content: "noindex,nofollow" }],
 });
 </script>

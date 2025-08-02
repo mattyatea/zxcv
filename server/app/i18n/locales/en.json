@@ -35,6 +35,14 @@
     "providers": {
       "google": "Google",
       "github": "GitHub"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo": "{days} days ago",
+      "weeksAgo": "{weeks} weeks ago",
+      "monthsAgo": "{months} months ago",
+      "yearsAgo": "{years} years ago"
     }
   },
   "nav": {
@@ -430,7 +438,32 @@
       "invalidScope": "Invalid scope",
       "serverError": "Authentication server error",
       "temporarilyUnavailable": "Temporarily unavailable",
-      "registrationFailed": "Failed to create account with {provider}"
+      "registrationFailed": "Failed to create account with {provider}",
+      "invalidOrExpiredState": "Invalid or expired state",
+      "unsupportedProvider": "Unsupported provider",
+      "codeVerifierNotGenerated": "Code verifier was not generated",
+      "githubEmailNotFound": "GitHub account has no email address",
+      "googleEmailNotFound": "Google account has no email address",
+      "invalidToken": "Invalid token",
+      "tokenExpired": "Token has expired",
+      "usernameAlreadyTaken": "This username is already taken",
+      "registrationCompleteFailed": "Failed to complete registration",
+      "processing": "Processing authentication...",
+      "creatingAccount": "Creating account with {provider}...",
+      "loggingIn": "Logging in with {provider}...",
+      "errorTitle": "Authentication Error",
+      "backToLogin": "Back to login",
+      "tryAgain": "Try again",
+      "successTitle": "Authentication Successful",
+      "redirecting": "Redirecting...",
+      "cancelled": "Authentication was cancelled",
+      "missingInfo": "Missing authentication information",
+      "accountCreatedWith": "Account created with {provider}",
+      "loggedInWith": "Logged in with {provider}",
+      "accountAlreadyUsed": "This account is already used by another user",
+      "emailVerificationRequired": "Email verification required",
+      "processingError": "An error occurred during authentication",
+      "pageTitle": "Authentication"
     }
   },
   "footer": {
