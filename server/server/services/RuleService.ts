@@ -2,7 +2,7 @@
 import { ORPCError } from "@orpc/server";
 import type { PrismaClient } from "@prisma/client";
 import { nanoid } from "nanoid";
-import { OrganizationRepository, RuleRepository } from "~/server/repositories";
+import { OrganizationRepository, RuleRepository } from "../repositories";
 import type { CloudflareEnv } from "../types/env";
 import { createLogger } from "../utils/logger";
 
@@ -1023,7 +1023,7 @@ export class RuleService {
 			return 0;
 		});
 
-		return sorted[0];
+		return sorted[0] || "";
 	}
 
 	/**

@@ -1,5 +1,5 @@
-import { useI18nStore } from "~/stores/i18n";
-import { useSettingsStore } from "~/stores/settings";
+import { useI18nStore } from "../stores/i18n";
+import { useSettingsStore } from "../stores/settings";
 
 export default defineNuxtPlugin(() => {
 	const settingsStore = useSettingsStore();

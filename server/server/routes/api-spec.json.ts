@@ -1,6 +1,6 @@
 import { OpenAPIGenerator } from "@orpc/openapi";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
-import { router } from "~/server/orpc/router";
+import { router } from "../orpc/router";
 
 export default defineEventHandler(async () => {
 	const generator = new OpenAPIGenerator({

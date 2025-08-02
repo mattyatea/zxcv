@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
-import type { Env } from "~/server/types/env";
-import { generateId } from "~/server/utils/crypto";
-import { EmailService, type EmailVerificationData } from "~/server/utils/email";
+import type { Env } from "../types/env";
+import { generateId } from "../utils/crypto";
+import { EmailService, type EmailVerificationData } from "../utils/email";
 
 export class EmailVerificationService {
 	private prisma: PrismaClient;

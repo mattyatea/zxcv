@@ -1,0 +1,98 @@
+--- Accessibility Improvements for Rules Index Page ---
+
+The following improvements can be applied to enhance accessibility:
+
+1. **Main Content Role**
+   Add role="main" to the root div element
+
+2. **Heading Structure**
+   Add proper heading hierarchy with aria-level attributes
+
+3. **Icon Accessibility**
+   Add aria-hidden="true" to all decorative SVG icons
+
+4. **Form Controls**
+   - Add aria-label to select elements
+   - Add aria-label to buttons without visible text
+   - Add aria-describedby for form hints
+
+5. **Interactive Elements**
+   - Add aria-pressed for toggle buttons
+   - Add aria-current="page" for active pagination
+   - Add aria-label for star toggle buttons
+
+6. **Loading States**
+   Add role="status" aria-live="polite" for loading indicators
+
+7. **Lists**
+   - Add role="list" to rule containers
+   - Add role="listitem" to individual rules
+
+8. **Navigation**
+   Add role="navigation" aria-label="ページネーション" to pagination
+
+9. **Search Input**
+   Add aria-label or connect to visible label
+
+10. **Keyboard Navigation**
+    The existing keyboard shortcuts are good, consider adding:
+    - Focus management for modal/dropdown interactions
+    - Skip links for keyboard users
+
+Sample implementation for key areas:
+
+```vue
+<!-- Main container -->
+<div class="min-h-screen bg-gray-50 dark:bg-gray-950" role="main">
+
+<!-- Heading with proper level -->
+<h1 class="heading-1 mb-2 flex items-center gap-2" role="heading" aria-level="1">
+
+<!-- Decorative icons -->
+<svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+
+<!-- Form controls -->
+<select 
+  v-model="filters.visibility"
+  @change="fetchRules"
+  class="..."
+  aria-label="公開範囲フィルター"
+>
+
+<!-- Toggle buttons -->
+<button
+  @click="toggleTag(tag)"
+  :aria-label="`タグ: ${tag} ${selectedTags.includes(tag) ? '(選択中)' : ''}`"
+  :aria-pressed="selectedTags.includes(tag)"
+>
+
+<!-- Loading state -->
+<div v-if="loading" role="status" aria-live="polite" aria-label="ルールを読み込み中">
+
+<!-- Rule list -->
+<div v-if="!loading && rules.length > 0" class="grid..." role="list">
+  <div v-for="rule in rules" :key="rule.id" role="listitem">
+
+<!-- Links with context -->
+<NuxtLink
+  :to="getRuleUrl(rule)"
+  :aria-label="`${rule.name} - ${rule.description || '説明なし'}`"
+>
+
+<!-- Star button -->
+<button
+  @click.prevent="toggleStar(rule)"
+  :aria-label="rule.isStarred ? 'スターを解除' : 'スターを付ける'"
+  :aria-pressed="rule.isStarred"
+>
+
+<!-- Pagination -->
+<div role="navigation" aria-label="ページネーション">
+  <button
+    v-for="page in visiblePages"
+    :aria-label="`ページ ${page}`"
+    :aria-current="page === currentPage ? 'page' : undefined"
+  >
+```
+
+These improvements will ensure the rules index page is accessible to all users, including those using screen readers and keyboard navigation.

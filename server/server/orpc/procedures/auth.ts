@@ -1,17 +1,13 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import { dbProvider } from "~/server/orpc/middleware/combined";
-import {
-	authRateLimit,
-	passwordResetRateLimit,
-	registerRateLimit,
-} from "~/server/orpc/middleware/rateLimit";
-import { AuthService } from "~/server/services/AuthService";
-import { EmailServiceError } from "~/server/types/errors";
-import { generateId } from "~/server/utils/crypto";
-import type { Locale } from "~/server/utils/i18n";
-import { getLocaleFromRequest } from "~/server/utils/locale";
-import { createLogger } from "~/server/utils/logger";
+import { AuthService } from "../../services/AuthService";
+import { EmailServiceError } from "../../types/errors";
+import { generateId } from "../../utils/crypto";
+import type { Locale } from "../../utils/i18n";
+import { getLocaleFromRequest } from "../../utils/locale";
+import { createLogger } from "../../utils/logger";
+import { os } from "../index";
+import { dbProvider } from "../middleware/combined";
+import { authRateLimit, passwordResetRateLimit, registerRateLimit } from "../middleware/rateLimit";
 
 export const authProcedures = {
 	/**
@@ -73,7 +69,7 @@ export const authProcedures = {
 
 		try {
 			// Verify refresh token
-			const { verifyRefreshToken } = await import("~/server/utils/jwt");
+			const { verifyRefreshToken } = await import("../../utils/jwt");
 			const userId = await verifyRefreshToken(refreshToken, env);
 			if (!userId) {
 				throw new ORPCError("UNAUTHORIZED", { message: "Invalid token" });
@@ -167,9 +163,7 @@ export const authProcedures = {
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		// Verify refresh token
-		const { verifyRefreshToken, createRefreshToken, createJWT } = await import(
-			"~/server/utils/jwt"
-		);
+		const { verifyRefreshToken, createRefreshToken, createJWT } = await import("../../utils/jwt");
 		const userId = await verifyRefreshToken(refreshToken, env);
 
 		if (!userId) {
@@ -216,13 +210,13 @@ export const authProcedures = {
 			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 			const { createOAuthProviders, generateState, generateCodeVerifier } = await import(
-				"~/server/utils/oauth"
+				"../../utils/oauth"
 			);
 			const providers = createOAuthProviders(env);
 
 			// Import security utilities
 			const { validateRedirectUrl, performOAuthSecurityChecks, generateNonce, OAUTH_CONFIG } =
-				await import("~/server/utils/oauthSecurity");
+				await import("../../utils/oauthSecurity");
 
 			// Get client IP for security tracking
 			const clientIp =
@@ -243,11 +237,11 @@ export const authProcedures = {
 			const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
 
 			// Clean up expired states before creating new one
-			const { cleanupExpiredOAuthStates } = await import("~/server/utils/oauthCleanup");
+			const { cleanupExpiredOAuthStates } = await import("../../utils/oauthCleanup");
 			await cleanupExpiredOAuthStates(db);
 
 			// Store state in database
-			const { generateId } = await import("~/server/utils/crypto");
+			const { generateId } = await import("../../utils/crypto");
 			const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 minutes
 
 			await db.oAuthState.create({
@@ -303,11 +297,11 @@ export const authProcedures = {
 			state,
 		});
 
-		const { createOAuthProviders } = await import("~/server/utils/oauth");
+		const { createOAuthProviders } = await import("../../utils/oauth");
 		const providers = createOAuthProviders(env);
 
 		// Import security utilities
-		const { validateOAuthResponse } = await import("~/server/utils/oauthSecurity");
+		const { validateOAuthResponse } = await import("../../utils/oauthSecurity");
 
 		// Validate OAuth response parameters
 		validateOAuthResponse({ code, state }, locale);

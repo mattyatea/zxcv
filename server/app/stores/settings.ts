@@ -11,7 +11,7 @@ export const useSettingsStore = defineStore("settings", () => {
 
 	// Initialize from localStorage
 	const initializeSettings = () => {
-		if (process.client) {
+		if (import.meta.client) {
 			const savedSettings = localStorage.getItem(STORAGE_KEY);
 			if (savedSettings) {
 				try {
@@ -31,7 +31,7 @@ export const useSettingsStore = defineStore("settings", () => {
 
 	// Save to localStorage
 	const saveSettings = () => {
-		if (process.client) {
+		if (import.meta.client) {
 			const settings = {
 				language: language.value,
 				theme: theme.value,

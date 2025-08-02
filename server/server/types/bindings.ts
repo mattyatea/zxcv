@@ -1,4 +1,4 @@
-import type { Env } from "~/server/types/env";
+import type { Env } from "./env";
 
 export interface CloudflareBindings extends Env {}
 

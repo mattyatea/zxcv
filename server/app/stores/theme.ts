@@ -6,7 +6,7 @@ export const useThemeStore = defineStore("theme", () => {
 
 	// Initialize theme from localStorage or system preference
 	const initializeTheme = () => {
-		if (process.client) {
+		if (import.meta.client) {
 			const savedTheme = localStorage.getItem("theme");
 			if (
 				savedTheme === "dark" ||

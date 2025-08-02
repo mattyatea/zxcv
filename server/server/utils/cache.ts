@@ -1,4 +1,4 @@
-import type { Env } from "~/server/types/env";
+import type { Env } from "../types/env";
 
 export interface CacheOptions {
 	ttl?: number; // Time to live in seconds

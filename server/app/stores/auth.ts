@@ -1,6 +1,6 @@
 import type { createORPCClient } from "@orpc/client";
 import { defineStore } from "pinia";
-import type { Router } from "~/server/orpc/router";
+import type { Router } from "../../server/orpc/router";
 
 type RPCClient = ReturnType<typeof createORPCClient<Router>>;
 
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore("auth", () => {
 
 	// Initialize from localStorage on client side
 	const initializeAuth = () => {
-		if (process.client) {
+		if (import.meta.client) {
 			const storedAccessToken = localStorage.getItem("access_token");
 			const storedRefreshToken = localStorage.getItem("refresh_token");
 			const storedUser = localStorage.getItem("user");
@@ -80,7 +80,7 @@ export const useAuthStore = defineStore("auth", () => {
 			user.value = response.user;
 
 			// Persist to localStorage
-			if (process.client) {
+			if (import.meta.client) {
 				localStorage.setItem("access_token", response.accessToken);
 				localStorage.setItem("refresh_token", response.refreshToken);
 				localStorage.setItem("user", JSON.stringify(response.user));
@@ -122,7 +122,7 @@ export const useAuthStore = defineStore("auth", () => {
 		refreshToken.value = null;
 
 		// Clear localStorage
-		if (process.client) {
+		if (import.meta.client) {
 			localStorage.removeItem("access_token");
 			localStorage.removeItem("refresh_token");
 			localStorage.removeItem("user");
@@ -149,7 +149,7 @@ export const useAuthStore = defineStore("auth", () => {
 			refreshToken.value = response.refreshToken;
 
 			// Update localStorage
-			if (process.client) {
+			if (import.meta.client) {
 				localStorage.setItem("access_token", response.accessToken);
 				localStorage.setItem("refresh_token", response.refreshToken);
 			}
@@ -179,7 +179,7 @@ export const useAuthStore = defineStore("auth", () => {
 			};
 
 			// Update localStorage
-			if (process.client) {
+			if (import.meta.client) {
 				localStorage.setItem("user", JSON.stringify(response));
 			}
 
@@ -202,7 +202,7 @@ export const useAuthStore = defineStore("auth", () => {
 		};
 
 		// Update localStorage
-		if (process.client) {
+		if (import.meta.client) {
 			localStorage.setItem("user", JSON.stringify(user.value));
 		}
 	};
@@ -218,7 +218,7 @@ export const useAuthStore = defineStore("auth", () => {
 		user.value = data.user;
 
 		// Persist to localStorage
-		if (process.client) {
+		if (import.meta.client) {
 			localStorage.setItem("access_token", data.accessToken);
 			localStorage.setItem("refresh_token", data.refreshToken);
 			localStorage.setItem("user", JSON.stringify(data.user));

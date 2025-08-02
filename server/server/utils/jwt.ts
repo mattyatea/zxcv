@@ -1,5 +1,5 @@
 import { jwtVerify, SignJWT } from "jose";
-import type { Env } from "~/server/types/env";
+import type { Env } from "../types/env";
 
 export interface JWTPayload {
 	sub: string;

@@ -1,9 +1,9 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import { dbWithAuth } from "~/server/orpc/middleware/combined";
-import { dbProvider } from "~/server/orpc/middleware/db";
-import { hashPassword, verifyPassword } from "~/server/utils/crypto";
-import { authErrors, type Locale } from "~/server/utils/i18n";
+import { hashPassword, verifyPassword } from "../../utils/crypto";
+import { authErrors, type Locale } from "../../utils/i18n";
+import { os } from "../index";
+import { dbWithAuth } from "../middleware/combined";
+import { dbProvider } from "../middleware/db";
 
 // Search users by username (for organization invitations)
 export const searchByUsername = os.users.searchByUsername
@@ -204,7 +204,7 @@ export const updateProfile = os.users.updateProfile
 
 		// If email changed, send verification email
 		if (email && email.toLowerCase() !== user.email.toLowerCase()) {
-			const { EmailVerificationService } = await import("~/server/services/emailVerification");
+			const { EmailVerificationService } = await import("../../services/emailVerification");
 			const emailService = new EmailVerificationService(db, context.env);
 			await emailService.sendVerificationEmail(user.id, email.toLowerCase());
 		}
@@ -241,7 +241,7 @@ export const changePassword = os.users.changePassword
 		}
 
 		// Verify current password
-		const { verifyPassword, hashPassword } = await import("~/server/utils/crypto");
+		const { verifyPassword, hashPassword } = await import("../../utils/crypto");
 		const isValid = await verifyPassword(currentPassword, dbUser.passwordHash);
 		if (!isValid) {
 			const locale: Locale = "ja"; // Default to Japanese

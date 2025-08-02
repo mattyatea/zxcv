@@ -1,5 +1,5 @@
-import enTranslations from "~/i18n/locales/en.json";
-import jaTranslations from "~/i18n/locales/ja.json";
+import enTranslations from "../../app/i18n/locales/en.json";
+import jaTranslations from "../../app/i18n/locales/ja.json";
 
 export type Locale = "ja" | "en";
 
@@ -29,7 +29,7 @@ export function t(
 
 	for (const k of keys) {
 		if (translation && typeof translation === "object" && k in translation) {
-			translation = translation[k];
+			translation = translation[k] as string | Translations;
 		} else {
 			// Return key if translation not found
 			return key;
@@ -63,7 +63,7 @@ export function getLocaleFromHeader(acceptLanguage?: string): Locale {
 	// Simple locale detection - can be improved
 	const languages = acceptLanguage.split(",").map((lang) => {
 		const [code] = lang.trim().split(";");
-		return code.toLowerCase();
+		return code ? code.toLowerCase() : "";
 	});
 
 	for (const lang of languages) {

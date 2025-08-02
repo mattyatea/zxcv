@@ -1,14 +1,10 @@
 import { ORPCError } from "@orpc/server";
 import { nanoid } from "nanoid";
-import { os } from "~/server/orpc";
-import {
-	dbWithAuth,
-	dbWithEmailVerification,
-	dbWithOptionalAuth,
-} from "~/server/orpc/middleware/combined";
-import { RuleService } from "~/server/services/RuleService";
-import { createLogger } from "~/server/utils/logger";
-import { parseRulePath } from "~/server/utils/namespace";
+import { RuleService } from "../../services/RuleService";
+import { createLogger } from "../../utils/logger";
+import { parseRulePath } from "../../utils/namespace";
+import { os } from "../index";
+import { dbWithAuth, dbWithEmailVerification, dbWithOptionalAuth } from "../middleware/combined";
 
 export const rulesProcedures = {
 	/**

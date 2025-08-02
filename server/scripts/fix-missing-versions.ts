@@ -76,7 +76,9 @@ async function main() {
 			)
 		`;
 
-		console.log(`\nRemaining rules without versions: ${remainingRulesWithoutVersions[0].count}`);
+		console.log(
+			`\nRemaining rules without versions: ${remainingRulesWithoutVersions[0]?.count || 0}`,
+		);
 		console.log("Fix completed!");
 	} catch (error) {
 		console.error("Error during fix:", error);

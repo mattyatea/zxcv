@@ -1,8 +1,8 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import { dbWithAuth, dbWithOptionalAuth } from "~/server/orpc/middleware/combined";
-import { dbProvider } from "~/server/orpc/middleware/db";
-import { OrganizationService } from "~/server/services/OrganizationService";
+import { OrganizationService } from "../../services/OrganizationService";
+import { os } from "../index";
+import { dbWithAuth, dbWithOptionalAuth } from "../middleware/combined";
+import { dbProvider } from "../middleware/db";
 
 export const organizationsProcedures = {
 	/**

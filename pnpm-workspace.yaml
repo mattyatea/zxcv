@@ -1,8 +1,9 @@
 packages:
-  - 'server'
-  - 'cli'
+  - server
+  - cli
 
 onlyBuiltDependencies:
+  - '@biomejs/biome'
   - '@parcel/watcher'
   - '@prisma/client'
   - '@prisma/engines'

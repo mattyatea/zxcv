@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
+import { os } from "../index";
 
 export const authRequired = os.middleware(async ({ context, next }) => {
 	if (!context.user) {

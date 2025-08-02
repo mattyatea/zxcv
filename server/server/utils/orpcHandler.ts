@@ -2,10 +2,10 @@ import type { ORPCErrorCode } from "@orpc/client";
 import { ORPCError } from "@orpc/server";
 import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
-import type { H3EventContext } from "~/server/types/bindings";
-import type { Env } from "~/server/types/env";
-import type { AuthUser } from "~/server/utils/auth";
-import { verifyJWT } from "~/server/utils/jwt";
+import type { H3EventContext } from "../types/bindings";
+import type { Env } from "../types/env";
+import type { AuthUser } from "./auth";
+import { verifyJWT } from "./jwt";
 
 // Extend globalThis for test environment
 declare global {

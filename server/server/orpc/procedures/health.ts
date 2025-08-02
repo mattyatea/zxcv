@@ -1,4 +1,4 @@
-import { os } from "~/server/orpc";
+import { os } from "../index";
 
 export const check = os.health.check.handler(async () => {
 	const timestamp = Date.now();

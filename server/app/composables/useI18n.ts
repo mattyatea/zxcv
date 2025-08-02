@@ -1,4 +1,4 @@
-import { type Locale, useI18nStore } from "~/stores/i18n";
+import { type Locale, useI18nStore } from "../stores/i18n";
 
 interface PluralRule {
 	zero?: string;

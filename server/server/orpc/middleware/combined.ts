@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import type { AuthUser } from "~/server/utils/auth";
-import { createPrismaClient } from "~/server/utils/prisma";
+import type { AuthUser } from "../../utils/auth";
+import { createPrismaClient } from "../../utils/prisma";
+import { os } from "../index";
 
 // Database provider middleware (no auth required)
 export const dbProvider = os.middleware(async ({ context, next }) => {

@@ -38,6 +38,7 @@
     "node_modules",
     "dist",
     "coverage",
-    "tests/"
+    "tests/",
+    "nuxt.config.ts"
   ]
 }

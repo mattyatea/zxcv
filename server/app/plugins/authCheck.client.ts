@@ -1,4 +1,4 @@
-import type { Router } from "~/server/orpc/router";
+import type { Router } from "../../server/orpc/router";
 
 interface NuxtAppWithRpc {
 	$rpc: Router;
@@ -6,7 +6,7 @@ interface NuxtAppWithRpc {
 
 export default defineNuxtPlugin(async (nuxtApp) => {
 	// クライアントサイドでのみ実行
-	if (!process.client) {
+	if (!import.meta.client) {
 		return;
 	}
 

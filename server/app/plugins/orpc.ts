@@ -1,13 +1,13 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { RouterClient } from "@orpc/server";
-import type { router } from "~/server/orpc/router";
+import type { router } from "../../server/orpc/router";
 
 export default defineNuxtPlugin((_nuxtApp) => {
 	const requestURL = useRequestURL();
 
 	// SSRとクライアントで適切なURLを構築
-	const baseURL = process.server
+	const baseURL = import.meta.server
 		? `${requestURL.protocol}//${requestURL.host}`
 		: window.location.origin;
 
@@ -37,7 +37,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
 			// エラーレスポンスの場合
 			if (!response.ok) {
 				// クライアントサイドでのみ実行
-				if (process.client) {
+				if (import.meta.client) {
 					// 認証エラーの場合のみ処理
 					if (response.status === 401) {
 						console.log("Authentication error detected, clearing auth data...");

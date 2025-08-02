@@ -4,8 +4,8 @@ import {
 	getHeader,
 	type H3Event,
 } from "h3";
-import type { H3EventContext } from "~/server/types/bindings";
-import type { Env } from "~/server/types/env";
+import type { H3EventContext } from "../types/bindings";
+import type { Env } from "../types/env";
 import { verifyPassword } from "./crypto";
 import { createJWT as createJWTUtil, verifyJWT as verifyJWTUtil } from "./jwt";
 import { createPrismaClient } from "./prisma";

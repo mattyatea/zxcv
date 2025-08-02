@@ -1,6 +1,6 @@
 import type { H3EventContext as BaseH3EventContext } from "h3";
-import type { H3EventContext } from "~/server/types/bindings";
-import { createPrismaClient } from "~/server/utils/prisma";
+import type { H3EventContext } from "../types/bindings";
+import { createPrismaClient } from "../utils/prisma";
 
 export default defineNitroPlugin((nitroApp) => {
 	nitroApp.hooks.hook("request", async (event) => {

@@ -1,6 +1,6 @@
 /** biome-ignore-all lint/style/useNamingConvention: Constantsな値には、大文字を使うので... */
 import type { Context } from "hono";
-import type { Env } from "~/server/types/env";
+import type { Env } from "../types/env";
 
 export enum LogLevel {
 	DEBUG = 0,

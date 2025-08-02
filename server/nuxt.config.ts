@@ -1,8 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2025-07-19",
+  compatibilityDate: "2025-08-01",
   devtools: { enabled: true },
   modules: ["nitro-cloudflare-dev", "@nuxtjs/tailwindcss", "@pinia/nuxt"],
+  future: {
+    compatibilityVersion: 4,
+  },
 
   nitro: {
     preset: "cloudflare_module",

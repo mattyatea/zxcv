@@ -1,4 +1,4 @@
-import { useI18n } from "~/composables/useI18n";
+import { useI18n } from "../composables/useI18n";
 
 export default defineNuxtPlugin(() => {
 	const { t } = useI18n();

@@ -3,11 +3,11 @@ import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { defineEventHandler, getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
-import { router } from "~/server/orpc/router";
-import type { H3EventContext } from "~/server/types/bindings";
-import type { Env } from "~/server/types/env";
-import type { AuthUser } from "~/server/utils/auth";
-import { verifyJWT } from "~/server/utils/jwt";
+import { router } from "../../orpc/router";
+import type { H3EventContext } from "../../types/bindings";
+import type { Env } from "../../types/env";
+import type { AuthUser } from "../../utils/auth";
+import { verifyJWT } from "../../utils/jwt";
 
 // Extend globalThis for test environment
 declare global {
