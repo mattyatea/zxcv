@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
-import enTranslations from "~/i18n/locales/en.json";
-import jaTranslations from "~/i18n/locales/ja.json";
+import enTranslations from "../i18n/locales/en.json";
+import jaTranslations from "../i18n/locales/ja.json";
 
 export type Locale = "ja" | "en";
 
@@ -21,11 +21,11 @@ export const useI18nStore = defineStore("i18n", () => {
 	// Translation function
 	function t(key: string, params?: Record<string, string | number>): string {
 		const keys = key.split(".");
-		let translation: string | Translations = translations[locale.value];
+		let translation: string | Translations | undefined = translations[locale.value];
 
 		for (const k of keys) {
 			if (translation && typeof translation === "object" && k in translation) {
-				translation = translation[k];
+				translation = translation[k] as string | Translations;
 			} else {
 				// Fallback handling
 				if (process.env.NODE_ENV === "development") {
@@ -34,14 +34,14 @@ export const useI18nStore = defineStore("i18n", () => {
 
 				// Try fallback to English if current locale is not English
 				if (locale.value !== "en") {
-					let fallbackTranslation: string | Translations = translations.en;
+					let fallbackTranslation: string | Translations | undefined = translations.en;
 					for (const k of keys) {
 						if (
 							fallbackTranslation &&
 							typeof fallbackTranslation === "object" &&
 							k in fallbackTranslation
 						) {
-							fallbackTranslation = fallbackTranslation[k];
+							fallbackTranslation = fallbackTranslation[k] as string | Translations;
 						} else {
 							// Return formatted key if translation not found
 							return `[${key}]`;
