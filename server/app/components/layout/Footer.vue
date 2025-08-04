@@ -95,5 +95,5 @@
 </template>
 
 <script setup lang="ts">
-// No additional logic needed for static footer
+const { t } = useI18n();
 </script>
