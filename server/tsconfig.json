@@ -34,7 +34,8 @@
     ".nuxt/types/**/*.ts",
     ".nuxt/nuxt.d.ts",
     ".nuxt/imports.d.ts",
-    ".nuxt/components.d.ts"
+    ".nuxt/components.d.ts",
+    "nuxt.d.ts"
   ],
   "exclude": [
     "node_modules",

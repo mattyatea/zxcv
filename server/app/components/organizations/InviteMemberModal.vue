@@ -92,11 +92,12 @@
 <script setup lang="ts">
 import { debounce } from "lodash-es";
 import { ref, watch } from "vue";
+import { useRpc } from "~/app/composables/useRpc";
 
 interface User {
 	id: string;
 	username: string;
-	email: string;
+	email: string | null;
 }
 
 interface Props {
@@ -112,7 +113,7 @@ interface Emits {
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const { t } = useI18n();
 
 const isOpen = computed({
@@ -165,7 +166,8 @@ const selectUser = (user: User) => {
 };
 
 const handleSubmit = async () => {
-	if (!selectedUser.value) {
+	if (!selectedUser.value || !selectedUser.value.email) {
+		error.value = "Selected user must have an email address";
 		return;
 	}
 
@@ -175,7 +177,7 @@ const handleSubmit = async () => {
 	try {
 		await $rpc.organizations.inviteMember({
 			organizationId: props.organizationId,
-			username: selectedUser.value.username,
+			email: selectedUser.value.email,
 		});
 
 		emit("invited", selectedUser.value);
