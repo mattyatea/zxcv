@@ -425,7 +425,7 @@ export class RuleService {
 	 * ルールを ID で取得
 	 */
 	async getRuleById(ruleId: string, userId?: string) {
-		const rule = await this.ruleRepository.findById(ruleId);
+		const rule = await this.ruleRepository.findById(ruleId, true);
 		if (!rule) {
 			throw new ORPCError("NOT_FOUND", {
 				message: "Rule not found",
@@ -491,7 +491,7 @@ export class RuleService {
 	 * ルールの特定バージョンを取得
 	 */
 	async getRuleVersion(ruleId: string, version: string, userId?: string) {
-		const rule = await this.ruleRepository.findById(ruleId);
+		const rule = await this.ruleRepository.findById(ruleId, true);
 		if (!rule) {
 			throw new ORPCError("NOT_FOUND", {
 				message: "Rule not found",
