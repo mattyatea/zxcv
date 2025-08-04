@@ -72,16 +72,15 @@
 import { onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
+import type { OrganizationType, GetInvitationResponse } from "~/app/types/orpc";
 
-interface Organization {
-	id: string;
-	name: string;
-	displayName?: string;
-}
+// Using types from orpc.ts
+type Organization = OrganizationType;
 
 const { t } = useI18n();
 const route = useRoute();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const authStore = useAuthStore();
 const { isAuthenticated } = storeToRefs(authStore);
 const { error: toastError } = useToast();

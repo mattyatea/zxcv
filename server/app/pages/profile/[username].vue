@@ -263,33 +263,18 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
+import type { UserType, RuleType, GetUserByUsernameResponse } from "~/app/types/orpc";
 
 const route = useRoute();
-const { $rpc, $t } = useNuxtApp();
+const $rpc = useRpc();
+const { $t } = useNuxtApp();
 const authStore = useAuthStore();
 const { user: currentUser } = storeToRefs(authStore);
 
-// Type definitions
-interface UserProfile {
-	id: string;
-	email: string;
-	username: string;
-	emailVerified: boolean;
-	createdAt: number;
-	updatedAt: number;
-}
-
-interface Rule {
-	id: string;
-	name: string;
-	description: string;
-	visibility: string;
-	createdAt: number;
-	updatedAt: number;
-	organization?: {
-		name: string;
-	} | null;
-}
+// Using types from orpc.ts
+type UserProfile = GetUserByUsernameResponse;
+type Rule = RuleType;
 
 // State
 const loading = ref(true);

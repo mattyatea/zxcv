@@ -24,7 +24,7 @@
               class="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3"
             >
               <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                {{ user.username[0].toUpperCase() }}
+                {{ user.username?.[0]?.toUpperCase() || '?' }}
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ user.username }}</p>
@@ -44,7 +44,7 @@
       <div v-if="selectedUser" class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-medium">
-            {{ selectedUser.username[0].toUpperCase() }}
+            {{ selectedUser.username?.[0]?.toUpperCase() || '?' }}
           </div>
           <div>
             <p class="font-medium text-gray-900 dark:text-gray-100">{{ selectedUser.username }}</p>
@@ -93,12 +93,13 @@
 import { debounce } from "lodash-es";
 import { ref, watch } from "vue";
 import { useRpc } from "~/app/composables/useRpc";
+import type { InferRouterOutputs } from "@orpc/server";
+import type { router } from "~/server/orpc/router";
 
-interface User {
-	id: string;
-	username: string;
-	email: string | null;
-}
+// ルーターから型を推論
+type RouterOutputs = InferRouterOutputs<typeof router>;
+type SearchUserResponse = RouterOutputs["users"]["searchByUsername"];
+type UserType = SearchUserResponse[0]; // 配列の要素の型を取得
 
 interface Props {
 	modelValue: boolean;
@@ -107,7 +108,7 @@ interface Props {
 
 interface Emits {
 	(e: "update:modelValue", value: boolean): void;
-	(e: "invited", user: User): void;
+	(e: "invited", user: UserType): void;
 }
 
 const props = defineProps<Props>();
@@ -122,8 +123,8 @@ const isOpen = computed({
 });
 
 const searchQuery = ref("");
-const searchResults = ref<User[]>([]);
-const selectedUser = ref<User | null>(null);
+const searchResults = ref<UserType[]>([]);
+const selectedUser = ref<UserType | null>(null);
 const searching = ref(false);
 const inviting = ref(false);
 const error = ref("");
@@ -140,11 +141,10 @@ const searchUsers = async (query: string) => {
 	error.value = "";
 
 	try {
-		const results = await $rpc.users.searchByUsername({
-			username: query,
-			limit: 10,
-		});
-		searchResults.value = results;
+    searchResults.value = await $rpc.users.searchByUsername({
+      username: query,
+      limit: 10,
+    });
 		showSuggestions.value = true;
 	} catch (err) {
 		console.error("Failed to search users:", err);
@@ -159,7 +159,7 @@ const handleSearch = debounce((event: Event) => {
 	searchUsers(query);
 }, 300);
 
-const selectUser = (user: User) => {
+const selectUser = (user: UserType) => {
 	selectedUser.value = user;
 	searchQuery.value = user.username;
 	showSuggestions.value = false;

@@ -159,6 +159,7 @@
 <script setup lang="ts">
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
 
 definePageMeta({
 	layout: "default",
@@ -172,7 +173,7 @@ useHead({
 
 const authStore = useAuthStore();
 const { error: toastError, success: toastSuccess } = useToast();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 
 // Form state
 const form = ref({

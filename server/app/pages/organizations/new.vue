@@ -87,11 +87,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useToast } from "~/composables/useToast";
+import { useRpc } from "~/app/composables/useRpc";
+import type { CreateOrganizationResponse } from "~/app/types/orpc";
 
 definePageMeta({
 	middleware: "auth",
 });
 
+// Simple form interface
 interface OrganizationForm {
 	name: string;
 	description: string;
@@ -148,7 +151,7 @@ const handleSubmit = async () => {
 
 	submitting.value = true;
 	try {
-		const { $rpc } = useNuxtApp();
+		const $rpc = useRpc();
 		const data = await $rpc.organizations.create({
 			name: form.value.name,
 			description: form.value.description,

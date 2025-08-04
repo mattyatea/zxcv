@@ -190,6 +190,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
 
 definePageMeta({
 	middleware: "auth",
@@ -254,7 +255,7 @@ const updateOrganization = () => {
 	}
 };
 
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 
 const handleSubmit = async () => {
 	loading.value = true;

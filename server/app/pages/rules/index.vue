@@ -303,11 +303,11 @@
                   </svg>
                   v{{ rule.version }}
                 </span>
-                <div v-if="rule.downloads !== undefined" class="flex items-center gap-1">
+                <div v-if="rule.views !== undefined" class="flex items-center gap-1">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                   </svg>
-                  <span>{{ formatNumber(rule.downloads) }}</span>
+                  <span>{{ formatNumber(rule.views) }}</span>
                 </div>
                 <div v-if="rule.stars !== undefined" class="flex items-center gap-1">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,11 +396,11 @@
                     </svg>
                     v{{ rule.version }}
                   </span>
-                  <div v-if="rule.downloads !== undefined" class="flex items-center gap-1">
+                  <div v-if="rule.views !== undefined" class="flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                     </svg>
-                    <span>{{ formatNumber(rule.downloads) }}</span>
+                    <span>{{ formatNumber(rule.views) }}</span>
                   </div>
                   <div v-if="rule.stars !== undefined" class="flex items-center gap-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -560,32 +560,9 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, watch } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
+import type { RuleType } from "~/app/types/orpc";
 
-interface Author {
-	id: string;
-	username: string;
-}
-
-interface Organization {
-	id: string;
-	name: string;
-	displayName: string;
-}
-
-interface Rule {
-	id: string;
-	name: string;
-	description?: string;
-	visibility: "public" | "private" | "organization";
-	author: Author;
-	organization?: Organization;
-	tags: string[];
-	version: string;
-	updated_at: number;
-	downloads?: number;
-	stars?: number;
-	isStarred?: boolean;
-}
 
 const { t } = useI18n();
 const { user } = storeToRefs(useAuthStore());
@@ -620,7 +597,7 @@ const popularTags = ref([
 ]);
 
 // データ
-const rules = ref<Rule[]>([]);
+const rules = ref<RuleType[]>([]);
 const loading = ref(false);
 const currentPage = ref(1);
 const limit = 12;
@@ -682,7 +659,7 @@ const activeFilters = computed(() => {
 	return filters_;
 });
 
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 
 // ルール取得
 const fetchRules = async () => {
@@ -743,7 +720,7 @@ const toggleTag = (tag: string) => {
 };
 
 // スターの切り替え
-const toggleStar = async (rule: Rule) => {
+const toggleStar = async (rule: RuleType) => {
 	if (!user.value) {
 		toastError(t("rules.detail.loginRequired"));
 		return;
@@ -836,7 +813,7 @@ const formatNumber = (num: number) => {
 	return num.toString();
 };
 
-const getRuleUrl = (rule: Rule) => {
+const getRuleUrl = (rule: RuleType) => {
 	if (rule.organization) {
 		return `/rules/@${rule.organization.name}/${rule.name}`;
 	}

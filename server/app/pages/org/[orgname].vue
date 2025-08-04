@@ -89,8 +89,10 @@
 </template>
 
 <script setup lang="ts">
+import { useRpc } from "~/app/composables/useRpc";
+
 const route = useRoute();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 
 const orgname = computed(() => route.params.orgname as string);
 const loading = ref(true);

@@ -206,6 +206,7 @@
 
 <script setup lang="ts">
 import { useToast } from "~/composables/useToast";
+import { useRpc } from "~/app/composables/useRpc";
 
 definePageMeta({
 	layout: "default",
@@ -218,7 +219,7 @@ useHead({
 });
 
 const { error: toastError, success: toastSuccess } = useToast();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 
 // Form state
 const form = ref({

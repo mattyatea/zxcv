@@ -29,7 +29,9 @@
 </template>
 
 <script setup>
-const { $rpc } = useNuxtApp();
+import { useRpc } from "~/app/composables/useRpc";
+
+const $rpc = useRpc();
 const result = ref(null);
 const error = ref(null);
 

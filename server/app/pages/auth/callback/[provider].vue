@@ -59,11 +59,12 @@
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 import { useI18n } from "~/composables/useI18n";
+import { useRpc } from "~/app/composables/useRpc";
 
 // Props and route
 const route = useRoute();
 const router = useRouter();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const authStore = useAuthStore();
 const { success: toastSuccess, error: toastError } = useToast();
 const { t } = useI18n();

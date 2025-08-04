@@ -159,31 +159,17 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
+import type { RuleType, GetRuleResponse, GetRuleContentResponse } from "~/app/types/orpc";
 
 console.log("Edit page loaded - /rules/@[owner]/[name]/edit.vue");
 
-interface Rule {
-	id: string;
-	name: string;
-	description?: string;
-	content: string;
-	visibility: "public" | "private";
-	tags: string[];
-	version: string;
-	author: {
-		id: string;
-		username: string;
-	};
-	organization?: {
-		id: string;
-		name: string;
-		displayName: string;
-	};
-}
+// Using types from orpc.ts
+type Rule = GetRuleResponse & { content: string };
 
 const route = useRoute();
 const router = useRouter();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const { t } = useI18n();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);

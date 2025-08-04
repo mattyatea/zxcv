@@ -95,20 +95,15 @@
 import { onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
+import type { OrganizationType, GetOrganizationsResponse } from "~/app/types/orpc";
 
 definePageMeta({
 	middleware: "auth",
 });
 
-interface Organization {
-	id: string;
-	name: string;
-	description?: string;
-	role: "owner" | "member";
-	memberCount: number;
-	ruleCount: number;
-	createdAt: string;
-}
+// Using types from orpc.ts
+type Organization = OrganizationType;
 
 const { t } = useI18n();
 const loading = ref(false);
@@ -118,7 +113,7 @@ const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 const { error: toastError } = useToast();
 
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 
 const fetchOrganizations = async () => {
 	loading.value = true;

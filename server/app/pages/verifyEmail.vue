@@ -111,6 +111,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
+import { useRpc } from "~/app/composables/useRpc";
 
 const { $t } = useNuxtApp();
 
@@ -119,7 +120,7 @@ useHead({
 });
 
 const route = useRoute();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 
 const loading = ref(true);
 const success = ref(false);

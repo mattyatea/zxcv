@@ -506,7 +506,7 @@
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                       </svg>
-                      {{ related.downloads || 0 }}
+                      {{ related.views || 0 }}
                     </span>
                   </div>
                 </NuxtLink>
@@ -560,41 +560,16 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import { useRpc } from "~/app/composables/useRpc";
+import type { RuleType, OrganizationType, RuleVersionType, GetRuleResponse, GetRuleContentResponse } from "~/app/types/orpc";
 
-interface Author {
-	id: string;
-	username: string;
-}
-
-interface Organization {
-	id: string;
-	name: string;
-	displayName: string;
-}
-
-interface Rule {
-	id: string;
-	name: string;
-	description?: string;
-	content: string;
-	visibility: "public" | "private" | "organization";
-	author: Author;
-	organization?: Organization;
-	tags: string[];
-	version: string;
-	updated_at: number;
-	downloads?: number;
-	stars?: number;
-}
-
-interface Version {
-	version: string;
-	changelog: string;
-	created_at: number;
-}
+// Using types from orpc.ts
+type Rule = GetRuleResponse & { content: string };
+type Organization = OrganizationType;
+type Version = RuleVersionType;
 
 const route = useRoute();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const { t } = useI18n();
 const router = useRouter();
 const loading = ref(false);
@@ -665,7 +640,7 @@ const fetchRuleDetails = async () => {
 					: data.updated_at
 						? Math.floor(new Date(data.updated_at).getTime() / 1000)
 						: Math.floor(Date.now() / 1000),
-			downloads: data.downloads,
+			views: data.views,
 			stars: data.stars,
 		};
 

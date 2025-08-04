@@ -53,8 +53,9 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRpc } from "~/app/composables/useRpc";
 
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const loading = ref(false);
 const searchLoading = ref(false);
 const debugData = ref<any>(null);

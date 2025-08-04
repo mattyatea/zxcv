@@ -203,45 +203,22 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
+import { useRpc } from "~/app/composables/useRpc";
+import type { OrganizationType, RuleType, UserType, GetOrganizationResponse } from "~/app/types/orpc";
 
 definePageMeta({
 	middleware: "auth",
 });
 
-interface Organization {
-	id: string;
-	name: string;
-	description?: string;
-	role: "owner" | "member";
-	memberCount: number;
-	ruleCount: number;
-	createdAt: string;
-}
-
-interface Rule {
-	id: string;
-	name: string;
-	description: string;
-	version: string;
-	updatedAt: string;
-}
-
-interface Member {
-	id: string;
-	username: string;
-	email: string;
-	role: "owner" | "member";
-}
-
-interface User {
-	id: string;
-	username: string;
-	email: string;
-}
+// Using types from orpc.ts
+type Organization = GetOrganizationResponse;
+type Rule = RuleType;
+type User = UserType;
+type Member = User & { role: "owner" | "member" };
 
 const { t } = useI18n();
 const route = useRoute();
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const authStore = useAuthStore();
 const loading = ref(false);
 const organization = ref<Organization | null>(null);
