@@ -239,7 +239,7 @@
         <div
           v-for="(rule, index) in rules"
           :key="rule.id"
-          class="group relative"
+          class="group relative hover-anim"
         >
           <NuxtLink
             :to="getRuleUrl(rule)"
@@ -558,11 +558,10 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, watch } from "vue";
+import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/composables/useRpc";
 import type { RuleType } from "~/types/orpc";
-
 
 const { t } = useI18n();
 const { user } = storeToRefs(useAuthStore());
@@ -913,6 +912,10 @@ onMounted(() => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.hover-anim {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 </style>
