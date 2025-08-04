@@ -95,8 +95,8 @@
 import { onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/app/composables/useRpc";
-import type { OrganizationType, GetOrganizationsResponse } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { OrganizationType, GetOrganizationsResponse } from "~/types/orpc";
 
 definePageMeta({
 	middleware: "auth",

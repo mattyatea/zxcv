@@ -560,8 +560,8 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/app/composables/useRpc";
-import type { RuleType, OrganizationType, RuleVersionType, GetRuleResponse, GetRuleContentResponse } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { RuleType, OrganizationType, RuleVersionType, GetRuleResponse, GetRuleContentResponse } from "~/types/orpc";
 
 // Using types from orpc.ts
 type Rule = GetRuleResponse & { content: string };

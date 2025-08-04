@@ -206,7 +206,7 @@
 
 <script setup lang="ts">
 import { useToast } from "~/composables/useToast";
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 definePageMeta({
 	layout: "default",

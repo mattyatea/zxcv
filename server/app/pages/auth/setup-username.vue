@@ -98,7 +98,7 @@
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 import { debounce } from "~/utils/debounce";
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 // Props and route
 const route = useRoute();

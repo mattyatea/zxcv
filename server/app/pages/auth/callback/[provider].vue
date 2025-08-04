@@ -59,7 +59,7 @@
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 import { useI18n } from "~/composables/useI18n";
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 // Props and route
 const route = useRoute();

@@ -87,8 +87,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useToast } from "~/composables/useToast";
-import { useRpc } from "~/app/composables/useRpc";
-import type { CreateOrganizationResponse } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { CreateOrganizationResponse } from "~/types/orpc";
 
 definePageMeta({
 	middleware: "auth",

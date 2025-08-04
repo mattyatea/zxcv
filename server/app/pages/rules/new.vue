@@ -190,7 +190,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 definePageMeta({
 	middleware: "auth",

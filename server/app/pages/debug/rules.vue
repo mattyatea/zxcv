@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 const $rpc = useRpc();
 const loading = ref(false);

@@ -159,8 +159,8 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/app/composables/useRpc";
-import type { RuleType, GetRuleResponse, GetRuleContentResponse } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { RuleType, GetRuleResponse, GetRuleContentResponse } from "~/types/orpc";
 
 console.log("Edit page loaded - /rules/@[owner]/[name]/edit.vue");
 

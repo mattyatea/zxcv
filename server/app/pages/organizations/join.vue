@@ -72,8 +72,8 @@
 import { onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/app/composables/useRpc";
-import type { OrganizationType, GetInvitationResponse } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { OrganizationType, GetInvitationResponse } from "~/types/orpc";
 
 // Using types from orpc.ts
 type Organization = OrganizationType;

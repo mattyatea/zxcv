@@ -111,7 +111,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 const { $t } = useNuxtApp();
 

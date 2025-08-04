@@ -92,7 +92,7 @@
 <script setup lang="ts">
 import { debounce } from "lodash-es";
 import { ref, watch } from "vue";
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 import type { InferRouterOutputs } from "@orpc/server";
 import type { router } from "~/server/orpc/router";
 

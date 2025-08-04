@@ -263,8 +263,8 @@ import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/app/composables/useRpc";
-import type { UserType, RuleType, GetUserByUsernameResponse } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { UserType, RuleType, GetUserByUsernameResponse } from "~/types/orpc";
 
 const route = useRoute();
 const $rpc = useRpc();

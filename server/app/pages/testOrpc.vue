@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 const $rpc = useRpc();
 const result = ref(null);

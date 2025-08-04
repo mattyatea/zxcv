@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { useRpc } from "~/app/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 const route = useRoute();
 const $rpc = useRpc();

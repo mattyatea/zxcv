@@ -560,8 +560,8 @@ import { storeToRefs } from "pinia";
 import { computed, onMounted, ref, watch } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/app/composables/useRpc";
-import type { RuleType } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { RuleType } from "~/types/orpc";
 
 
 const { t } = useI18n();

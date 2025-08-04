@@ -203,8 +203,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useRpc } from "~/app/composables/useRpc";
-import type { OrganizationType, RuleType, UserType, GetOrganizationResponse } from "~/app/types/orpc";
+import { useRpc } from "~/composables/useRpc";
+import type { OrganizationType, RuleType, UserType, GetOrganizationResponse } from "~/types/orpc";
 
 definePageMeta({
 	middleware: "auth",
