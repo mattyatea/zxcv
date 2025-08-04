@@ -74,23 +74,7 @@
 
     <div class="container-lg py-12">
       <!-- ローディング -->
-      <div v-if="loading" class="max-w-6xl mx-auto">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div v-for="i in 6" :key="i" class="card">
-            <div class="skeleton h-6 w-3/4 mb-3"></div>
-            <div class="skeleton h-4 w-1/2 mb-4"></div>
-            <div class="space-y-2 mb-4">
-              <div class="skeleton h-3 w-full"></div>
-              <div class="skeleton h-3 w-4/5"></div>
-              <div class="skeleton h-3 w-3/5"></div>
-            </div>
-            <div class="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div class="skeleton h-5 w-20"></div>
-              <div class="skeleton h-5 w-16"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <RulesRuleDetailSkeleton v-if="loading" />
 
       <!-- ルール詳細 -->
       <div v-else-if="rule" class="max-w-6xl mx-auto">
