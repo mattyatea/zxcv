@@ -473,6 +473,7 @@
     "privacy": "Privacy Policy",
     "contact": "Contact",
     "tagline": "Platform for sharing, managing, and utilizing AI coding rules",
+    "operatorInfo": "Operator Information",
     "product": "Product",
     "features": "Features",
     "pricing": "Pricing",
@@ -702,6 +703,41 @@
       "passwordReset": "zxcv - Password Reset",
       "emailVerification": "zxcv - Email Verification",
       "organizationInvite": "zxcv - Invitation to {organizationName}"
+    }
+  },
+  "about": {
+    "pageTitle": "About - zxcv",
+    "pageDescription": "Learn about zxcv, a platform for sharing and managing AI coding rules",
+    "hero": {
+      "title": "About zxcv",
+      "subtitle": "Empowering developers to share and manage AI coding rules for better software development"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "content1": "zxcv was born from the need to standardize and share AI coding instructions across development teams. As AI-powered development tools become increasingly prevalent, the need for consistent, high-quality prompts and coding rules has become critical.",
+      "content2": "Our platform enables developers and organizations to create, version, and share their coding rules and AI prompts, ensuring consistency and quality across projects. Whether you're working solo or in a large team, zxcv helps you maintain coding standards and leverage AI tools effectively.",
+      "content3": "We believe in the power of community-driven development. By sharing knowledge and best practices, we can collectively improve the way we write code and interact with AI development tools."
+    },
+    "values": {
+      "title": "Our Values",
+      "openness": {
+        "title": "Open Collaboration",
+        "description": "We foster an environment where developers can freely share their knowledge and learn from each other's experiences."
+      },
+      "security": {
+        "title": "Security First",
+        "description": "Your private rules and organizational data are protected with enterprise-grade security measures."
+      },
+      "efficiency": {
+        "title": "Developer Efficiency",
+        "description": "We're committed to building tools that make developers more productive and help teams work better together."
+      }
+    },
+    "contact": {
+      "title": "Get in Touch",
+      "description": "Have questions or feedback? We'd love to hear from you.",
+      "email": "Send us an email",
+      "github": "Visit our GitHub"
     }
   }
 }
