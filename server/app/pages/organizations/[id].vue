@@ -2,21 +2,7 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <div class="container-lg py-8">
       <!-- ローディング -->
-      <div v-if="loading" class="space-y-6">
-        <div class="skeleton h-10 w-1/3"></div>
-        <div class="skeleton h-6 w-2/3"></div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 space-y-6">
-            <div class="card">
-              <div class="skeleton h-6 w-1/4 mb-4"></div>
-              <div class="space-y-2">
-                <div class="skeleton h-4 w-full"></div>
-                <div class="skeleton h-4 w-3/4"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <OrganizationsOrganizationDetailSkeleton v-if="loading" />
 
       <!-- チーム詳細 -->
       <div v-else-if="organization">
