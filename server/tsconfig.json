@@ -8,7 +8,9 @@
       "./tests/types/test-env.d.ts",
       "./tests/types/cloudflare-test.d.ts",
       "./types/nuxtApp.d.ts",
-      "./types/orpc.d.ts"
+      "./types/orpc.d.ts",
+      "./types/global.d.ts",
+      "./app/types/rpc.d.ts"
     ],
     "strict": true,
     "esModuleInterop": true,

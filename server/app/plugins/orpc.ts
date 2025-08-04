@@ -1,7 +1,8 @@
+import type { ContractRouterClient } from "@orpc/contract";
 import { createORPCClient } from "@orpc/client";
-import { RPCLink } from "@orpc/client/fetch";
-import type { RouterClient } from "@orpc/server";
-import type { router } from "../../server/orpc/router";
+import { OpenAPILink } from "@orpc/openapi-client/fetch";
+import { contract } from "../../server/orpc/contracts";
+import type { JsonifiedClient } from "@orpc/openapi-client";
 
 export default defineNuxtPlugin((_nuxtApp) => {
 	const requestURL = useRequestURL();
@@ -11,16 +12,15 @@ export default defineNuxtPlugin((_nuxtApp) => {
 		? `${requestURL.protocol}//${requestURL.host}`
 		: window.location.origin;
 
-	// Use standard oRPC link for RPC protocol
-	// Separate endpoints: /rpc for oRPC protocol, /api for REST/OpenAPI
-	const link = new RPCLink({
-		url: `${baseURL}/rpc`,
+	// Create OpenAPI Link
+	const openAPILink = new OpenAPILink(contract, {
+		url: `${baseURL}/api`,
 		headers: () => {
 			const token = import.meta.client ? localStorage.getItem("access_token") : null;
 			return token ? { Authorization: `Bearer ${token}` } : {};
 		},
-		fetch: async (url, options) => {
-			const response = await fetch(url, options);
+		fetch: async (request, init) => {
+			const response = await fetch(request, init);
 
 			// レスポンスのクローンを作成してボディを読む
 			const clonedResponse = response.clone();
@@ -57,7 +57,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
 		},
 	});
 
-	const rpcClient: RouterClient<typeof router> = createORPCClient(link);
+	const rpcClient: JsonifiedClient<ContractRouterClient<typeof contract>> = createORPCClient(openAPILink);
 
 	return {
 		provide: {
