@@ -30,7 +30,7 @@
               <div>
                 <h1 class="heading-1">{{ organization.name }}</h1>
                 <p class="text-gray-600 dark:text-gray-400">
-                  {{ organization.description || $t('organizations.noDescription') }}
+                  {{ organization.description || t('organizations.noDescription') }}
                 </p>
               </div>
             </div>
@@ -46,14 +46,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              {{ $t('organizations.detail.settings') }}
+              {{ t('organizations.detail.settings') }}
             </CommonButton>
             <CommonButton
               v-if="organization.role === 'member'"
               variant="danger"
               size="sm"
             >
-              {{ $t('organizations.detail.leaveOrganization') }}
+              {{ t('organizations.detail.leaveOrganization') }}
             </CommonButton>
           </div>
         </div>
@@ -63,7 +63,7 @@
           <div class="card">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.members') }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('organizations.detail.members') }}</p>
                 <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ organization.memberCount }}</p>
               </div>
               <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +75,7 @@
           <div class="card">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.rules') }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('organizations.detail.rules') }}</p>
                 <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ organization.ruleCount }}</p>
               </div>
               <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@
           <div class="card">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.createdAt') }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('organizations.detail.createdAt') }}</p>
                 <p class="text-lg font-medium text-gray-900 dark:text-gray-100">
                   {{ new Date(organization.createdAt).toLocaleDateString('ja-JP') }}
                 </p>
@@ -121,7 +121,7 @@
         <!-- タブコンテンツ -->
         <div v-if="activeTab === 'rules'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div v-if="rules.length === 0" class="col-span-full text-center py-12">
-            <p class="text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.noRules') }}</p>
+            <p class="text-gray-600 dark:text-gray-400">{{ t('organizations.detail.noRules') }}</p>
           </div>
           <NuxtLink
             v-for="rule in rules"
@@ -155,13 +155,13 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="badge" :class="member.role === 'owner' ? 'badge-primary' : 'badge-gray'">
-                {{ member.role === 'owner' ? $t('organizations.owner') : $t('organizations.member') }}
+                {{ member.role === 'owner' ? t('organizations.owner') : t('organizations.member') }}
               </span>
               <button
                 v-if="organization.role === 'owner' && member.id !== authStore.user?.id && member.role !== 'owner'"
                 @click="removeMember(member)"
                 class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                :title="$t('organizations.detail.removeMember')"
+                :title="t('organizations.detail.removeMember')"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -175,7 +175,7 @@
               <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
-              {{ $t('organizations.detail.inviteMembers') }}
+              {{ t('organizations.detail.inviteMembers') }}
             </CommonButton>
           </div>
         </div>
@@ -183,10 +183,10 @@
 
       <!-- エラー -->
       <div v-else class="text-center py-12">
-        <p class="text-gray-600 dark:text-gray-400">{{ $t('organizations.detail.notFound') }}</p>
+        <p class="text-gray-600 dark:text-gray-400">{{ t('organizations.detail.notFound') }}</p>
         <NuxtLink to="/organizations">
           <CommonButton variant="ghost" class="mt-4">
-            {{ $t('organizations.detail.backToList') }}
+            {{ t('organizations.detail.backToList') }}
           </CommonButton>
         </NuxtLink>
       </div>

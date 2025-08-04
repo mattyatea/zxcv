@@ -18,15 +18,15 @@
         <div class="text-center space-y-8">
           <!-- Main heading with gradient text -->
           <h1 class="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tight animate-fade-in-up">
-            <span class="block text-white mb-4">{{ $t('home.hero.title') }}</span>
+            <span class="block text-white mb-4">{{ t('home.hero.title') }}</span>
             <span class="block bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient-x">
-              {{ $t('home.hero.titleHighlight') }}
+              {{ t('home.hero.titleHighlight') }}
             </span>
           </h1>
           
           <!-- Description -->
           <p class="max-w-3xl mx-auto text-xl md:text-2xl text-gray-300 leading-relaxed animate-fade-in-up animation-delay-200">
-            {{ $t('home.hero.description') }}
+            {{ t('home.hero.description') }}
           </p>
           
           <!-- CTA buttons -->
@@ -38,7 +38,7 @@
               class="group relative inline-flex items-center px-8 py-4 overflow-hidden font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
             >
               <span class="relative z-10 flex items-center">
-                {{ $t('home.hero.viewRules') }}
+                {{ t('home.hero.viewRules') }}
                 <svg class="w-5 h-5 ml-2 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -52,7 +52,7 @@
               size="xl"
               class="group relative px-8 py-4 font-bold text-white border-2 border-white/30 rounded-lg backdrop-blur-sm hover:bg-white/10 hover:border-white/50 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
             >
-              {{ $t('home.hero.getStarted') }}
+              {{ t('home.hero.getStarted') }}
             </CommonButton>
           </div>
         </div>
@@ -76,13 +76,13 @@
       <div class="container-lg">
         <div class="text-center relative z-10 max-w-4xl mx-auto">
           <h2 class="inline-block text-sm font-bold text-transparent bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text uppercase tracking-widest">
-            {{ $t('home.features.title') }}
+            {{ t('home.features.title') }}
           </h2>
           <h3 class="mt-6 text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white">
-            {{ $t('home.features.subtitle') }}
+            {{ t('home.features.subtitle') }}
           </h3>
           <p class="mt-8 text-xl sm:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed">
-            {{ $t('home.features.description') }}
+            {{ t('home.features.description') }}
           </p>
         </div>
 
@@ -97,10 +97,10 @@
                 </svg>
               </div>
               <h3 class="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
-                {{ $t('home.features.versionControl.title') }}
+                {{ t('home.features.versionControl.title') }}
               </h3>
               <p class="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('home.features.versionControl.description') }}
+                {{ t('home.features.versionControl.description') }}
               </p>
               <div class="mt-6 inline-flex items-center text-primary-600 dark:text-primary-400 font-medium group-hover:gap-2 transition-all duration-300">
                 <span>Learn more</span>
@@ -121,10 +121,10 @@
                 </svg>
               </div>
               <h3 class="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
-                {{ $t('home.features.organizationCollaboration.title') }}
+                {{ t('home.features.organizationCollaboration.title') }}
               </h3>
               <p class="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('home.features.organizationCollaboration.description') }}
+                {{ t('home.features.organizationCollaboration.description') }}
               </p>
               <div class="mt-6 inline-flex items-center text-accent-600 dark:text-accent-400 font-medium group-hover:gap-2 transition-all duration-300">
                 <span>Learn more</span>
@@ -145,10 +145,10 @@
                 </svg>
               </div>
               <h3 class="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
-                {{ $t('home.features.search.title') }}
+                {{ t('home.features.search.title') }}
               </h3>
               <p class="mt-4 text-gray-600 dark:text-gray-400 leading-relaxed">
-                {{ $t('home.features.search.description') }}
+                {{ t('home.features.search.description') }}
               </p>
               <div class="mt-6 inline-flex items-center text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all duration-300">
                 <span>Learn more</span>
@@ -178,10 +178,10 @@
       <div class="relative container-lg py-20 sm:py-24 lg:py-32">
         <div class="text-center animate-in slide-up-enter-active">
           <h2 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
-            {{ $t('home.cta.title') }}
+            {{ t('home.cta.title') }}
           </h2>
           <p class="mt-6 max-w-2xl mx-auto text-xl sm:text-2xl text-primary-100 leading-relaxed">
-            {{ $t('home.cta.description') }}
+            {{ t('home.cta.description') }}
           </p>
           <div class="mt-12">
             <CommonButton
@@ -191,7 +191,7 @@
               size="xl"
               class="bg-white text-primary-600 hover:bg-gray-100 hover:scale-105 hover-lift shadow-2xl hover:shadow-3xl transition-all duration-300 font-semibold px-12 py-4"
             >
-              {{ $t('home.cta.button') }}
+              {{ t('home.cta.button') }}
             </CommonButton>
           </div>
         </div>

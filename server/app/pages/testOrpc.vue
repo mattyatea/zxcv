@@ -1,20 +1,20 @@
 <template>
   <div class="p-8">
-    <h1 class="text-2xl font-bold mb-4">{{ $t('test.orpc.title') }}</h1>
+    <h1 class="text-2xl font-bold mb-4">{{ t('test.orpc.title') }}</h1>
     
     <div class="space-y-4">
       <button 
         @click="testHealth" 
         class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
       >
-        {{ $t('test.orpc.healthCheck') }}
+        {{ t('test.orpc.healthCheck') }}
       </button>
       
       <button 
         @click="testRuleCreate" 
         class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
       >
-        {{ $t('test.orpc.ruleCreate') }}
+        {{ t('test.orpc.ruleCreate') }}
       </button>
       
       <div v-if="result" class="mt-4 p-4 bg-gray-100 rounded">

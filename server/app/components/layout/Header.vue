@@ -76,7 +76,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-                <span>{{ $t('nav.myRules') }}</span>
+                <span>{{ t('nav.myRules') }}</span>
                 <svg class="w-3 h-3 transition-transform duration-300 ease-out" :class="showQuickAccess ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -96,7 +96,7 @@
                   class="absolute right-0 mt-2 w-72 rounded-xl bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-800 z-50"
                 >
                   <div class="p-3">
-                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ $t('nav.quickAccess') }}</h3>
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ t('nav.quickAccess') }}</h3>
                     <div class="space-y-1">
                       <NuxtLink
                         :to="`/rules?author=${user.username}`"
@@ -106,7 +106,7 @@
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        {{ $t('rules.myRules') }}
+                        {{ t('rules.myRules') }}
                       </NuxtLink>
                       <NuxtLink
                         to="/organizations"
@@ -116,7 +116,7 @@
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        {{ $t('nav.myOrganizations') }}
+                        {{ t('nav.myOrganizations') }}
                       </NuxtLink>
                     </div>
                   </div>
@@ -131,7 +131,7 @@
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        {{ $t('rules.createRule') }}
+                        {{ t('rules.createRule') }}
                       </CommonButton>
                     </NuxtLink>
                   </div>
@@ -180,7 +180,7 @@
                   class="absolute right-0 mt-2 w-56 rounded-xl bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-800 animate-in"
                 >
                   <div class="px-4 py-3">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('auth.login.loggingIn') }}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('auth.login.loggingIn') }}</p>
                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ user.email }}</p>
                   </div>
                   
@@ -205,7 +205,7 @@
                       <svg class="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
-                      {{ $t('nav.logout') }}
+                      {{ t('nav.logout') }}
                     </button>
                   </div>
                 </div>
@@ -220,7 +220,7 @@
                 variant="ghost"
                 size="sm"
               >
-                {{ $t('nav.login') }}
+                {{ t('nav.login') }}
               </CommonButton>
             </NuxtLink>
             <NuxtLink to="/register">
@@ -228,7 +228,7 @@
                 variant="primary"
                 size="sm"
               >
-                {{ $t('nav.register') }}
+                {{ t('nav.register') }}
               </CommonButton>
             </NuxtLink>
           </div>
@@ -275,10 +275,10 @@
     </Transition>
 
     <!-- Search Modal -->
-    <CommonModal v-model="showSearch" :title="$t('common.search')" size="lg">
+    <CommonModal v-model="showSearch" :title="t('common.search')" size="lg">
       <CommonInput
         v-model="searchQuery"
-        :placeholder="$t('rules.searchPlaceholder')"
+        :placeholder="t('rules.searchPlaceholder')"
         @keyup.enter="handleSearch"
       >
         <template #prefix>

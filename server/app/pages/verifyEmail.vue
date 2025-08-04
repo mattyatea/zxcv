@@ -3,10 +3,10 @@
     <div class="max-w-md w-full space-y-8">
       <div class="text-center">
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-          {{ $t('auth.verifyEmail.title') }}
+          {{ t('auth.verifyEmail.title') }}
         </h2>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ $t('auth.verifyEmail.verifying') }}
+          {{ t('auth.verifyEmail.verifying') }}
         </p>
       </div>
 
@@ -33,18 +33,18 @@
             </div>
             <div class="ml-3">
               <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
-                {{ $t('auth.verifyEmail.success') }}
+                {{ t('auth.verifyEmail.success') }}
               </h3>
               <div class="mt-2 text-sm text-green-700 dark:text-green-300">
-                <p>{{ $t('auth.verifyEmail.successMessage') }}</p>
-                <p class="mt-1">{{ $t('auth.verifyEmail.successDescription') }}</p>
+                <p>{{ t('auth.verifyEmail.successMessage') }}</p>
+                <p class="mt-1">{{ t('auth.verifyEmail.successDescription') }}</p>
               </div>
               <div class="mt-4">
                 <NuxtLink
                   to="/auth"
                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 button-hover"
                 >
-                  {{ $t('auth.verifyEmail.goToLogin') }}
+                  {{ t('auth.verifyEmail.goToLogin') }}
                 </NuxtLink>
               </div>
             </div>
@@ -61,7 +61,7 @@
             </div>
             <div class="ml-3">
               <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                {{ $t('auth.verifyEmail.error') }}
+                {{ t('auth.verifyEmail.error') }}
               </h3>
               <div class="mt-2 text-sm text-red-700 dark:text-red-300">
                 <p>{{ errorMessage }}</p>
@@ -71,14 +71,14 @@
                   to="/register"
                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
-                  {{ $t('auth.verifyEmail.register') }}
+                  {{ t('auth.verifyEmail.register') }}
                 </NuxtLink>
                 <button
                   @click="resendVerification"
                   :disabled="resending"
                   class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {{ resending ? $t('auth.verifyEmail.resending') : $t('auth.verifyEmail.resendEmail') }}
+                  {{ resending ? t('auth.verifyEmail.resending') : t('auth.verifyEmail.resendEmail') }}
                 </button>
               </div>
             </div>
@@ -95,11 +95,11 @@
             </div>
             <div class="ml-3">
               <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                {{ $t('auth.verifyEmail.noToken') }}
+                {{ t('auth.verifyEmail.noToken') }}
               </h3>
               <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                <p>{{ $t('auth.verifyEmail.noTokenMessage') }}</p>
-                <p class="mt-1">{{ $t('auth.verifyEmail.noTokenDescription') }}</p>
+                <p>{{ t('auth.verifyEmail.noTokenMessage') }}</p>
+                <p class="mt-1">{{ t('auth.verifyEmail.noTokenDescription') }}</p>
               </div>
             </div>
           </div>
@@ -113,10 +113,10 @@
 import { onMounted, ref } from "vue";
 import { useRpc } from "~/composables/useRpc";
 
-const { $t } = useNuxtApp();
+const { t } = useI18n();
 
 useHead({
-	title: $t("auth.verifyEmail.pageTitle"),
+	title: t("auth.verifyEmail.pageTitle"),
 });
 
 const route = useRoute();
@@ -143,11 +143,11 @@ const verifyEmail = async () => {
 			success.value = true;
 		} else {
 			error.value = true;
-			errorMessage.value = response.message || $t("auth.verifyEmail.errorMessage");
+			errorMessage.value = response.message || t("auth.verifyEmail.errorMessage");
 		}
 	} catch (err) {
 		error.value = true;
-		errorMessage.value = err.message || $t("auth.verifyEmail.invalidToken");
+		errorMessage.value = err.message || t("auth.verifyEmail.invalidToken");
 	} finally {
 		loading.value = false;
 	}
@@ -157,7 +157,7 @@ const resendVerification = async () => {
 	resending.value = true;
 
 	// Get email from query parameter or prompt user
-	const email = route.query.email || prompt($t("auth.verifyEmail.enterEmail"));
+	const email = route.query.email || prompt(t("auth.verifyEmail.enterEmail"));
 
 	if (!email) {
 		resending.value = false;
@@ -171,12 +171,12 @@ const resendVerification = async () => {
 		});
 
 		if (response.success) {
-			alert($t("auth.verifyEmail.emailResent"));
+			alert(t("auth.verifyEmail.emailResent"));
 		} else {
-			alert(response.message || $t("auth.verifyEmail.resendError"));
+			alert(response.message || t("auth.verifyEmail.resendError"));
 		}
 	} catch (err) {
-		alert(err.message || $t("auth.verifyEmail.generalError"));
+		alert(err.message || t("auth.verifyEmail.generalError"));
 	} finally {
 		resending.value = false;
 	}

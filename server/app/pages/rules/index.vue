@@ -8,12 +8,12 @@
             <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            {{ $t('rules.title') }}
+            {{ t('rules.title') }}
           </h1>
           <p class="text-gray-600 dark:text-gray-400 mt-2">
-            {{ $t('rules.subtitle') }}
+            {{ t('rules.subtitle') }}
             <span v-if="total > 0" class="ml-2 text-sm font-medium">
-              {{ $t('rules.itemsCount', { count: total.toLocaleString() }) }}
+              {{ t('rules.itemsCount', { count: total.toLocaleString() }) }}
             </span>
           </p>
         </div>
@@ -28,7 +28,7 @@
                   ? 'bg-primary-500 text-white' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               ]"
-              :aria-label="$t('rules.gridView')"
+              :aria-label="t('rules.gridView')"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -42,7 +42,7 @@
                   ? 'bg-primary-500 text-white' 
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               ]"
-              :aria-label="$t('rules.listView')"
+              :aria-label="t('rules.listView')"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -54,7 +54,7 @@
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-              {{ $t('rules.createRule') }}
+              {{ t('rules.createRule') }}
             </CommonButton>
           </NuxtLink>
         </div>
@@ -67,7 +67,7 @@
           <div class="relative group">
             <CommonInput
               v-model="searchQuery"
-              :placeholder="$t('rules.searchPlaceholder')"
+              :placeholder="t('rules.searchPlaceholder')"
               @input="debouncedSearch"
               @keydown.enter="fetchRules"
               @keydown.esc="searchQuery = ''; fetchRules()"
@@ -87,7 +87,7 @@
               </template>
             </CommonInput>
             <div class="absolute -bottom-5 left-0 text-xs text-gray-500 dark:text-gray-400">
-              <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">⌘K</kbd> {{ $t('rules.searchHint', { key: 'Ctrl+K' }) }}
+              <kbd class="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">⌘K</kbd> {{ t('rules.searchHint', { key: 'Ctrl+K' }) }}
             </div>
           </div>
         </div>
@@ -98,7 +98,7 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {{ $t('rules.filters.visibility') }}
+                  {{ t('rules.filters.visibility') }}
                 </label>
                 <div class="relative">
                   <select
@@ -106,10 +106,10 @@
                     @change="fetchRules"
                     class="w-full h-11 px-4 pr-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors appearance-none cursor-pointer"
                   >
-                    <option value="all">{{ $t('rules.visibility.all') }}</option>
-                    <option value="public">{{ $t('rules.visibility.public') }}</option>
-                    <option value="private">{{ $t('rules.visibility.private') }}</option>
-                    <option value="organization">{{ $t('rules.visibility.organization') }}</option>
+                    <option value="all">{{ t('rules.visibility.all') }}</option>
+                    <option value="public">{{ t('rules.visibility.public') }}</option>
+                    <option value="private">{{ t('rules.visibility.private') }}</option>
+                    <option value="organization">{{ t('rules.visibility.organization') }}</option>
                   </select>
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@
               
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {{ $t('rules.filters.sortBy') }}
+                  {{ t('rules.filters.sortBy') }}
                 </label>
                 <div class="relative">
                   <select
@@ -129,11 +129,11 @@
                     @change="fetchRules"
                     class="w-full h-11 px-4 pr-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors appearance-none cursor-pointer"
                   >
-                    <option value="updated">{{ $t('rules.sort.recentlyUpdated') }}</option>
-                    <option value="created">{{ $t('rules.sort.recentlyCreated') }}</option>
-                    <option value="name">{{ $t('rules.sort.alphabetical') }}</option>
-                    <option value="views">{{ $t('rules.sort.views') }}</option>
-                    <option value="stars">{{ $t('rules.sort.stars') }}</option>
+                    <option value="updated">{{ t('rules.sort.recentlyUpdated') }}</option>
+                    <option value="created">{{ t('rules.sort.recentlyCreated') }}</option>
+                    <option value="name">{{ t('rules.sort.alphabetical') }}</option>
+                    <option value="views">{{ t('rules.sort.views') }}</option>
+                    <option value="stars">{{ t('rules.sort.stars') }}</option>
                   </select>
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,11 +145,11 @@
 
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {{ $t('rules.filters.author') }}
+                  {{ t('rules.filters.author') }}
                 </label>
                 <CommonInput
                   v-model="filters.author"
-                  :placeholder="$t('rules.filters.authorPlaceholder')"
+                  :placeholder="t('rules.filters.authorPlaceholder')"
                   @input="debouncedSearch"
                   class="w-full"
                 />
@@ -159,13 +159,13 @@
           <!-- タグフィルター -->
           <div v-if="popularTags.length > 0" class="space-y-4 mt-6">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $t('rules.filters.popularTags') }}</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('rules.filters.popularTags') }}</span>
               <button
                 v-if="selectedTags.length > 0"
                 @click="selectedTags = []; fetchRules()"
                 class="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
               >
-                {{ $t('rules.filters.clearTags') }} ({{ selectedTags.length }})
+                {{ t('rules.filters.clearTags') }} ({{ selectedTags.length }})
               </button>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -191,13 +191,13 @@
         <div v-if="hasActiveFilters" class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {{ $t('rules.filters.activeFilters') }}
+              {{ t('rules.filters.activeFilters') }}
             </span>
             <button
               @click="resetFilters"
               class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
-              {{ $t('rules.filters.resetAll') }}
+              {{ t('rules.filters.resetAll') }}
             </button>
           </div>
           <div class="flex flex-wrap gap-2">
@@ -274,7 +274,7 @@
                   'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                 ]"
               >
-                {{ $t(`rules.visibility.${rule.visibility}`) }}
+                {{ t(`rules.visibility.${rule.visibility}`) }}
               </span>
             </div>
             
@@ -331,7 +331,7 @@
                     ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' 
                     : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400'
                 ]"
-                :aria-label="$t('rules.actions.star')"
+                :aria-label="t('rules.actions.star')"
               >
                 <svg class="w-4 h-4" :fill="rule.isStarred ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -380,7 +380,7 @@
                     'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                   ]"
                 >
-                  {{ $t(`rules.visibility.${rule.visibility}`) }}
+                  {{ t(`rules.visibility.${rule.visibility}`) }}
                 </span>
               </div>
 
@@ -435,7 +435,7 @@
                     ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' 
                     : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400'
                 ]"
-                :aria-label="$t('rules.actions.star')"
+                :aria-label="t('rules.actions.star')"
               >
                 <svg class="w-5 h-5" :fill="rule.isStarred ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -456,7 +456,7 @@
             検索結果がありません
           </h3>
           <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-            {{ $t('rules.noRulesMessage') }}
+            {{ t('rules.noRulesMessage') }}
           </p>
           <CommonButton variant="ghost" size="lg" @click="resetFilters">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -470,17 +470,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           <h3 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-            {{ $t('rules.noRulesFound') }}
+            {{ t('rules.noRulesFound') }}
           </h3>
           <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-            {{ $t('rules.createFirstRule') }}
+            {{ t('rules.createFirstRule') }}
           </p>
           <NuxtLink to="/rules/new">
             <CommonButton variant="primary" size="lg">
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
-              {{ $t('rules.createRule') }}
+              {{ t('rules.createRule') }}
             </CommonButton>
           </NuxtLink>
         </div>
@@ -489,7 +489,7 @@
       <!-- ページネーション -->
       <div v-if="totalPages > 1" class="mt-16 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div class="text-sm text-gray-600 dark:text-gray-400">
-          {{ $t('rules.showing', { start: ((currentPage - 1) * limit + 1).toLocaleString(), end: Math.min(currentPage * limit, total).toLocaleString(), total: total.toLocaleString() }) }}
+          {{ t('rules.showing', { start: ((currentPage - 1) * limit + 1).toLocaleString(), end: Math.min(currentPage * limit, total).toLocaleString(), total: total.toLocaleString() }) }}
         </div>
         <nav class="flex items-center space-x-1">
           <button

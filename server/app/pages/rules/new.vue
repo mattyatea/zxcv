@@ -1,20 +1,20 @@
 <template>
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $t('rules.createNewRule') }}</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ t('rules.createNewRule') }}</h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        {{ $t('rules.shareWithCommunity') }}
+        {{ t('rules.shareWithCommunity') }}
       </p>
     </div>
 
     <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Basic Information -->
       <div class="card">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ $t('rules.basicInfo') }}</h2>
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ t('rules.basicInfo') }}</h2>
         
         <div class="space-y-4">
           <div>
-            <label for="name" class="label">{{ $t('rules.form.name') }}</label>
+            <label for="name" class="label">{{ t('rules.form.name') }}</label>
             <input
               id="name"
               v-model="form.name"
@@ -25,63 +25,63 @@
               placeholder="my-awesome-rule"
             />
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {{ $t('rules.form.nameHint') }}
+              {{ t('rules.form.nameHint') }}
             </p>
           </div>
 
 
           <div>
-            <label for="description" class="label">{{ $t('rules.form.description') }}</label>
+            <label for="description" class="label">{{ t('rules.form.description') }}</label>
             <textarea
               id="description"
               v-model="form.description"
               rows="3"
               class="input"
-              :placeholder="$t('rules.form.descriptionPlaceholder')"
+              :placeholder="t('rules.form.descriptionPlaceholder')"
             />
           </div>
 
           <div>
-            <label for="visibility" class="label">{{ $t('rules.form.visibility') }}</label>
+            <label for="visibility" class="label">{{ t('rules.form.visibility') }}</label>
             <select
               id="visibility"
               v-model="form.visibility"
               class="input"
             >
-              <option value="public">{{ $t('rules.form.visibilityOptions.public') }}</option>
-              <option value="private">{{ $t('rules.form.visibilityOptions.private') }}</option>
+              <option value="public">{{ t('rules.form.visibilityOptions.public') }}</option>
+              <option value="private">{{ t('rules.form.visibilityOptions.private') }}</option>
             </select>
           </div>
 
           <div>
-            <label for="organization" class="label">{{ $t('rules.form.organization') }} ({{ $t('common.optional') }})</label>
+            <label for="organization" class="label">{{ t('rules.form.organization') }} ({{ t('common.optional') }})</label>
             <select
               id="organization"
               v-model="selectedOrganizationId"
               class="input"
               @change="updateOrganization"
             >
-              <option value="">{{ $t('rules.form.noOrganization') }}</option>
+              <option value="">{{ t('rules.form.noOrganization') }}</option>
               <option v-for="organization in organizations" :key="organization.id" :value="organization.id">
                 {{ organization.displayName }}
               </option>
             </select>
             <p v-if="form.org" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {{ $t('rules.form.urlPreview') }} @{{ form.org }}/{{ form.name || 'rule-name' }}
+              {{ t('rules.form.urlPreview') }} @{{ form.org }}/{{ form.name || 'rule-name' }}
             </p>
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {{ $t('rules.form.organizationHint') }}
+              {{ t('rules.form.organizationHint') }}
             </p>
           </div>
 
           <div>
-            <label for="tags" class="label">{{ $t('rules.form.tags') }}</label>
+            <label for="tags" class="label">{{ t('rules.form.tags') }}</label>
             <div class="flex gap-2 mb-2">
               <input
                 v-model="tagInput"
                 type="text"
                 class="input flex-1"
-                :placeholder="$t('rules.form.tagsPlaceholder')"
+                :placeholder="t('rules.form.tagsPlaceholder')"
                 @keydown.enter.prevent="addTag"
               />
               <Button
@@ -90,7 +90,7 @@
                 variant="secondary"
                 size="sm"
               >
-                {{ $t('rules.form.addTag') }}
+                {{ t('rules.form.addTag') }}
               </Button>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -115,11 +115,11 @@
 
       <!-- Rule Content -->
       <div class="card">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ $t('rules.ruleContent') }}</h2>
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ t('rules.ruleContent') }}</h2>
         
         <div class="space-y-4">
           <div>
-            <label for="content" class="label">{{ $t('rules.form.content') }}</label>
+            <label for="content" class="label">{{ t('rules.form.content') }}</label>
             <div class="mb-2">
               <Button
                 type="button"
@@ -127,7 +127,7 @@
                 variant="ghost"
                 size="sm"
               >
-                {{ showFileUpload ? $t('rules.form.writeDirectly') : $t('rules.form.uploadMarkdown') }}
+                {{ showFileUpload ? t('rules.form.writeDirectly') : t('rules.form.uploadMarkdown') }}
               </Button>
             </div>
             
@@ -152,10 +152,10 @@
               rows="15"
               required
               class="input font-mono text-sm"
-              :placeholder="$t('rules.form.contentPlaceholder')"
+              :placeholder="t('rules.form.contentPlaceholder')"
             />
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {{ $t('rules.form.markdownSupported') }}
+              {{ t('rules.form.markdownSupported') }}
             </p>
           </div>
         </div>
@@ -168,7 +168,7 @@
           to="/rules"
           variant="secondary"
         >
-          {{ $t('common.cancel') }}
+          {{ t('common.cancel') }}
         </Button>
         <Button
           type="submit"
@@ -176,7 +176,7 @@
           :disabled="loading"
           variant="primary"
         >
-          {{ loading ? $t('rules.creating') : $t('rules.createRule') }}
+          {{ loading ? t('rules.creating') : t('rules.createRule') }}
         </Button>
       </div>
 

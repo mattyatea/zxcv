@@ -4,7 +4,7 @@
       <!-- ローディング -->
       <div v-if="loading" class="text-center">
         <CommonLoadingSpinner size="lg" />
-        <p class="mt-4 text-gray-600 dark:text-gray-400">{{ $t('organizations.join.verifying') }}</p>
+        <p class="mt-4 text-gray-600 dark:text-gray-400">{{ t('organizations.join.verifying') }}</p>
       </div>
 
       <!-- エラー -->
@@ -15,12 +15,12 @@
           </svg>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {{ $t('organizations.join.failed') }}
+          {{ t('organizations.join.failed') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">{{ error }}</p>
         <NuxtLink to="/organizations">
           <CommonButton variant="primary">
-            {{ $t('organizations.join.backToOrganizations') }}
+            {{ t('organizations.join.backToOrganizations') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -33,14 +33,14 @@
           </svg>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {{ $t('organizations.join.joined') }}
+          {{ t('organizations.join.joined') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
-          {{ organization?.displayName || organization?.name }} {{ $t('organizations.join.welcome') }}
+          {{ organization?.displayName || organization?.name }} {{ t('organizations.join.welcome') }}
         </p>
         <NuxtLink :to="`/organizations/${organization?.id}`">
           <CommonButton variant="primary">
-            {{ $t('organizations.join.goToOrganization') }}
+            {{ t('organizations.join.goToOrganization') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -53,14 +53,14 @@
           </svg>
         </div>
         <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-          {{ $t('organizations.join.loginRequired') }}
+          {{ t('organizations.join.loginRequired') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-6">
-          {{ $t('organizations.join.loginToJoin') }}
+          {{ t('organizations.join.loginToJoin') }}
         </p>
         <NuxtLink :to="`/login?redirect=/organizations/join?token=${token}`">
           <CommonButton variant="primary">
-            {{ $t('organizations.join.login') }}
+            {{ t('organizations.join.login') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -73,7 +73,7 @@ import { onMounted, ref } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 import { useRpc } from "~/composables/useRpc";
-import type { OrganizationType, GetInvitationResponse } from "~/types/orpc";
+import type { OrganizationType } from "~/types/orpc";
 
 // Using types from orpc.ts
 type Organization = OrganizationType;

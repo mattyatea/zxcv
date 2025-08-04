@@ -1,13 +1,13 @@
 <template>
-  <CommonModal v-model="isOpen" :title="$t('organizations.inviteMember.title')">
+  <CommonModal v-model="isOpen" :title="t('organizations.inviteMember.title')">
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <!-- ユーザー名検索 -->
       <div class="relative">
         <CommonInput
           v-model="searchQuery"
           @input="handleSearch"
-          :label="$t('organizations.inviteMember.usernameLabel')"
-          :placeholder="$t('organizations.inviteMember.usernamePlaceholder')"
+          :label="t('organizations.inviteMember.usernameLabel')"
+          :placeholder="t('organizations.inviteMember.usernamePlaceholder')"
           autocomplete="off"
         />
           
@@ -75,14 +75,14 @@
           @click="handleCancel"
           :disabled="inviting"
         >
-          {{ $t('common.cancel') }}
+          {{ t('common.cancel') }}
         </CommonButton>
         <CommonButton
           type="submit"
           :disabled="!selectedUser || inviting"
           :loading="inviting"
         >
-          {{ $t('organizations.inviteMember.invite') }}
+          {{ t('organizations.inviteMember.invite') }}
         </CommonButton>
       </div>
     </form>

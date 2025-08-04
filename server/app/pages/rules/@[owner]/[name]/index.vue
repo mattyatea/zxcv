@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between">
           <nav class="flex items-center gap-2 text-sm">
             <NuxtLink to="/rules" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
-              {{ $t('rules.title') }}
+              {{ t('rules.title') }}
             </NuxtLink>
             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -26,7 +26,7 @@
               <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
-              {{ $t('rules.actions.star') }}
+              {{ t('rules.actions.star') }}
             </CommonButton>
             <CommonButton
               v-else
@@ -38,7 +38,7 @@
               <svg class="w-4 h-4 mr-1" fill="currentColor" stroke="none" viewBox="0 0 24 24">
                 <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
-              {{ $t('rules.actions.starred') }}
+              {{ t('rules.actions.starred') }}
             </CommonButton>
             
             <div class="relative" v-if="false">
@@ -56,13 +56,13 @@
               <transition name="dropdown">
                 <div v-if="showShareMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
                   <button class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    {{ $t('rules.actions.copyUrl') }}
+                    {{ t('rules.actions.copyUrl') }}
                   </button>
                   <button class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    {{ $t('rules.actions.shareOnX') }}
+                    {{ t('rules.actions.shareOnX') }}
                   </button>
                   <button class="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                    {{ $t('rules.actions.copyMarkdown') }}
+                    {{ t('rules.actions.copyMarkdown') }}
                   </button>
                 </div>
               </transition>
@@ -109,7 +109,7 @@
                     'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                   ]"
                 >
-                  {{ $t(`rules.visibility.${rule.visibility}`) }}
+                  {{ t(`rules.visibility.${rule.visibility}`) }}
                 </span>
               </h1>
               
@@ -137,7 +137,7 @@
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  {{ formatDate(rule.updated_at) }}
+                  {{ formatDate(rule.updatedAt) }}
                 </span>
               </div>
               
@@ -148,7 +148,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                   </svg>
                   <span class="text-gray-900 dark:text-gray-100 font-medium">{{ formatNumber(rule.stars || 0) }}</span>
-                  <span class="text-gray-600 dark:text-gray-400">{{ $t('rules.detail.stars') }}</span>
+                  <span class="text-gray-600 dark:text-gray-400">{{ t('rules.detail.stars') }}</span>
                 </div>
                 
                 <div class="flex items-center gap-2">
@@ -157,7 +157,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                   <span class="text-gray-900 dark:text-gray-100 font-medium">{{ formatNumber(rule.views || 0) }}</span>
-                  <span class="text-gray-600 dark:text-gray-400">{{ $t('rules.detail.views') }}</span>
+                  <span class="text-gray-600 dark:text-gray-400">{{ t('rules.detail.views') }}</span>
                 </div>
                 
                 <div class="flex items-center gap-2" v-if="viewCount && false">
@@ -166,7 +166,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                   <span class="text-gray-900 dark:text-gray-100 font-medium">{{ formatNumber(viewCount) }}</span>
-                  <span class="text-gray-600 dark:text-gray-400">{{ $t('rules.detail.views') }}</span>
+                  <span class="text-gray-600 dark:text-gray-400">{{ t('rules.detail.views') }}</span>
                 </div>
               </div>
             </div>
@@ -177,7 +177,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {{ $t('rules.form.description') }}
+                {{ t('rules.form.description') }}
               </h2>
               <p class="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ rule.description }}</p>
             </div>
@@ -190,7 +190,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   <p class="text-sm text-amber-800 dark:text-amber-200">
-                    {{ $t('rules.detail.viewingOldVersion', { version: `v${rule.version}` }) }}
+                    {{ t('rules.detail.viewingOldVersion', { version: `v${rule.version}` }) }}
                   </p>
                 </div>
                 <CommonButton
@@ -198,7 +198,7 @@
                   variant="primary"
                   @click="fetchRuleDetails"
                 >
-                  {{ $t('rules.detail.viewLatestVersion') }}
+                  {{ t('rules.detail.viewLatestVersion') }}
                 </CommonButton>
               </div>
             </div>
@@ -210,7 +210,7 @@
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                   </svg>
-                  {{ $t('rules.ruleContent') }}
+                  {{ t('rules.ruleContent') }}
                 </h2>
                 <div class="flex items-center gap-2">
                   <CommonButton
@@ -246,7 +246,7 @@
                         : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-100'
                     ]"
                   >
-                    {{ $t('rules.detail.preview') }}
+                    {{ t('rules.detail.preview') }}
                   </button>
                   <button
                     @click="contentView = 'raw'"
@@ -257,7 +257,7 @@
                         : 'text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-100'
                     ]"
                   >
-                    {{ $t('rules.detail.raw') }}
+                    {{ t('rules.detail.raw') }}
                   </button>
                 </nav>
               </div>
@@ -274,7 +274,7 @@
                 <!-- コピー完了通知 -->
                 <transition name="fade">
                   <div v-if="contentCopied" class="absolute top-2 right-2 bg-green-500 text-white px-3 py-1 rounded-lg text-sm shadow-lg">
-                    {{ $t('rules.messages.copied') }}
+                    {{ t('rules.messages.copied') }}
                   </div>
                 </transition>
               </div>
@@ -286,7 +286,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {{ $t('rules.detail.versionHistory') }}
+                {{ t('rules.detail.versionHistory') }}
               </h2>
               <div class="space-y-3">
                 <div
@@ -306,10 +306,10 @@
                         v{{ version.version }}
                       </span>
                       <span v-if="version.version === originalVersion" class="px-2 py-0.5 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
-                        {{ $t('rules.detail.latest') }}
+                        {{ t('rules.detail.latest') }}
                       </span>
                       <span v-if="version.version === rule.version" class="px-2 py-0.5 text-xs bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300 rounded-full">
-                        {{ $t('rules.detail.viewing') }}
+                        {{ t('rules.detail.viewing') }}
                       </span>
                     </div>
                     <p v-if="version.changelog" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -331,7 +331,7 @@
           <div class="space-y-8">
             <!-- アクション -->
             <div class="card">
-              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ $t('rules.detail.actions') }}</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ t('rules.detail.actions') }}</h3>
               <div class="space-y-4">
                 <CommonButton
                   variant="primary"
@@ -342,7 +342,7 @@
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                  {{ copied ? $t('rules.actions.copied') : $t('rules.actions.copyRule') }}
+                  {{ copied ? t('rules.actions.copied') : t('rules.actions.copyRule') }}
                 </CommonButton>
                 
                 <NuxtLink v-if="isOwner" :to="`/rules/@${owner}/${name}/edit`" class="block">
@@ -354,7 +354,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                    {{ $t('rules.actions.edit') }}
+                    {{ t('rules.actions.edit') }}
                   </CommonButton>
                 </NuxtLink>
                 
@@ -368,7 +368,7 @@
                   <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  {{ $t('rules.actions.delete') }}
+                  {{ t('rules.actions.delete') }}
                 </CommonButton>
               </div>
             </div>
@@ -379,18 +379,18 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                {{ $t('rules.detail.cliCommand') }}
+                {{ t('rules.detail.cliCommand') }}
               </h3>
               <div class="space-y-4">
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                  {{ $t('rules.detail.cliDescription') }}
+                  {{ t('rules.detail.cliDescription') }}
                 </p>
                 <div class="relative">
                   <pre class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-4 rounded-lg text-sm overflow-x-auto pr-12 border border-gray-700 dark:border-gray-800"><code>zxcv install @{{ owner }}/{{ name }}</code></pre>
                   <button
                     @click="copyCliCommand"
                     class="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-100 transition-colors"
-                    :title="$t('common.copy')"
+                    :title="t('common.copy')"
                   >
                     <svg v-if="!cliCopied" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -409,7 +409,7 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
-                {{ $t('rules.detail.tags') }}
+                {{ t('rules.detail.tags') }}
               </h3>
               <div class="flex flex-wrap gap-2">
                 <NuxtLink
@@ -425,7 +425,7 @@
 
             <!-- 作成者情報 -->
             <div class="card">
-              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ rule.organization ? $t('rules.detail.organization') : $t('rules.detail.author') }}</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ rule.organization ? t('rules.detail.organization') : t('rules.detail.author') }}</h3>
               
               <!-- 組織の場合 -->
               <div v-if="rule.organization">
@@ -446,7 +446,7 @@
                 
                 <!-- 更新者情報 -->
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ $t('rules.detail.updatedBy') }}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ t('rules.detail.updatedBy') }}</p>
                   <NuxtLink 
                     :to="`/user/${rule.author.username}`"
                     class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
@@ -476,14 +476,14 @@
                 >
                 <div>
                   <p class="font-medium text-gray-900 dark:text-gray-100">{{ rule.author.username }}</p>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('rules.detail.rulesPublished', { count: userRuleCount }) }}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('rules.detail.rulesPublished', { count: userRuleCount }) }}</p>
                 </div>
               </NuxtLink>
             </div>
 
             <!-- 関連ルール -->
             <div v-if="relatedRules.length > 0" class="card">
-              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ $t('rules.detail.relatedRules') }}</h3>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-6">{{ t('rules.detail.relatedRules') }}</h3>
               <div class="space-y-4">
                 <NuxtLink
                   v-for="related in relatedRules.slice(0, 5)"
@@ -522,33 +522,33 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          {{ $t('rules.detail.notFound') }}
+          {{ t('rules.detail.notFound') }}
         </h2>
         <p class="text-gray-600 dark:text-gray-400 mb-8">
-          {{ $t('rules.detail.notFoundDescription') }}
+          {{ t('rules.detail.notFoundDescription') }}
         </p>
         <NuxtLink to="/rules">
           <CommonButton variant="primary" size="lg">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
             </svg>
-            {{ $t('rules.detail.backToList') }}
+            {{ t('rules.detail.backToList') }}
           </CommonButton>
         </NuxtLink>
       </div>
     </div>
     
     <!-- 削除確認ダイアログ -->
-    <CommonModal v-model="showDeleteModal" :title="$t('rules.messages.deleteConfirm')" size="sm">
+    <CommonModal v-model="showDeleteModal" :title="t('rules.messages.deleteConfirm')" size="sm">
       <p class="text-gray-600 dark:text-gray-400">
-        {{ $t('rules.detail.deleteConfirmDescription') }}
+        {{ t('rules.detail.deleteConfirmDescription') }}
       </p>
       <template #footer>
         <CommonButton variant="ghost" @click="showDeleteModal = false">
-          {{ $t('common.cancel') }}
+          {{ t('common.cancel') }}
         </CommonButton>
         <CommonButton variant="danger" @click="deleteRule" :loading="deleting">
-          {{ $t('common.delete') }}
+          {{ t('common.delete') }}
         </CommonButton>
       </template>
     </CommonModal>
@@ -558,15 +558,10 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
+import type { GetRuleContentResponse } from "~/types/orpc";
+import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/composables/useRpc";
-import type { RuleType, OrganizationType, RuleVersionType, GetRuleResponse, GetRuleContentResponse } from "~/types/orpc";
-
-// Using types from orpc.ts
-type Rule = GetRuleResponse & { content: string };
-type Organization = OrganizationType;
-type Version = RuleVersionType;
 
 const route = useRoute();
 const $rpc = useRpc();
@@ -575,7 +570,7 @@ const router = useRouter();
 const loading = ref(false);
 const rule = ref<Rule | null>(null);
 const versions = ref<Version[]>([]);
-const relatedRules = ref<Rule[]>([]);
+const relatedRules = ref<GetRuleContentResponse[]>([]);
 const isOwner = ref(false);
 const copied = ref(false);
 const contentCopied = ref(false);
@@ -612,7 +607,7 @@ const fetchRuleDetails = async () => {
 
 		// Debug log
 		console.log("Rule data:", data);
-		console.log("updated_at:", data.updated_at, typeof data.updated_at);
+		console.log("updatedAt:", data.updatedAt, typeof data.updatedAt);
 
 		// Fetch content
 		const contentData = await $rpc.rules.getContent({ id: data.id });
@@ -634,12 +629,7 @@ const fetchRuleDetails = async () => {
 			organization: data.organization,
 			tags: data.tags || [],
 			version: data.version,
-			updated_at:
-				typeof data.updated_at === "number"
-					? data.updated_at
-					: data.updated_at
-						? Math.floor(new Date(data.updated_at).getTime() / 1000)
-						: Math.floor(Date.now() / 1000),
+			updatedAt: data.updatedAt,
 			views: data.views,
 			stars: data.stars,
 		};
@@ -861,7 +851,7 @@ const showVersion = async (versionNumber: string) => {
 			organization: versionData.organization,
 			tags: versionData.tags,
 			version: versionData.version,
-			updated_at: versionData.createdAt,
+			updatedAt: versionData.createdAt,
 		};
 
 		// バージョン表示中であることを示すメッセージ

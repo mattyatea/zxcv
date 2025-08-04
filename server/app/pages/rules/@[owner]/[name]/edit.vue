@@ -17,7 +17,7 @@
         <p class="text-danger mb-4">{{ error }}</p>
         <NuxtLink :to="getRuleUrl()">
           <CommonButton variant="ghost">
-            {{ $t('common.back') }}
+            {{ t('common.back') }}
           </CommonButton>
         </NuxtLink>
       </div>
@@ -25,24 +25,24 @@
       <!-- 編集フォーム -->
       <div v-else-if="rule" class="max-w-4xl mx-auto">
         <div class="flex items-center justify-between mb-8">
-          <h1 class="heading-1">{{ $t('rules.edit.title') }}</h1>
+          <h1 class="heading-1">{{ t('rules.edit.title') }}</h1>
           <span v-if="hasChanges" class="text-sm text-warning-600 dark:text-warning-400">
             <i class="fa-solid fa-circle-exclamation mr-1"></i>
-            {{ $t('rules.edit.unsavedChanges') }}
+            {{ t('rules.edit.unsavedChanges') }}
           </span>
         </div>
 
         <form @submit.prevent="handleSubmit">
           <CommonCard class="mb-6">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              {{ $t('rules.form.basicInfo') }}
+              {{ t('rules.form.basicInfo') }}
             </h2>
 
             <div class="space-y-4">
               <CommonInput
                 v-model="form.name"
-                :label="$t('rules.form.name')"
-                :placeholder="$t('rules.form.namePlaceholder')"
+                :label="t('rules.form.name')"
+                :placeholder="t('rules.form.namePlaceholder')"
                 required
                 disabled
                 :error="errors.name"
@@ -50,14 +50,14 @@
 
               <CommonTextarea
                 v-model="form.description"
-                :label="$t('rules.form.description')"
-                :placeholder="$t('rules.form.descriptionPlaceholder')"
+                :label="t('rules.form.description')"
+                :placeholder="t('rules.form.descriptionPlaceholder')"
                 rows="3"
                 :error="errors.description"
               />
 
               <div>
-                <label class="label">{{ $t('rules.form.visibility') }}</label>
+                <label class="label">{{ t('rules.form.visibility') }}</label>
                 <CommonSelect
                   v-model="form.visibility"
                   :options="visibilityOptions"
@@ -66,10 +66,10 @@
               </div>
 
               <div>
-                <label class="label">{{ $t('rules.form.tags') }}</label>
+                <label class="label">{{ t('rules.form.tags') }}</label>
                 <CommonTagInput
                   v-model="form.tags"
-                  :placeholder="$t('rules.form.tagsPlaceholder')"
+                  :placeholder="t('rules.form.tagsPlaceholder')"
                   :error="errors.tags"
                 />
               </div>
@@ -79,21 +79,21 @@
           <CommonCard class="mb-6">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {{ $t('rules.form.content') }}
+                {{ t('rules.form.content') }}
               </h2>
               <button
                 type="button"
                 @click="showPreview = !showPreview"
                 class="text-sm text-primary-600 dark:text-primary-400 hover:underline"
               >
-                {{ showPreview ? $t('rules.edit.hidePreview') : $t('rules.edit.showPreview') }}
+                {{ showPreview ? t('rules.edit.hidePreview') : t('rules.edit.showPreview') }}
               </button>
             </div>
 
             <div v-if="!showPreview">
               <CommonTextarea
                 v-model="form.content"
-                :placeholder="$t('rules.form.contentPlaceholder')"
+                :placeholder="t('rules.form.contentPlaceholder')"
                 rows="15"
                 class="font-mono"
                 required
@@ -107,12 +107,12 @@
 
           <CommonCard v-if="contentChanged">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              {{ $t('rules.edit.changeLog') }}
+              {{ t('rules.edit.changeLog') }}
             </h2>
 
             <CommonTextarea
               v-model="form.changelog"
-              :placeholder="$t('rules.edit.changeLogPlaceholder')"
+              :placeholder="t('rules.edit.changeLogPlaceholder')"
               rows="3"
               required
               :error="errors.changelog"
@@ -126,7 +126,7 @@
                   class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <span class="text-sm text-gray-700 dark:text-gray-300">
-                  {{ $t('rules.edit.incrementMajorVersion') }} ({{ currentVersion }} → {{ nextVersion }})
+                  {{ t('rules.edit.incrementMajorVersion') }} ({{ currentVersion }} → {{ nextVersion }})
                 </span>
               </label>
             </div>
@@ -135,7 +135,7 @@
           <div class="flex justify-end gap-3 mt-8">
             <NuxtLink :to="getRuleUrl()">
               <CommonButton type="button" variant="ghost">
-                {{ $t('common.cancel') }}
+                {{ t('common.cancel') }}
               </CommonButton>
             </NuxtLink>
             <CommonButton
@@ -144,7 +144,7 @@
               :loading="submitting"
               :disabled="!hasChanges"
             >
-              {{ $t('rules.edit.update') }}
+              {{ t('rules.edit.update') }}
             </CommonButton>
           </div>
         </form>

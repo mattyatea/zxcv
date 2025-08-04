@@ -2,9 +2,9 @@
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <div class="container-sm py-8">
       <div class="mb-8">
-        <h1 class="heading-1 mb-2">{{ $t('organizations.createNewTeam') }}</h1>
+        <h1 class="heading-1 mb-2">{{ t('organizations.createNewTeam') }}</h1>
         <p class="text-gray-600 dark:text-gray-400">
-          {{ $t('organizations.inviteAndCollaborate') }}
+          {{ t('organizations.inviteAndCollaborate') }}
         </p>
       </div>
 
@@ -12,25 +12,25 @@
         <div class="space-y-6">
           <CommonInput
             v-model="form.name"
-            :label="$t('organizations.form.name')"
-            :placeholder="$t('organizations.form.namePlaceholder')"
+            :label="t('organizations.form.name')"
+            :placeholder="t('organizations.form.namePlaceholder')"
             required
             :error="errors.name"
           />
 
           <div class="form-group">
-            <label class="label">{{ $t('organizations.form.description') }}</label>
+            <label class="label">{{ t('organizations.form.description') }}</label>
             <textarea
               v-model="form.description"
               class="input min-h-[100px]"
-              :placeholder="$t('organizations.form.descriptionPlaceholder')"
+              :placeholder="t('organizations.form.descriptionPlaceholder')"
               rows="4"
             ></textarea>
           </div>
 
 
           <div class="form-group">
-            <label class="label">{{ $t('organizations.form.inviteMembers') }}</label>
+            <label class="label">{{ t('organizations.form.inviteMembers') }}</label>
             <div class="space-y-2">
               <div v-for="(email, index) in inviteEmails" :key="index" class="flex gap-2">
                 <CommonInput
@@ -59,7 +59,7 @@
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                {{ $t('organizations.form.addMember') }}
+                {{ t('organizations.form.addMember') }}
               </CommonButton>
             </div>
           </div>
@@ -68,7 +68,7 @@
         <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
           <NuxtLink to="/organizations">
             <CommonButton variant="ghost">
-              {{ $t('common.cancel') }}
+              {{ t('common.cancel') }}
             </CommonButton>
           </NuxtLink>
           <CommonButton
@@ -76,7 +76,7 @@
             variant="primary"
             :loading="submitting"
           >
-            {{ $t('organizations.createTeam') }}
+            {{ t('organizations.createTeam') }}
           </CommonButton>
         </div>
       </form>

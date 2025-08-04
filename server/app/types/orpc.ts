@@ -24,11 +24,12 @@ export type CreateRuleResponse = RouterOutputs["rules"]["create"];
 export type UpdateRuleResponse = RouterOutputs["rules"]["update"];
 export type DeleteRuleResponse = RouterOutputs["rules"]["delete"];
 export type GetRuleResponse = RouterOutputs["rules"]["get"];
+export type GetByPathResponse = RouterOutputs["rules"]["getByPath"];
 export type GetRuleContentResponse = RouterOutputs["rules"]["getContent"];
 export type StarRuleResponse = RouterOutputs["rules"]["star"];
 export type UnstarRuleResponse = RouterOutputs["rules"]["unstar"];
-export type GetVersionHistoryResponse = RouterOutputs["rules"]["getVersionHistory"];
-export type RuleVersionType = GetVersionHistoryResponse[0];
+export type GetVersionsResponse = RouterOutputs["rules"]["versions"];
+export type RuleVersionType = GetVersionsResponse[0];
 export type GetRuleVersionResponse = RouterOutputs["rules"]["getVersion"];
 
 // Organizations関連

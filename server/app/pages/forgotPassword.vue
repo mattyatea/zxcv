@@ -8,12 +8,12 @@
 					</div>
 				</NuxtLink>
 			<h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-				{{ $t('auth.forgotPassword.title') }}
+				{{ t('auth.forgotPassword.title') }}
 			</h2>
 			<p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-				{{ $t('common.or') }}
+				{{ t('common.or') }}
 				<NuxtLink to="/auth" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover-underline">
-					{{ $t('auth.forgotPassword.backToLogin') }}
+					{{ t('auth.forgotPassword.backToLogin') }}
 				</NuxtLink>
 			</p>
 			</div>
@@ -26,7 +26,7 @@
 						<div v-if="!submitted" key="form">
 							<div>
 								<label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-									{{ $t('auth.forgotPassword.email') }}
+									{{ t('auth.forgotPassword.email') }}
 								</label>
 								<div class="mt-1">
 									<input
@@ -44,7 +44,7 @@
 
 							<div class="mt-6">
 								<Button type="submit" variant="primary" size="lg" full-width :loading="loading">
-									{{ $t('auth.forgotPassword.sendButton') }}
+									{{ t('auth.forgotPassword.sendButton') }}
 								</Button>
 							</div>
 						</div>
@@ -55,14 +55,14 @@
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" class="checkmark-draw" />
 								</svg>
 							</div>
-						<h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">{{ $t('auth.forgotPassword.emailSent') }}</h3>
+						<h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">{{ t('auth.forgotPassword.emailSent') }}</h3>
 						<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-							{{ $t('auth.forgotPassword.emailSentMessage') }}
+							{{ t('auth.forgotPassword.emailSentMessage') }}
 						</p>
 						<div class="mt-6">
 							<NuxtLink to="/auth">
 								<Button variant="secondary" size="md">
-									{{ $t('auth.forgotPassword.backToLogin') }}
+									{{ t('auth.forgotPassword.backToLogin') }}
 								</Button>
 							</NuxtLink>
 						</div>
@@ -81,10 +81,10 @@ definePageMeta({
 	layout: "auth",
 });
 
-const { $t } = useNuxtApp();
+const { t } = useI18n();
 
 useHead({
-	title: $t("auth.forgotPassword.pageTitle"),
+	title: t("auth.forgotPassword.pageTitle"),
 });
 
 // const { $rpc } = useNuxtApp(); // TODO: Uncomment when implementing password reset
@@ -104,10 +104,10 @@ const handleSubmit = async () => {
 		await new Promise((resolve) => setTimeout(resolve, 1000));
 
 		submitted.value = true;
-		toast.success($t("auth.forgotPassword.success"));
+		toast.success(t("auth.forgotPassword.success"));
 	} catch (error) {
 		console.error("Password reset error:", error);
-		toast.error($t("auth.forgotPassword.error"));
+		toast.error(t("auth.forgotPassword.error"));
 	} finally {
 		loading.value = false;
 	}

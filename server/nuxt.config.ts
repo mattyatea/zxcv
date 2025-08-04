@@ -6,6 +6,8 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
+  
+  srcDir: "app/",
 
   nitro: {
     preset: "cloudflare_module",
