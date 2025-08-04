@@ -8,6 +8,10 @@ type RuleWithRelations = Rule & {
 	creator?: { id: string; username: string } | null;
 };
 
+type RuleVersionWithCreator = RuleVersion & {
+	creator?: { id: string; username: string } | null;
+};
+
 export class RuleRepository extends BaseRepository {
 	/**
 	 * ルールを作成
@@ -252,11 +256,16 @@ export class RuleRepository extends BaseRepository {
 	/**
 	 * Get rule versions
 	 */
-	async getVersions(ruleId: string) {
+	async getVersions(ruleId: string): Promise<RuleVersionWithCreator[]> {
 		try {
 			return await this.db.ruleVersion.findMany({
 				where: { ruleId },
 				orderBy: { createdAt: "desc" },
+				include: {
+					creator: {
+						select: { id: true, username: true },
+					},
+				},
 			});
 		} catch (error) {
 			this.handleError(error, "Failed to get rule versions");

@@ -265,21 +265,13 @@ export const rulesProcedures = {
 
 		const versions = await ruleService.getRuleVersions(input.id, user?.id);
 
-		// Get creator information for each version
-		return await Promise.all(
-			versions.map(async (v) => {
-				const creator = await db.user.findUnique({
-					where: { id: v.createdBy },
-					select: { id: true, username: true },
-				});
-				return {
-					version: v.versionNumber,
-					changelog: v.changelog || "",
-					created_at: v.createdAt,
-					createdBy: creator || { id: v.createdBy, username: "Unknown" },
-				};
-			}),
-		);
+		// Creator information is already included from the repository
+		return versions.map((v) => ({
+			version: v.versionNumber,
+			changelog: v.changelog || "",
+			created_at: v.createdAt,
+			createdBy: v.creator || { id: v.createdBy, username: "Unknown" },
+		}));
 	}),
 
 	/**
@@ -473,21 +465,13 @@ export const rulesProcedures = {
 
 			const versions = await ruleService.getRuleVersions(input.ruleId, user?.id);
 
-			// Get creator information for each version
-			return await Promise.all(
-				versions.map(async (v) => {
-					const creator = await db.user.findUnique({
-						where: { id: v.createdBy },
-						select: { id: true, username: true },
-					});
-					return {
-						version: v.versionNumber,
-						changelog: v.changelog || "",
-						created_at: v.createdAt,
-						createdBy: creator || { id: v.createdBy, username: "Unknown" },
-					};
-				}),
-			);
+			// Creator information is already included from the repository
+			return versions.map((v) => ({
+				version: v.versionNumber,
+				changelog: v.changelog || "",
+				created_at: v.createdAt,
+				createdBy: v.creator || { id: v.createdBy, username: "Unknown" },
+			}));
 		}),
 
 	// デバッグ用エンドポイント
