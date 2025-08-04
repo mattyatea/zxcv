@@ -153,13 +153,14 @@
                 
                 <div class="flex items-center gap-2">
                   <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
-                  <span class="text-gray-900 dark:text-gray-100 font-medium">{{ formatNumber(rule.downloads || 0) }}</span>
-                  <span class="text-gray-600 dark:text-gray-400">{{ $t('rules.detail.downloads') }}</span>
+                  <span class="text-gray-900 dark:text-gray-100 font-medium">{{ formatNumber(rule.views || 0) }}</span>
+                  <span class="text-gray-600 dark:text-gray-400">{{ $t('rules.detail.views') }}</span>
                 </div>
                 
-                <div class="flex items-center gap-2" v-if="viewCount">
+                <div class="flex items-center gap-2" v-if="viewCount && false">
                   <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

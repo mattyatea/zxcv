@@ -206,20 +206,20 @@ export class RuleRepository extends BaseRepository {
 	}
 
 	/**
-	 * ルールのダウンロード数をインクリメント
+	 * ルールのビュー数をインクリメント
 	 */
-	async incrementDownloadCount(id: string): Promise<void> {
+	async incrementViewCount(id: string): Promise<void> {
 		try {
 			await this.db.rule.update({
 				where: { id },
 				data: {
-					downloads: { increment: 1 },
+					views: { increment: 1 },
 					updatedAt: this.getCurrentTimestamp(),
 				},
 			});
 		} catch (error) {
-			// ダウンロード数の更新失敗はクリティカルではないのでログのみ
-			console.error("Failed to increment download count:", error);
+			// ビュー数の更新失敗はクリティカルではないのでログのみ
+			console.error("Failed to increment view count:", error);
 		}
 	}
 

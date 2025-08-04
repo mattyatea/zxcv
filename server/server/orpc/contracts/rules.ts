@@ -27,7 +27,7 @@ export const rulesContract = {
 				publishedAt: z.number().nullable(),
 				version: z.string(),
 				latestVersionId: z.string().nullable(),
-				downloads: z.number(),
+				views: z.number(),
 				stars: z.number(),
 				organizationId: z.string().nullable(),
 				user: z.object({
@@ -82,7 +82,7 @@ export const rulesContract = {
 						publishedAt: z.number().nullable(),
 						version: z.string(),
 						latestVersionId: z.string().nullable(),
-						downloads: z.number(),
+						views: z.number(),
 						stars: z.number(),
 						organizationId: z.string().nullable(),
 						user: z.object({
@@ -136,7 +136,7 @@ export const rulesContract = {
 				publishedAt: z.number().nullable(),
 				version: z.string(),
 				latestVersionId: z.string().nullable(),
-				downloads: z.number(),
+				views: z.number(),
 				stars: z.number(),
 				organizationId: z.string().nullable(),
 				user: z.object({

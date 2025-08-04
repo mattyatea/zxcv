@@ -264,7 +264,6 @@
       "relatedRules": "Related Rules",
       "notFoundDescription": "The rule you are looking for could not be found.",
       "stars": "Stars",
-      "downloads": "Downloads",
       "views": "Views",
       "actions": "Actions",
       "tags": "Tags",
@@ -296,7 +295,7 @@
       "recentlyUpdated": "Recently updated",
       "recentlyCreated": "Recently created",
       "alphabetical": "Alphabetical",
-      "downloads": "Most downloads",
+      "views": "Most views",
       "stars": "Most stars"
     },
     "filters": {

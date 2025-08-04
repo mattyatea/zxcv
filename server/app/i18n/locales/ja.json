@@ -262,7 +262,6 @@
       "relatedRules": "関連するルール",
       "notFoundDescription": "お探しのルールが見つかりませんでした。",
       "stars": "スター",
-      "downloads": "ダウンロード",
       "views": "ビュー",
       "actions": "アクション",
       "tags": "タグ",
@@ -294,7 +293,7 @@
       "recentlyUpdated": "最近更新された順",
       "recentlyCreated": "最近作成された順",
       "alphabetical": "名前順",
-      "downloads": "ダウンロード数順",
+      "views": "ビュー数順",
       "stars": "スター数順"
     },
     "filters": {

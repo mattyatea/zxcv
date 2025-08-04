@@ -277,7 +277,7 @@ export const organizationsProcedures = {
 				description: r.description,
 				visibility: r.visibility as "public" | "private" | "team",
 				isPublished: r.publishedAt !== null,
-				downloadCount: r.downloads,
+				downloadCount: r.views,
 				starCount: r.stars,
 				createdAt: r.createdAt,
 				updatedAt: r.updatedAt,

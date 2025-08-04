@@ -38,7 +38,7 @@ model User {
   organizationMembers   OrganizationMember[]
   apiKeys       ApiKey[]
   ruleStars     RuleStar[]
-  ruleDownloads RuleDownload[]
+  ruleViews     RuleView[]
   passwordResets PasswordReset[]
   emailVerifications EmailVerification[]
   oauthAccounts OAuthAccount[]
@@ -61,7 +61,7 @@ model Rule {
   publishedAt     Int?    @map("published_at")
   version         String  @default("1.0.0")
   latestVersionId String? @map("latest_version_id")
-  downloads       Int     @default(0)
+  views           Int     @default(0)
   stars           Int     @default(0)
   organizationId  String? @map("organization_id")
 
@@ -69,7 +69,7 @@ model Rule {
   organization  Organization?  @relation(fields: [organizationId], references: [id])
   versions      RuleVersion[]
   starredBy     RuleStar[]
-  downloadedBy  RuleDownload[]
+  viewedBy      RuleView[]
 
   // Unique constraint removed - will be handled at application level
   @@index([userId])
@@ -176,7 +176,7 @@ model RuleStar {
   @@map("rule_stars")
 }
 
-model RuleDownload {
+model RuleView {
   id        String  @id
   ruleId    String  @map("rule_id")
   userId    String? @map("user_id")
@@ -190,7 +190,7 @@ model RuleDownload {
   @@index([ruleId])
   @@index([userId])
   @@index([createdAt])
-  @@map("rule_downloads")
+  @@map("rule_views")
 }
 
 model PasswordReset {

@@ -132,7 +132,7 @@
                     <option value="updated">{{ $t('rules.sort.recentlyUpdated') }}</option>
                     <option value="created">{{ $t('rules.sort.recentlyCreated') }}</option>
                     <option value="name">{{ $t('rules.sort.alphabetical') }}</option>
-                    <option value="downloads">{{ $t('rules.sort.downloads') }}</option>
+                    <option value="views">{{ $t('rules.sort.views') }}</option>
                     <option value="stars">{{ $t('rules.sort.stars') }}</option>
                   </select>
                   <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">

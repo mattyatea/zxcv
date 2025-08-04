@@ -88,7 +88,7 @@ export class RuleService {
 				visibility: data.visibility,
 				tags: data.tags ? JSON.stringify(data.tags) : null,
 				publishedAt: null,
-				downloads: 0,
+				views: 0,
 				stars: 0,
 				version: "1.0.0",
 				latestVersionId: versionId, // 最初から設定
@@ -383,8 +383,8 @@ export class RuleService {
 		// アクセス権限チェック
 		await this.checkRuleAccess(rule, userId);
 
-		// ダウンロード数をインクリメント
-		await this.ruleRepository.incrementDownloadCount(ruleId);
+		// ビュー数をインクリメント
+		await this.ruleRepository.incrementViewCount(ruleId);
 
 		// 最新バージョンのコンテンツを取得
 		const latestVersion = await this.ruleRepository.getLatestVersion(ruleId);
@@ -580,7 +580,7 @@ export class RuleService {
 					},
 				},
 			},
-			orderBy: [{ stars: "desc" }, { downloads: "desc" }, { updatedAt: "desc" }],
+			orderBy: [{ stars: "desc" }, { views: "desc" }, { updatedAt: "desc" }],
 			take: limit,
 		});
 
@@ -611,7 +611,7 @@ export class RuleService {
 		// 閲覧記録を保存（認証済みユーザーのみ）
 		if (userId) {
 			// 既に閲覧済みかチェック
-			const existingView = await this.db.ruleDownload.findFirst({
+			const existingView = await this.db.ruleView.findFirst({
 				where: {
 					ruleId,
 					userId,
@@ -621,7 +621,7 @@ export class RuleService {
 			// 未閲覧の場合のみカウントアップ
 			if (!existingView) {
 				// 閲覧記録を追加
-				await this.db.ruleDownload.create({
+				await this.db.ruleView.create({
 					data: {
 						id: nanoid(),
 						ruleId,
@@ -632,10 +632,10 @@ export class RuleService {
 					},
 				});
 
-				// ダウンロード数を増やす
+				// ビュー数を増やす
 				await this.db.rule.update({
 					where: { id: ruleId },
-					data: { downloads: { increment: 1 } },
+					data: { views: { increment: 1 } },
 				});
 			}
 		}
@@ -800,8 +800,8 @@ export class RuleService {
 			case "name":
 				orderBy.name = "asc";
 				break;
-			case "downloads":
-				orderBy.downloads = "desc";
+			case "views":
+				orderBy.views = "desc";
 				break;
 			case "stars":
 				orderBy.stars = "desc";
@@ -861,7 +861,7 @@ export class RuleService {
 				publishedAt: rule.publishedAt,
 				version: rule.version || "1.0.0",
 				latestVersionId: rule.latestVersionId,
-				downloads: rule.downloads,
+				views: rule.views,
 				stars: rule.stars,
 				organizationId: rule.organizationId,
 				user: rule.user || author,
