@@ -134,7 +134,7 @@ export class ApiClient {
 
 	// Device Authorization Grant methods
 	async initializeDeviceAuth(): Promise<DeviceAuthData> {
-		const response = await this.client.post("/rpc/auth/device/authorize", {
+		const response = await this.client.post("/api/auth/device/authorize", {
 			clientId: "cli",
 			scope: "read write",
 		});
@@ -153,7 +153,7 @@ export class ApiClient {
 			await new Promise((resolve) => setTimeout(resolve, currentInterval * 1000));
 
 			try {
-				const response = await this.client.post("/rpc/auth/device/token", {
+				const response = await this.client.post("/api/auth/device/token", {
 					deviceCode,
 					clientId: "cli",
 				});
