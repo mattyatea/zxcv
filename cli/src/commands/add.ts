@@ -1,7 +1,7 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import ora from "ora";
+import { ora } from "../utils/spinner.js";
 import { ConfigManager } from "../config";
 import type { ZxcvMetadata } from "../types";
 import { ApiClient } from "../utils/api";

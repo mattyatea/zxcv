@@ -1,9 +1,9 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import inquirer from "inquirer";
-import open from "open";
-import ora from "ora";
+import { inquirer } from "../utils/prompt.js";
+import open from "../utils/open.js";
+import { ora } from "../utils/spinner.js";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
 
@@ -25,13 +25,13 @@ export function createAuthCommand(): Command {
 						type: "input",
 						name: "username",
 						message: "Username:",
-						validate: (input) => input.length > 0,
+						validate: (input) => input.length > 0 || "Username is required",
 					},
 					{
 						type: "password",
 						name: "password",
 						message: "Password:",
-						validate: (input) => input.length > 0,
+						validate: (input) => input.length > 0 || "Password is required",
 					},
 				]);
 
@@ -128,19 +128,19 @@ export function createAuthCommand(): Command {
 					type: "input",
 					name: "username",
 					message: "Username:",
-					validate: (input) => input.length >= 3,
+					validate: (input) => input.length >= 3 || "Username must be at least 3 characters",
 				},
 				{
 					type: "input",
 					name: "email",
 					message: "Email:",
-					validate: (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input),
+					validate: (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) || "Invalid email address",
 				},
 				{
 					type: "password",
 					name: "password",
 					message: "Password:",
-					validate: (input) => input.length >= 8,
+					validate: (input) => input.length >= 8 || "Password must be at least 8 characters",
 				},
 				{
 					type: "password",

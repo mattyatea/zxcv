@@ -1,8 +1,8 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import inquirer from "inquirer";
-import ora from "ora";
+import { inquirer } from "../utils/prompt.js";
+import { ora } from "../utils/spinner.js";
 import { ConfigManager } from "../config";
 import type { PulledRule } from "../types";
 import { ApiClient } from "../utils/api";

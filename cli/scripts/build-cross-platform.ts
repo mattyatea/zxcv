@@ -48,7 +48,7 @@ for (const platform of platforms) {
 		// --compile: スタンドアロン実行可能ファイルを生成
 		// --target: ターゲットプラットフォーム
 		// --outfile: 出力ファイル名
-		await $`bun build src/index.ts --compile --target=${platform.target} --outfile=${releaseDir}/${platform.output}`;
+		await $`bun build src/index.ts --compile --minify --sourcemap --target=${platform.target} --outfile=${releaseDir}/${platform.output}`;
 
 		// Set appropriate permissions
 		const outputPath = resolve(releaseDir, platform.output);
