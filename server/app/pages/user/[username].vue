@@ -28,7 +28,7 @@
 								</h1>
 								<div class="flex items-center gap-6 text-gray-600 dark:text-gray-400">
 									<div class="flex items-center gap-2">
-										<Icon name="ph:calendar" class="w-4 h-4" />
+										<Icon name="ph:calendar" class="w-4 h-4 text-gray-600 dark:text-gray-400" />
 										<span>{{ t('profile.registeredDate') }}: {{ formatDate(profileData.user.createdAt) }}</span>
 									</div>
 								</div>
@@ -99,7 +99,7 @@
 									<p class="text-gray-600 dark:text-gray-400 mt-1">{{ rule.description }}</p>
 									<div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
 										<div class="flex items-center gap-1">
-											<Icon name="ph:star" class="w-4 h-4" />
+											<Icon name="ph:star" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
 											<span>{{ rule.stars }}</span>
 										</div>
 										<span>{{ t('common.updatedAt') }}: {{ formatDate(rule.updatedAt) }}</span>

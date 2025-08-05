@@ -27,7 +27,7 @@
 							</p>
 							<div class="flex items-center gap-6 text-gray-600">
 								<div class="flex items-center gap-2">
-									<Icon name="ph:calendar" class="w-4 h-4" />
+									<Icon name="ph:calendar" class="w-4 h-4 text-gray-600 dark:text-gray-400" />
 									<span>設立日: {{ formatDate(profileData.organization.createdAt) }}</span>
 								</div>
 							</div>
@@ -70,9 +70,9 @@
 										@{{ profileData.organization.name }}/{{ rule.name }}
 									</NuxtLink>
 									<p class="text-gray-600 mt-1">{{ rule.description }}</p>
-									<div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+									<div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
 										<div class="flex items-center gap-1">
-											<Icon name="ph:star" class="w-4 h-4" />
+											<Icon name="ph:star" class="w-4 h-4 text-gray-500 dark:text-gray-400" />
 											<span>{{ rule.stars }}</span>
 										</div>
 										<span>作成者: {{ rule.user.username }}</span>
