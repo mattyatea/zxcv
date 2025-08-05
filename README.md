@@ -18,13 +18,13 @@ https://zxcv.nanasi-apps.xyz/ で、ルールを共有することができま�
 
 ```bash
 # 最新版をインストール
-curl -fsSL https://raw.githubusercontent.com/nanasi-apps/zxcv/dev/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash
 
 # 特定のバージョンをインストール
-curl -fsSL https://raw.githubusercontent.com/nanasi-apps/zxcv/dev/install.sh | bash -s -- --version cli-v1.1.0
+curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash -s -- --version cli-v1.1.0
 
 # カスタムインストールディレクトリ
-curl -fsSL https://raw.githubusercontent.com/nanasi-apps/zxcv/dev/install.sh | bash -s -- --install-dir ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash -s -- --install-dir ~/.local/bin
 ```
 
 ### 手動インストール
