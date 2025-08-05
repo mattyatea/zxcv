@@ -79,6 +79,9 @@ export async function verifyRefreshToken(token: string, env: Env): Promise<strin
 	}
 }
 
+// Alias for verifyJWT to support auth procedures
+export const verifyAccessToken = verifyJWT;
+
 // 新しい汎用的なトークン生成関数
 export async function generateToken(
 	payload: Record<string, unknown>,

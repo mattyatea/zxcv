@@ -654,6 +654,20 @@
       "generalError": "エラーが発生しました。",
       "pageTitle": "メールアドレスの確認 - zxcv",
       "register": "新規登録"
+    },
+    "device": {
+      "title": "デバイスの承認",
+      "description": "CLIまたは他のアプリケーションからのアクセスを承認します",
+      "codeLabel": "承認コード",
+      "codePlaceholder": "ABCD-1234",
+      "codeHint": "CLIに表示された8文字のコードを入力してください",
+      "submit": "承認する",
+      "success": "デバイスが正常に承認されました",
+      "invalidCode": "無効なコードです",
+      "expiredCode": "コードの有効期限が切れています",
+      "error": "承認中にエラーが発生しました",
+      "notYourDevice": "このデバイスを認識できませんか？",
+      "cancelLink": "ホームに戻る"
     }
   },
   "test": {

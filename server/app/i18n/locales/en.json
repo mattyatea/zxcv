@@ -684,6 +684,20 @@
       "generalError": "An error occurred.",
       "pageTitle": "Verify Email - zxcv",
       "register": "Sign up"
+    },
+    "device": {
+      "title": "Device Authorization",
+      "description": "Authorize access from CLI or other applications",
+      "codeLabel": "Authorization Code",
+      "codePlaceholder": "ABCD-1234",
+      "codeHint": "Enter the 8-character code displayed in your CLI",
+      "submit": "Authorize",
+      "success": "Device authorized successfully",
+      "invalidCode": "Invalid code",
+      "expiredCode": "Code has expired",
+      "error": "Error during authorization",
+      "notYourDevice": "Don't recognize this device?",
+      "cancelLink": "Go back home"
     }
   },
   "test": {

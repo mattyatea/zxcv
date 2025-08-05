@@ -115,11 +115,11 @@
 </template>
 
 <script setup lang="ts">
-import { useRpc } from "~/composables/useRpc";
-import { useAuthStore } from "~/stores/auth";
-import { useI18n } from "~/composables/useI18n";
 import type { InferOutput } from "@orpc/contract";
+import { useI18n } from "~/composables/useI18n";
+import { useRpc } from "~/composables/useRpc";
 import type { contract } from "~/server/orpc/contracts";
+import { useAuthStore } from "~/stores/auth";
 
 type UserPublicProfile = InferOutput<typeof contract.users.getPublicProfile>;
 
@@ -144,10 +144,9 @@ async function fetchProfile() {
 	try {
 		loading.value = true;
 		error.value = false;
-		const response = await $rpc.users.getPublicProfile({
+		profileData.value = await $rpc.users.getPublicProfile({
 			username: username.value,
 		});
-		profileData.value = response;
 	} catch (err) {
 		console.error("Failed to fetch user profile:", err);
 		error.value = true;
@@ -168,7 +167,9 @@ function formatDate(timestamp: number) {
 // Set page meta
 useHead({
 	title: () =>
-		profileData.value ? `${profileData.value.user.username} - zxcv` : `${t('profile.userProfile')} - zxcv`,
+		profileData.value
+			? `${profileData.value.user.username} - zxcv`
+			: `${t("profile.userProfile")} - zxcv`,
 });
 
 // Fetch on mount
