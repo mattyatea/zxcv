@@ -75,10 +75,12 @@ export function createPushCommand(): Command {
 								type: "input",
 								name: "changelog",
 								message: "Enter changelog message:",
-								validate: (input) => input.length > 0 || "Changelog message is required",
+								validate: (input) =>
+									(typeof input === "string" && input.length > 0) ||
+									"Changelog message is required",
 							},
 						]);
-						changelog = answer.changelog;
+						changelog = answer.changelog as string;
 					}
 
 					const rule = await api.getRule(path);

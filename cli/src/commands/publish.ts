@@ -57,10 +57,12 @@ export function createPublishCommand(): Command {
 								name: "name",
 								message: "Rule name:",
 								default: defaultName,
-								validate: (input) => /^[a-zA-Z0-9-_]+$/.test(input) || "Invalid rule name format",
+								validate: (input) =>
+									(typeof input === "string" && /^[a-zA-Z0-9-_]+$/.test(input)) ||
+									"Invalid rule name format",
 							},
 						]);
-						ruleName = answer.name;
+						ruleName = answer.name as string;
 					}
 
 					// Validate visibility

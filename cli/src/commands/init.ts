@@ -31,8 +31,8 @@ export function createInitCommand(): Command {
 					},
 				]);
 
-				projectName = answers.projectName;
-				rulesDir = answers.rulesDir;
+				projectName = answers.projectName as string;
+				rulesDir = answers.rulesDir as string;
 			}
 
 			// Create zxcv-metadata.json

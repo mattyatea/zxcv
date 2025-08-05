@@ -25,20 +25,22 @@ export function createAuthCommand(): Command {
 						type: "input",
 						name: "username",
 						message: "Username:",
-						validate: (input) => input.length > 0 || "Username is required",
+						validate: (input) =>
+							(typeof input === "string" && input.length > 0) || "Username is required",
 					},
 					{
 						type: "password",
 						name: "password",
 						message: "Password:",
-						validate: (input) => input.length > 0 || "Password is required",
+						validate: (input) =>
+							(typeof input === "string" && input.length > 0) || "Password is required",
 					},
 				]);
 
 				const spinner = ora("Logging in...").start();
 
 				try {
-					const { token } = await api.login(answers.username, answers.password);
+					const { token } = await api.login(answers.username as string, answers.password as string);
 					config.setAuthToken(token);
 					spinner.succeed(chalk.green("Successfully logged in!"));
 				} catch (error) {
@@ -128,19 +130,25 @@ export function createAuthCommand(): Command {
 					type: "input",
 					name: "username",
 					message: "Username:",
-					validate: (input) => input.length >= 3 || "Username must be at least 3 characters",
+					validate: (input) =>
+						(typeof input === "string" && input.length >= 3) ||
+						"Username must be at least 3 characters",
 				},
 				{
 					type: "input",
 					name: "email",
 					message: "Email:",
-					validate: (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) || "Invalid email address",
+					validate: (input) =>
+						(typeof input === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input)) ||
+						"Invalid email address",
 				},
 				{
 					type: "password",
 					name: "password",
 					message: "Password:",
-					validate: (input) => input.length >= 8 || "Password must be at least 8 characters",
+					validate: (input) =>
+						(typeof input === "string" && input.length >= 8) ||
+						"Password must be at least 8 characters",
 				},
 				{
 					type: "password",
@@ -155,7 +163,11 @@ export function createAuthCommand(): Command {
 			const api = new ApiClient(config);
 
 			try {
-				await api.register(answers.username, answers.email, answers.password);
+				await api.register(
+					answers.username as string,
+					answers.email as string,
+					answers.password as string,
+				);
 				spinner.succeed(
 					chalk.green(
 						"Account created successfully! Please check your email to verify your account.",
