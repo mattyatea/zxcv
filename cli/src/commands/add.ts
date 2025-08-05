@@ -29,7 +29,7 @@ export function createAddCommand(): Command {
 
 				for (const pkg of packages) {
 					try {
-						spinner.text = `Adding ${pkg}...`;
+						spinner.text(`Adding ${pkg}...`);
 
 						// Parse package path and version
 						let packageName = pkg;

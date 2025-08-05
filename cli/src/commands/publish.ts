@@ -31,7 +31,7 @@ export function createPublishCommand(): Command {
 					}
 
 					// Read file content
-					spinner.text = "Reading file...";
+					spinner.text("Reading file...");
 					let content: string;
 					try {
 						const filePath = join(process.cwd(), file);
@@ -74,7 +74,7 @@ export function createPublishCommand(): Command {
 					const tags = options.tags ? options.tags.split(",").map((t) => t.trim()) : [];
 
 					// Create rule on server
-					spinner.text = "Creating rule on server...";
+					spinner.text("Creating rule on server...");
 					const rule = await api.createRule({
 						name: ruleName,
 						content,
@@ -83,7 +83,7 @@ export function createPublishCommand(): Command {
 					});
 
 					// Save rule locally
-					spinner.text = "Saving rule locally...";
+					spinner.text("Saving rule locally...");
 					const pulledRule = fileManager.saveRule(rule, content);
 
 					// Update metadata

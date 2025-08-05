@@ -45,7 +45,7 @@ export function createPushCommand(): Command {
 				}
 
 				// Read local rule
-				spinner.text = "Reading local rule...";
+				spinner.text("Reading local rule...");
 				const content = fileManager.readLocalRule(ruleName, owner, organization);
 				if (!content) {
 					spinner.fail(chalk.red("Rule not found locally"));
@@ -66,7 +66,7 @@ export function createPushCommand(): Command {
 
 				if (existingRule) {
 					// Update existing rule
-					spinner.text = "Updating remote rule...";
+					spinner.text("Updating remote rule...");
 
 					let changelog = options.message;
 					if (!changelog) {

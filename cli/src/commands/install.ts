@@ -53,7 +53,7 @@ export function createInstallCommand(): Command {
 					}
 
 					// Get rule from server (use packageName without version)
-					spinner.text = "Fetching rule information...";
+					spinner.text("Fetching rule information...");
 					const rule = await api.getRule(packageName);
 
 					// Check if rule already exists
@@ -78,7 +78,7 @@ export function createInstallCommand(): Command {
 
 					// Get rule content with specific version if requested
 					const targetVersion = requestedVersion || rule.version;
-					spinner.text = `Downloading rule content (version ${targetVersion})...`;
+					spinner.text(`Downloading rule content (version ${targetVersion})...`);
 					const { content, version } = await api.getRuleContent(rule.id, requestedVersion);
 
 					// Update rule object with the actual version from content response
@@ -87,7 +87,7 @@ export function createInstallCommand(): Command {
 					}
 
 					// Save rule
-					spinner.text = "Saving rule...";
+					spinner.text("Saving rule...");
 					const pulledRule = fileManager.saveRule(rule, content);
 
 					// Update metadata
@@ -147,7 +147,9 @@ export function createInstallCommand(): Command {
 					return;
 				}
 
-				spinner.text = `Installing ${metadata.rules.length} rule${metadata.rules.length > 1 ? "s" : ""}...`;
+				spinner.text(
+					`Installing ${metadata.rules.length} rule${metadata.rules.length > 1 ? "s" : ""}...`,
+				);
 
 				let installedCount = 0;
 				let errorCount = 0;
@@ -163,7 +165,7 @@ export function createInstallCommand(): Command {
 
 						// rule.name にはすでにフルパス形式が入っている
 						const path = rule.name;
-						spinner.text = `Installing ${path}...`;
+						spinner.text(`Installing ${path}...`);
 
 						// Get rule from server
 						const serverRule = await api.getRule(path);

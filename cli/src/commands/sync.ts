@@ -24,7 +24,7 @@ export function createSyncCommand(): Command {
 					return;
 				}
 
-				spinner.text = `Syncing ${metadata.rules.length} rules...`;
+				spinner.text(`Syncing ${metadata.rules.length} rules...`);
 
 				let updatedCount = 0;
 				let errorCount = 0;
