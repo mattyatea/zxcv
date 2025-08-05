@@ -32,6 +32,7 @@
     "info": "情報",
     "required": "必須",
     "optional": "任意",
+    "updatedAt": "更新日",
     "providers": {
       "google": "Google",
       "github": "GitHub"
@@ -322,6 +323,13 @@
     "website": "ウェブサイト",
     "joined": "登録日",
     "backToHome": "ホームに戻る",
+    "registeredDate": "登録日",
+    "publicRules": "公開ルール",
+    "totalStars": "獲得スター",
+    "noPublicRules": "まだ公開されたルールはありません",
+    "userProfile": "ユーザープロフィール",
+    "userNotFound": "ユーザーが見つかりません",
+    "userNotFoundDesc": "指定されたユーザーは存在しないか、削除された可能性があります。",
     "emailVerified": "メール認証済み",
     "emailNotVerified": "メール未認証",
     "createdRules": "作成したルール",
