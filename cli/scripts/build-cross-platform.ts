@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { createHash } from "node:crypto";
 import { $ } from "bun";
 
 // Bunがサポートしているターゲット
@@ -50,20 +51,16 @@ for (const platform of platforms) {
 		// --outfile: 出力ファイル名
 		await $`bun build src/index.ts --compile --minify --sourcemap --target=${platform.target} --outfile=${releaseDir}/${platform.output}`;
 
-		// Set appropriate permissions
+		// Set appropriate permissions and calculate hash
 		const outputPath = resolve(releaseDir, platform.output);
-		if (platform.output.endsWith(".exe")) {
-			// Windows executables need read permissions
-			chmodSync(outputPath, 0o644);
-			console.log("  📝 Set permissions 644 for Windows executable");
-		} else {
-			// Unix executables need execute permissions
-			chmodSync(outputPath, 0o755);
-			console.log("  📝 Set permissions 755 for Unix executable");
-		}
+
+		// Calculate SHA256 hash
+		const fileData = await Bun.file(outputPath).arrayBuffer();
+		const hash = createHash("sha256").update(new Uint8Array(fileData)).digest("hex");
 
 		console.log(`✅ Successfully built: ${platform.output}`);
-		successfulBuilds.push(`${platform.os}: ${platform.output}`);
+		console.log(`   SHA256: ${hash}`);
+		successfulBuilds.push(`${platform.os}: ${platform.output} (SHA256: ${hash.slice(0, 8)}...)`);
 	} catch (error) {
 		console.error(`❌ Failed to build for ${platform.os}:`, error);
 		failedBuilds.push(`${platform.os}: ${error}`);
@@ -94,6 +91,24 @@ if (failedBuilds.length === 0) {
 	console.log(`\n📁 Build artifacts in ${releaseDir}:`);
 	const files = await $`ls -lh ${releaseDir}`.text();
 	console.log(files);
+
+	// Generate SHA256 checksums file
+	console.log("\n🔒 Generating SHA256 checksums...");
+	let checksumContent = "# SHA256 Checksums for zxcv CLI builds\n\n";
+
+	for (const platform of platforms) {
+		const filePath = resolve(releaseDir, platform.output);
+		if (existsSync(filePath)) {
+			const fileData = await Bun.file(filePath).arrayBuffer();
+			const hash = createHash("sha256").update(new Uint8Array(fileData)).digest("hex");
+			checksumContent += `${hash}  ${platform.output}\n`;
+		}
+	}
+
+	// Write checksums to file
+	const checksumPath = resolve(releaseDir, "checksums.sha256");
+	await Bun.write(checksumPath, checksumContent);
+	console.log(`✅ SHA256 checksums saved to: checksums.sha256`);
 } else {
 	console.error("\n⚠️  Some builds failed. Please check the errors above.");
 	process.exit(1);
