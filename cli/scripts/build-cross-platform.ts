@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
+import { createHash } from "node:crypto";
 import { chmodSync, existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
-import { createHash } from "node:crypto";
 import { $ } from "bun";
 
 // Bunがサポートしているターゲット
@@ -108,7 +108,7 @@ if (failedBuilds.length === 0) {
 	// Write checksums to file
 	const checksumPath = resolve(releaseDir, "checksums.sha256");
 	await Bun.write(checksumPath, checksumContent);
-	console.log(`✅ SHA256 checksums saved to: checksums.sha256`);
+	console.log("✅ SHA256 checksums saved to: checksums.sha256");
 } else {
 	console.error("\n⚠️  Some builds failed. Please check the errors above.");
 	process.exit(1);
