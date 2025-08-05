@@ -99,7 +99,7 @@
               
               <div class="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
                 <NuxtLink 
-                  :to="`/users/${rule.author.username}`"
+                  :to="`/user/${rule.author.username}`"
                   class="flex items-center gap-2 hover:text-primary-600 dark:hover:text-primary-400"
                 >
                   <img 
@@ -450,7 +450,7 @@
               <!-- 個人の場合 -->
               <NuxtLink 
                 v-else
-                :to="`/users/${rule.author.username}`"
+                :to="`/user/${rule.author.username}`"
                 class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
               >
                 <img 
