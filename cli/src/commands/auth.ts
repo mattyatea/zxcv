@@ -1,11 +1,11 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import { inquirer } from "../utils/prompt.js";
-import open from "../utils/open.js";
-import { ora } from "../utils/spinner.js";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
+import open from "../utils/open.js";
+import { inquirer } from "../utils/prompt.js";
+import { ora } from "../utils/spinner.js";
 
 export function createAuthCommand(): Command {
 	const auth = new Command("auth").description("Authentication management");

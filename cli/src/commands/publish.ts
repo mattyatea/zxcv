@@ -3,11 +3,11 @@ import { join } from "node:path";
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import { inquirer } from "../utils/prompt.js";
-import { ora } from "../utils/spinner.js";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { inquirer } from "../utils/prompt.js";
+import { ora } from "../utils/spinner.js";
 
 export function createPublishCommand(): Command {
 	return new Command("publish")

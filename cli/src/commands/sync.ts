@@ -1,10 +1,10 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import { ora } from "../utils/spinner.js";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { ora } from "../utils/spinner.js";
 
 export function createSyncCommand(): Command {
 	return new Command("sync")

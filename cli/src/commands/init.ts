@@ -2,8 +2,8 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
-import { inquirer } from "../utils/prompt.js";
 import type { ZxcvMetadata } from "../types";
+import { inquirer } from "../utils/prompt.js";
 
 export function createInitCommand(): Command {
 	return new Command("init")

@@ -1,11 +1,11 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import { ora } from "../utils/spinner.js";
 import { ConfigManager } from "../config";
 import type { ZxcvMetadata } from "../types";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { ora } from "../utils/spinner.js";
 
 export function createAddCommand(): Command {
 	return new Command("add")
