@@ -43,8 +43,12 @@ zxcv rm @myorg/react-rules
 # Register a new account
 zxcv auth register
 
-# Login
+# Login (default: Device Authorization Grant)
 zxcv auth login
+
+# Interactive login (username/password)
+zxcv auth login -i
+zxcv auth login --interactive
 
 # Logout
 zxcv auth logout

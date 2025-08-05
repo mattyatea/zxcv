@@ -43,8 +43,12 @@ zxcv rm @myorg/react-rules
 # 新しいアカウントを登録
 zxcv auth register
 
-# ログイン
+# ログイン（デフォルト: Device Authorization Grant）
 zxcv auth login
+
+# インタラクティブログイン（ユーザー名/パスワード）
+zxcv auth login -i
+zxcv auth login --interactive
 
 # ログアウト
 zxcv auth logout
