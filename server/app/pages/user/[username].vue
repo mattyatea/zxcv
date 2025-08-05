@@ -118,6 +118,10 @@
 import { useRpc } from "~/composables/useRpc";
 import { useAuthStore } from "~/stores/auth";
 import { useI18n } from "~/composables/useI18n";
+import type { InferOutput } from "@orpc/contract";
+import type { contract } from "~/server/orpc/contracts";
+
+type UserPublicProfile = InferOutput<typeof contract.users.getPublicProfile>;
 
 const route = useRoute();
 const $rpc = useRpc();
@@ -133,26 +137,7 @@ const isOwnProfile = computed(() => {
 	return authStore.user?.username === username.value;
 });
 
-const profileData = ref<{
-	user: {
-		id: string;
-		username: string;
-		createdAt: number;
-	};
-	stats: {
-		publicRulesCount: number;
-		totalStars: number;
-	};
-	publicRules: Array<{
-		id: string;
-		name: string;
-		description: string;
-		stars: number;
-		createdAt: number;
-		updatedAt: number;
-		organization: { name: string } | null;
-	}>;
-} | null>(null);
+const profileData = ref<UserPublicProfile | null>(null);
 
 // Fetch user profile
 async function fetchProfile() {

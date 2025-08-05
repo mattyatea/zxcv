@@ -90,6 +90,10 @@
 
 <script setup lang="ts">
 import { useRpc } from "~/composables/useRpc";
+import type { InferOutput } from "@orpc/contract";
+import type { contract } from "~/server/orpc/contracts";
+
+type OrganizationPublicProfile = InferOutput<typeof contract.organizations.getPublicProfile>;
 
 const route = useRoute();
 const $rpc = useRpc();
@@ -97,31 +101,7 @@ const $rpc = useRpc();
 const orgname = computed(() => route.params.orgname as string);
 const loading = ref(true);
 const error = ref(false);
-const profileData = ref<{
-	organization: {
-		id: string;
-		name: string;
-		displayName: string;
-		description: string | null;
-		createdAt: number;
-	};
-	stats: {
-		publicRulesCount: number;
-		totalStars: number;
-	};
-	publicRules: Array<{
-		id: string;
-		name: string;
-		description: string;
-		stars: number;
-		createdAt: number;
-		updatedAt: number;
-		user: {
-			id: string;
-			username: string;
-		};
-	}>;
-} | null>(null);
+const profileData = ref<OrganizationPublicProfile | null>(null);
 
 // Fetch organization profile
 async function fetchProfile() {
