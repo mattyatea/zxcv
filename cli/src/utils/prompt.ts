@@ -1,5 +1,5 @@
-import * as readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import * as readline from "node:readline/promises";
 import chalk from "chalk";
 
 export interface PromptQuestion {
@@ -9,7 +9,10 @@ export interface PromptQuestion {
 	default?: string | boolean | number;
 	choices?: Array<{ name: string; value: string | number }> | string[];
 	mask?: string;
-	validate?: (input: any, answers?: any) => boolean | string;
+	validate?: (
+		input: string | boolean | number,
+		answers?: Record<string, string | boolean | number>,
+	) => boolean | string;
 }
 
 class Prompt {
@@ -145,21 +148,22 @@ class Prompt {
 
 		do {
 			answer = await this.rl.question("\nSelect an option (enter number): ");
-			selectedIndex = parseInt(answer) - 1;
-		} while (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= choices.length);
+			selectedIndex = Number.parseInt(answer) - 1;
+		} while (Number.isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= choices.length);
 
 		return choices[selectedIndex].value;
 	}
 
-	async prompt(questions: PromptQuestion[]): Promise<Record<string, any>> {
-		const answers: Record<string, any> = {};
+	async prompt(questions: PromptQuestion[]): Promise<Record<string, string | boolean | number>> {
+		const answers: Record<string, string | boolean | number> = {};
 
 		for (const question of questions) {
 			// Pass answers to validation for dependent questions
 			const questionWithAnswers = { ...question };
 			if (question.validate) {
 				const originalValidate = question.validate;
-				questionWithAnswers.validate = (input: any) => originalValidate(input, answers);
+				questionWithAnswers.validate = (input: string | boolean | number) =>
+					originalValidate(input, answers);
 			}
 
 			switch (question.type) {
@@ -176,7 +180,7 @@ class Prompt {
 					answers[question.name] = await this.list(questionWithAnswers);
 					break;
 				default:
-					throw new Error(`Unsupported prompt type: ${(question as any).type}`);
+					throw new Error(`Unsupported prompt type: ${question.type}`);
 			}
 		}
 
@@ -186,7 +190,9 @@ class Prompt {
 }
 
 export const inquirer = {
-	prompt: async (questions: PromptQuestion[]): Promise<Record<string, any>> => {
+	prompt: async (
+		questions: PromptQuestion[],
+	): Promise<Record<string, string | boolean | number>> => {
 		const prompt = new Prompt();
 		return prompt.prompt(questions);
 	},
