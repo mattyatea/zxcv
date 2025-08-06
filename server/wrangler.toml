@@ -27,8 +27,8 @@ RATE_LIMIT_ANONYMOUS = "100"
 RATE_LIMIT_AUTHENTICATED = "1000"
 RATE_LIMIT_API_KEY = "5000"
 EMAIL_FROM = "noreply+zxcv@prism-project.net"
-FRONTEND_URL = "https://zxcv-backend-and-frontend.mattya.workers.dev/"
-APP_URL = "https://zxcv-backend-and-frontend.mattya.workers.dev"
+FRONTEND_URL = "https://zxcv.nanasi-apps.xyz/"
+APP_URL = "https://zxcv.nanasi-apps.xyz"
 
 # Workers Assets configuration
 [assets]
@@ -58,8 +58,8 @@ RATE_LIMIT_ANONYMOUS = "100"
 RATE_LIMIT_AUTHENTICATED = "1000"
 RATE_LIMIT_API_KEY = "5000"
 EMAIL_FROM = "noreply+zxcv@prism-project.net"
-FRONTEND_URL = "https://zxcv-backend-and-frontend-staging.mattya.workers.dev/"
-APP_URL = "https://zxcv-backend-and-frontend-staging.mattya.workers.dev"
+FRONTEND_URL = "https://zxcv-staging.mattyatea.me/"
+APP_URL = "https://zxcv-staging.mattyatea.me"
 
 # Workers Assets configuration for staging
 [env.staging.assets]
