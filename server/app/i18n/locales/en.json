@@ -1,4 +1,7 @@
 {
+  "app": {
+    "name": "zxcv"
+  },
   "common": {
     "loading": "Loading...",
     "save": "Save",
