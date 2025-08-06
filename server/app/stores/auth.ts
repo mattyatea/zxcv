@@ -1,8 +1,4 @@
-import type { createORPCClient } from "@orpc/client";
 import { defineStore } from "pinia";
-import type { Router } from "../../server/orpc/router";
-
-type RPCClient = ReturnType<typeof createORPCClient<Router>>;
 
 interface AuthUser {
 	id: string;
@@ -67,8 +63,7 @@ export const useAuthStore = defineStore("auth", () => {
 	const login = async (credentials: LoginCredentials) => {
 		isLoading.value = true;
 		try {
-			const nuxtApp = useNuxtApp();
-			const $rpc = nuxtApp.$rpc as RPCClient;
+			const $rpc = useRpc();
 			const response = await $rpc.auth.login({
 				email: credentials.email,
 				password: credentials.password,
@@ -99,8 +94,7 @@ export const useAuthStore = defineStore("auth", () => {
 	const register = async (data: RegisterData) => {
 		isLoading.value = true;
 		try {
-			const nuxtApp = useNuxtApp();
-			const $rpc = nuxtApp.$rpc as RPCClient;
+			const $rpc = useRpc();
 			const response = await $rpc.auth.register(data);
 
 			// After successful registration, log the user in
@@ -138,8 +132,7 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 
 		try {
-			const nuxtApp = useNuxtApp();
-			const $rpc = nuxtApp.$rpc as RPCClient;
+			const $rpc = useRpc();
 			const response = await $rpc.auth.refresh({
 				refreshToken: refreshToken.value,
 			});
@@ -168,8 +161,7 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 
 		try {
-			const nuxtApp = useNuxtApp();
-			const $rpc = nuxtApp.$rpc as RPCClient;
+			const $rpc = useRpc();
 			const response = await $rpc.users.settings();
 			user.value = {
 				id: response.id,

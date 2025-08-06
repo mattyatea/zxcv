@@ -1,16 +1,10 @@
-import type { Router } from "../../server/orpc/router";
-
-interface NuxtAppWithRpc {
-	$rpc: Router;
-}
-
 export default defineNuxtPlugin(async (nuxtApp) => {
 	// クライアントサイドでのみ実行
 	if (!import.meta.client) {
 		return;
 	}
 
-	const { $rpc } = nuxtApp as unknown as NuxtAppWithRpc;
+	const $rpc = useRpc();
 
 	// 初期化時に認証状態をチェック
 	const checkAuthStatus = async () => {
