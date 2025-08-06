@@ -274,7 +274,7 @@ main() {
                 echo "  --version VERSION    Install specific version (default: latest)"
                 echo "  --install-dir DIR    Install directory (default: /usr/local/bin)"
                 echo "  --update             Update to latest version"
-                echo "  --help              Show this help message"
+                echo "  --help               Show this help message"
                 exit 0
                 ;;
             *)
