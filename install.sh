@@ -62,9 +62,13 @@ get_current_version() {
         local version_output
         version_output=$("$BINARY_NAME" --version 2>/dev/null || echo "")
         
-        # Extract version from output (assumes format like "zxcv cli-v1.1.0" or "cli-v1.1.0")
+        # Extract version from output (assumes format like "0.1.0", "1.1.1", etc.)
         if [[ -n "$version_output" ]]; then
-            CURRENT_VERSION=$(echo "$version_output" | grep -oE 'cli-v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+            # First try to extract semantic version number
+            local version_num=$(echo "$version_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+            if [[ -n "$version_num" ]]; then
+                CURRENT_VERSION="cli-v${version_num}"
+            fi
         fi
     fi
     
