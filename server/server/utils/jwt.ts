@@ -27,13 +27,29 @@ export async function createJWT(
 
 export async function verifyJWT(token: string, env: Env): Promise<JWTPayload | null> {
 	try {
+		console.log("JWT verification starting:", {
+			tokenLength: token.length,
+			hasSecret: !!env.JWT_SECRET,
+			algorithm: env.JWT_ALGORITHM,
+		});
+
 		const secret = new TextEncoder().encode(env.JWT_SECRET);
 		const { payload } = await jwtVerify(token, secret, {
 			algorithms: [env.JWT_ALGORITHM as string],
 		});
 
+		console.log("JWT payload decoded:", {
+			sub: payload.sub,
+			email: payload.email,
+			username: payload.username,
+			emailVerified: payload.emailVerified,
+			exp: payload.exp,
+			iat: payload.iat,
+		});
+
 		// Ensure payload has required fields
 		if (payload.sub && typeof payload.email === "string" && typeof payload.username === "string") {
+			console.log("JWT validation successful");
 			return {
 				sub: payload.sub,
 				email: payload.email,
@@ -44,8 +60,13 @@ export async function verifyJWT(token: string, env: Env): Promise<JWTPayload | n
 			};
 		}
 
+		console.log("JWT validation failed: missing required fields");
 		return null;
-	} catch {
+	} catch (error) {
+		console.error("JWT verification error:", {
+			error: error instanceof Error ? error.message : String(error),
+			tokenStart: `${token.substring(0, 50)}...`,
+		});
 		return null;
 	}
 }
