@@ -32,7 +32,14 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 	console.log("Token extracted, length:", token.length);
 	const context = event.context as BaseH3EventContext & H3EventContext;
 	const env = context.cloudflare?.env;
-	console.log(`Environment variables: ${JSON.stringify(env)}`);
+
+	// Log only essential environment info to avoid circular reference
+	console.log("Environment info:", {
+		hasJwtSecret: !!env?.JWT_SECRET,
+		jwtAlgorithm: env?.JWT_ALGORITHM,
+		hasDb: !!env?.DB,
+	});
+
 	if (!env) {
 		return undefined;
 	}
