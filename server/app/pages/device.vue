@@ -142,16 +142,26 @@ const handleSubmit = async () => {
 
 		if (response.success) {
 			successMessage.value = response.message || $t('device.success');
-			// Keep the success message visible
-			setTimeout(() => {
-				navigateTo('/');
-			}, 3000);
+			// Navigate after showing success message (client-side only)
+			if (typeof window !== 'undefined') {
+				// Use a simple delay mechanism that doesn't rely on setTimeout
+				const startTime = Date.now();
+				const checkTime = () => {
+					if (Date.now() - startTime >= 3000) {
+						navigateTo('/');
+					} else {
+						requestAnimationFrame(checkTime);
+					}
+				};
+				requestAnimationFrame(checkTime);
+			}
 		}
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error('Device verification error:', error);
-		if (error.code === 'NOT_FOUND') {
+		const err = error as { code?: string; message?: string };
+		if (err.code === 'NOT_FOUND') {
 			errorMessage.value = $t('device.invalidCode');
-		} else if (error.code === 'BAD_REQUEST' && error.message?.includes('期限')) {
+		} else if (err.code === 'BAD_REQUEST' && err.message?.includes('期限')) {
 			errorMessage.value = $t('device.expiredCode');
 		} else {
 			errorMessage.value = $t('device.error');
