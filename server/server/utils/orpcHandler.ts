@@ -46,27 +46,33 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 
 	// Check if it's a CLI token (longer format)
 	if (token.length > 100) {
+		console.log("Processing as CLI token (length > 100)");
 		// Import dynamically to avoid circular dependencies
 		const { hashCliToken } = await import("./deviceAuth");
 		const { createPrismaClient } = await import("./prisma");
 
 		try {
 			const tokenHash = await hashCliToken(token);
-			const db = createPrismaClient(env.DB);
+			console.log("CLI token hash generated");
 
+			const db = createPrismaClient(env.DB);
 			const cliToken = await db.cliToken.findUnique({
 				where: { tokenHash },
 				include: { user: true },
 			});
 
 			if (!cliToken || !cliToken.user) {
+				console.log("CLI token not found in database");
 				return undefined;
 			}
 
 			// Check if token is expired
 			if (cliToken.expiresAt && cliToken.expiresAt < Math.floor(Date.now() / 1000)) {
+				console.log("CLI token expired");
 				return undefined;
 			}
+
+			console.log("CLI token valid for user:", cliToken.user.username);
 
 			// Update last used timestamp
 			await db.cliToken.update({
@@ -80,9 +86,15 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 				username: cliToken.user.username,
 				emailVerified: cliToken.user.emailVerified,
 			};
-		} catch {
+		} catch (error) {
+			console.error(
+				"CLI token processing error:",
+				error instanceof Error ? error.message : String(error),
+			);
 			return undefined;
 		}
+	} else {
+		console.log("Processing as JWT token (length <= 100)");
 	}
 
 	// Standard JWT token
