@@ -44,9 +44,10 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 		return undefined;
 	}
 
-	// Check if it's a CLI token (longer format)
-	if (token.length > 100) {
-		console.log("Processing as CLI token (length > 100)");
+	// Check if it's a CLI token - JWT has 3 parts separated by dots, CLI tokens don't
+	const isJWT = token.split(".").length === 3;
+	if (!isJWT && token.length > 100) {
+		console.log("Processing as CLI token (not JWT format && length > 100)");
 		// Import dynamically to avoid circular dependencies
 		const { hashCliToken } = await import("./deviceAuth");
 		const { createPrismaClient } = await import("./prisma");
@@ -94,7 +95,7 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 			return undefined;
 		}
 	} else {
-		console.log("Processing as JWT token (length <= 100)");
+		console.log("Processing as JWT token (JWT format detected)");
 	}
 
 	// Standard JWT token
