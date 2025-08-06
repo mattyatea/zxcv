@@ -44,6 +44,13 @@ export class AuthService {
 		const hashedPassword = await hashPassword(data.password);
 		const userId = nanoid();
 
+		// 確認メール用のトークンを事前に生成
+		const verificationToken = await generateToken(
+			{ userId, email: data.email },
+			this.env.JWT_SECRET,
+			"1h",
+		);
+
 		// ユーザー作成
 		const user = await this.userRepository.create({
 			id: userId,
@@ -53,17 +60,18 @@ export class AuthService {
 			emailVerified: false,
 		});
 
-		// 確認メール送信
-		const verificationToken = await generateToken(
-			{ userId: user.id, email: user.email },
-			this.env.JWT_SECRET,
-			"1h",
-		);
-
+		// 確認メール送信（失敗した場合はユーザーを削除）
 		try {
 			await this.sendVerificationEmail(user.email, verificationToken, data.locale || "ja");
 		} catch (error) {
-			// ユーザーは作成されたが、メール送信に失敗した
+			// メール送信に失敗した場合、作成したユーザーを削除（ロールバック）
+			try {
+				await this.userRepository.delete(user.id);
+			} catch (deleteError) {
+				console.error("Failed to rollback user creation:", deleteError);
+			}
+
+			// 元のエラーを再throw
 			if (error instanceof EmailServiceError) {
 				throw error;
 			}
