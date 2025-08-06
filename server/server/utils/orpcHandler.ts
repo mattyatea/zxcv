@@ -18,11 +18,18 @@ declare global {
 
 export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
 	const authorization = getHeader(event, "authorization");
+	console.log(
+		"Authorization header:",
+		authorization ? `Bearer ${authorization.substring(7, 27)}...` : "None",
+	);
+
 	if (!authorization?.startsWith("Bearer ")) {
+		console.log("No valid Bearer token found");
 		return undefined;
 	}
 
 	const token = authorization.substring(7);
+	console.log("Token extracted, length:", token.length);
 	const context = event.context as BaseH3EventContext & H3EventContext;
 	const env = context.cloudflare?.env;
 
@@ -75,15 +82,22 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 	try {
 		const payload = await verifyJWT(token, env);
 		if (!payload) {
+			console.log("JWT verification returned null payload");
 			return undefined;
 		}
+		console.log("JWT verification successful for user:", payload.username);
 		return {
 			id: payload.sub,
 			email: payload.email,
 			username: payload.username,
 			emailVerified: payload.emailVerified || false,
 		};
-	} catch {
+	} catch (error) {
+		console.error("JWT verification failed:", {
+			error: error instanceof Error ? error.message : String(error),
+			tokenLength: token.length,
+			tokenStart: `${token.substring(0, 20)}...`,
+		});
 		return undefined;
 	}
 }
