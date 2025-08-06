@@ -17,6 +17,7 @@ INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="zxcv"
 VERSION="latest"
 GITHUB_REPO="mattyatea/zxcv"
+UPDATE_MODE=false
 
 # Detect OS and architecture
 detect_platform() {
@@ -55,6 +56,23 @@ detect_platform() {
     esac
 }
 
+# Get current installed version
+get_current_version() {
+    if command -v "$BINARY_NAME" >/dev/null 2>&1; then
+        local version_output
+        version_output=$("$BINARY_NAME" --version 2>/dev/null || echo "")
+        
+        # Extract version from output (assumes format like "zxcv cli-v1.1.0" or "cli-v1.1.0")
+        if [[ -n "$version_output" ]]; then
+            CURRENT_VERSION=$(echo "$version_output" | grep -oE 'cli-v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        fi
+    fi
+    
+    if [[ -z "$CURRENT_VERSION" ]]; then
+        CURRENT_VERSION="not-installed"
+    fi
+}
+
 # Get latest release version from GitHub API
 get_latest_version() {
     if command -v curl >/dev/null 2>&1; then
@@ -67,8 +85,33 @@ get_latest_version() {
     fi
     
     if [[ -z "$VERSION" ]]; then
-        echo -e "${YELLOW}Warning: Could not fetch latest version, using cli-v1.1.0${NC}"
-        VERSION="cli-v1.1.0"
+        echo -e "${YELLOW}Warning: Could not fetch latest version, using cli-v1.1.1${NC}"
+        VERSION="cli-v1.1.1"
+    fi
+}
+
+# Compare versions
+compare_versions() {
+    local current="$1"
+    local latest="$2"
+    
+    if [[ "$current" == "not-installed" ]]; then
+        return 1  # Not installed, needs installation
+    fi
+    
+    if [[ "$current" == "$latest" ]]; then
+        return 0  # Same version
+    fi
+    
+    # Extract version numbers (remove cli-v prefix)
+    local current_num=$(echo "$current" | sed 's/cli-v//')
+    local latest_num=$(echo "$latest" | sed 's/cli-v//')
+    
+    # Simple version comparison (assumes semantic versioning)
+    if [[ "$current_num" < "$latest_num" ]]; then
+        return 1  # Current is older
+    else
+        return 2  # Current is newer (shouldn't happen normally)
     fi
 }
 
@@ -221,11 +264,16 @@ main() {
                 INSTALL_DIR="$2"
                 shift 2
                 ;;
+            --update)
+                UPDATE_MODE=true
+                shift
+                ;;
             --help|-h)
                 echo "Usage: $0 [OPTIONS]"
                 echo "Options:"
                 echo "  --version VERSION    Install specific version (default: latest)"
                 echo "  --install-dir DIR    Install directory (default: /usr/local/bin)"
+                echo "  --update             Update to latest version"
                 echo "  --help              Show this help message"
                 exit 0
                 ;;
@@ -240,11 +288,47 @@ main() {
     detect_platform
     echo -e "${BLUE}Detected platform: ${OS}-${ARCH}${NC}"
     
-    # Get latest version if not specified
-    if [[ "$VERSION" == "latest" ]]; then
+    # Handle update mode
+    if [[ "$UPDATE_MODE" == true ]]; then
+        echo -e "${BLUE}🔄 Update mode enabled${NC}"
+        
+        # Get current version
+        get_current_version
+        echo -e "${BLUE}Current version: ${CURRENT_VERSION}${NC}"
+        
+        # Get latest version
         get_latest_version
+        echo -e "${BLUE}Latest version: ${VERSION}${NC}"
+        
+        # Compare versions
+        compare_versions "$CURRENT_VERSION" "$VERSION"
+        local compare_result=$?
+        
+        case $compare_result in
+            0)
+                echo -e "${GREEN}✓ You already have the latest version (${VERSION})${NC}"
+                exit 0
+                ;;
+            1)
+                if [[ "$CURRENT_VERSION" == "not-installed" ]]; then
+                    echo -e "${YELLOW}zxcv CLI is not installed. Installing latest version...${NC}"
+                else
+                    echo -e "${YELLOW}Update available: ${CURRENT_VERSION} → ${VERSION}${NC}"
+                    echo -e "${BLUE}Updating zxcv CLI...${NC}"
+                fi
+                ;;
+            2)
+                echo -e "${YELLOW}Warning: Current version (${CURRENT_VERSION}) is newer than latest release (${VERSION})${NC}"
+                echo -e "${BLUE}Proceeding with installation anyway...${NC}"
+                ;;
+        esac
+    else
+        # Get latest version if not specified
+        if [[ "$VERSION" == "latest" ]]; then
+            get_latest_version
+        fi
+        echo -e "${BLUE}Installing version: ${VERSION}${NC}"
     fi
-    echo -e "${BLUE}Installing version: ${VERSION}${NC}"
     
     # Construct download information
     construct_download_info
@@ -273,8 +357,13 @@ main() {
     # Verify installation
     verify_installation
     
-    echo -e "${GREEN}🎉 Installation completed successfully!${NC}"
-    echo -e "${BLUE}Run 'zxcv --help' to get started.${NC}"
+    if [[ "$UPDATE_MODE" == true ]]; then
+        echo -e "${GREEN}🎉 Update completed successfully!${NC}"
+        echo -e "${BLUE}zxcv CLI has been updated to ${VERSION}${NC}"
+    else
+        echo -e "${GREEN}🎉 Installation completed successfully!${NC}"
+        echo -e "${BLUE}Run 'zxcv --help' to get started.${NC}"
+    fi
 }
 
 # Run main function
