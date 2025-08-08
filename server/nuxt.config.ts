@@ -14,66 +14,14 @@ export default defineNuxtConfig({
     
     rollupConfig: {
       external: ["@prisma/client", "cloudflare:email"],
-      output: {
-        manualChunks(id) {
-          // Vendor chunk splitting
-          if (id.includes('node_modules')) {
-            if (id.includes('vue') || id.includes('@vue')) {
-              return 'vue-vendor';
-            }
-            if (id.includes('pinia')) {
-              return 'pinia-vendor';
-            }
-            if (id.includes('@orpc')) {
-              return 'orpc-vendor';
-            }
-            return 'vendor';
-          }
-        }
-      }
     },
 
     cloudflare: {
       deployConfig: false,  // GitHub Actionsで独自のwrangler.tomlを使用するため
       nodeCompat: true
-    },
-    
-    // Optimize imports
-    imports: {
-      presets: [
-        {
-          from: 'lodash-es',
-          imports: ['debounce']
-        }
-      ]
     }
   },
   
-  // Build optimizations
-  build: {
-    analyze: false,
-    transpile: ['@orpc/client'],
-  },
-  
-  // Experimental features for optimization
-  experimental: {
-    payloadExtraction: false, // Disable for smaller bundle
-    renderJsonPayloads: true,
-    componentIslands: false
-  },
-  
-  // Vue optimizations
-  vue: {
-    compilerOptions: {
-      whitespace: 'condense'
-    }
-  },
-  
-  // Import optimizations
-  imports: {
-    autoImport: true,
-    dirs: []
-  },
 
   css: [
     '~/assets/css/main.css',
