@@ -44,7 +44,6 @@
 	"packageManager": "pnpm@10.12.1",
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20250719.0",
-		"@hono/zod-validator": "^0.7.1",
 		"@nuxtjs/tailwindcss": "^6.14.0",
 		"@orpc/client": "^1.7.4",
 		"@orpc/contract": "^1.7.4",
@@ -56,7 +55,6 @@
 		"@prisma/adapter-d1": "^6.12.0",
 		"@prisma/client": "^6.12.0",
 		"arctic": "^3.7.0",
-		"chanfana": "2.8.1",
 		"hono": "4.8.2",
 		"jose": "^6.0.12",
 		"lodash-es": "^4.17.21",
