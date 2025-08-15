@@ -38,11 +38,13 @@ model User {
   organizationMembers   OrganizationMember[]
   apiKeys       ApiKey[]
   ruleStars     RuleStar[]
-  ruleDownloads RuleDownload[]
+  ruleViews     RuleView[]
   passwordResets PasswordReset[]
   emailVerifications EmailVerification[]
   oauthAccounts OAuthAccount[]
   organizationInvitations OrganizationInvitation[] @relation("inviter")
+  deviceCodes   DeviceCode[]
+  cliTokens     CliToken[]
 
   @@index([email])
   @@index([username])
@@ -61,7 +63,7 @@ model Rule {
   publishedAt     Int?    @map("published_at")
   version         String  @default("1.0.0")
   latestVersionId String? @map("latest_version_id")
-  downloads       Int     @default(0)
+  views           Int     @default(0)
   stars           Int     @default(0)
   organizationId  String? @map("organization_id")
 
@@ -69,7 +71,7 @@ model Rule {
   organization  Organization?  @relation(fields: [organizationId], references: [id])
   versions      RuleVersion[]
   starredBy     RuleStar[]
-  downloadedBy  RuleDownload[]
+  viewedBy      RuleView[]
 
   // Unique constraint removed - will be handled at application level
   @@index([userId])
@@ -176,7 +178,7 @@ model RuleStar {
   @@map("rule_stars")
 }
 
-model RuleDownload {
+model RuleView {
   id        String  @id
   ruleId    String  @map("rule_id")
   userId    String? @map("user_id")
@@ -190,7 +192,7 @@ model RuleDownload {
   @@index([ruleId])
   @@index([userId])
   @@index([createdAt])
-  @@map("rule_downloads")
+  @@map("rule_views")
 }
 
 model PasswordReset {
@@ -291,5 +293,46 @@ model OrganizationInvitation {
   @@index([email])
   @@index([expiresAt])
   @@map("organization_invitations")
+}
+
+model DeviceCode {
+  id           String  @id
+  deviceCode   String  @unique @map("device_code")
+  userCode     String  @unique @map("user_code")
+  isApproved   Boolean @default(false) @map("is_approved")
+  userId       String? @map("user_id") // Nullable until approved
+  clientId     String  @map("client_id") // Which client (e.g., "cli", "vscode")
+  scope        String? // OAuth2 scopes
+  expiresAt    Int     @map("expires_at")
+  interval     Int     @default(5) // Polling interval in seconds
+  attemptCount Int     @default(0) @map("attempt_count")
+  lastAttempt  Int?    @map("last_attempt")
+  createdAt    Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([deviceCode])
+  @@index([userCode])
+  @@index([expiresAt])
+  @@map("device_codes")
+}
+
+model CliToken {
+  id          String  @id
+  userId      String  @map("user_id")
+  tokenHash   String  @unique @map("token_hash")
+  name        String  @default("CLI Token")
+  clientId    String  @map("client_id") // Which client issued this token
+  lastUsedAt  Int?    @map("last_used_at")
+  expiresAt   Int?    @map("expires_at")
+  scope       String? // OAuth2 scopes
+  createdAt   Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("cli_tokens")
 }
 

@@ -308,7 +308,7 @@ describe("OpenAPI Endpoints via REST", () => {
 					publishedAt: mockNow,
 					version: "1.0.0",
 					latestVersionId: null,
-					downloads: 0,
+					views: 0,
 					stars: 0,
 					user: {
 						id: "user_123",

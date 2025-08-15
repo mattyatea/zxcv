@@ -1,17 +1,14 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import { dbProvider } from "~/server/orpc/middleware/combined";
-import {
-	authRateLimit,
-	passwordResetRateLimit,
-	registerRateLimit,
-} from "~/server/orpc/middleware/rateLimit";
-import { AuthService } from "~/server/services/AuthService";
-import { EmailServiceError } from "~/server/types/errors";
-import { generateId } from "~/server/utils/crypto";
-import type { Locale } from "~/server/utils/i18n";
-import { getLocaleFromRequest } from "~/server/utils/locale";
-import { createLogger } from "~/server/utils/logger";
+import { AuthService } from "../../services/AuthService";
+import { EmailServiceError } from "../../types/errors";
+import type { AuthUser } from "../../utils/auth";
+import { generateId } from "../../utils/crypto";
+import type { Locale } from "../../utils/i18n";
+import { getLocaleFromRequest } from "../../utils/locale";
+import { createLogger } from "../../utils/logger";
+import { os } from "../index";
+import { dbProvider } from "../middleware/combined";
+import { authRateLimit, passwordResetRateLimit, registerRateLimit } from "../middleware/rateLimit";
 
 export const authProcedures = {
 	/**
@@ -73,7 +70,7 @@ export const authProcedures = {
 
 		try {
 			// Verify refresh token
-			const { verifyRefreshToken } = await import("~/server/utils/jwt");
+			const { verifyRefreshToken } = await import("../../utils/jwt");
 			const userId = await verifyRefreshToken(refreshToken, env);
 			if (!userId) {
 				throw new ORPCError("UNAUTHORIZED", { message: "Invalid token" });
@@ -167,9 +164,7 @@ export const authProcedures = {
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		// Verify refresh token
-		const { verifyRefreshToken, createRefreshToken, createJWT } = await import(
-			"~/server/utils/jwt"
-		);
+		const { verifyRefreshToken, createRefreshToken, createJWT } = await import("../../utils/jwt");
 		const userId = await verifyRefreshToken(refreshToken, env);
 
 		if (!userId) {
@@ -216,13 +211,13 @@ export const authProcedures = {
 			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 			const { createOAuthProviders, generateState, generateCodeVerifier } = await import(
-				"~/server/utils/oauth"
+				"../../utils/oauth"
 			);
 			const providers = createOAuthProviders(env);
 
 			// Import security utilities
 			const { validateRedirectUrl, performOAuthSecurityChecks, generateNonce, OAUTH_CONFIG } =
-				await import("~/server/utils/oauthSecurity");
+				await import("../../utils/oauthSecurity");
 
 			// Get client IP for security tracking
 			const clientIp =
@@ -243,11 +238,11 @@ export const authProcedures = {
 			const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
 
 			// Clean up expired states before creating new one
-			const { cleanupExpiredOAuthStates } = await import("~/server/utils/oauthCleanup");
+			const { cleanupExpiredOAuthStates } = await import("../../utils/oauthCleanup");
 			await cleanupExpiredOAuthStates(db);
 
 			// Store state in database
-			const { generateId } = await import("~/server/utils/crypto");
+			const { generateId } = await import("../../utils/crypto");
 			const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 minutes
 
 			await db.oAuthState.create({
@@ -303,11 +298,11 @@ export const authProcedures = {
 			state,
 		});
 
-		const { createOAuthProviders } = await import("~/server/utils/oauth");
+		const { createOAuthProviders } = await import("../../utils/oauth");
 		const providers = createOAuthProviders(env);
 
 		// Import security utilities
-		const { validateOAuthResponse } = await import("~/server/utils/oauthSecurity");
+		const { validateOAuthResponse } = await import("../../utils/oauthSecurity");
 
 		// Validate OAuth response parameters
 		validateOAuthResponse({ code, state }, locale);
@@ -484,7 +479,7 @@ export const authProcedures = {
 			}
 
 			// Use AuthService to handle OAuth login
-			const result = await authService.handleOAuthLogin(provider, userInfo);
+			const result = await authService.handleOAuthLogin(provider, userInfo, stateData.action);
 
 			// Check if username is required
 			if ("requiresUsername" in result && result.requiresUsername) {
@@ -496,11 +491,11 @@ export const authProcedures = {
 			}
 
 			return {
-				accessToken: (result as { accessToken: string; refreshToken: string; user: any })
+				accessToken: (result as { accessToken: string; refreshToken: string; user: AuthUser })
 					.accessToken,
-				refreshToken: (result as { accessToken: string; refreshToken: string; user: any })
+				refreshToken: (result as { accessToken: string; refreshToken: string; user: AuthUser })
 					.refreshToken,
-				user: (result as { accessToken: string; refreshToken: string; user: any }).user,
+				user: (result as { accessToken: string; refreshToken: string; user: AuthUser }).user,
 				redirectUrl: stateRecord.redirectUrl || "/",
 			};
 		} catch (error) {
@@ -636,5 +631,354 @@ export const authProcedures = {
 					message: "登録の完了に失敗しました",
 				});
 			}
+		}),
+
+	/**
+	 * Device Authorization Grant - Initialize
+	 */
+	deviceAuthorize: os.auth.deviceAuthorize.use(dbProvider).handler(async ({ input, context }) => {
+		const { clientId, scope } = input;
+		const { db, env } = context;
+		const logger = createLogger(env);
+
+		const { generateDeviceCode, generateUserCode, cleanupExpiredDeviceCodes } = await import(
+			"../../utils/deviceAuth"
+		);
+
+		// Cleanup expired codes
+		await cleanupExpiredDeviceCodes(db);
+
+		// Generate codes
+		const deviceCode = generateDeviceCode();
+		const userCode = generateUserCode();
+		const expiresIn = 900; // 15 minutes
+		const interval = 5; // 5 seconds polling interval
+
+		// Store device code
+		const now = Math.floor(Date.now() / 1000);
+		const deviceCodeRecord = await db.deviceCode.create({
+			data: {
+				id: generateId(),
+				deviceCode,
+				userCode,
+				clientId,
+				scope,
+				expiresAt: now + expiresIn,
+				interval,
+				createdAt: now,
+			},
+		});
+
+		logger.info("Device authorization initialized", {
+			userCode,
+			clientId,
+		});
+
+		const baseUrl = env.APP_URL || "http://localhost:3000";
+
+		return {
+			deviceCode,
+			userCode,
+			verificationUri: `${baseUrl}/device`,
+			verificationUriComplete: `${baseUrl}/device?code=${userCode}`,
+			expiresIn,
+			interval,
+		};
+	}),
+
+	/**
+	 * Device Authorization Grant - Token Exchange
+	 */
+	deviceToken: os.auth.deviceToken.use(dbProvider).handler(async ({ input, context }) => {
+		const { deviceCode, clientId } = input;
+		const { db, env } = context;
+		const logger = createLogger(env);
+
+		const { shouldSlowDown, isRateLimited, generateCliToken, hashCliToken } = await import(
+			"../../utils/deviceAuth"
+		);
+
+		// Find device code
+		const deviceCodeRecord = await db.deviceCode.findUnique({
+			where: { deviceCode },
+			include: { user: true },
+		});
+
+		if (!deviceCodeRecord || deviceCodeRecord.clientId !== clientId) {
+			logger.warn("Invalid device code", { deviceCode, clientId });
+			return {
+				error: "access_denied" as const,
+				errorDescription: "Invalid device code or client ID",
+			};
+		}
+
+		const now = Math.floor(Date.now() / 1000);
+
+		// Check if expired
+		if (deviceCodeRecord.expiresAt < now) {
+			await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
+			return {
+				error: "expired_token" as const,
+				errorDescription: "Device code has expired",
+			};
+		}
+
+		// Check rate limiting
+		if (isRateLimited(deviceCodeRecord.attemptCount)) {
+			logger.warn("Device code rate limited", {
+				deviceCode,
+				attemptCount: deviceCodeRecord.attemptCount,
+			});
+			return {
+				error: "access_denied" as const,
+				errorDescription: "Too many attempts",
+			};
+		}
+
+		// Check polling interval
+		if (shouldSlowDown(deviceCodeRecord.lastAttempt, deviceCodeRecord.interval)) {
+			await db.deviceCode.update({
+				where: { id: deviceCodeRecord.id },
+				data: {
+					attemptCount: deviceCodeRecord.attemptCount + 1,
+					lastAttempt: now,
+				},
+			});
+			return {
+				error: "slow_down" as const,
+				errorDescription: "Polling too frequently",
+			};
+		}
+
+		// Update attempt
+		await db.deviceCode.update({
+			where: { id: deviceCodeRecord.id },
+			data: {
+				attemptCount: deviceCodeRecord.attemptCount + 1,
+				lastAttempt: now,
+			},
+		});
+
+		// Check if approved
+		if (!deviceCodeRecord.isApproved || !deviceCodeRecord.userId) {
+			return {
+				error: "authorization_pending" as const,
+				errorDescription: "Authorization pending",
+			};
+		}
+
+		// Generate CLI token
+		const token = generateCliToken();
+		const tokenHash = await hashCliToken(token);
+
+		// Store CLI token
+		const cliToken = await db.cliToken.create({
+			data: {
+				id: generateId(),
+				userId: deviceCodeRecord.userId,
+				tokenHash,
+				clientId,
+				scope: deviceCodeRecord.scope,
+				createdAt: now,
+			},
+		});
+
+		// Clean up device code
+		await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
+
+		logger.info("CLI token issued", {
+			userId: deviceCodeRecord.userId,
+			clientId,
+		});
+
+		return {
+			accessToken: token,
+			tokenType: "Bearer" as const,
+			scope: deviceCodeRecord.scope || undefined,
+		};
+	}),
+
+	/**
+	 * Device Authorization Grant - Verify User Code
+	 */
+	deviceVerify: os.auth.deviceVerify
+		.use(dbProvider)
+		.use(async ({ context, next }) => {
+			// Verify user is authenticated
+			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
+			if (!authHeader?.startsWith("Bearer ")) {
+				throw new ORPCError("UNAUTHORIZED", { message: "認証が必要です" });
+			}
+
+			const token = authHeader.substring(7);
+			const { verifyAccessToken } = await import("../../utils/jwt");
+			const result = await verifyAccessToken(token, context.env);
+			const userId = result?.sub;
+
+			if (!userId) {
+				throw new ORPCError("UNAUTHORIZED", { message: "無効なトークンです" });
+			}
+
+			// Get user
+			const user = await context.db.user.findUnique({
+				where: { id: userId },
+			});
+
+			if (!user) {
+				throw new ORPCError("UNAUTHORIZED", { message: "ユーザーが見つかりません" });
+			}
+
+			return next({
+				context: { ...context, user },
+			});
+		})
+		.handler(async ({ input, context }) => {
+			const { userCode } = input;
+			const { db, user } = context;
+			const logger = createLogger(context.env);
+
+			// Find device code by user code
+			const deviceCodeRecord = await db.deviceCode.findUnique({
+				where: { userCode: userCode.toUpperCase() },
+			});
+
+			if (!deviceCodeRecord) {
+				logger.warn("Invalid user code", { userCode });
+				throw new ORPCError("NOT_FOUND", {
+					message: "無効なコードです",
+				});
+			}
+
+			const now = Math.floor(Date.now() / 1000);
+
+			// Check if expired
+			if (deviceCodeRecord.expiresAt < now) {
+				await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
+				throw new ORPCError("BAD_REQUEST", {
+					message: "コードの有効期限が切れています",
+				});
+			}
+
+			// Approve device code
+			await db.deviceCode.update({
+				where: { id: deviceCodeRecord.id },
+				data: {
+					isApproved: true,
+					userId: user.id,
+				},
+			});
+
+			logger.info("Device code approved", {
+				userCode,
+				userId: user.id,
+			});
+
+			return {
+				success: true,
+				message: "デバイスが正常に承認されました",
+			};
+		}),
+
+	/**
+	 * List CLI Tokens
+	 */
+	listCliTokens: os.auth.listCliTokens
+		.use(dbProvider)
+		.use(async ({ context, next }) => {
+			// Verify user is authenticated
+			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
+			if (!authHeader?.startsWith("Bearer ")) {
+				throw new ORPCError("UNAUTHORIZED", { message: "認証が必要です" });
+			}
+
+			const token = authHeader.substring(7);
+			const { verifyAccessToken } = await import("../../utils/jwt");
+			const result = await verifyAccessToken(token, context.env);
+			const userId = result?.sub;
+
+			if (!userId) {
+				throw new ORPCError("UNAUTHORIZED", { message: "無効なトークンです" });
+			}
+
+			return next({
+				context: { ...context, userId },
+			});
+		})
+		.handler(async ({ context }) => {
+			const { db, userId } = context;
+
+			const tokens = await db.cliToken.findMany({
+				where: { userId },
+				select: {
+					id: true,
+					name: true,
+					clientId: true,
+					lastUsedAt: true,
+					createdAt: true,
+				},
+				orderBy: { createdAt: "desc" },
+			});
+
+			return tokens;
+		}),
+
+	/**
+	 * Revoke CLI Token
+	 */
+	revokeCliToken: os.auth.revokeCliToken
+		.use(dbProvider)
+		.use(async ({ context, next }) => {
+			// Verify user is authenticated
+			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
+			if (!authHeader?.startsWith("Bearer ")) {
+				throw new ORPCError("UNAUTHORIZED", { message: "認証が必要です" });
+			}
+
+			const token = authHeader.substring(7);
+			const { verifyAccessToken } = await import("../../utils/jwt");
+			const result = await verifyAccessToken(token, context.env);
+			const userId = result?.sub;
+
+			if (!userId) {
+				throw new ORPCError("UNAUTHORIZED", { message: "無効なトークンです" });
+			}
+
+			return next({
+				context: { ...context, userId },
+			});
+		})
+		.handler(async ({ input, context }) => {
+			const { tokenId } = input;
+			const { db, userId } = context;
+			const logger = createLogger(context.env);
+
+			// Verify token belongs to user
+			const token = await db.cliToken.findFirst({
+				where: {
+					id: tokenId,
+					userId,
+				},
+			});
+
+			if (!token) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "トークンが見つかりません",
+				});
+			}
+
+			// Delete token
+			await db.cliToken.delete({
+				where: { id: tokenId },
+			});
+
+			logger.info("CLI token revoked", {
+				tokenId,
+				userId,
+			});
+
+			return {
+				success: true,
+				message: "トークンが取り消されました",
+			};
 		}),
 };

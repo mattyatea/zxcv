@@ -89,8 +89,10 @@ export function validateWithError<T>(schema: z.ZodType<T>, data: unknown, fieldN
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			const firstError = error.issues[0];
-			const field = fieldName || firstError.path.join(".");
-			handleValidationError(field, firstError.message);
+			if (firstError) {
+				const field = fieldName || firstError.path.join(".");
+				handleValidationError(field, firstError.message);
+			}
 		}
 		throw error;
 	}

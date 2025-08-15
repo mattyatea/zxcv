@@ -38,7 +38,7 @@ async function createTestRule() {
 				visibility: "public",
 				tags: JSON.stringify(["test", "public"]),
 				publishedAt: Math.floor(Date.now() / 1000),
-				downloads: 0,
+				views: 0,
 				stars: 0,
 				version: "1.0.0",
 				latestVersionId: nanoid(),

@@ -1,14 +1,10 @@
 import { ORPCError } from "@orpc/server";
 import { nanoid } from "nanoid";
-import { os } from "~/server/orpc";
-import {
-	dbWithAuth,
-	dbWithEmailVerification,
-	dbWithOptionalAuth,
-} from "~/server/orpc/middleware/combined";
-import { RuleService } from "~/server/services/RuleService";
-import { createLogger } from "~/server/utils/logger";
-import { parseRulePath } from "~/server/utils/namespace";
+import { RuleService } from "../../services/RuleService";
+import { createLogger } from "../../utils/logger";
+import { parseRulePath } from "../../utils/namespace";
+import { os } from "../index";
+import { dbWithAuth, dbWithEmailVerification, dbWithOptionalAuth } from "../middleware/combined";
 
 export const rulesProcedures = {
 	/**
@@ -47,7 +43,7 @@ export const rulesProcedures = {
 			publishedAt: rule.publishedAt,
 			version: version.versionNumber || rule.version || "1.0.0",
 			latestVersionId: rule.latestVersionId || version.id,
-			downloads: rule.downloads,
+			views: rule.views,
 			stars: rule.stars,
 			organizationId: rule.organizationId,
 			user: rule.user || author,
@@ -239,7 +235,7 @@ export const rulesProcedures = {
 			publishedAt: rule.publishedAt,
 			version: rule.version || "1.0.0",
 			latestVersionId: rule.latestVersionId,
-			downloads: rule.downloads,
+			views: rule.views,
 			stars: rule.stars,
 			organizationId: rule.organizationId,
 			user: rule.user || author,
@@ -269,21 +265,13 @@ export const rulesProcedures = {
 
 		const versions = await ruleService.getRuleVersions(input.id, user?.id);
 
-		// Get creator information for each version
-		return await Promise.all(
-			versions.map(async (v) => {
-				const creator = await db.user.findUnique({
-					where: { id: v.createdBy },
-					select: { id: true, username: true },
-				});
-				return {
-					version: v.versionNumber,
-					changelog: v.changelog || "",
-					created_at: v.createdAt,
-					createdBy: creator || { id: v.createdBy, username: "Unknown" },
-				};
-			}),
-		);
+		// Creator information is already included from the repository
+		return versions.map((v) => ({
+			version: v.versionNumber,
+			changelog: v.changelog || "",
+			created_at: v.createdAt,
+			createdBy: v.creator || { id: v.createdBy, username: "Unknown" },
+		}));
 	}),
 
 	/**
@@ -477,21 +465,13 @@ export const rulesProcedures = {
 
 			const versions = await ruleService.getRuleVersions(input.ruleId, user?.id);
 
-			// Get creator information for each version
-			return await Promise.all(
-				versions.map(async (v) => {
-					const creator = await db.user.findUnique({
-						where: { id: v.createdBy },
-						select: { id: true, username: true },
-					});
-					return {
-						version: v.versionNumber,
-						changelog: v.changelog || "",
-						created_at: v.createdAt,
-						createdBy: creator || { id: v.createdBy, username: "Unknown" },
-					};
-				}),
-			);
+			// Creator information is already included from the repository
+			return versions.map((v) => ({
+				version: v.versionNumber,
+				changelog: v.changelog || "",
+				created_at: v.createdAt,
+				createdBy: v.creator || { id: v.createdBy, username: "Unknown" },
+			}));
 		}),
 
 	// デバッグ用エンドポイント

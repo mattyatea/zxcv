@@ -44,6 +44,13 @@ export class AuthService {
 		const hashedPassword = await hashPassword(data.password);
 		const userId = nanoid();
 
+		// 確認メール用のトークンを事前に生成
+		const verificationToken = await generateToken(
+			{ userId, email: data.email },
+			this.env.JWT_SECRET,
+			"1h",
+		);
+
 		// ユーザー作成
 		const user = await this.userRepository.create({
 			id: userId,
@@ -53,17 +60,18 @@ export class AuthService {
 			emailVerified: false,
 		});
 
-		// 確認メール送信
-		const verificationToken = await generateToken(
-			{ userId: user.id, email: user.email },
-			this.env.JWT_SECRET,
-			"1h",
-		);
-
+		// 確認メール送信（失敗した場合はユーザーを削除）
 		try {
 			await this.sendVerificationEmail(user.email, verificationToken, data.locale || "ja");
 		} catch (error) {
-			// ユーザーは作成されたが、メール送信に失敗した
+			// メール送信に失敗した場合、作成したユーザーを削除（ロールバック）
+			try {
+				await this.userRepository.delete(user.id);
+			} catch (deleteError) {
+				console.error("Failed to rollback user creation:", deleteError);
+			}
+
+			// 元のエラーを再throw
 			if (error instanceof EmailServiceError) {
 				throw error;
 			}
@@ -370,6 +378,7 @@ export class AuthService {
 			email: string;
 			username?: string;
 		},
+		action = "login",
 	): Promise<
 		| {
 				accessToken: string;
@@ -424,8 +433,16 @@ export class AuthService {
 			}
 		}
 
-		// 新規ユーザーの場合、一時トークンを作成して返す
+		// 新規ユーザーの場合
 		if (!user) {
+			// ログインアクションの場合はエラー
+			if (action === "login") {
+				throw new ORPCError("NOT_FOUND", {
+					message: "このアカウントは登録されていません。新規登録画面から登録してください。",
+				});
+			}
+
+			// 新規登録の場合は一時トークンを作成
 			// 一時登録レコードを作成
 			const tempToken = nanoid();
 			const expiresAt = Math.floor(Date.now() / 1000) + 3600; // 1時間後に期限切れ

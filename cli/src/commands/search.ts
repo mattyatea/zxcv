@@ -1,9 +1,9 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import ora from "ora";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
+import { ora } from "../utils/spinner.js";
 
 export function createSearchCommand(): Command {
 	return new Command("search")

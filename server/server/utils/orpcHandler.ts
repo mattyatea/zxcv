@@ -2,10 +2,10 @@ import type { ORPCErrorCode } from "@orpc/client";
 import { ORPCError } from "@orpc/server";
 import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
-import type { H3EventContext } from "~/server/types/bindings";
-import type { Env } from "~/server/types/env";
-import type { AuthUser } from "~/server/utils/auth";
-import { verifyJWT } from "~/server/utils/jwt";
+import type { H3EventContext } from "../types/bindings";
+import type { Env } from "../types/env";
+import type { AuthUser } from "./auth";
+import { verifyJWT } from "./jwt";
 
 // Extend globalThis for test environment
 declare global {
@@ -30,6 +30,50 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 		return undefined;
 	}
 
+	// Check if it's a CLI token - JWT has 3 parts separated by dots, CLI tokens don't
+	const isJWT = token.split(".").length === 3;
+	if (!isJWT && token.length > 100) {
+		console.log("Processing as CLI token (not JWT format && length > 100)");
+		// Import dynamically to avoid circular dependencies
+		const { hashCliToken } = await import("./deviceAuth");
+		const { createPrismaClient } = await import("./prisma");
+
+		try {
+			const tokenHash = await hashCliToken(token);
+			const db = createPrismaClient(env.DB);
+
+			const cliToken = await db.cliToken.findUnique({
+				where: { tokenHash },
+				include: { user: true },
+			});
+
+			if (!cliToken || !cliToken.user) {
+				return undefined;
+			}
+
+			// Check if token is expired
+			if (cliToken.expiresAt && cliToken.expiresAt < Math.floor(Date.now() / 1000)) {
+				return undefined;
+			}
+
+			// Update last used timestamp
+			await db.cliToken.update({
+				where: { id: cliToken.id },
+				data: { lastUsedAt: Math.floor(Date.now() / 1000) },
+			});
+
+			return {
+				id: cliToken.user.id,
+				email: cliToken.user.email,
+				username: cliToken.user.username,
+				emailVerified: cliToken.user.emailVerified,
+			};
+		} catch {
+			return undefined;
+		}
+	}
+
+	// Standard JWT token
 	try {
 		const payload = await verifyJWT(token, env);
 		if (!payload) {

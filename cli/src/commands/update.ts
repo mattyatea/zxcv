@@ -1,10 +1,10 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import ora from "ora";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { ora } from "../utils/spinner.js";
 
 export function createUpdateCommand(): Command {
 	return new Command("update")
@@ -42,7 +42,9 @@ export function createUpdateCommand(): Command {
 				return;
 			}
 
-			spinner.text = `Checking ${rulesToUpdate.length} rule${rulesToUpdate.length > 1 ? "s" : ""} for updates...`;
+			spinner.text(
+				`Checking ${rulesToUpdate.length} rule${rulesToUpdate.length > 1 ? "s" : ""} for updates...`,
+			);
 
 			let updatedCount = 0;
 			let errorCount = 0;
@@ -60,7 +62,7 @@ export function createUpdateCommand(): Command {
 						continue;
 					}
 
-					spinner.text = `Updating ${path}...`;
+					spinner.text(`Updating ${path}...`);
 
 					// Get content
 					const { content } = await api.getRuleContent(latestRule.id);

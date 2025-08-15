@@ -1,10 +1,11 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import inquirer from "inquirer";
-import ora from "ora";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
+import open from "../utils/open.js";
+import { inquirer } from "../utils/prompt.js";
+import { ora } from "../utils/spinner.js";
 
 export function createAuthCommand(): Command {
 	const auth = new Command("auth").description("Authentication management");
@@ -12,38 +13,102 @@ export function createAuthCommand(): Command {
 	auth
 		.command("login")
 		.description("Login to zxcv server")
-		.action(async () => {
-			const answers = await inquirer.prompt([
-				{
-					type: "input",
-					name: "username",
-					message: "Username:",
-					validate: (input) => input.length > 0,
-				},
-				{
-					type: "password",
-					name: "password",
-					message: "Password:",
-					validate: (input) => input.length > 0,
-				},
-			]);
-
-			const spinner = ora("Logging in...").start();
+		.option("-i, --interactive", "Use interactive login (username/password)")
+		.action(async (options) => {
 			const config = new ConfigManager();
 			const api = new ApiClient(config);
 
-			try {
-				const { token } = await api.login(answers.username, answers.password);
-				config.setAuthToken(token);
-				spinner.succeed(chalk.green("Successfully logged in!"));
-			} catch (error) {
-				spinner.fail(chalk.red("Login failed"));
-				if (axios.isAxiosError(error)) {
-					console.error(chalk.red(error.response?.data?.message || error.message));
-				} else {
-					console.error(chalk.red("An unexpected error occurred"));
+			if (options.interactive) {
+				// Traditional username/password login
+				const answers = await inquirer.prompt([
+					{
+						type: "input",
+						name: "username",
+						message: "Username:",
+						validate: (input) =>
+							(typeof input === "string" && input.length > 0) || "Username is required",
+					},
+					{
+						type: "password",
+						name: "password",
+						message: "Password:",
+						validate: (input) =>
+							(typeof input === "string" && input.length > 0) || "Password is required",
+					},
+				]);
+
+				const spinner = ora("Logging in...").start();
+
+				try {
+					const { token } = await api.login(answers.username as string, answers.password as string);
+					config.setAuthToken(token);
+					spinner.succeed(chalk.green("Successfully logged in!"));
+				} catch (error) {
+					spinner.fail(chalk.red("Login failed"));
+					if (axios.isAxiosError(error)) {
+						console.error(chalk.red(error.response?.data?.message || error.message));
+					} else {
+						console.error(chalk.red("An unexpected error occurred"));
+					}
+					process.exit(1);
 				}
-				process.exit(1);
+			} else {
+				// Device Authorization Grant flow
+				const spinner = ora("Initializing device authentication...").start();
+
+				try {
+					// Request device authorization
+					const authData = await api.initializeDeviceAuth();
+					spinner.stop();
+
+					console.log(`\n${chalk.bold("To authenticate, please visit:")}`);
+					console.log(chalk.cyan(`  ${authData.verificationUri}`));
+					console.log(`\n${chalk.bold("And enter this code:")}`);
+					console.log(chalk.yellow(`  ${authData.userCode}`));
+					console.log("");
+
+					// Ask if user wants to open browser
+					const { openBrowser } = await inquirer.prompt([
+						{
+							type: "confirm",
+							name: "openBrowser",
+							message: "Open browser automatically?",
+							default: true,
+						},
+					]);
+
+					if (openBrowser) {
+						await open(authData.verificationUriComplete || authData.verificationUri);
+					}
+
+					// Start polling
+					const pollSpinner = ora("Waiting for authorization...").start();
+
+					try {
+						const token = await api.pollForDeviceToken(
+							authData.deviceCode,
+							authData.interval,
+							authData.expiresIn,
+						);
+
+						config.setAuthToken(token);
+						pollSpinner.succeed(chalk.green("Successfully authenticated!"));
+					} catch (error) {
+						pollSpinner.fail(chalk.red("Authentication failed"));
+						if (error instanceof Error) {
+							console.error(chalk.red(error.message));
+						}
+						process.exit(1);
+					}
+				} catch (error) {
+					spinner.fail(chalk.red("Failed to initialize authentication"));
+					if (axios.isAxiosError(error)) {
+						console.error(chalk.red(error.response?.data?.message || error.message));
+					} else {
+						console.error(chalk.red("An unexpected error occurred"));
+					}
+					process.exit(1);
+				}
 			}
 		});
 
@@ -65,19 +130,25 @@ export function createAuthCommand(): Command {
 					type: "input",
 					name: "username",
 					message: "Username:",
-					validate: (input) => input.length >= 3,
+					validate: (input) =>
+						(typeof input === "string" && input.length >= 3) ||
+						"Username must be at least 3 characters",
 				},
 				{
 					type: "input",
 					name: "email",
 					message: "Email:",
-					validate: (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input),
+					validate: (input) =>
+						(typeof input === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input)) ||
+						"Invalid email address",
 				},
 				{
 					type: "password",
 					name: "password",
 					message: "Password:",
-					validate: (input) => input.length >= 8,
+					validate: (input) =>
+						(typeof input === "string" && input.length >= 8) ||
+						"Password must be at least 8 characters",
 				},
 				{
 					type: "password",
@@ -92,7 +163,11 @@ export function createAuthCommand(): Command {
 			const api = new ApiClient(config);
 
 			try {
-				await api.register(answers.username, answers.email, answers.password);
+				await api.register(
+					answers.username as string,
+					answers.email as string,
+					answers.password as string,
+				);
 				spinner.succeed(
 					chalk.green(
 						"Account created successfully! Please check your email to verify your account.",

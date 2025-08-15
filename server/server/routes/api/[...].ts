@@ -1,15 +1,15 @@
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { defineEventHandler, setResponseStatus } from "h3";
-import { router } from "~/server/orpc/router";
-import type { H3EventContext } from "~/server/types/bindings";
+import { router } from "../../orpc/router";
+import type { H3EventContext } from "../../types/bindings";
 import {
 	createRequestFromEvent,
 	ensureCloudflareContext,
 	getAuthUser,
 	handleError,
 	sendResponse,
-} from "~/server/utils/orpcHandler";
+} from "../../utils/orpcHandler";
 
 const handler = new OpenAPIHandler(router);
 

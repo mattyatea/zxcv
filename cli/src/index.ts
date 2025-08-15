@@ -19,7 +19,7 @@ const program = new Command();
 program
 	.name("zxcv")
 	.description("AI coding rules management CLI tool")
-	.version("0.1.0")
+	.version("1.1.1")
 	.option("-d, --debug", "Enable debug mode to show API requests and responses")
 	.hook("preAction", (thisCommand) => {
 		const opts = thisCommand.opts();
@@ -47,4 +47,5 @@ program.parse(process.argv);
 // Show help if no command provided
 if (!process.argv.slice(2).length) {
 	program.outputHelp();
+	process.exit(0);
 }

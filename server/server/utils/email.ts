@@ -1,4 +1,4 @@
-import type { Env } from "~/server/types/env";
+import type { Env } from "../types/env";
 import { t } from "./i18n";
 
 // Legacy sendEmail function for backward compatibility

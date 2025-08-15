@@ -1,11 +1,11 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import ora from "ora";
 import { ConfigManager } from "../config";
 import type { ZxcvMetadata } from "../types";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { ora } from "../utils/spinner.js";
 
 export function createAddCommand(): Command {
 	return new Command("add")
@@ -29,7 +29,7 @@ export function createAddCommand(): Command {
 
 				for (const pkg of packages) {
 					try {
-						spinner.text = `Adding ${pkg}...`;
+						spinner.text(`Adding ${pkg}...`);
 
 						// Parse package path and version
 						let packageName = pkg;

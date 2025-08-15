@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
-import type { CloudflareBindings } from "~/server/types/bindings";
-import type { AuthUser } from "~/server/utils/auth";
+import type { CloudflareBindings } from "../types/bindings";
+import type { AuthUser } from "../utils/auth";
 
 export interface Context {
 	user?: AuthUser;

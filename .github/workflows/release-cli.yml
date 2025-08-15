@@ -24,7 +24,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.2.19
+          bun-version: 1.2.9
       
       - name: Install dependencies
         run: |
@@ -35,6 +35,20 @@ jobs:
         run: |
           cd cli
           bun run build:cross
+      
+      - name: Remove extended attributes (macOS quarantine fix)
+        run: |
+          cd cli/release
+          # Remove extended attributes that cause macOS quarantine issues
+          for file in *; do
+            if [ -f "$file" ]; then
+              echo "Removing extended attributes from $file"
+              # This removes all extended attributes including quarantine
+              sudo xattr -c "$file" 2>/dev/null || true
+              # Verify attributes are removed
+              xattr -l "$file" 2>/dev/null || echo "No extended attributes found for $file"
+            fi
+          done
           
       - name: Debug - Check file permissions
         run: |
@@ -57,6 +71,17 @@ jobs:
           body: |
             ## zxcv CLI Release
             
+            ### Security Verification
+            
+            All binaries include SHA256 checksums for security verification. Download `checksums.sha256` and verify:
+            
+            ```bash
+            # Verify downloaded binary
+            shasum -a 256 -c checksums.sha256
+            # or on Linux
+            sha256sum -c checksums.sha256
+            ```
+            
             ### Installation
             
             Download the appropriate binary for your platform and make it executable:
@@ -69,6 +94,8 @@ jobs:
             #### macOS (Intel)
             ```bash
             curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version || github.ref_name }}/zxcv-macos-x64 -o zxcv
+            # Remove quarantine attributes if needed
+            xattr -rc zxcv 2>/dev/null || true
             chmod +x zxcv
             sudo mv zxcv /usr/local/bin/
             ```
@@ -76,6 +103,8 @@ jobs:
             #### macOS (Apple Silicon)
             ```bash
             curl -L https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version || github.ref_name }}/zxcv-macos-arm64 -o zxcv
+            # Remove quarantine attributes if needed
+            xattr -rc zxcv 2>/dev/null || true
             chmod +x zxcv
             sudo mv zxcv /usr/local/bin/
             ```
@@ -101,3 +130,4 @@ jobs:
             cli/release/zxcv-macos-arm64
             cli/release/zxcv-linux-x64
             cli/release/zxcv-linux-arm64
+            cli/release/checksums.sha256

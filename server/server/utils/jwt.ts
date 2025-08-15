@@ -1,5 +1,5 @@
 import { jwtVerify, SignJWT } from "jose";
-import type { Env } from "~/server/types/env";
+import type { Env } from "../types/env";
 
 export interface JWTPayload {
 	sub: string;
@@ -78,6 +78,9 @@ export async function verifyRefreshToken(token: string, env: Env): Promise<strin
 		return null;
 	}
 }
+
+// Alias for verifyJWT to support auth procedures
+export const verifyAccessToken = verifyJWT;
 
 // 新しい汎用的なトークン生成関数
 export async function generateToken(

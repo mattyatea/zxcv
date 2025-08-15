@@ -1,12 +1,12 @@
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import inquirer from "inquirer";
-import ora from "ora";
 import { ConfigManager } from "../config";
 import type { PulledRule } from "../types";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { inquirer } from "../utils/prompt.js";
+import { ora } from "../utils/spinner.js";
 
 export function createPushCommand(): Command {
 	return new Command("push")
@@ -45,7 +45,7 @@ export function createPushCommand(): Command {
 				}
 
 				// Read local rule
-				spinner.text = "Reading local rule...";
+				spinner.text("Reading local rule...");
 				const content = fileManager.readLocalRule(ruleName, owner, organization);
 				if (!content) {
 					spinner.fail(chalk.red("Rule not found locally"));
@@ -66,7 +66,7 @@ export function createPushCommand(): Command {
 
 				if (existingRule) {
 					// Update existing rule
-					spinner.text = "Updating remote rule...";
+					spinner.text("Updating remote rule...");
 
 					let changelog = options.message;
 					if (!changelog) {
@@ -75,10 +75,12 @@ export function createPushCommand(): Command {
 								type: "input",
 								name: "changelog",
 								message: "Enter changelog message:",
-								validate: (input) => input.length > 0 || "Changelog message is required",
+								validate: (input) =>
+									(typeof input === "string" && input.length > 0) ||
+									"Changelog message is required",
 							},
 						]);
-						changelog = answer.changelog;
+						changelog = answer.changelog as string;
 					}
 
 					const rule = await api.getRule(path);

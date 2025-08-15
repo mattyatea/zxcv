@@ -398,6 +398,13 @@ describe("OAuth Integration Tests", () => {
 			beforeEach(() => {
 				// Mock fetch for user info
 				global.fetch = vi.fn();
+				
+				// Update validState to include action: "register" for new user tests
+				const stateData = {
+					random: stateRandom,
+					action: "register",
+				};
+				validState = Buffer.from(JSON.stringify(stateData)).toString("base64url");
 			});
 
 			it("should create new user for first-time OAuth login", async () => {
@@ -506,7 +513,13 @@ describe("OAuth Integration Tests", () => {
 
 		describe("GitHub OAuth Specifics", () => {
 			beforeEach(() => {
-				// Update state for GitHub
+				// Update state for GitHub with register action
+				const stateData = {
+					random: stateRandom,
+					action: "register",
+				};
+				validState = Buffer.from(JSON.stringify(stateData)).toString("base64url");
+				
 				mockDb.oAuthState.findUnique.mockResolvedValue({
 					id: "test-state",
 					state: stateRandom,

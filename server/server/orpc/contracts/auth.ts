@@ -216,4 +216,104 @@ export const authContract = {
 				user: AuthUserSchema,
 			}),
 		),
+
+	// Device Authorization Grant (for CLI)
+	deviceAuthorize: oc
+		.route({
+			method: "POST",
+			path: "/auth/device/authorize",
+			description: "Initialize device authorization flow for CLI",
+		})
+		.input(
+			z.object({
+				clientId: z.string().describe("Client identifier (e.g., 'cli', 'vscode')"),
+				scope: z.string().optional().describe("OAuth2 scopes"),
+			}),
+		)
+		.output(
+			z.object({
+				deviceCode: z.string().describe("Device verification code"),
+				userCode: z.string().describe("User-friendly code to enter on the website"),
+				verificationUri: z.string().describe("URL where user enters the code"),
+				verificationUriComplete: z.string().optional().describe("URL with pre-filled code"),
+				expiresIn: z.number().describe("Lifetime in seconds of the device code"),
+				interval: z.number().describe("Minimum polling interval in seconds"),
+			}),
+		),
+
+	deviceToken: oc
+		.route({
+			method: "POST",
+			path: "/auth/device/token",
+			description: "Exchange device code for access token",
+		})
+		.input(
+			z.object({
+				deviceCode: z.string().describe("Device verification code"),
+				clientId: z.string().describe("Client identifier"),
+			}),
+		)
+		.output(
+			z.union([
+				z.object({
+					accessToken: z.string(),
+					tokenType: z.literal("Bearer"),
+					expiresIn: z.number().optional(),
+					scope: z.string().optional(),
+				}),
+				z.object({
+					error: z.enum(["authorization_pending", "slow_down", "expired_token", "access_denied"]),
+					errorDescription: z.string().optional(),
+				}),
+			]),
+		),
+
+	deviceVerify: oc
+		.route({
+			method: "POST",
+			path: "/auth/device/verify",
+			description: "Verify and approve device code",
+		})
+		.input(
+			z.object({
+				userCode: z.string().describe("User-friendly code entered by user"),
+			}),
+		)
+		.output(
+			z.object({
+				success: z.boolean(),
+				message: z.string(),
+			}),
+		),
+
+	listCliTokens: oc
+		.route({
+			method: "GET",
+			path: "/auth/cli-tokens",
+			description: "List user's CLI tokens",
+		})
+		.output(
+			z.array(
+				z.object({
+					id: z.string(),
+					name: z.string(),
+					clientId: z.string(),
+					lastUsedAt: z.number().nullable(),
+					createdAt: z.number(),
+				}),
+			),
+		),
+
+	revokeCliToken: oc
+		.route({
+			method: "POST",
+			path: "/auth/cli-tokens/revoke",
+			description: "Revoke a CLI token",
+		})
+		.input(
+			z.object({
+				tokenId: z.string(),
+			}),
+		)
+		.output(SuccessResponseSchema),
 };

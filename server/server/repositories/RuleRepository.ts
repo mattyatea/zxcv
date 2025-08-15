@@ -8,6 +8,10 @@ type RuleWithRelations = Rule & {
 	creator?: { id: string; username: string } | null;
 };
 
+type RuleVersionWithCreator = RuleVersion & {
+	creator?: { id: string; username: string } | null;
+};
+
 export class RuleRepository extends BaseRepository {
 	/**
 	 * ルールを作成
@@ -202,20 +206,20 @@ export class RuleRepository extends BaseRepository {
 	}
 
 	/**
-	 * ルールのダウンロード数をインクリメント
+	 * ルールのビュー数をインクリメント
 	 */
-	async incrementDownloadCount(id: string): Promise<void> {
+	async incrementViewCount(id: string): Promise<void> {
 		try {
 			await this.db.rule.update({
 				where: { id },
 				data: {
-					downloads: { increment: 1 },
+					views: { increment: 1 },
 					updatedAt: this.getCurrentTimestamp(),
 				},
 			});
 		} catch (error) {
-			// ダウンロード数の更新失敗はクリティカルではないのでログのみ
-			console.error("Failed to increment download count:", error);
+			// ビュー数の更新失敗はクリティカルではないのでログのみ
+			console.error("Failed to increment view count:", error);
 		}
 	}
 
@@ -252,11 +256,16 @@ export class RuleRepository extends BaseRepository {
 	/**
 	 * Get rule versions
 	 */
-	async getVersions(ruleId: string) {
+	async getVersions(ruleId: string): Promise<RuleVersionWithCreator[]> {
 		try {
 			return await this.db.ruleVersion.findMany({
 				where: { ruleId },
 				orderBy: { createdAt: "desc" },
+				include: {
+					creator: {
+						select: { id: true, username: true },
+					},
+				},
 			});
 		} catch (error) {
 			this.handleError(error, "Failed to get rule versions");

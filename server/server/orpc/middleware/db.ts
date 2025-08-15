@@ -1,5 +1,5 @@
-import { os } from "~/server/orpc/index";
-import { createPrismaClient } from "~/server/utils/prisma";
+import { createPrismaClient } from "../../utils/prisma";
+import { os } from "../index";
 
 export const dbProvider = os.middleware(async ({ context, next }) => {
 	// Use existing db if provided (for testing), otherwise create new one

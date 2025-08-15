@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import { createLogger } from "~/server/utils/logger";
-import { createPrismaClient } from "~/server/utils/prisma";
+import { createLogger } from "../../utils/logger";
+import { createPrismaClient } from "../../utils/prisma";
+import { os } from "../index";
 
 export interface RateLimitConfig {
 	windowMs: number; // Time window in milliseconds
@@ -130,7 +130,7 @@ function getClientIdentifier(context: {
 		const xForwardedFor = request.headers.get("X-Forwarded-For");
 		if (xForwardedFor) {
 			// X-Forwarded-For can contain multiple IPs, get the first one
-			const firstIp = xForwardedFor.split(",")[0].trim();
+			const firstIp = xForwardedFor.split(",")[0]?.trim() || "unknown";
 			return `anonymous:${firstIp}`;
 		}
 	}

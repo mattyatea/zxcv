@@ -17,7 +17,7 @@ export function detectLocaleFromHeader(acceptLanguage?: string | null): Locale {
 		.map((lang) => {
 			const [locale, qValue] = lang.trim().split(";q=");
 			return {
-				locale: locale.toLowerCase(),
+				locale: locale ? locale.toLowerCase() : "",
 				quality: qValue ? Number.parseFloat(qValue) : 1.0,
 			};
 		})

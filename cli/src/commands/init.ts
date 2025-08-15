@@ -2,8 +2,8 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import chalk from "chalk";
 import { Command } from "commander";
-import inquirer from "inquirer";
 import type { ZxcvMetadata } from "../types";
+import { inquirer } from "../utils/prompt.js";
 
 export function createInitCommand(): Command {
 	return new Command("init")
@@ -31,8 +31,8 @@ export function createInitCommand(): Command {
 					},
 				]);
 
-				projectName = answers.projectName;
-				rulesDir = answers.rulesDir;
+				projectName = answers.projectName as string;
+				rulesDir = answers.rulesDir as string;
 			}
 
 			// Create zxcv-metadata.json

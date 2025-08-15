@@ -3,11 +3,11 @@ import { join } from "node:path";
 import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
-import inquirer from "inquirer";
-import ora from "ora";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { inquirer } from "../utils/prompt.js";
+import { ora } from "../utils/spinner.js";
 
 export function createPublishCommand(): Command {
 	return new Command("publish")
@@ -31,7 +31,7 @@ export function createPublishCommand(): Command {
 					}
 
 					// Read file content
-					spinner.text = "Reading file...";
+					spinner.text("Reading file...");
 					let content: string;
 					try {
 						const filePath = join(process.cwd(), file);
@@ -57,10 +57,12 @@ export function createPublishCommand(): Command {
 								name: "name",
 								message: "Rule name:",
 								default: defaultName,
-								validate: (input) => /^[a-zA-Z0-9-_]+$/.test(input) || "Invalid rule name format",
+								validate: (input) =>
+									(typeof input === "string" && /^[a-zA-Z0-9-_]+$/.test(input)) ||
+									"Invalid rule name format",
 							},
 						]);
-						ruleName = answer.name;
+						ruleName = answer.name as string;
 					}
 
 					// Validate visibility
@@ -74,7 +76,7 @@ export function createPublishCommand(): Command {
 					const tags = options.tags ? options.tags.split(",").map((t) => t.trim()) : [];
 
 					// Create rule on server
-					spinner.text = "Creating rule on server...";
+					spinner.text("Creating rule on server...");
 					const rule = await api.createRule({
 						name: ruleName,
 						content,
@@ -83,7 +85,7 @@ export function createPublishCommand(): Command {
 					});
 
 					// Save rule locally
-					spinner.text = "Saving rule locally...";
+					spinner.text("Saving rule locally...");
 					const pulledRule = fileManager.saveRule(rule, content);
 
 					// Update metadata

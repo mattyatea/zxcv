@@ -8,7 +8,9 @@
       "./tests/types/test-env.d.ts",
       "./tests/types/cloudflare-test.d.ts",
       "./types/nuxtApp.d.ts",
-      "./types/orpc.d.ts"
+      "./types/orpc.d.ts",
+      "./types/global.d.ts",
+      "./app/types/rpc.d.ts"
     ],
     "strict": true,
     "esModuleInterop": true,
@@ -20,8 +22,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
-      "~/*": ["./*"],
-      "@/*": ["./*"],
+      "~/*": ["./app/*"],
+      "@/*": ["./app/*"],
       "~/server/*": ["./server/*"]
     }
   },
@@ -32,12 +34,14 @@
     ".nuxt/types/**/*.ts",
     ".nuxt/nuxt.d.ts",
     ".nuxt/imports.d.ts",
-    ".nuxt/components.d.ts"
+    ".nuxt/components.d.ts",
+    "nuxt.d.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "coverage",
-    "tests/"
+    "tests/",
+    "nuxt.config.ts"
   ]
 }

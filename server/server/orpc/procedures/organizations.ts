@@ -1,7 +1,8 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import { dbWithAuth, dbWithOptionalAuth } from "~/server/orpc/middleware/combined";
-import { OrganizationService } from "~/server/services/OrganizationService";
+import { OrganizationService } from "../../services/OrganizationService";
+import { os } from "../index";
+import { dbWithAuth, dbWithOptionalAuth } from "../middleware/combined";
+import { dbProvider } from "../middleware/db";
 
 export const organizationsProcedures = {
 	/**
@@ -276,7 +277,7 @@ export const organizationsProcedures = {
 				description: r.description,
 				visibility: r.visibility as "public" | "private" | "team",
 				isPublished: r.publishedAt !== null,
-				downloadCount: r.downloads,
+				downloadCount: r.views,
 				starCount: r.stars,
 				createdAt: r.createdAt,
 				updatedAt: r.updatedAt,
@@ -391,4 +392,101 @@ export const organizationsProcedures = {
 
 		return await organizationService.leaveOrganization(input.organizationId, user.id);
 	}),
+
+	/**
+	 * Get public organization profile
+	 */
+	getPublicProfile: os.organizations.getPublicProfile
+		.use(dbProvider)
+		.handler(async ({ input, context }) => {
+			const { name } = input;
+			const { db } = context;
+
+			// Get organization
+			const organization = await db.organization.findUnique({
+				where: { name: name.toLowerCase() },
+				select: {
+					id: true,
+					name: true,
+					displayName: true,
+					description: true,
+					createdAt: true,
+				},
+			});
+
+			if (!organization) {
+				throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
+			}
+
+			// Get public rules count and total stars
+			const [publicRulesCount, totalStars] = await Promise.all([
+				db.rule.count({
+					where: {
+						organizationId: organization.id,
+						visibility: "public",
+					},
+				}),
+				db.ruleStar.count({
+					where: {
+						rule: {
+							organizationId: organization.id,
+							visibility: "public",
+						},
+					},
+				}),
+			]);
+
+			// Get public rules with star count
+			const publicRules = await db.rule.findMany({
+				where: {
+					organizationId: organization.id,
+					visibility: "public",
+				},
+				select: {
+					id: true,
+					name: true,
+					description: true,
+					createdAt: true,
+					updatedAt: true,
+					user: {
+						select: {
+							id: true,
+							username: true,
+						},
+					},
+					starredBy: {
+						select: {
+							id: true,
+						},
+					},
+				},
+				orderBy: {
+					updatedAt: "desc",
+				},
+				take: 20,
+			});
+
+			return {
+				organization: {
+					id: organization.id,
+					name: organization.name,
+					displayName: organization.displayName,
+					description: organization.description,
+					createdAt: organization.createdAt,
+				},
+				stats: {
+					publicRulesCount,
+					totalStars,
+				},
+				publicRules: publicRules.map((rule: any) => ({
+					id: rule.id,
+					name: rule.name,
+					description: rule.description || "",
+					stars: rule.starredBy.length,
+					createdAt: rule.createdAt,
+					updatedAt: rule.updatedAt,
+					user: rule.user,
+				})),
+			};
+		}),
 };

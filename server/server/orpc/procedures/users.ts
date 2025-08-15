@@ -1,8 +1,9 @@
 import { ORPCError } from "@orpc/server";
-import { os } from "~/server/orpc";
-import { dbWithAuth } from "~/server/orpc/middleware/combined";
-import { hashPassword, verifyPassword } from "~/server/utils/crypto";
-import { authErrors, type Locale } from "~/server/utils/i18n";
+import { hashPassword, verifyPassword } from "../../utils/crypto";
+import { authErrors, type Locale } from "../../utils/i18n";
+import { os } from "../index";
+import { dbWithAuth } from "../middleware/combined";
+import { dbProvider } from "../middleware/db";
 
 // Search users by username (for organization invitations)
 export const searchByUsername = os.users.searchByUsername
@@ -32,7 +33,7 @@ export const searchByUsername = os.users.searchByUsername
 		// Mask email addresses for other users
 		return users.map((u) => ({
 			...u,
-			email: u.id === context.user.id ? u.email : (null as any),
+			email: u.id === context.user.id ? u.email : null,
 		}));
 	});
 
@@ -108,7 +109,7 @@ export const getProfile = os.users.getProfile
 			user: {
 				id: user.id,
 				username: user.username,
-				email: isOwnProfile ? user.email : (null as any),
+				email: isOwnProfile ? user.email : null,
 				emailVerified: user.emailVerified,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,
@@ -203,7 +204,7 @@ export const updateProfile = os.users.updateProfile
 
 		// If email changed, send verification email
 		if (email && email.toLowerCase() !== user.email.toLowerCase()) {
-			const { EmailVerificationService } = await import("~/server/services/emailVerification");
+			const { EmailVerificationService } = await import("../../services/emailVerification");
 			const emailService = new EmailVerificationService(db, context.env);
 			await emailService.sendVerificationEmail(user.id, email.toLowerCase());
 		}
@@ -240,7 +241,7 @@ export const changePassword = os.users.changePassword
 		}
 
 		// Verify current password
-		const { verifyPassword, hashPassword } = await import("~/server/utils/crypto");
+		const { verifyPassword, hashPassword } = await import("../../utils/crypto");
 		const isValid = await verifyPassword(currentPassword, dbUser.passwordHash);
 		if (!isValid) {
 			const locale: Locale = "ja"; // Default to Japanese
@@ -412,6 +413,96 @@ export const deleteAccount = os.users.deleteAccount
 		};
 	});
 
+// Get public user profile
+export const getPublicProfile = os.users.getPublicProfile
+	.use(dbProvider)
+	.handler(async ({ input, context }) => {
+		const { username } = input;
+		const { db } = context;
+
+		// Get user profile
+		const user = await db.user.findUnique({
+			where: { username: username.toLowerCase() },
+			select: {
+				id: true,
+				username: true,
+				createdAt: true,
+			},
+		});
+
+		if (!user) {
+			throw new ORPCError("NOT_FOUND", { message: "User not found" });
+		}
+
+		// Get public rules count and total stars
+		const [publicRulesCount, totalStars] = await Promise.all([
+			db.rule.count({
+				where: {
+					userId: user.id,
+					visibility: "public",
+				},
+			}),
+			db.ruleStar.count({
+				where: {
+					rule: {
+						userId: user.id,
+						visibility: "public",
+					},
+				},
+			}),
+		]);
+
+		// Get public rules with star count
+		const publicRules = await db.rule.findMany({
+			where: {
+				userId: user.id,
+				visibility: "public",
+			},
+			select: {
+				id: true,
+				name: true,
+				description: true,
+				createdAt: true,
+				updatedAt: true,
+				organization: {
+					select: {
+						name: true,
+					},
+				},
+				starredBy: {
+					select: {
+						id: true,
+					},
+				},
+			},
+			orderBy: {
+				updatedAt: "desc",
+			},
+			take: 20,
+		});
+
+		return {
+			user: {
+				id: user.id,
+				username: user.username,
+				createdAt: user.createdAt,
+			},
+			stats: {
+				publicRulesCount,
+				totalStars,
+			},
+			publicRules: publicRules.map((rule: any) => ({
+				id: rule.id,
+				name: rule.name,
+				description: rule.description || "",
+				stars: rule.starredBy.length,
+				createdAt: rule.createdAt,
+				updatedAt: rule.updatedAt,
+				organization: rule.organization,
+			})),
+		};
+	});
+
 export const usersProcedures = {
 	searchByUsername,
 	getProfile,
@@ -421,4 +512,5 @@ export const usersProcedures = {
 	settings,
 	updateSettings,
 	deleteAccount,
+	getPublicProfile,
 };

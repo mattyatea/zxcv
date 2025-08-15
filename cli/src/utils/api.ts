@@ -3,6 +3,15 @@ import type { ConfigManager } from "../config";
 import type { Rule } from "../types";
 import { debugLogger } from "./debug";
 
+interface DeviceAuthData {
+	deviceCode: string;
+	userCode: string;
+	verificationUri: string;
+	verificationUriComplete?: string;
+	expiresIn: number;
+	interval: number;
+}
+
 export class ApiClient {
 	private client: AxiosInstance;
 	private config: ConfigManager;
@@ -121,5 +130,66 @@ export class ApiClient {
 			ruleId,
 		});
 		return response.data.versions;
+	}
+
+	// Device Authorization Grant methods
+	async initializeDeviceAuth(): Promise<DeviceAuthData> {
+		const response = await this.client.post("/api/auth/device/authorize", {
+			clientId: "cli",
+			scope: "read write",
+		});
+		return response.data;
+	}
+
+	async pollForDeviceToken(
+		deviceCode: string,
+		interval: number,
+		expiresIn: number,
+	): Promise<string> {
+		const startTime = Date.now();
+		let currentInterval = interval;
+
+		while (Date.now() - startTime < expiresIn * 1000) {
+			await new Promise((resolve) => setTimeout(resolve, currentInterval * 1000));
+
+			try {
+				const response = await this.client.post("/api/auth/device/token", {
+					deviceCode,
+					clientId: "cli",
+				});
+
+				// Check if we got an error response
+				if (response.data.error) {
+					switch (response.data.error) {
+						case "authorization_pending":
+							// Continue polling
+							continue;
+						case "slow_down":
+							// Increase polling interval
+							currentInterval = Math.min(currentInterval * 2, 30);
+							continue;
+						case "expired_token":
+							throw new Error("Device code has expired. Please try again.");
+						case "access_denied":
+							throw new Error("Authorization was denied.");
+						default:
+							throw new Error(response.data.errorDescription || "Unknown error occurred");
+					}
+				}
+
+				// Success! We got the token
+				if (response.data.accessToken) {
+					return response.data.accessToken;
+				}
+			} catch (error) {
+				// Handle network errors
+				if (axios.isAxiosError(error) && error.response?.status === 500) {
+					throw new Error("Server error occurred. Please try again later.");
+				}
+				throw error;
+			}
+		}
+
+		throw new Error("Authorization timed out. Please try again.");
 	}
 }
