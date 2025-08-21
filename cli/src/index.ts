@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import chalk from "chalk";
 import { Command } from "commander";
 import { createAddCommand } from "./commands/add";
 import { createAuthCommand } from "./commands/auth";

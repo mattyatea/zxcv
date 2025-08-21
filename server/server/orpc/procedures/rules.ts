@@ -39,6 +39,7 @@ export const rulesProcedures = {
 			visibility: rule.visibility,
 			description: rule.description,
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
+			contentType: rule.contentType || "rule",
 			createdAt: rule.createdAt,
 			updatedAt: rule.updatedAt,
 			publishedAt: rule.publishedAt,
@@ -88,6 +89,7 @@ export const rulesProcedures = {
 		// Map contract inputs to service method
 		return await ruleService.listRules({
 			visibility: input.visibility,
+			contentType: input.contentType,
 			tags: input.tags,
 			author: input.author,
 			limit: input.limit,
@@ -110,6 +112,7 @@ export const rulesProcedures = {
 			author: input.author,
 			type: input.type,
 			visibility: input.visibility,
+			contentType: input.contentType,
 			sortBy: input.sortBy,
 			page: input.page,
 			limit: input.limit,
@@ -478,7 +481,7 @@ export const rulesProcedures = {
 		}),
 
 	// デバッグ用エンドポイント
-	debug: os.rules.debug.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
+	debug: os.rules.debug.use(dbWithOptionalAuth).handler(async ({ context }) => {
 		const { db } = context;
 
 		// すべてのルールを取得

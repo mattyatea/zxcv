@@ -195,12 +195,18 @@
     "popularTags": "Popular Tags",
     "basicInfo": "Basic Information",
     "ruleContent": "Rule Content",
+    "agentContent": "Agent Content",
     "shareWithCommunity": "Share with the community and improve development efficiency together",
     "visibility": {
       "all": "All",
       "public": "Public",
       "private": "Private",
       "organization": "Organization only"
+    },
+    "contentType": {
+      "all": "All",
+      "rule": "Rule",
+      "agent": "Claude Subagent"
     },
     "actions": {
       "view": "View",
@@ -230,8 +236,10 @@
       "typeHint": "Select the type of content to save.",
       "description": "Description",
       "descriptionPlaceholder": "Describe the purpose and usage of this rule",
+      "contentType": "Type",
       "content": "Content",
       "contentPlaceholder": "# Rule Content\n\nWrite your coding rules here...\n\n## Example\n\n```javascript\n// Code example\n```",
+      "agentContentPlaceholder": "# Subagent Definition\n\nDefine the role and behavior of this subagent...\n\n## Capabilities\n- Task processing\n- Code generation\n\n## Usage Example\n```\n// Agent usage example\n```",
       "tags": "Tags",
       "tagsPlaceholder": "Enter a tag and press Enter",
       "addTag": "Add Tag",
@@ -246,6 +254,12 @@
       "organizationHint": "If you select an organization, members can edit the rule.",
       "urlPreview": "URL Preview:",
       "markdownSupported": "Markdown format is supported",
+      "ruleHint": "Define rules and guidelines for AI coding",
+      "agentHint": "Define a subagent for Claude Code",
+      "agentTemplateHint": "Please refer to the Claude Code official documentation for subagent templates",
+      "agentTemplate": "Template",
+      "selectTemplate": "Select a template",
+      "templateHint": "Selecting a template will insert sample code",
       "uploadMarkdown": "Upload Markdown file",
       "writeDirectly": "Write directly",
       "basicInfo": "Basic Information"
@@ -310,6 +324,7 @@
     },
     "filters": {
       "visibility": "Visibility",
+      "contentType": "Content Type",
       "sortBy": "Sort by",
       "author": "Author",
       "authorPlaceholder": "Filter by username",
@@ -323,7 +338,13 @@
     "listView": "List view",
     "noRulesMessage": "No rules found matching the current filter criteria. Please try changing the conditions.",
     "showing": "Showing {start} - {end} of {total} items",
-    "searchHint": "or press {key} to search"
+    "searchHint": "or press {key} to search",
+    "templates": {
+      "codeReviewer": "Code Reviewer",
+      "testGenerator": "Test Generator",
+      "docWriter": "Documentation Writer",
+      "generalHelper": "General Assistant"
+    }
   },
   "organizations": {
     "title": "Organizations",

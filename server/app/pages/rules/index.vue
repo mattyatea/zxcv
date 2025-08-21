@@ -121,6 +121,28 @@
               
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {{ t('rules.filters.contentType') }}
+                </label>
+                <div class="relative">
+                  <select
+                    v-model="filters.contentType"
+                    @change="fetchRules"
+                    class="w-full h-11 px-4 pr-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-900 dark:text-gray-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors appearance-none cursor-pointer"
+                  >
+                    <option value="all">{{ t('rules.contentType.all') }}</option>
+                    <option value="rule">{{ t('rules.contentType.rule') }}</option>
+                    <option value="agent">{{ t('rules.contentType.agent') }}</option>
+                  </select>
+                  <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {{ t('rules.filters.sortBy') }}
                 </label>
                 <div class="relative">
@@ -257,6 +279,7 @@
             <div class="flex items-start justify-between mb-4">
               <div class="flex-1 min-w-0">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
+                  <span v-if="rule.contentType === 'agent'" class="mr-1 text-purple-500 font-bold" title="Claude Subagent">🤖</span>
                   {{ rule.name }}
                   <span
                     v-if="rule.type === 'ccsubagents'"
@@ -371,6 +394,7 @@
               <div class="flex items-start justify-between mb-2">
                 <div>
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
+                    <span v-if="rule.contentType === 'agent'" class="mr-1 text-purple-500 font-bold" title="Claude Subagent">🤖</span>
                     {{ rule.name }}
                     <span
                       v-if="rule.type === 'ccsubagents'"
@@ -590,6 +614,7 @@ const viewMode = ref<"grid" | "list">("grid");
 const searchQuery = ref("");
 const filters = ref({
 	visibility: "all",
+	contentType: "all",
 	sort: "updated",
 	author: "",
 });
@@ -638,6 +663,7 @@ const hasActiveFilters = computed(() => {
 	return (
 		searchQuery.value !== "" ||
 		filters.value.visibility !== "all" ||
+		filters.value.contentType !== "all" ||
 		filters.value.author !== "" ||
 		selectedTags.value.length > 0
 	);
@@ -654,6 +680,13 @@ const activeFilters = computed(() => {
 			type: "visibility",
 			label: t("rules.filters.visibility"),
 			value: t(`rules.visibility.${filters.value.visibility}`),
+		});
+	}
+	if (filters.value.contentType !== "all") {
+		filters_.push({
+			type: "contentType",
+			label: t("rules.filters.contentType"),
+			value: t(`rules.contentType.${filters.value.contentType}`),
 		});
 	}
 	if (filters.value.author) {
@@ -682,6 +715,7 @@ const fetchRules = async () => {
 			page: currentPage.value,
 			sortBy: filters.value.sort,
 			visibility: filters.value.visibility === "all" ? undefined : filters.value.visibility,
+			contentType: filters.value.contentType === "all" ? undefined : filters.value.contentType,
 			query: searchQuery.value || undefined,
 			tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
 			author: filters.value.author || undefined,
@@ -764,6 +798,7 @@ const resetFilters = () => {
 	searchQuery.value = "";
 	filters.value = {
 		visibility: "all",
+		contentType: "all",
 		sort: "updated",
 		author: "",
 	};
@@ -780,6 +815,9 @@ const removeFilter = (type: string) => {
 			break;
 		case "visibility":
 			filters.value.visibility = "all";
+			break;
+		case "contentType":
+			filters.value.contentType = "all";
 			break;
 		case "author":
 			filters.value.author = "";

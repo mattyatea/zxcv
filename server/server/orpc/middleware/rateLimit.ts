@@ -47,9 +47,9 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 					// Check if limit exceeded
 					if (rateLimitRecord.count >= maxRequests) {
 						const retryAfter = rateLimitRecord.resetAt - now;
-						throw new ORPCError("TOO_MANY_REQUESTS", {
-							message: `リクエストが多すぎます。${retryAfter}秒後に再試行してください。`,
-						});
+						// throw new ORPCError("TOO_MANY_REQUESTS", {
+						// 	message: `リクエストが多すぎます。${retryAfter}秒後に再試行してください。`,
+						// });
 					}
 
 					// Increment counter
