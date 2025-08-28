@@ -212,7 +212,7 @@ jobs:
             GH_OAUTH_CLIENT_ID
             GH_OAUTH_CLIENT_SECRET
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET}}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID || '' }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '' }}
           GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID || '' }}
@@ -233,7 +233,7 @@ jobs:
             GH_OAUTH_CLIENT_ID
             GH_OAUTH_CLIENT_SECRET
         env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET}}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID || '' }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '' }}
           GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID || '' }}

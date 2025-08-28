@@ -11,6 +11,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RuleType {
+  rule
+  ccsubagents
+}
+
 model User {
   id           String   @id
   email        String   @unique
@@ -44,7 +49,7 @@ model Rule {
   id              String  @id
   name            String
   userId          String  @map("user_id")
-  type            String  @default("rule") // "rule" or "ccsubagents"
+  type            RuleType @default(rule)
   visibility      String
   description     String?
   tags            String? // JSON array stored as text

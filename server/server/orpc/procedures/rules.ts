@@ -35,6 +35,7 @@ export const rulesProcedures = {
 			id: rule.id,
 			name: rule.name,
 			userId: rule.userId || null,
+			type: rule.type as "rule" | "ccsubagents", // Prismaでは
 			visibility: rule.visibility,
 			description: rule.description,
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
@@ -107,6 +108,7 @@ export const rulesProcedures = {
 			query: input.query,
 			tags: input.tags,
 			author: input.author,
+			type: input.type,
 			visibility: input.visibility,
 			sortBy: input.sortBy,
 			page: input.page,
@@ -227,6 +229,7 @@ export const rulesProcedures = {
 			id: rule.id,
 			name: rule.name,
 			userId: rule.userId || null,
+			type: rule.type,
 			visibility: rule.visibility,
 			description: rule.description,
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],

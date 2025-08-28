@@ -1,8 +1,8 @@
 // R2Bucket type is provided globally by Cloudflare Workers types
 import { ORPCError } from "@orpc/server";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, RuleType } from "@prisma/client";
 import { nanoid } from "nanoid";
-import { OrganizationRepository, RuleRepository } from "../repositories";
+import { OrganizationRepository, RuleRepository, type RuleWithRelations } from "../repositories";
 import type { CloudflareEnv } from "../types/env";
 import { createLogger } from "../utils/logger";
 
@@ -28,6 +28,7 @@ export class RuleService {
 		userId: string,
 		data: {
 			name: string;
+			type?: RuleType;
 			description?: string;
 			content: string;
 			visibility: "public" | "private" | "team";
@@ -83,6 +84,7 @@ export class RuleService {
 			rule = await this.ruleRepository.create({
 				id: ruleId,
 				name: data.name,
+				type: data.type || "rule",
 				userId,
 				description: data.description || null,
 				visibility: data.visibility,
@@ -147,8 +149,7 @@ export class RuleService {
 	 */
 	async getRule(nameOrId: string, owner?: string, userId?: string) {
 		this.logger.debug("getRule called with", { nameOrId, owner, userId });
-		// biome-ignore lint/suspicious/noExplicitAny: Rule type varies based on query
-		let rule: any | null = null;
+		let rule: RuleWithRelations | null = null;
 
 		if (owner) {
 			// オーナー（ユーザーまたは組織）スコープのルール
@@ -735,6 +736,7 @@ export class RuleService {
 		query?: string;
 		tags?: string[];
 		author?: string;
+		type?: RuleType;
 		visibility?: string;
 		sortBy?: string;
 		page: number;
@@ -745,6 +747,11 @@ export class RuleService {
 		const where: any = {};
 
 		this.logger.debug("searchRules params:", params);
+
+		// タイプフィルタ
+		if (params.type) {
+			where.type = params.type;
+		}
 
 		// 可視性フィルタ
 		if (params.visibility) {
@@ -853,6 +860,7 @@ export class RuleService {
 				id: rule.id,
 				name: rule.name,
 				userId: rule.userId,
+				type: rule.type,
 				visibility: rule.visibility,
 				description: rule.description,
 				tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],

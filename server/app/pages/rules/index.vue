@@ -256,8 +256,14 @@
 
             <div class="flex items-start justify-between mb-4">
               <div class="flex-1 min-w-0">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
                   {{ rule.name }}
+                  <span
+                    v-if="rule.type === 'ccsubagents'"
+                    class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                  >
+                    CC SubAgents
+                  </span>
                 </h3>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-1">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,8 +370,14 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-start justify-between mb-2">
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors flex items-center gap-2">
                     {{ rule.name }}
+                    <span
+                      v-if="rule.type === 'ccsubagents'"
+                      class="px-2 py-0.5 text-xs font-medium rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                    >
+                      CC SubAgents
+                    </span>
                     <span v-if="rule.isStarred" class="ml-2 text-yellow-500">★</span>
                   </h3>
                   <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">

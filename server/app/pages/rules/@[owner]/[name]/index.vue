@@ -88,6 +88,15 @@
                 <span
                   :class="[
                     'px-3 py-1 text-sm font-medium rounded-full',
+                    rule.type === 'ccsubagents' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
+                    'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300'
+                  ]"
+                >
+                  {{ t(`rules.form.typeOptions.${rule.type || 'rule'}`) }}
+                </span>
+                <span
+                  :class="[
+                    'px-3 py-1 text-sm font-medium rounded-full',
                     rule.visibility === 'public' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
                     rule.visibility === 'private' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' :
                     'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'

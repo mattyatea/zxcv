@@ -220,6 +220,12 @@
       "name": "ルール名",
       "namePlaceholder": "例: next-js-best-practices",
       "nameHint": "URLに使用される識別子です。英数字とハイフンのみ使用可能。",
+      "type": "タイプ",
+      "typeOptions": {
+        "rule": "AIコーディングルール",
+        "ccsubagents": "Claude Code Subagents"
+      },
+      "typeHint": "保存するコンテンツの種類を選択してください。",
       "description": "説明",
       "descriptionPlaceholder": "このルールの目的や使い方を説明してください",
       "content": "内容",

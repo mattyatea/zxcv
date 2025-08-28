@@ -31,6 +31,21 @@
 
 
           <div>
+            <label for="type" class="label">{{ t('rules.form.type') }}</label>
+            <select
+              id="type"
+              v-model="form.type"
+              class="input"
+            >
+              <option value="rule">{{ t('rules.form.typeOptions.rule') }}</option>
+              <option value="ccsubagents">{{ t('rules.form.typeOptions.ccsubagents') }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ t('rules.form.typeHint') }}
+            </p>
+          </div>
+
+          <div>
             <label for="description" class="label">{{ t('rules.form.description') }}</label>
             <textarea
               id="description"
@@ -204,6 +219,7 @@ useHead({
 
 const form = ref({
 	name: "",
+	type: "rule",
 	org: "",
 	description: "",
 	visibility: "public",

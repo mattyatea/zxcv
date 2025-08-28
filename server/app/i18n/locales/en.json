@@ -222,6 +222,12 @@
       "name": "Rule name",
       "namePlaceholder": "e.g. next-js-best-practices",
       "nameHint": "This will be used as the URL identifier. Only letters, numbers, and hyphens allowed.",
+      "type": "Type",
+      "typeOptions": {
+        "rule": "AI Coding Rule",
+        "ccsubagents": "Claude Code Subagents"
+      },
+      "typeHint": "Select the type of content to save.",
       "description": "Description",
       "descriptionPlaceholder": "Describe the purpose and usage of this rule",
       "content": "Content",
