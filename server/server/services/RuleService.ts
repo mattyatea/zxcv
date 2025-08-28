@@ -1,6 +1,6 @@
 // R2Bucket type is provided globally by Cloudflare Workers types
 import { ORPCError } from "@orpc/server";
-import type { PrismaClient, RuleType } from "@prisma/client";
+import type { $Enums, PrismaClient } from "@prisma/client";
 import { nanoid } from "nanoid";
 import { OrganizationRepository, RuleRepository, type RuleWithRelations } from "../repositories";
 import type { CloudflareEnv } from "../types/env";
@@ -28,7 +28,7 @@ export class RuleService {
 		userId: string,
 		data: {
 			name: string;
-			type?: RuleType;
+			type?: $Enums.RuleType;
 			description?: string;
 			content: string;
 			visibility: "public" | "private" | "team";
@@ -736,7 +736,7 @@ export class RuleService {
 		query?: string;
 		tags?: string[];
 		author?: string;
-		type?: RuleType;
+		type?: $Enums.RuleType;
 		visibility?: string;
 		sortBy?: string;
 		page: number;
