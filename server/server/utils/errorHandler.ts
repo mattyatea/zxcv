@@ -4,7 +4,18 @@ import { ORPCError } from "@orpc/server";
  * データベースエラーを統一的に処理
  */
 export function handleDatabaseError(error: unknown, defaultMessage: string): never {
-	console.error("Database error:", error);
+	// 開発環境では詳細なエラー情報を出力
+	if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
+		console.error("=== Database Error Details ===");
+		console.error("Error:", error);
+		console.error("Default message:", defaultMessage);
+		if (error instanceof Error) {
+			console.error("Stack trace:", error.stack);
+		}
+		console.error("=============================");
+	} else {
+		console.error("Database error:", error);
+	}
 
 	if (error instanceof ORPCError) {
 		throw error;
@@ -130,6 +141,15 @@ export interface ErrorResponse {
  */
 export function createErrorResponse(error: unknown): ErrorResponse {
 	if (error instanceof ORPCError) {
+		// 開発環境ではORPCError詳細も出力
+		if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
+			console.error("=== ORPCError Details ===");
+			console.error("Code:", error.code);
+			console.error("Message:", error.message);
+			console.error("Data:", error.data);
+			console.error("=========================");
+		}
+
 		return {
 			success: false,
 			error: {
@@ -140,7 +160,19 @@ export function createErrorResponse(error: unknown): ErrorResponse {
 		};
 	}
 
-	console.error("Unexpected error:", error);
+	// 開発環境では詳細なエラー情報を出力
+	if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
+		console.error("=== Unexpected Error Details ===");
+		console.error("Error:", error);
+		if (error instanceof Error) {
+			console.error("Name:", error.name);
+			console.error("Message:", error.message);
+			console.error("Stack:", error.stack);
+		}
+		console.error("================================");
+	} else {
+		console.error("Unexpected error:", error);
+	}
 
 	return {
 		success: false,

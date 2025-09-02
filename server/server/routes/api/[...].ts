@@ -1,6 +1,6 @@
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
-import { defineEventHandler, setResponseStatus } from "h3";
+import { defineEventHandler, readBody, setResponseStatus } from "h3";
 import { router } from "../../orpc/router";
 import type { H3EventContext } from "../../types/bindings";
 import {
@@ -14,12 +14,6 @@ import {
 const handler = new OpenAPIHandler(router);
 
 export default defineEventHandler(async (event: H3Event) => {
-	console.log("API handler called:", {
-		method: event.node.req.method,
-		url: event.node.req.url,
-		path: event.path,
-	});
-
 	// In test environment, ensure context is properly set
 	const context = event.context as BaseH3EventContext & H3EventContext;
 	ensureCloudflareContext(event);
@@ -28,9 +22,7 @@ export default defineEventHandler(async (event: H3Event) => {
 		const user = await getAuthUser(event);
 		const request = await createRequestFromEvent(event);
 
-		console.log("Request URL:", request.url);
-		console.log("Request method:", request.method);
-		console.log("User authenticated:", !!user);
+		// リクエスト情報のログは削除（必要最小限に）
 
 		let response: Awaited<ReturnType<typeof handler.handle>>;
 		try {
@@ -43,17 +35,10 @@ export default defineEventHandler(async (event: H3Event) => {
 				},
 			});
 		} catch (handlerError) {
-			console.error("Handler error details:", {
-				error: handlerError,
-				message: (handlerError as { message?: string })?.message,
-				code: (handlerError as { code?: string })?.code,
-				stack: (handlerError as { stack?: string })?.stack,
-			});
+			// エラー時のみ簡潔にログ出力
+			console.error("[API Error]", event.path, (handlerError as { message?: string })?.message);
 			throw handlerError;
 		}
-
-		console.log("Response matched:", response.matched);
-		console.log("Response status:", response.response?.status);
 
 		if (!response.matched) {
 			setResponseStatus(event, 404, "Not Found");

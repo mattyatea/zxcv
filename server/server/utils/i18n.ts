@@ -1,7 +1,7 @@
 import enTranslations from "../../app/i18n/locales/en.json";
 import jaTranslations from "../../app/i18n/locales/ja.json";
-
-export type Locale = "ja" | "en";
+// Locale型はlocale.tsからインポートして使用
+import type { Locale } from "./locale";
 
 interface Translations {
 	[key: string]: string | Translations;
@@ -50,33 +50,10 @@ export function t(
 	return translation;
 }
 
-/**
- * Get locale from Accept-Language header
- * @param acceptLanguage Accept-Language header value
- * @returns Detected locale
- */
-export function getLocaleFromHeader(acceptLanguage?: string): Locale {
-	if (!acceptLanguage) {
-		return "ja";
-	}
-
-	// Simple locale detection - can be improved
-	const languages = acceptLanguage.split(",").map((lang) => {
-		const [code] = lang.trim().split(";");
-		return code ? code.toLowerCase() : "";
-	});
-
-	for (const lang of languages) {
-		if (lang.startsWith("ja")) {
-			return "ja";
-		}
-		if (lang.startsWith("en")) {
-			return "en";
-		}
-	}
-
-	return "ja"; // Default to Japanese for Japan market
-}
+// Locale型も再エクスポート
+export type { Locale } from "./locale";
+// locale.tsから再エクスポート
+export { detectLocaleFromHeader as getLocaleFromHeader } from "./locale";
 
 // Common error messages for auth procedures
 export const authErrors = {
