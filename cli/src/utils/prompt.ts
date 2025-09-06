@@ -303,8 +303,8 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 			});
 		});
 
-		if (!customPath) {
-			throw new Error("ファイルパスを入力してください");
+		if (!customPath?.trim()) {
+			throw new Error("有効なファイルパスを入力してください");
 		}
 
 		const resolved = memoryManager.resolveFilePath(customPath);

@@ -90,7 +90,10 @@ export class MemoryFileManager {
 		} else {
 			// 既存ファイルに追記
 			const content = readFileSync(filePath, "utf-8");
-			if (!content.includes(`## ${rule.name}`)) {
+			// 正規表現を使用して厳密にヘッダーをチェック
+			const escapedRuleName = rule.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+			const existingRuleRegex = new RegExp(`^## ${escapedRuleName}$`, "m");
+			if (!existingRuleRegex.test(content)) {
 				appendFileSync(filePath, entry);
 			}
 		}
@@ -187,12 +190,12 @@ export class MemoryFileManager {
 	// ルール名をパース
 	private parseRuleName(fullName: string): { name: string; owner?: string } {
 		const parts = fullName.split("/");
-		if (parts.length === 2 && parts[0].startsWith("@")) {
+		if (parts.length === 2 && parts[0]?.startsWith("@")) {
 			// @username/rulename or @org/rulename
 			const owner = parts[0].substring(1);
 			return {
 				owner,
-				name: parts[1],
+				name: parts[1] || "",
 			};
 		}
 		// rulename only (legacy)
