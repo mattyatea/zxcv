@@ -1,6 +1,7 @@
 import { oc } from "@orpc/contract";
 import * as z from "zod";
 import { RuleNameSchema, RuleVersionSchema, SuccessResponseSchema } from "../schemas/common";
+import { RuleSummarySchema, RuleWithRelationsSchema } from "../schemas/rule";
 
 export const rulesContract = {
 	getByPath: oc
@@ -14,41 +15,7 @@ export const rulesContract = {
 				path: z.string().describe("Rule path in format @owner/rulename"),
 			}),
 		)
-		.output(
-			z.object({
-				id: z.string(),
-				name: z.string(),
-				userId: z.string().nullable(),
-				visibility: z.string(),
-				description: z.string().nullable(),
-				tags: z.array(z.string()),
-				createdAt: z.number(),
-				updatedAt: z.number(),
-				publishedAt: z.number().nullable(),
-				version: z.string(),
-				latestVersionId: z.string().nullable(),
-				views: z.number(),
-				stars: z.number(),
-				organizationId: z.string().nullable(),
-				user: z.object({
-					id: z.string(),
-					username: z.string(),
-					email: z.string(),
-				}),
-				organization: z
-					.object({
-						id: z.string(),
-						name: z.string(),
-						displayName: z.string(),
-					})
-					.nullable(),
-				author: z.object({
-					id: z.string(),
-					username: z.string(),
-					email: z.string(),
-				}),
-			}),
-		),
+		.output(RuleWithRelationsSchema),
 
 	search: oc
 		.route({
@@ -61,6 +28,7 @@ export const rulesContract = {
 				query: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
+				type: z.enum(["rule", "ccsubagents"]).optional(),
 				visibility: z.string().optional(),
 				sortBy: z.string().optional(),
 				page: z.number().default(1),
@@ -70,38 +38,7 @@ export const rulesContract = {
 		.output(
 			z.object({
 				rules: z.array(
-					z.object({
-						id: z.string(),
-						name: z.string(),
-						userId: z.string().nullable(),
-						visibility: z.string(),
-						description: z.string().nullable(),
-						tags: z.array(z.string()),
-						createdAt: z.number(),
-						updatedAt: z.number(),
-						publishedAt: z.number().nullable(),
-						version: z.string(),
-						latestVersionId: z.string().nullable(),
-						views: z.number(),
-						stars: z.number(),
-						organizationId: z.string().nullable(),
-						user: z.object({
-							id: z.string(),
-							username: z.string(),
-							email: z.string(),
-						}),
-						organization: z
-							.object({
-								id: z.string(),
-								name: z.string(),
-								displayName: z.string(),
-							})
-							.nullable(),
-						author: z.object({
-							id: z.string(),
-							username: z.string(),
-							email: z.string(),
-						}),
+					RuleWithRelationsSchema.extend({
 						updated_at: z.number(),
 						created_at: z.number(),
 					}),
@@ -124,38 +61,7 @@ export const rulesContract = {
 			}),
 		)
 		.output(
-			z.object({
-				id: z.string(),
-				name: z.string(),
-				userId: z.string().nullable(),
-				visibility: z.string(),
-				description: z.string().nullable(),
-				tags: z.array(z.string()),
-				createdAt: z.number(),
-				updatedAt: z.number(),
-				publishedAt: z.number().nullable(),
-				version: z.string(),
-				latestVersionId: z.string().nullable(),
-				views: z.number(),
-				stars: z.number(),
-				organizationId: z.string().nullable(),
-				user: z.object({
-					id: z.string(),
-					username: z.string(),
-					email: z.string(),
-				}),
-				organization: z
-					.object({
-						id: z.string(),
-						name: z.string(),
-						displayName: z.string(),
-					})
-					.nullable(),
-				author: z.object({
-					id: z.string(),
-					username: z.string(),
-					email: z.string(),
-				}),
+			RuleWithRelationsSchema.extend({
 				updated_at: z.number(),
 				created_at: z.number(),
 			}),
@@ -170,6 +76,7 @@ export const rulesContract = {
 		.input(
 			z.object({
 				name: RuleNameSchema,
+				type: z.enum(["rule", "ccsubagents"]).default("rule"),
 				description: z.string().optional(),
 				visibility: z.enum(["public", "private"]),
 				organizationId: z.string().optional(),
@@ -333,6 +240,7 @@ export const rulesContract = {
 		.input(
 			z.object({
 				visibility: z.enum(["public", "private", "all"]).optional().default("public"),
+				type: z.enum(["rule", "ccsubagents"]).optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
 				limit: z.number().min(1).max(100).default(20),
@@ -341,21 +249,7 @@ export const rulesContract = {
 		)
 		.output(
 			z.object({
-				rules: z.array(
-					z.object({
-						id: z.string(),
-						name: z.string(),
-						description: z.string().nullable(),
-						author: z.object({
-							id: z.string(),
-							username: z.string(),
-						}),
-						visibility: z.string(),
-						tags: z.array(z.string()),
-						version: z.string(),
-						updated_at: z.number(),
-					}),
-				),
+				rules: z.array(RuleSummarySchema),
 				total: z.number(),
 				limit: z.number(),
 				offset: z.number(),
@@ -409,6 +303,7 @@ export const rulesContract = {
 		})
 		.input(
 			z.object({
+				type: z.enum(["rule", "ccsubagents"]).optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
 				limit: z.number().min(1).max(100).default(20),
@@ -417,21 +312,7 @@ export const rulesContract = {
 		)
 		.output(
 			z.object({
-				rules: z.array(
-					z.object({
-						id: z.string(),
-						name: z.string(),
-						description: z.string().nullable(),
-						author: z.object({
-							id: z.string(),
-							username: z.string(),
-						}),
-						visibility: z.string(),
-						tags: z.array(z.string()),
-						version: z.string(),
-						updated_at: z.number(),
-					}),
-				),
+				rules: z.array(RuleSummarySchema),
 				total: z.number(),
 				limit: z.number(),
 				offset: z.number(),

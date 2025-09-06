@@ -73,7 +73,7 @@ describe("auth procedures", () => {
 
 			expect(result).toEqual({
 				success: true,
-				message: "登録が完了しました。メールを確認してアカウントを有効化してください。",
+				message: "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。",
 				user: {
 					id: "user_123",
 					username: "testuser",

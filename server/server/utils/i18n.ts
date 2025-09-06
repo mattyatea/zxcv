@@ -1,7 +1,7 @@
 import enTranslations from "../../app/i18n/locales/en.json";
 import jaTranslations from "../../app/i18n/locales/ja.json";
-
-export type Locale = "ja" | "en";
+// Locale型はlocale.tsからインポートして使用
+import type { Locale } from "./locale";
 
 interface Translations {
 	[key: string]: string | Translations;
@@ -50,33 +50,10 @@ export function t(
 	return translation;
 }
 
-/**
- * Get locale from Accept-Language header
- * @param acceptLanguage Accept-Language header value
- * @returns Detected locale
- */
-export function getLocaleFromHeader(acceptLanguage?: string): Locale {
-	if (!acceptLanguage) {
-		return "ja";
-	}
-
-	// Simple locale detection - can be improved
-	const languages = acceptLanguage.split(",").map((lang) => {
-		const [code] = lang.trim().split(";");
-		return code ? code.toLowerCase() : "";
-	});
-
-	for (const lang of languages) {
-		if (lang.startsWith("ja")) {
-			return "ja";
-		}
-		if (lang.startsWith("en")) {
-			return "en";
-		}
-	}
-
-	return "ja"; // Default to Japanese for Japan market
-}
+// Locale型も再エクスポート
+export type { Locale } from "./locale";
+// locale.tsから再エクスポート
+export { detectLocaleFromHeader as getLocaleFromHeader } from "./locale";
 
 // Common error messages for auth procedures
 export const authErrors = {
@@ -123,6 +100,8 @@ export const authErrors = {
 			: "If an account exists with this email, a password reset link has been sent.",
 	passwordResetSuccess: (locale: Locale) =>
 		locale === "ja" ? "パスワードがリセットされました" : "Password reset successfully",
+	loginSuccess: (locale: Locale) =>
+		locale === "ja" ? "ログインに成功しました" : "Login successful",
 	logoutSuccess: (locale: Locale) =>
 		locale === "ja" ? "ログアウトしました" : "Successfully logged out",
 	logoutFailed: (locale: Locale) =>
@@ -182,4 +161,20 @@ export const authErrors = {
 		locale === "ja" ? "設定が正常に更新されました" : "Settings updated successfully",
 	passwordChangedSuccess: (locale: Locale) =>
 		locale === "ja" ? "パスワードが正常に変更されました" : "Password changed successfully",
+	// OAuth and device flow errors
+	codeVerifierNotGenerated: (locale: Locale) =>
+		locale === "ja" ? "コード検証が生成されませんでした" : "Code verifier not generated",
+	invalidCode: (locale: Locale) => (locale === "ja" ? "無効なコードです" : "Invalid code"),
+	codeExpired: (locale: Locale) =>
+		locale === "ja" ? "コードの有効期限が切れています" : "Code has expired",
+	tokenExpired: (locale: Locale) =>
+		locale === "ja" ? "トークンの有効期限が切れています" : "Token has expired",
+	deviceApproved: (locale: Locale) =>
+		locale === "ja" ? "デバイスが正常に承認されました" : "Device approved successfully",
+	tokenNotFound: (locale: Locale) =>
+		locale === "ja" ? "トークンが見つかりません" : "Token not found",
+	tokenRevoked: (locale: Locale) =>
+		locale === "ja" ? "トークンが取り消されました" : "Token revoked",
+	unsupportedProvider: (locale: Locale) =>
+		locale === "ja" ? "サポートされていないプロバイダーです" : "Unsupported provider",
 };

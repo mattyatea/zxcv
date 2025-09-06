@@ -11,15 +11,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Task {
-  id          Int      @id @default(autoincrement())
-  name        String
-  slug        String
-  description String
-  completed   Int
-  dueDate     DateTime @map("due_date")
-
-  @@map("tasks")
+enum RuleType {
+  rule
+  ccsubagents
 }
 
 model User {
@@ -55,6 +49,7 @@ model Rule {
   id              String  @id
   name            String
   userId          String  @map("user_id")
+  type            RuleType @default(rule)
   visibility      String
   description     String?
   tags            String? // JSON array stored as text
@@ -79,6 +74,7 @@ model Rule {
   @@index([name])
   @@index([updatedAt])
   @@index([organizationId])
+  @@index([type])
   @@map("rules")
 }
 

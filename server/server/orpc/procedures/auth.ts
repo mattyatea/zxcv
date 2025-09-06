@@ -3,7 +3,7 @@ import { AuthService } from "../../services/AuthService";
 import { EmailServiceError } from "../../types/errors";
 import type { AuthUser } from "../../utils/auth";
 import { generateId } from "../../utils/crypto";
-import type { Locale } from "../../utils/i18n";
+import { authErrors, type Locale } from "../../utils/i18n";
 import { getLocaleFromRequest } from "../../utils/locale";
 import { createLogger } from "../../utils/logger";
 import { os } from "../index";
@@ -23,7 +23,7 @@ export const authProcedures = {
 			const result = await authService.register(input);
 			return {
 				success: true,
-				message: "登録が完了しました。メールを確認してアカウントを有効化してください。",
+				message: authErrors.registrationSuccess(locale),
 				user: {
 					id: result.user.id,
 					username: result.user.username,
@@ -35,8 +35,7 @@ export const authProcedures = {
 			if (error instanceof EmailServiceError) {
 				// This would need to be implemented in the actual service
 				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message:
-						"登録に失敗しました。確認メールを送信できませんでした。サポートにお問い合わせください。",
+					message: authErrors.registrationFailedEmail(locale),
 				});
 			}
 			throw error;
@@ -56,7 +55,7 @@ export const authProcedures = {
 			accessToken: result.accessToken,
 			refreshToken: result.refreshToken,
 			user: result.user,
-			message: locale === "ja" ? "ログインに成功しました" : "Login successful",
+			message: authErrors.loginSuccess(locale),
 		};
 	}),
 
@@ -265,7 +264,7 @@ export const authProcedures = {
 			} else if (provider === "google") {
 				if (!codeVerifier) {
 					throw new ORPCError("INTERNAL_SERVER_ERROR", {
-						message: "コード検証が生成されませんでした",
+						message: authErrors.codeVerifierNotGenerated(locale),
 					});
 				}
 				const url = providers.google.createAuthorizationURL(state, codeVerifier, [
@@ -274,7 +273,9 @@ export const authProcedures = {
 				]);
 				authorizationUrl = url.toString();
 			} else {
-				throw new ORPCError("BAD_REQUEST", { message: "サポートされていないプロバイダーです" });
+				throw new ORPCError("BAD_REQUEST", {
+					message: authErrors.unsupportedProvider(locale),
+				});
 			}
 
 			return {
@@ -413,7 +414,7 @@ export const authProcedures = {
 
 				if (!primaryEmail) {
 					throw new ORPCError("BAD_REQUEST", {
-						message: "GitHubアカウントにメールアドレスが見つかりません",
+						message: authErrors.oauthNoEmail(locale, "GitHub"),
 					});
 				}
 
@@ -465,7 +466,7 @@ export const authProcedures = {
 
 				if (!googleUser.email) {
 					throw new ORPCError("BAD_REQUEST", {
-						message: "Googleアカウントにメールアドレスが見つかりません",
+						message: authErrors.oauthNoEmail(locale, "Google"),
 					});
 				}
 
@@ -475,7 +476,9 @@ export const authProcedures = {
 					username: googleUser.email.split("@")[0], // Use email prefix as username
 				};
 			} else {
-				throw new ORPCError("BAD_REQUEST", { message: "サポートされていないプロバイダーです" });
+				throw new ORPCError("BAD_REQUEST", {
+					message: authErrors.unsupportedProvider(locale),
+				});
 			}
 
 			// Use AuthService to handle OAuth login
@@ -536,8 +539,9 @@ export const authProcedures = {
 		.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { tempToken, username } = input;
-			const db = context.db;
-			const logger = createLogger(context.env);
+			const { db, env, cloudflare } = context;
+			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+			const logger = createLogger(env);
 
 			try {
 				// Get temp registration
@@ -547,7 +551,7 @@ export const authProcedures = {
 
 				if (!tempReg) {
 					throw new ORPCError("BAD_REQUEST", {
-						message: "無効なトークンです",
+						message: authErrors.invalidToken(locale),
 					});
 				}
 
@@ -558,7 +562,7 @@ export const authProcedures = {
 						where: { id: tempReg.id },
 					});
 					throw new ORPCError("BAD_REQUEST", {
-						message: "トークンの有効期限が切れています",
+						message: authErrors.tokenExpired(locale),
 					});
 				}
 
@@ -638,7 +642,8 @@ export const authProcedures = {
 	 */
 	deviceAuthorize: os.auth.deviceAuthorize.use(dbProvider).handler(async ({ input, context }) => {
 		const { clientId, scope } = input;
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 		const logger = createLogger(env);
 
 		const { generateDeviceCode, generateUserCode, cleanupExpiredDeviceCodes } = await import(
@@ -691,7 +696,8 @@ export const authProcedures = {
 	 */
 	deviceToken: os.auth.deviceToken.use(dbProvider).handler(async ({ input, context }) => {
 		const { deviceCode, clientId } = input;
-		const { db, env } = context;
+		const { db, env, cloudflare } = context;
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 		const logger = createLogger(env);
 
 		const { shouldSlowDown, isRateLimited, generateCliToken, hashCliToken } = await import(
@@ -805,9 +811,10 @@ export const authProcedures = {
 		.use(dbProvider)
 		.use(async ({ context, next }) => {
 			// Verify user is authenticated
+			const locale = getLocaleFromRequest(context.cloudflare?.request) as Locale;
 			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
 			if (!authHeader?.startsWith("Bearer ")) {
-				throw new ORPCError("UNAUTHORIZED", { message: "認証が必要です" });
+				throw new ORPCError("UNAUTHORIZED", { message: authErrors.authRequired(locale) });
 			}
 
 			const token = authHeader.substring(7);
@@ -816,7 +823,7 @@ export const authProcedures = {
 			const userId = result?.sub;
 
 			if (!userId) {
-				throw new ORPCError("UNAUTHORIZED", { message: "無効なトークンです" });
+				throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidToken(locale) });
 			}
 
 			// Get user
@@ -825,7 +832,7 @@ export const authProcedures = {
 			});
 
 			if (!user) {
-				throw new ORPCError("UNAUTHORIZED", { message: "ユーザーが見つかりません" });
+				throw new ORPCError("UNAUTHORIZED", { message: authErrors.userNotFound(locale) });
 			}
 
 			return next({
@@ -834,8 +841,9 @@ export const authProcedures = {
 		})
 		.handler(async ({ input, context }) => {
 			const { userCode } = input;
-			const { db, user } = context;
-			const logger = createLogger(context.env);
+			const { db, user, env, cloudflare } = context;
+			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+			const logger = createLogger(env);
 
 			// Find device code by user code
 			const deviceCodeRecord = await db.deviceCode.findUnique({
@@ -845,7 +853,7 @@ export const authProcedures = {
 			if (!deviceCodeRecord) {
 				logger.warn("Invalid user code", { userCode });
 				throw new ORPCError("NOT_FOUND", {
-					message: "無効なコードです",
+					message: authErrors.invalidCode(locale),
 				});
 			}
 
@@ -855,7 +863,7 @@ export const authProcedures = {
 			if (deviceCodeRecord.expiresAt < now) {
 				await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
 				throw new ORPCError("BAD_REQUEST", {
-					message: "コードの有効期限が切れています",
+					message: authErrors.codeExpired(locale),
 				});
 			}
 
@@ -875,7 +883,7 @@ export const authProcedures = {
 
 			return {
 				success: true,
-				message: "デバイスが正常に承認されました",
+				message: authErrors.deviceApproved(locale),
 			};
 		}),
 
@@ -886,9 +894,10 @@ export const authProcedures = {
 		.use(dbProvider)
 		.use(async ({ context, next }) => {
 			// Verify user is authenticated
+			const locale = getLocaleFromRequest(context.cloudflare?.request) as Locale;
 			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
 			if (!authHeader?.startsWith("Bearer ")) {
-				throw new ORPCError("UNAUTHORIZED", { message: "認証が必要です" });
+				throw new ORPCError("UNAUTHORIZED", { message: authErrors.authRequired(locale) });
 			}
 
 			const token = authHeader.substring(7);
@@ -897,7 +906,7 @@ export const authProcedures = {
 			const userId = result?.sub;
 
 			if (!userId) {
-				throw new ORPCError("UNAUTHORIZED", { message: "無効なトークンです" });
+				throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidToken(locale) });
 			}
 
 			return next({
@@ -929,9 +938,10 @@ export const authProcedures = {
 		.use(dbProvider)
 		.use(async ({ context, next }) => {
 			// Verify user is authenticated
+			const locale = getLocaleFromRequest(context.cloudflare?.request) as Locale;
 			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
 			if (!authHeader?.startsWith("Bearer ")) {
-				throw new ORPCError("UNAUTHORIZED", { message: "認証が必要です" });
+				throw new ORPCError("UNAUTHORIZED", { message: authErrors.authRequired(locale) });
 			}
 
 			const token = authHeader.substring(7);
@@ -940,7 +950,7 @@ export const authProcedures = {
 			const userId = result?.sub;
 
 			if (!userId) {
-				throw new ORPCError("UNAUTHORIZED", { message: "無効なトークンです" });
+				throw new ORPCError("UNAUTHORIZED", { message: authErrors.invalidToken(locale) });
 			}
 
 			return next({
@@ -949,8 +959,9 @@ export const authProcedures = {
 		})
 		.handler(async ({ input, context }) => {
 			const { tokenId } = input;
-			const { db, userId } = context;
-			const logger = createLogger(context.env);
+			const { db, userId, env, cloudflare } = context;
+			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+			const logger = createLogger(env);
 
 			// Verify token belongs to user
 			const token = await db.cliToken.findFirst({
@@ -962,7 +973,7 @@ export const authProcedures = {
 
 			if (!token) {
 				throw new ORPCError("NOT_FOUND", {
-					message: "トークンが見つかりません",
+					message: authErrors.tokenNotFound(locale),
 				});
 			}
 
@@ -978,7 +989,7 @@ export const authProcedures = {
 
 			return {
 				success: true,
-				message: "トークンが取り消されました",
+				message: authErrors.tokenRevoked(locale),
 			};
 		}),
 };

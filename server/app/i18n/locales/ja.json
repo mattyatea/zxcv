@@ -179,6 +179,7 @@
     }
   },
   "rules": {
+    "pageTitle": "ルール一覧",
     "title": "ルール",
     "subtitle": "AIコーディングルールを検索・共有",
     "myRules": "マイルール",
@@ -193,12 +194,17 @@
     "popularTags": "人気のタグ",
     "basicInfo": "基本情報",
     "ruleContent": "ルールの内容",
+    "agentContent": "エージェントの内容",
     "shareWithCommunity": "コミュニティと共有して、みんなで開発効率を向上させましょう",
     "visibility": {
       "all": "すべて",
       "public": "公開",
       "private": "非公開",
       "organization": "組織限定"
+    },
+    "type": {
+      "rule": "ルール",
+      "ccsubagents": "Claude Code Subagents"
     },
     "actions": {
       "view": "表示",
@@ -220,10 +226,17 @@
       "name": "ルール名",
       "namePlaceholder": "例: next-js-best-practices",
       "nameHint": "URLに使用される識別子です。英数字とハイフンのみ使用可能。",
+      "type": "タイプ",
+      "typeOptions": {
+        "rule": "AIコーディングルール",
+        "ccsubagents": "Claude Code Subagents"
+      },
+      "typeHint": "保存するコンテンツの種類を選択してください。",
       "description": "説明",
       "descriptionPlaceholder": "このルールの目的や使い方を説明してください",
       "content": "内容",
       "contentPlaceholder": "# ルールの内容\n\nここにコーディングルールを記述します...\n\n## 例\n\n```javascript\n// コード例\n```",
+      "agentContentPlaceholder": "# Subagent定義\n\nこのSubagentの役割と動作を定義します...\n\n## 能力\n- タスク処理\n- コード生成\n\n## 使用例\n```\n// エージェントの使用例\n```",
       "tags": "タグ",
       "tagsPlaceholder": "タグを入力してEnter",
       "addTag": "タグを追加",
@@ -238,6 +251,12 @@
       "organizationHint": "組織を選択すると、その組織のメンバーがルールを編集できます。",
       "urlPreview": "URL プレビュー:",
       "markdownSupported": "Markdown形式をサポートしています",
+      "ruleHint": "AIコーディング用のルールやガイドラインを定義します",
+      "agentHint": "Claude Code用のSubagentを定義します",
+      "agentTemplateHint": "Subagentテンプレートについては、Claude Code公式ドキュメントをご参照ください",
+      "agentTemplate": "テンプレート",
+      "selectTemplate": "テンプレートを選択",
+      "templateHint": "テンプレートを選択すると、サンプルコードが挿入されます",
       "uploadMarkdown": "Markdownファイルをアップロード",
       "writeDirectly": "直接入力する",
       "basicInfo": "基本情報"
@@ -302,6 +321,7 @@
     },
     "filters": {
       "visibility": "公開範囲",
+      "type": "タイプ",
       "sortBy": "並び順",
       "author": "作成者",
       "authorPlaceholder": "ユーザー名で絞り込み",
@@ -315,7 +335,13 @@
     "listView": "リストビュー",
     "noRulesMessage": "現在のフィルター条件に一致するルールが見つかりませんでした。条件を変更してお試しください。",
     "showing": "全{total}件中 {start} - {end}件を表示",
-    "searchHint": "または {key} で検索"
+    "searchHint": "または {key} で検索",
+    "templates": {
+      "codeReviewer": "コードレビュー",
+      "testGenerator": "テスト生成",
+      "docWriter": "ドキュメント作成",
+      "generalHelper": "汎用アシスタント"
+    }
   },
   "profile": {
     "title": "プロフィール",

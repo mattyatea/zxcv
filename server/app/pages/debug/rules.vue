@@ -55,6 +55,14 @@
 import { ref } from "vue";
 import { useRpc } from "~/composables/useRpc";
 
+// Only allow debug page in development environment
+if (process.env.NODE_ENV === "production") {
+	throw createError({
+		statusCode: 404,
+		statusMessage: "Not Found",
+	});
+}
+
 const $rpc = useRpc();
 const loading = ref(false);
 const searchLoading = ref(false);

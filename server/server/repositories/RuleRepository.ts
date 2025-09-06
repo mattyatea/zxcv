@@ -1,7 +1,7 @@
 import type { Prisma, Rule, RuleVersion } from "@prisma/client";
 import { BaseRepository } from "./BaseRepository";
 
-type RuleWithRelations = Rule & {
+export type RuleWithRelations = Rule & {
 	user?: { id: string; username: string; email: string } | null;
 	organization?: { id: string; name: string; displayName: string } | null;
 	versions?: RuleVersion[] | null;

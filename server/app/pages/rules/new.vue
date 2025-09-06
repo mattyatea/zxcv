@@ -31,6 +31,21 @@
 
 
           <div>
+            <label for="type" class="label">{{ t('rules.form.type') }}</label>
+            <select
+              id="type"
+              v-model="form.type"
+              class="input"
+            >
+              <option value="rule">{{ t('rules.form.typeOptions.rule') }}</option>
+              <option value="ccsubagents">{{ t('rules.form.typeOptions.ccsubagents') }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ t('rules.form.typeHint') }}
+            </p>
+          </div>
+
+          <div>
             <label for="description" class="label">{{ t('rules.form.description') }}</label>
             <textarea
               id="description"
@@ -39,6 +54,25 @@
               class="input"
               :placeholder="t('rules.form.descriptionPlaceholder')"
             />
+          </div>
+
+          <div v-if="form.type === 'ccsubagents'" class="mt-4">
+            <label for="agentTemplate" class="label">{{ t('rules.form.agentTemplate') }}</label>
+            <select
+              id="agentTemplate"
+              v-model="selectedTemplate"
+              @change="applyTemplate"
+              class="input"
+            >
+              <option value="">{{ t('rules.form.selectTemplate') }}</option>
+              <option value="codeReviewer">{{ t('rules.templates.codeReviewer') }}</option>
+              <option value="testGenerator">{{ t('rules.templates.testGenerator') }}</option>
+              <option value="docWriter">{{ t('rules.templates.docWriter') }}</option>
+              <option value="generalHelper">{{ t('rules.templates.generalHelper') }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ t('rules.form.templateHint') }}
+            </p>
           </div>
 
           <div>
@@ -115,7 +149,9 @@
 
       <!-- Rule Content -->
       <div class="card">
-        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ t('rules.ruleContent') }}</h2>
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          {{ form.type === 'ccsubagents' ? t('rules.agentContent') : t('rules.ruleContent') }}
+        </h2>
         
         <div class="space-y-4">
           <div>
@@ -152,10 +188,13 @@
               rows="15"
               required
               class="input font-mono text-sm"
-              :placeholder="t('rules.form.contentPlaceholder')"
+              :placeholder="form.type === 'ccsubagents' ? t('rules.form.agentContentPlaceholder') : t('rules.form.contentPlaceholder')"
             />
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ t('rules.form.markdownSupported') }}
+              <span v-if="form.type === 'ccsubagents'" class="block mt-1">
+                {{ t('rules.form.agentTemplateHint') }}
+              </span>
             </p>
           </div>
         </div>
@@ -204,6 +243,7 @@ useHead({
 
 const form = ref({
 	name: "",
+	type: "rule",
 	org: "",
 	description: "",
 	visibility: "public",
@@ -218,6 +258,7 @@ const loading = ref(false);
 const error = ref("");
 const selectedOrganizationId = ref("");
 const showFileUpload = ref(false);
+const selectedTemplate = ref("");
 
 const handleFileUpload = (event) => {
 	const file = event.target.files[0];
@@ -289,6 +330,139 @@ const fetchOrganizations = async () => {
 		organizations.value = response;
 	} catch (error) {
 		console.error("Failed to fetch organizations:", error);
+	}
+};
+
+
+const applyTemplate = () => {
+	if (!selectedTemplate.value) return;
+	
+	// Subagentテンプレートを適用
+	const templates = {
+		codeReviewer: `# Code Review Expert
+
+An expert agent for comprehensive code review and quality assessment
+
+## Type
+code-reviewer
+
+## Capabilities
+- Security vulnerability detection
+- Performance analysis
+- Code style validation
+- Best practices enforcement
+- Dependency analysis
+
+## Tools
+- Read
+- Grep
+- Task
+
+## Instructions
+This agent specializes in code review and quality assessment.
+
+### Primary Responsibilities:
+1. Review code for best practices and patterns
+2. Identify potential bugs and security issues
+3. Suggest performance improvements
+4. Check code consistency and style
+5. Validate test coverage
+
+### Review Process:
+1. Analyze the code structure and architecture
+2. Check for common anti-patterns
+3. Verify error handling and edge cases
+4. Assess code readability and maintainability
+5. Provide constructive feedback with examples`,
+		
+		testGenerator: `# Test Suite Generator
+
+Generates comprehensive test suites for your codebase
+
+## Type
+test-generator
+
+## Capabilities
+- Unit test generation
+- Integration test creation
+- E2E test scenarios
+- Test data generation
+- Coverage analysis
+
+## Tools
+- Read
+- Write
+- MultiEdit
+
+## Instructions
+This agent specializes in generating comprehensive test suites.
+
+### Primary Responsibilities:
+1. Generate unit tests for functions and methods
+2. Create integration tests for APIs
+3. Design edge case scenarios
+4. Generate test data and fixtures
+5. Ensure adequate test coverage`,
+		
+		docWriter: `# Documentation Specialist
+
+Creates and maintains high-quality technical documentation
+
+## Type
+documentation
+
+## Capabilities
+- API documentation
+- User guides
+- Code comments
+- Architecture docs
+- Tutorial creation
+
+## Tools
+- Read
+- Write
+- Grep
+
+## Instructions
+This agent specializes in creating and maintaining documentation.
+
+### Primary Responsibilities:
+1. Generate API documentation
+2. Create user guides and tutorials
+3. Write code comments and docstrings
+4. Maintain README files
+5. Create architectural documentation`,
+		
+		generalHelper: `# Development Assistant
+
+A versatile assistant for various development tasks
+
+## Type
+general
+
+## Capabilities
+- Code implementation
+- Bug fixing
+- Refactoring
+- Performance optimization
+- Technical guidance
+
+## Tools
+- * (All available tools)
+
+## Instructions
+This is a general-purpose agent for various development tasks.
+
+### Primary Responsibilities:
+1. Assist with code implementation
+2. Debug and troubleshoot issues
+3. Refactor and optimize code
+4. Answer technical questions
+5. Provide development guidance`
+	};
+	
+	if (templates[selectedTemplate.value]) {
+		form.value.content = templates[selectedTemplate.value];
 	}
 };
 

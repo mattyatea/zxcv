@@ -1,10 +1,15 @@
 import { ORPCError } from "@orpc/server";
+import type { RuleVersion } from "@prisma/client";
 import { nanoid } from "nanoid";
-import { RuleService } from "../../services/RuleService";
+import { RuleService } from "../../services";
 import { createLogger } from "../../utils/logger";
 import { parseRulePath } from "../../utils/namespace";
 import { os } from "../index";
 import { dbWithAuth, dbWithEmailVerification, dbWithOptionalAuth } from "../middleware/combined";
+
+type RuleVersionWithCreator = RuleVersion & {
+	creator?: { id: string; username: string } | null;
+};
 
 export const rulesProcedures = {
 	/**
@@ -35,6 +40,7 @@ export const rulesProcedures = {
 			id: rule.id,
 			name: rule.name,
 			userId: rule.userId || null,
+			type: rule.type,
 			visibility: rule.visibility,
 			description: rule.description,
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
@@ -107,6 +113,7 @@ export const rulesProcedures = {
 			query: input.query,
 			tags: input.tags,
 			author: input.author,
+			type: input.type,
 			visibility: input.visibility,
 			sortBy: input.sortBy,
 			page: input.page,
@@ -227,6 +234,7 @@ export const rulesProcedures = {
 			id: rule.id,
 			name: rule.name,
 			userId: rule.userId || null,
+			type: rule.type,
 			visibility: rule.visibility,
 			description: rule.description,
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
@@ -266,7 +274,7 @@ export const rulesProcedures = {
 		const versions = await ruleService.getRuleVersions(input.id, user?.id);
 
 		// Creator information is already included from the repository
-		return versions.map((v) => ({
+		return versions.map((v: RuleVersionWithCreator) => ({
 			version: v.versionNumber,
 			changelog: v.changelog || "",
 			created_at: v.createdAt,
@@ -466,7 +474,7 @@ export const rulesProcedures = {
 			const versions = await ruleService.getRuleVersions(input.ruleId, user?.id);
 
 			// Creator information is already included from the repository
-			return versions.map((v) => ({
+			return versions.map((v: RuleVersionWithCreator) => ({
 				version: v.versionNumber,
 				changelog: v.changelog || "",
 				created_at: v.createdAt,
@@ -475,8 +483,15 @@ export const rulesProcedures = {
 		}),
 
 	// デバッグ用エンドポイント
-	debug: os.rules.debug.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db } = context;
+	debug: os.rules.debug.use(dbWithAuth).handler(async ({ context }) => {
+		const { db, env } = context;
+
+		// Only allow debug endpoint in non-production environments
+		if (env.ENVIRONMENT === "production") {
+			throw new ORPCError("FORBIDDEN", {
+				message: "Debug endpoint is not available in production",
+			});
+		}
 
 		// すべてのルールを取得
 		const allRules = await db.rule.findMany({

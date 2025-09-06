@@ -478,7 +478,7 @@ export const organizationsProcedures = {
 					publicRulesCount,
 					totalStars,
 				},
-				publicRules: publicRules.map((rule: any) => ({
+				publicRules: publicRules.map((rule) => ({
 					id: rule.id,
 					name: rule.name,
 					description: rule.description || "",

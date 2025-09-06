@@ -1,10 +1,26 @@
 import { ORPCError } from "@orpc/server";
+import type { Locale } from "./locale";
 
 /**
  * データベースエラーを統一的に処理
  */
-export function handleDatabaseError(error: unknown, defaultMessage: string): never {
-	console.error("Database error:", error);
+export function handleDatabaseError(
+	error: unknown,
+	defaultMessage: string,
+	locale: Locale = "ja",
+): never {
+	// 開発環境では詳細なエラー情報を出力
+	if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
+		console.error("=== Database Error Details ===");
+		console.error("Error:", error);
+		console.error("Default message:", defaultMessage);
+		if (error instanceof Error) {
+			console.error("Stack trace:", error.stack);
+		}
+		console.error("=============================");
+	} else {
+		console.error("Database error:", error);
+	}
 
 	if (error instanceof ORPCError) {
 		throw error;
@@ -17,29 +33,45 @@ export function handleDatabaseError(error: unknown, defaultMessage: string): nev
 		// 一意制約違反
 		if (prismaError.code === "P2002") {
 			const field = prismaError.meta?.target?.[0];
+			const message =
+				locale === "ja"
+					? field
+						? `${field}は既に使用されています`
+						: "一意制約違反が発生しました"
+					: field
+						? `${field} is already in use`
+						: "Unique constraint violation";
 			throw new ORPCError("CONFLICT", {
-				message: field ? `${field}は既に使用されています` : "一意制約違反が発生しました",
+				message,
 			});
 		}
 
 		// レコードが見つからない
 		if (prismaError.code === "P2025") {
+			const message =
+				locale === "ja"
+					? "指定されたリソースが見つかりません"
+					: "The specified resource was not found";
 			throw new ORPCError("NOT_FOUND", {
-				message: "指定されたリソースが見つかりません",
+				message,
 			});
 		}
 
 		// 外部キー制約違反
 		if (prismaError.code === "P2003") {
+			const message =
+				locale === "ja" ? "関連するリソースが存在しません" : "Related resource does not exist";
 			throw new ORPCError("BAD_REQUEST", {
-				message: "関連するリソースが存在しません",
+				message,
 			});
 		}
 
 		// 必須フィールドが不足
 		if (prismaError.code === "P2012") {
+			const message =
+				locale === "ja" ? "必須フィールドが不足しています" : "Required fields are missing";
 			throw new ORPCError("BAD_REQUEST", {
-				message: "必須フィールドが不足しています",
+				message,
 			});
 		}
 	}
@@ -66,7 +98,11 @@ export function isPrismaError(error: unknown): boolean {
 /**
  * バリデーションエラーを処理
  */
-export function handleValidationError(field: string, message: string): never {
+export function handleValidationError(
+	field: string,
+	message: string,
+	_locale: Locale = "ja",
+): never {
 	throw new ORPCError("BAD_REQUEST", {
 		message: `${field}: ${message}`,
 		data: { code: "VALIDATION_ERROR", field, message },
@@ -76,9 +112,11 @@ export function handleValidationError(field: string, message: string): never {
 /**
  * 認証エラーを処理
  */
-export function handleAuthError(message = "認証が必要です"): never {
+export function handleAuthError(message?: string, locale: Locale = "ja"): never {
+	const defaultMessage = locale === "ja" ? "認証が必要です" : "Authentication required";
+	const errorMessage = message || defaultMessage;
 	throw new ORPCError("UNAUTHORIZED", {
-		message,
+		message: errorMessage,
 		data: { code: "AUTH_ERROR" },
 	});
 }
@@ -86,9 +124,11 @@ export function handleAuthError(message = "認証が必要です"): never {
 /**
  * 権限エラーを処理
  */
-export function handlePermissionError(message = "権限がありません"): never {
+export function handlePermissionError(message?: string, locale: Locale = "ja"): never {
+	const defaultMessage = locale === "ja" ? "権限がありません" : "Permission denied";
+	const errorMessage = message || defaultMessage;
 	throw new ORPCError("FORBIDDEN", {
-		message,
+		message: errorMessage,
 		data: { code: "PERMISSION_ERROR" },
 	});
 }
@@ -96,9 +136,10 @@ export function handlePermissionError(message = "権限がありません"): nev
 /**
  * リソースが見つからないエラーを処理
  */
-export function handleNotFoundError(resource: string): never {
+export function handleNotFoundError(resource: string, locale: Locale = "ja"): never {
+	const message = locale === "ja" ? `${resource}が見つかりません` : `${resource} not found`;
 	throw new ORPCError("NOT_FOUND", {
-		message: `${resource}が見つかりません`,
+		message,
 		data: { code: "NOT_FOUND" },
 	});
 }
@@ -106,9 +147,13 @@ export function handleNotFoundError(resource: string): never {
 /**
  * レート制限エラーを処理
  */
-export function handleRateLimitError(retryAfter?: number): never {
+export function handleRateLimitError(retryAfter?: number, locale: Locale = "ja"): never {
+	const message =
+		locale === "ja"
+			? "リクエストが多すぎます。しばらく待ってから再試行してください。"
+			: "Too many requests. Please try again later.";
 	throw new ORPCError("TOO_MANY_REQUESTS", {
-		message: "リクエストが多すぎます。しばらく待ってから再試行してください。",
+		message,
 		data: { code: "RATE_LIMIT_EXCEEDED", retryAfter },
 	});
 }
@@ -130,6 +175,15 @@ export interface ErrorResponse {
  */
 export function createErrorResponse(error: unknown): ErrorResponse {
 	if (error instanceof ORPCError) {
+		// 開発環境ではORPCError詳細も出力
+		if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
+			console.error("=== ORPCError Details ===");
+			console.error("Code:", error.code);
+			console.error("Message:", error.message);
+			console.error("Data:", error.data);
+			console.error("=========================");
+		}
+
 		return {
 			success: false,
 			error: {
@@ -140,13 +194,25 @@ export function createErrorResponse(error: unknown): ErrorResponse {
 		};
 	}
 
-	console.error("Unexpected error:", error);
+	// 開発環境では詳細なエラー情報を出力
+	if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
+		console.error("=== Unexpected Error Details ===");
+		console.error("Error:", error);
+		if (error instanceof Error) {
+			console.error("Name:", error.name);
+			console.error("Message:", error.message);
+			console.error("Stack:", error.stack);
+		}
+		console.error("================================");
+	} else {
+		console.error("Unexpected error:", error);
+	}
 
 	return {
 		success: false,
 		error: {
 			code: "INTERNAL_SERVER_ERROR",
-			message: "内部サーバーエラーが発生しました",
+			message: "Internal server error",
 		},
 	};
 }

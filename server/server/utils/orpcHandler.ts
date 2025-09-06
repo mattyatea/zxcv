@@ -176,9 +176,10 @@ export async function sendResponse(event: H3Event, response: Response): Promise<
 
 // biome-ignore lint/suspicious/noExplicitAny: Error response format varies and needs to be flexible
 export async function handleError(event: H3Event, error: unknown): Promise<any> {
-	console.error("Handler Error:", error);
-	console.error("Error type:", error?.constructor?.name);
-	console.error("Is ORPCError:", error instanceof ORPCError);
+	// エラー時のみ簡潔にログ出力
+	if (error instanceof Error) {
+		console.error("[Handler Error]", error.message);
+	}
 
 	// Check if the error has already been processed by Handler
 	if (
@@ -188,7 +189,7 @@ export async function handleError(event: H3Event, error: unknown): Promise<any> 
 		(error as { response?: unknown }).response instanceof Response
 	) {
 		const errorResponse = (error as { response: Response }).response;
-		console.log("Error has Response object, status:", errorResponse.status);
+		// レスポンスログは削除
 		return sendResponse(event, errorResponse);
 	}
 
@@ -198,7 +199,7 @@ export async function handleError(event: H3Event, error: unknown): Promise<any> 
 		(error && typeof error === "object" && "code" in error && "__isORPCError" in error)
 	) {
 		const orpcError = error as ORPCError<ORPCErrorCode, unknown>;
-		console.log("Handling ORPCError:", { code: orpcError.code, message: orpcError.message });
+		// ORPCErrorログは上で出力済み
 
 		const statusMap: Record<string, number> = {
 			UNAUTHORIZED: 401,
@@ -222,7 +223,7 @@ export async function handleError(event: H3Event, error: unknown): Promise<any> 
 	}
 
 	// For other errors, return 500
-	console.error("Unhandled error type, returning 500");
+	// 500エラーのログは削除
 	setResponseStatus(event, 500);
 	return {
 		defined: false,
