@@ -30,7 +30,6 @@ export const rulesContract = {
 				author: z.string().optional(),
 				type: z.enum(["rule", "ccsubagents"]).optional(),
 				visibility: z.string().optional(),
-				contentType: z.enum(["rule", "agent"]).optional(),
 				sortBy: z.string().optional(),
 				page: z.number().default(1),
 				limit: z.number().default(20),
@@ -241,7 +240,7 @@ export const rulesContract = {
 		.input(
 			z.object({
 				visibility: z.enum(["public", "private", "all"]).optional().default("public"),
-				contentType: z.enum(["rule", "agent"]).optional(),
+				type: z.enum(["rule", "ccsubagents"]).optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
 				limit: z.number().min(1).max(100).default(20),
@@ -304,7 +303,7 @@ export const rulesContract = {
 		})
 		.input(
 			z.object({
-				contentType: z.enum(["rule", "agent"]).optional(),
+				type: z.enum(["rule", "ccsubagents"]).optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
 				limit: z.number().min(1).max(100).default(20),

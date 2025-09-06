@@ -716,7 +716,7 @@ export class RuleService {
 			description: rule.description,
 			author: rule.user || { id: rule.userId || "", username: "Unknown" },
 			visibility: rule.visibility,
-			contentType: (rule.contentType || "rule") as "rule" | "agent",
+			type: rule.type || "rule",
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
 			version: rule.version || "1.0.0",
 			updated_at: rule.updatedAt,

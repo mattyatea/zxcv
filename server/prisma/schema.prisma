@@ -53,7 +53,6 @@ model Rule {
   visibility      String
   description     String?
   tags            String? // JSON array stored as text
-  contentType     String  @default("rule") @map("content_type") // "rule" or "agent"
   createdAt       Int     @default(dbgenerated("(unixepoch())")) @map("created_at")
   updatedAt       Int     @default(dbgenerated("(unixepoch())")) @map("updated_at")
   publishedAt     Int?    @map("published_at")
