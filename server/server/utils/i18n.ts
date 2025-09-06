@@ -100,6 +100,8 @@ export const authErrors = {
 			: "If an account exists with this email, a password reset link has been sent.",
 	passwordResetSuccess: (locale: Locale) =>
 		locale === "ja" ? "パスワードがリセットされました" : "Password reset successfully",
+	loginSuccess: (locale: Locale) =>
+		locale === "ja" ? "ログインに成功しました" : "Login successful",
 	logoutSuccess: (locale: Locale) =>
 		locale === "ja" ? "ログアウトしました" : "Successfully logged out",
 	logoutFailed: (locale: Locale) =>
@@ -159,4 +161,20 @@ export const authErrors = {
 		locale === "ja" ? "設定が正常に更新されました" : "Settings updated successfully",
 	passwordChangedSuccess: (locale: Locale) =>
 		locale === "ja" ? "パスワードが正常に変更されました" : "Password changed successfully",
+	// OAuth and device flow errors
+	codeVerifierNotGenerated: (locale: Locale) =>
+		locale === "ja" ? "コード検証が生成されませんでした" : "Code verifier not generated",
+	invalidCode: (locale: Locale) => (locale === "ja" ? "無効なコードです" : "Invalid code"),
+	codeExpired: (locale: Locale) =>
+		locale === "ja" ? "コードの有効期限が切れています" : "Code has expired",
+	tokenExpired: (locale: Locale) =>
+		locale === "ja" ? "トークンの有効期限が切れています" : "Token has expired",
+	deviceApproved: (locale: Locale) =>
+		locale === "ja" ? "デバイスが正常に承認されました" : "Device approved successfully",
+	tokenNotFound: (locale: Locale) =>
+		locale === "ja" ? "トークンが見つかりません" : "Token not found",
+	tokenRevoked: (locale: Locale) =>
+		locale === "ja" ? "トークンが取り消されました" : "Token revoked",
+	unsupportedProvider: (locale: Locale) =>
+		locale === "ja" ? "サポートされていないプロバイダーです" : "Unsupported provider",
 };
