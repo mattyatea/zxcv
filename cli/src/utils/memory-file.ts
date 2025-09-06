@@ -198,7 +198,6 @@ export class MemoryFileManager {
 				name: parts[1] || "",
 			};
 		}
-		// rulename only (legacy)
 		return {
 			name: fullName,
 		};

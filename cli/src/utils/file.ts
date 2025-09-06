@@ -39,7 +39,6 @@ export class FileManager {
 				name: parts[1],
 			};
 		}
-		// rulename only (legacy)
 		return {
 			name: fullName,
 		};

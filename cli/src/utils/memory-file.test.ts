@@ -61,7 +61,7 @@ describe("MemoryFileManager", () => {
 			});
 		});
 
-		it("should handle legacy format", () => {
+		it("should handle simple rule name format", () => {
 			const result = (memoryManager as any).parseRuleName("simple-rule");
 			expect(result).toEqual({
 				name: "simple-rule",
