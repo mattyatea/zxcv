@@ -47,7 +47,7 @@ export class ApiClient {
 	}
 
 	async login(username: string, password: string): Promise<{ token: string }> {
-		const response = await this.client.post("/api/auth/login", {
+		const response = await this.client.post("/auth/login", {
 			username,
 			password,
 		});
@@ -55,7 +55,7 @@ export class ApiClient {
 	}
 
 	async register(username: string, email: string, password: string): Promise<void> {
-		await this.client.post("/api/auth/register", {
+		await this.client.post("/auth/register", {
 			username,
 			email,
 			password,
@@ -63,7 +63,7 @@ export class ApiClient {
 	}
 
 	async getRule(path: string): Promise<Rule> {
-		const response = await this.client.post("/api/rules/getByPath", {
+		const response = await this.client.post("/rules/getByPath", {
 			path,
 		});
 		return response.data;
@@ -73,7 +73,7 @@ export class ApiClient {
 		ruleId: string,
 		version?: string,
 	): Promise<{ content: string; version: string }> {
-		const response = await this.client.post("/api/rules/getContent", {
+		const response = await this.client.post("/rules/getContent", {
 			id: ruleId,
 			...(version && { version }),
 		});
@@ -86,7 +86,7 @@ export class ApiClient {
 		visibility: "public" | "private";
 		tags: string[];
 	}): Promise<Rule> {
-		const response = await this.client.post("/api/rules/create", rule);
+		const response = await this.client.post("/rules/create", rule);
 		return response.data;
 	}
 
@@ -100,7 +100,7 @@ export class ApiClient {
 			changelog?: string;
 		},
 	): Promise<Rule> {
-		const response = await this.client.post("/api/rules/update", {
+		const response = await this.client.post("/rules/update", {
 			ruleId,
 			...updates,
 		});
@@ -115,7 +115,7 @@ export class ApiClient {
 		limit?: number;
 		offset?: number;
 	}): Promise<Rule[]> {
-		const response = await this.client.post("/api/rules/search", query);
+		const response = await this.client.post("/rules/search", query);
 		return response.data.rules;
 	}
 
@@ -126,7 +126,7 @@ export class ApiClient {
 			createdAt: string;
 		}>
 	> {
-		const response = await this.client.post("/api/rules/versions", {
+		const response = await this.client.post("/rules/versions", {
 			ruleId,
 		});
 		return response.data.versions;
@@ -134,7 +134,7 @@ export class ApiClient {
 
 	// Device Authorization Grant methods
 	async initializeDeviceAuth(): Promise<DeviceAuthData> {
-		const response = await this.client.post("/api/auth/device/authorize", {
+		const response = await this.client.post("/auth/device/authorize", {
 			clientId: "cli",
 			scope: "read write",
 		});
@@ -153,7 +153,7 @@ export class ApiClient {
 			await new Promise((resolve) => setTimeout(resolve, currentInterval * 1000));
 
 			try {
-				const response = await this.client.post("/api/auth/device/token", {
+				const response = await this.client.post("/auth/device/token", {
 					deviceCode,
 					clientId: "cli",
 				});
