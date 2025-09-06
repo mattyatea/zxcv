@@ -189,12 +189,22 @@ jobs:
             CLOUDFLARE_ENV=staging pnpm build:server
           fi
 
-      - name: Run migrations
+      - name: Run migrations (production)
+        if: github.ref == 'refs/heads/main'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply ${{ github.ref == 'refs/heads/main' && 'zxcv-db' || 'zxcv-staging' }} --remote ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
+          command: d1 migrations apply zxcv-db --remote -c wrangler.toml
+          workingDirectory: 'server'
+          
+      - name: Run migrations (staging)
+        if: github.ref == 'refs/heads/dev'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply zxcv-staging --remote -c wrangler.toml --env staging
           workingDirectory: 'server'
           
       - name: Deploy to Cloudflare Workers (Production)

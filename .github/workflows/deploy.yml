@@ -56,13 +56,23 @@ jobs:
             exit 1
           fi
 
-      - name: Build
+      - name: Build (production)
+        if: github.ref == 'refs/heads/main'
         run: pnpm build:server
         env:
-          WORKER_NAME: ${{ github.ref == 'refs/heads/main' && 'zxcv-backend-and-frontend' || 'zxcv-backend-and-frontend-staging' }}
-          DB_NAME: ${{ github.ref == 'refs/heads/main' && 'zxcv-db' || 'zxcv-staging' }}
-          DB_ID: ${{ github.ref == 'refs/heads/main' && 'ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e' || 'e3bce64a-4462-4812-a343-c04c3ba7032a' }}
-          R2_BUCKET: ${{ github.ref == 'refs/heads/main' && 'zxcv' || 'zxcv-staging' }}
+          WORKER_NAME: zxcv-backend-and-frontend
+          DB_NAME: zxcv-db
+          DB_ID: ee2c13b9-0d5b-49ea-9bf4-5a65e2f7ad4e
+          R2_BUCKET: zxcv
+          
+      - name: Build (staging)
+        if: github.ref == 'refs/heads/dev'
+        run: pnpm build:staging
+        env:
+          WORKER_NAME: zxcv-backend-and-frontend-staging
+          DB_NAME: zxcv-staging
+          DB_ID: e3bce64a-4462-4812-a343-c04c3ba7032a
+          R2_BUCKET: zxcv-staging
 
       - name: Debug - List wrangler config files
         run: |
