@@ -1,4 +1,13 @@
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+	// Only allow API docs in non-production environments
+	const env = event.context.cloudflare?.env;
+	if (env?.ENVIRONMENT === "production") {
+		throw createError({
+			statusCode: 404,
+			statusMessage: "Not Found",
+		});
+	}
+
 	const html = `
 <!DOCTYPE html>
 <html lang="en">

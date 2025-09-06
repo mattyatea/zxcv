@@ -34,6 +34,7 @@ export interface Env extends Record<string, unknown> {
 	RATE_LIMIT_API_KEY: string;
 	EMAIL_FROM: string;
 	FRONTEND_URL: string;
+	ENVIRONMENT?: string; // "development" | "staging" | "production"
 
 	// OAuth Provider Settings
 	APP_URL?: string;

@@ -12,3 +12,6 @@ GH_OAUTH_CLIENT_SECRET=
 
 # Application URL (for OAuth callbacks)
 APP_URL=http://localhost:3000
+
+# Environment (development, staging, production)
+ENVIRONMENT=development

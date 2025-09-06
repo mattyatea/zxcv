@@ -483,8 +483,15 @@ export const rulesProcedures = {
 		}),
 
 	// デバッグ用エンドポイント
-	debug: os.rules.debug.use(dbWithOptionalAuth).handler(async ({ context }) => {
-		const { db } = context;
+	debug: os.rules.debug.use(dbWithAuth).handler(async ({ context }) => {
+		const { db, env } = context;
+
+		// Only allow debug endpoint in non-production environments
+		if (env.ENVIRONMENT === "production") {
+			throw new ORPCError("FORBIDDEN", {
+				message: "Debug endpoint is not available in production",
+			});
+		}
 
 		// すべてのルールを取得
 		const allRules = await db.rule.findMany({

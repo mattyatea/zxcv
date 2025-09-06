@@ -2,7 +2,15 @@ import { OpenAPIGenerator } from "@orpc/openapi";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { router } from "../orpc/router";
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+	// Only allow API spec in non-production environments
+	const env = event.context.cloudflare?.env;
+	if (env?.ENVIRONMENT === "production") {
+		throw createError({
+			statusCode: 404,
+			statusMessage: "Not Found",
+		});
+	}
 	const generator = new OpenAPIGenerator({
 		schemaConverters: [new ZodToJsonSchemaConverter()],
 	});
