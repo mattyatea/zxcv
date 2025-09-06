@@ -1,6 +1,10 @@
+import { homedir } from "node:os";
+import { basename, join, resolve } from "node:path";
 import { stdin, stdout } from "node:process";
 import * as readline from "node:readline/promises";
 import chalk from "chalk";
+import { ConfigManager } from "../config";
+import { MemoryFileManager } from "./memory-file";
 
 export interface PromptQuestion {
 	type: "input" | "password" | "confirm" | "list";
@@ -197,3 +201,146 @@ export const inquirer = {
 		return prompt.prompt(questions);
 	},
 };
+
+// メモリファイル選択用の対話式プロンプト
+export async function promptMemoryFile(ruleName: string): Promise<string> {
+	const config = new ConfigManager();
+	const memoryManager = new MemoryFileManager(config);
+
+	// プロジェクトとユーザーレベルのファイルを検索
+	const projectFiles = memoryManager.findMemoryFiles("project");
+	const userFiles = memoryManager.findMemoryFiles("user");
+
+	const choices: Array<{ name: string; value: string }> = [];
+
+	// プロジェクトレベル（推奨）
+	if (projectFiles.length > 0) {
+		choices.push({
+			name: chalk.green("=== プロジェクト（推奨） ==="),
+			value: "separator",
+		});
+		for (const file of projectFiles) {
+			choices.push({
+				name: `  📄 ${basename(file)}`,
+				value: file,
+			});
+		}
+	}
+
+	// 新規作成オプション（プロジェクト）
+	choices.push(
+		{ name: chalk.green("=== 新規作成（プロジェクト） ==="), value: "separator" },
+		{ name: "  📝 CLAUDE.md を作成", value: "new:project:CLAUDE.md" },
+		{ name: "  📝 CLAUDE.local.md を作成", value: "new:project:CLAUDE.local.md" },
+		{ name: "  📝 COPILOT.md を作成", value: "new:project:COPILOT.md" },
+	);
+
+	// ユーザーレベル（オプション）
+	if (userFiles.length > 0) {
+		choices.push({
+			name: chalk.gray("=== ユーザーレベル ==="),
+			value: "separator",
+		});
+		for (const file of userFiles) {
+			choices.push({
+				name: chalk.gray(`  📄 ~/​${basename(file)}`),
+				value: file,
+			});
+		}
+	}
+
+	// 新規作成オプション（ユーザー）
+	choices.push(
+		{ name: chalk.gray("=== 新規作成（ユーザー） ==="), value: "separator" },
+		{ name: chalk.gray("  📝 ~/CLAUDE.md を作成"), value: "new:user:CLAUDE.md" },
+	);
+
+	// カスタム
+	choices.push(
+		{ name: "━━━━━━━━━━", value: "separator" },
+		{ name: "✏️  カスタムパスを入力", value: "custom" },
+	);
+
+	console.log(chalk.cyan(`\n📝 ${ruleName} をどこに記録しますか？`));
+
+	// 選択肢を表示（セパレーターを除いてインデックスを計算）
+	const validChoices = choices.filter((c) => c.value !== "separator");
+	choices.forEach((choice, index) => {
+		if (choice.value === "separator") {
+			console.log(choice.name);
+		} else {
+			const choiceIndex = validChoices.findIndex((c) => c.value === choice.value) + 1;
+			console.log(`  ${chalk.cyan(`${choiceIndex})`)} ${choice.name}`);
+		}
+	});
+
+	let answer: string;
+	let selectedIndex: number;
+
+	do {
+		answer = await new Promise<string>((resolve) => {
+			const rl = readline.createInterface({ input: stdin, output: stdout });
+			rl.question("\n選択してください (番号を入力): ").then((answer: string) => {
+				rl.close();
+				resolve(answer);
+			});
+		});
+		selectedIndex = Number.parseInt(answer) - 1;
+	} while (
+		Number.isNaN(selectedIndex) ||
+		selectedIndex < 0 ||
+		selectedIndex >= validChoices.length
+	);
+
+	const choice = validChoices[selectedIndex].value;
+
+	if (choice === "custom") {
+		const customPath = await new Promise<string>((resolve) => {
+			const rl = readline.createInterface({ input: stdin, output: stdout });
+			rl.question("ファイルパス (例: ./AI-RULES.md, ~/my-rules.md): ").then((answer: string) => {
+				rl.close();
+				resolve(answer);
+			});
+		});
+
+		if (!customPath) {
+			throw new Error("ファイルパスを入力してください");
+		}
+
+		const resolved = memoryManager.resolveFilePath(customPath);
+
+		// プロジェクト外の場合は確認
+		if (!resolved.startsWith(process.cwd())) {
+			console.log(chalk.yellow("\n⚠️  注意: プロジェクト外のファイルを指定しています"));
+
+			const confirmCustom = await new Promise<boolean>((resolve) => {
+				const rl = readline.createInterface({ input: stdin, output: stdout });
+				rl.question("続行しますか？ (y/N): ").then((answer: string) => {
+					rl.close();
+					resolve(answer.toLowerCase() === "y" || answer.toLowerCase() === "yes");
+				});
+			});
+
+			if (!confirmCustom) {
+				// 再度選択
+				return promptMemoryFile(ruleName);
+			}
+		}
+
+		return resolved;
+	}
+
+	if (choice.startsWith("new:")) {
+		const [, scope, fileName] = choice.split(":");
+		const dir = scope === "user" ? homedir() : process.cwd();
+		const newPath = join(dir, fileName);
+
+		if (scope === "user") {
+			console.log(chalk.yellow("\n📌 注: ユーザーレベルのファイルを作成します"));
+		}
+
+		return newPath;
+	}
+
+	return choice;
+}
