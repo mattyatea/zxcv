@@ -102,12 +102,34 @@ jobs:
           command: d1 migrations apply zxcv-staging --remote -c wrangler.toml --env staging
           workingDirectory: 'server'
           
-      - name: Deploy to Cloudflare Workers
+      - name: Deploy to Cloudflare Workers (production)
+        if: github.ref == 'refs/heads/main'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy -c wrangler.toml ${{ github.ref == 'refs/heads/main' && '' || '--env staging' }}
+          command: deploy -c wrangler.toml
+          workingDirectory: 'server'
+          secrets: |
+            JWT_SECRET
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GH_OAUTH_CLIENT_ID
+            GH_OAUTH_CLIENT_SECRET
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+          
+      - name: Deploy to Cloudflare Workers (staging)
+        if: github.ref == 'refs/heads/dev'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy -c wrangler.toml --env staging
           workingDirectory: 'server'
           secrets: |
             JWT_SECRET
