@@ -72,6 +72,12 @@ jobs:
           echo "=== Checking for .output/server/wrangler.json ==="
           ls -la .output/server/wrangler* 2>/dev/null || echo "No wrangler files in .output/server"
           
+      - name: Debug branch info
+        run: |
+          echo "Current ref: ${{ github.ref }}"
+          echo "Is main branch: ${{ github.ref == 'refs/heads/main' }}"
+          echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+          
       - name: Run migrations
         uses: cloudflare/wrangler-action@v3
         with:
