@@ -2,6 +2,9 @@
 
 # zxcv
 
+<img src='./img.png' alt='zxcv logo' height='693' style='object-fit: cover;'/>
+
+
 # 概要
 zxcvは、AIを活用する際の、コーディングルールなどを一元化したいというCLIツールです。
 
