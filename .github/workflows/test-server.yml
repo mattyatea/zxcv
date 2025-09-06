@@ -189,22 +189,23 @@ jobs:
             CLOUDFLARE_ENV=staging pnpm build:server
           fi
 
-      - name: Run migrations (production)
-        if: github.ref == 'refs/heads/main'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply zxcv-db --remote -c wrangler.toml
-          workingDirectory: 'server'
+      - name: Set environment variables
+        id: env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "DB_NAME=zxcv-db" >> $GITHUB_OUTPUT
+            echo "IS_PRODUCTION=true" >> $GITHUB_OUTPUT
+          else
+            echo "DB_NAME=zxcv-staging" >> $GITHUB_OUTPUT
+            echo "IS_PRODUCTION=false" >> $GITHUB_OUTPUT
+          fi
           
-      - name: Run migrations (staging)
-        if: github.ref == 'refs/heads/dev'
+      - name: Run migrations
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply zxcv-staging --remote -c wrangler.toml --env staging
+          command: d1 migrations apply ${{ steps.env.outputs.DB_NAME }} --remote -c wrangler.toml${{ steps.env.outputs.IS_PRODUCTION == 'true' && '' || ' --env staging' }}
           workingDirectory: 'server'
           
       - name: Deploy to Cloudflare Workers (Production)
