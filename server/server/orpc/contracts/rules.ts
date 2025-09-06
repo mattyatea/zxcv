@@ -80,7 +80,6 @@ export const rulesContract = {
 				type: z.enum(["rule", "ccsubagents"]).default("rule"),
 				description: z.string().optional(),
 				visibility: z.enum(["public", "private"]),
-				contentType: z.enum(["rule", "agent"]).default("rule"),
 				organizationId: z.string().optional(),
 				tags: z.array(z.string()),
 				content: z.string(),

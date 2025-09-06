@@ -56,23 +56,7 @@
             />
           </div>
 
-          <div>
-            <label for="contentType" class="label">{{ t('rules.form.contentType') }}</label>
-            <select
-              id="contentType"
-              v-model="form.contentType"
-              @change="handleContentTypeChange"
-              class="input"
-            >
-              <option value="rule">{{ t('rules.contentType.rule') }}</option>
-              <option value="agent">{{ t('rules.contentType.agent') }} (Claude Subagent)</option>
-            </select>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {{ form.contentType === 'agent' ? t('rules.form.agentHint') : t('rules.form.ruleHint') }}
-            </p>
-          </div>
-
-          <div v-if="form.contentType === 'agent'" class="mt-4">
+          <div v-if="form.type === 'ccsubagents'" class="mt-4">
             <label for="agentTemplate" class="label">{{ t('rules.form.agentTemplate') }}</label>
             <select
               id="agentTemplate"
@@ -166,7 +150,7 @@
       <!-- Rule Content -->
       <div class="card">
         <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          {{ form.contentType === 'agent' ? t('rules.agentContent') : t('rules.ruleContent') }}
+          {{ form.type === 'ccsubagents' ? t('rules.agentContent') : t('rules.ruleContent') }}
         </h2>
         
         <div class="space-y-4">
@@ -204,11 +188,11 @@
               rows="15"
               required
               class="input font-mono text-sm"
-              :placeholder="form.contentType === 'agent' ? t('rules.form.agentContentPlaceholder') : t('rules.form.contentPlaceholder')"
+              :placeholder="form.type === 'ccsubagents' ? t('rules.form.agentContentPlaceholder') : t('rules.form.contentPlaceholder')"
             />
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ t('rules.form.markdownSupported') }}
-              <span v-if="form.contentType === 'agent'" class="block mt-1">
+              <span v-if="form.type === 'ccsubagents'" class="block mt-1">
                 {{ t('rules.form.agentTemplateHint') }}
               </span>
             </p>
@@ -262,7 +246,6 @@ const form = ref({
 	type: "rule",
 	org: "",
 	description: "",
-	contentType: "rule",
 	visibility: "public",
 	organizationId: "",
 	tags: [],
@@ -350,11 +333,6 @@ const fetchOrganizations = async () => {
 	}
 };
 
-const handleContentTypeChange = () => {
-	if (form.value.contentType === "rule") {
-		selectedTemplate.value = "";
-	}
-};
 
 const applyTemplate = () => {
 	if (!selectedTemplate.value) return;

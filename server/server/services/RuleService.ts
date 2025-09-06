@@ -32,7 +32,6 @@ export class RuleService {
 			description?: string;
 			content: string;
 			visibility: "public" | "private" | "team";
-			contentType?: "rule" | "agent";
 			tags?: string[];
 			organizationId?: string;
 		},
@@ -89,7 +88,6 @@ export class RuleService {
 				userId,
 				description: data.description || null,
 				visibility: data.visibility,
-				contentType: data.contentType || "rule",
 				tags: data.tags ? JSON.stringify(data.tags) : null,
 				publishedAt: null,
 				views: 0,
@@ -651,7 +649,6 @@ export class RuleService {
 	 */
 	async listRules(params: {
 		visibility?: string;
-		contentType?: "rule" | "agent";
 		tags?: string[];
 		author?: string;
 		limit: number;
@@ -691,11 +688,6 @@ export class RuleService {
 			where.user = {
 				username: params.author,
 			};
-		}
-
-		// コンテンツタイプフィルタ
-		if (params.contentType) {
-			where.contentType = params.contentType;
 		}
 
 		// ルールを取得
@@ -747,7 +739,6 @@ export class RuleService {
 		author?: string;
 		type?: $Enums.RuleType;
 		visibility?: string;
-		contentType?: "rule" | "agent";
 		sortBy?: string;
 		page: number;
 		limit: number;
@@ -802,11 +793,6 @@ export class RuleService {
 			where.user = {
 				username: params.author,
 			};
-		}
-
-		// コンテンツタイプフィルタ
-		if (params.contentType) {
-			where.contentType = params.contentType;
 		}
 
 		// ソート設定
@@ -879,7 +865,6 @@ export class RuleService {
 				visibility: rule.visibility,
 				description: rule.description,
 				tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
-				contentType: (rule.contentType || "rule") as "rule" | "agent",
 				createdAt: rule.createdAt,
 				updatedAt: rule.updatedAt,
 				publishedAt: rule.publishedAt,

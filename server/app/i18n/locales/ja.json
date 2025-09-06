@@ -179,6 +179,7 @@
     }
   },
   "rules": {
+    "pageTitle": "ルール一覧",
     "title": "ルール",
     "subtitle": "AIコーディングルールを検索・共有",
     "myRules": "マイルール",
@@ -201,10 +202,9 @@
       "private": "非公開",
       "organization": "組織限定"
     },
-    "contentType": {
-      "all": "すべて",
+    "type": {
       "rule": "ルール",
-      "agent": "Claude Subagent"
+      "ccsubagents": "Claude Code Subagents"
     },
     "actions": {
       "view": "表示",
@@ -234,7 +234,6 @@
       "typeHint": "保存するコンテンツの種類を選択してください。",
       "description": "説明",
       "descriptionPlaceholder": "このルールの目的や使い方を説明してください",
-      "contentType": "タイプ",
       "content": "内容",
       "contentPlaceholder": "# ルールの内容\n\nここにコーディングルールを記述します...\n\n## 例\n\n```javascript\n// コード例\n```",
       "agentContentPlaceholder": "# Subagent定義\n\nこのSubagentの役割と動作を定義します...\n\n## 能力\n- タスク処理\n- コード生成\n\n## 使用例\n```\n// エージェントの使用例\n```",
@@ -322,7 +321,7 @@
     },
     "filters": {
       "visibility": "公開範囲",
-      "contentType": "コンテンツタイプ",
+      "type": "タイプ",
       "sortBy": "並び順",
       "author": "作成者",
       "authorPlaceholder": "ユーザー名で絞り込み",

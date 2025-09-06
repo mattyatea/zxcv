@@ -181,6 +181,7 @@
     }
   },
   "rules": {
+    "pageTitle": "Rules",
     "title": "Rules",
     "subtitle": "Search and share AI coding rules",
     "myRules": "My Rules",
@@ -203,10 +204,9 @@
       "private": "Private",
       "organization": "Organization only"
     },
-    "contentType": {
-      "all": "All",
-      "rule": "Rule",
-      "agent": "Claude Subagent"
+    "type": {
+      "rule": "Rules",
+      "ccsubagents": "Claude Code Subagents"
     },
     "actions": {
       "view": "View",
@@ -236,7 +236,6 @@
       "typeHint": "Select the type of content to save.",
       "description": "Description",
       "descriptionPlaceholder": "Describe the purpose and usage of this rule",
-      "contentType": "Type",
       "content": "Content",
       "contentPlaceholder": "# Rule Content\n\nWrite your coding rules here...\n\n## Example\n\n```javascript\n// Code example\n```",
       "agentContentPlaceholder": "# Subagent Definition\n\nDefine the role and behavior of this subagent...\n\n## Capabilities\n- Task processing\n- Code generation\n\n## Usage Example\n```\n// Agent usage example\n```",
@@ -324,7 +323,7 @@
     },
     "filters": {
       "visibility": "Visibility",
-      "contentType": "Content Type",
+      "type": "Type",
       "sortBy": "Sort by",
       "author": "Author",
       "authorPlaceholder": "Filter by username",

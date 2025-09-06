@@ -6,7 +6,7 @@
 		"build": "nuxt build",
 		"build:staging": "CLOUDFLARE_ENV=staging nuxt build",
 		"dev:migrate": "pnpm migrate:local && nuxt dev",
-		"dev": "NODE_ENV=test nuxt dev",
+		"dev": "nuxt dev",
 		"generate": "nuxt generate",
 		"preview": "pnpm run build && cd .output && wrangler dev",
 		"preview:staging": "pnpm run build && cd .output && wrangler dev --env staging",
