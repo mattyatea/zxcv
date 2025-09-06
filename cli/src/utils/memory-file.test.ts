@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { MemoryFileManager } from "./memory-file";
 import type { ConfigManager } from "../config";
 import type { PulledRule } from "../types";
+import { MemoryFileManager } from "./memory-file";
 
 // Mock ConfigManager
 const mockConfig: ConfigManager = {
@@ -12,6 +12,10 @@ const mockConfig: ConfigManager = {
 
 const testDir = "/tmp/zxcv-test";
 const testFile = join(testDir, "CLAUDE.md");
+
+// Helper to access private methods for testing
+const getPrivateMethods = (manager: MemoryFileManager) =>
+	manager as unknown as { parseRuleName: (name: string) => { name: string; owner?: string } };
 
 describe("MemoryFileManager", () => {
 	let memoryManager: MemoryFileManager;
@@ -53,8 +57,7 @@ describe("MemoryFileManager", () => {
 
 	describe("parseRuleName", () => {
 		it("should parse @owner/rulename format", () => {
-			// privateメソッドにアクセスするため、anyにキャスト
-			const result = (memoryManager as any).parseRuleName("@owner/test-rule");
+			const result = getPrivateMethods(memoryManager).parseRuleName("@owner/test-rule");
 			expect(result).toEqual({
 				owner: "owner",
 				name: "test-rule",
@@ -62,14 +65,14 @@ describe("MemoryFileManager", () => {
 		});
 
 		it("should handle simple rule name format", () => {
-			const result = (memoryManager as any).parseRuleName("simple-rule");
+			const result = getPrivateMethods(memoryManager).parseRuleName("simple-rule");
 			expect(result).toEqual({
 				name: "simple-rule",
 			});
 		});
 
 		it("should handle empty parts safely", () => {
-			const result = (memoryManager as any).parseRuleName("@/");
+			const result = getPrivateMethods(memoryManager).parseRuleName("@/");
 			expect(result).toEqual({
 				owner: "",
 				name: "",
