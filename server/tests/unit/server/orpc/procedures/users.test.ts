@@ -42,10 +42,12 @@ describe("users procedures", () => {
 		const mockUser = {
 			id: "user_123",
 			username: "testuser",
-			email: "test@example.com",
-			emailVerified: true,
+			displayName: "Test User Display",
+			bio: "This is my bio",
+			location: "Tokyo, Japan",
+			website: "https://testuser.example.com",
+			avatarUrl: "avatars/user_123/avatar.jpg",
 			createdAt: 1640995200,
-			updatedAt: 1640995200,
 		};
 
 		const mockPublicRules = [
@@ -94,6 +96,11 @@ describe("users procedures", () => {
 				user: {
 					id: "user_123",
 					username: "testuser",
+					displayName: "Test User Display",
+					bio: "This is my bio",
+					location: "Tokyo, Japan",
+					website: "https://testuser.example.com",
+					avatarUrl: "avatars/user_123/avatar.jpg",
 					createdAt: 1640995200,
 				},
 				stats: {
@@ -128,6 +135,11 @@ describe("users procedures", () => {
 				select: {
 					id: true,
 					username: true,
+					displayName: true,
+					bio: true,
+					location: true,
+					website: true,
+					avatarUrl: true,
 					createdAt: true,
 				},
 			});
@@ -199,6 +211,11 @@ describe("users procedures", () => {
 				select: {
 					id: true,
 					username: true,
+					displayName: true,
+					bio: true,
+					location: true,
+					website: true,
+					avatarUrl: true,
 					createdAt: true,
 				},
 			});
@@ -376,6 +393,390 @@ describe("users procedures", () => {
 					email: null, // Other emails are masked
 				},
 			]);
+		});
+	});
+
+	describe("updateProfile", () => {
+		let authenticatedContext: any;
+
+		beforeEach(() => {
+			const user = createMockUser();
+			authenticatedContext = createAuthenticatedContext(user, {
+				db: mockPrisma,
+			});
+		});
+
+		const validInput = {
+			displayName: "Test User",
+			bio: "This is a test bio",
+			location: "Tokyo, Japan",
+			website: "https://example.com",
+		};
+
+		const mockUpdatedUser = {
+			id: "user_123",
+			email: "test@example.com",
+			username: "testuser",
+			emailVerified: true,
+			displayName: "Test User",
+			bio: "This is a test bio",
+			location: "Tokyo, Japan",
+			website: "https://example.com",
+			avatarUrl: null,
+			createdAt: 1640995200,
+			updatedAt: 1641081600,
+		};
+
+		it("should update user profile successfully", async () => {
+			// Mock database call
+			mockPrisma.user.update.mockResolvedValue(mockUpdatedUser);
+
+			// Call the procedure
+			const result = await callProcedure(
+				usersProcedures.updateProfile,
+				validInput,
+				authenticatedContext,
+			);
+
+			// Assert the result
+			expect(result).toEqual({
+				user: mockUpdatedUser,
+			});
+
+			// Verify database call
+			expect(mockPrisma.user.update).toHaveBeenCalledWith({
+				where: { id: "user_123" },
+				data: {
+					displayName: "Test User",
+					bio: "This is a test bio",
+					location: "Tokyo, Japan",
+					website: "https://example.com",
+					updatedAt: expect.any(Number),
+				},
+				select: {
+					id: true,
+					email: true,
+					username: true,
+					emailVerified: true,
+					displayName: true,
+					bio: true,
+					location: true,
+					website: true,
+					avatarUrl: true,
+					createdAt: true,
+					updatedAt: true,
+				},
+			});
+		});
+
+		it("should handle partial updates", async () => {
+			const partialInput = {
+				displayName: "Updated Name",
+			};
+
+			const partiallyUpdatedUser = {
+				...mockUpdatedUser,
+				displayName: "Updated Name",
+			};
+
+			mockPrisma.user.update.mockResolvedValue(partiallyUpdatedUser);
+
+			const result = await callProcedure(
+				usersProcedures.updateProfile,
+				partialInput,
+				authenticatedContext,
+			);
+
+			expect(result.user.displayName).toBe("Updated Name");
+			expect(mockPrisma.user.update).toHaveBeenCalledWith({
+				where: { id: "user_123" },
+				data: {
+					displayName: "Updated Name",
+					updatedAt: expect.any(Number),
+				},
+				select: expect.any(Object),
+			});
+		});
+
+		it("should handle empty values to set fields to null", async () => {
+			const emptyInput = {
+				displayName: "",
+				bio: "",
+				location: "",
+				website: "",
+			};
+
+			const nullUpdatedUser = {
+				...mockUpdatedUser,
+				displayName: null,
+				bio: null,
+				location: null,
+				website: null,
+			};
+
+			mockPrisma.user.update.mockResolvedValue(nullUpdatedUser);
+
+			const result = await callProcedure(
+				usersProcedures.updateProfile,
+				emptyInput,
+				authenticatedContext,
+			);
+
+			expect(result.user.displayName).toBeNull();
+			expect(result.user.bio).toBeNull();
+			expect(result.user.location).toBeNull();
+			expect(result.user.website).toBeNull();
+		});
+
+		it("should validate website URL", async () => {
+			const invalidInput = {
+				website: "invalid-url",
+			};
+
+			const error = await expectORPCError(
+				usersProcedures.updateProfile,
+				invalidInput,
+				authenticatedContext,
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("BAD_REQUEST");
+			expect(error.message).toBe("Input validation failed");
+		});
+
+		it("should allow empty string for website", async () => {
+			const emptyWebsiteInput = {
+				website: "",
+			};
+
+			const updatedUser = {
+				...mockUpdatedUser,
+				website: null,
+			};
+
+			mockPrisma.user.update.mockResolvedValue(updatedUser);
+
+			const result = await callProcedure(
+				usersProcedures.updateProfile,
+				emptyWebsiteInput,
+				authenticatedContext,
+			);
+
+			expect(result.user.website).toBeNull();
+			expect(mockPrisma.user.update).toHaveBeenCalledWith(
+				expect.objectContaining({
+					data: expect.objectContaining({
+						website: null,
+					}),
+				}),
+			);
+		});
+
+		it("should require authentication", async () => {
+			const error = await expectORPCError(
+				usersProcedures.updateProfile,
+				validInput,
+				mockContext, // Unauthenticated context
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("UNAUTHORIZED");
+		});
+	});
+
+	describe("uploadAvatar", () => {
+		let authenticatedContext: any;
+		let mockR2: any;
+
+		beforeEach(() => {
+			const user = createMockUser();
+			mockR2 = {
+				put: vi.fn().mockResolvedValue({}),
+			};
+			authenticatedContext = createAuthenticatedContext(user, {
+				db: mockPrisma,
+				env: {
+					R2: mockR2,
+				},
+			});
+		});
+
+		const validInput = {
+			image: Buffer.from("fake-image-data").toString("base64"),
+			filename: "avatar.jpg",
+		};
+
+		const mockUpdatedUser = {
+			avatarUrl: "avatars/user_123/abc123.jpg",
+		};
+
+		it("should upload avatar successfully", async () => {
+			// Mock nanoid
+			vi.doMock("nanoid", () => ({
+				nanoid: () => "abc123",
+			}));
+
+			mockPrisma.user.update.mockResolvedValue(mockUpdatedUser);
+
+			const result = await callProcedure(
+				usersProcedures.uploadAvatar,
+				validInput,
+				authenticatedContext,
+			);
+
+			expect(result).toEqual({
+				avatarUrl: "avatars/user_123/abc123.jpg",
+			});
+
+			// Verify R2 upload
+			expect(mockR2.put).toHaveBeenCalledWith(
+				expect.stringMatching(/^avatars\/user_123\/.*\.jpg$/),
+				expect.any(Buffer),
+				{
+					httpMetadata: {
+						contentType: "image/jpeg",
+					},
+				},
+			);
+
+			// Verify database update
+			expect(mockPrisma.user.update).toHaveBeenCalledWith({
+				where: { id: "user_123" },
+				data: {
+					avatarUrl: expect.stringMatching(/^avatars\/user_123\/.*\.jpg$/),
+					updatedAt: expect.any(Number),
+				},
+				select: {
+					avatarUrl: true,
+				},
+			});
+		});
+
+		it("should validate image size", async () => {
+			const largeImageInput = {
+				image: Buffer.alloc(6 * 1024 * 1024).toString("base64"), // 6MB
+				filename: "large-avatar.jpg",
+			};
+
+			const error = await expectORPCError(
+				usersProcedures.uploadAvatar,
+				largeImageInput,
+				authenticatedContext,
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("BAD_REQUEST");
+			expect(error.message).toBe("Image size must be less than 5MB");
+		});
+
+		it("should validate image format", async () => {
+			const invalidFormatInput = {
+				image: validInput.image,
+				filename: "avatar.txt",
+			};
+
+			const error = await expectORPCError(
+				usersProcedures.uploadAvatar,
+				invalidFormatInput,
+				authenticatedContext,
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("BAD_REQUEST");
+			expect(error.message).toBe("Unsupported image format. Use JPG, PNG, GIF, or WebP");
+		});
+
+		it("should support different image formats", async () => {
+			const formats = [
+				{ filename: "avatar.png", contentType: "image/png" },
+				{ filename: "avatar.gif", contentType: "image/gif" },
+				{ filename: "avatar.webp", contentType: "image/webp" },
+			];
+
+			for (const format of formats) {
+				vi.clearAllMocks();
+				mockPrisma.user.update.mockResolvedValue({
+					avatarUrl: `avatars/user_123/test.${format.filename.split('.')[1]}`,
+				});
+
+				const input = {
+					image: validInput.image,
+					filename: format.filename,
+				};
+
+				const result = await callProcedure(
+					usersProcedures.uploadAvatar,
+					input,
+					authenticatedContext,
+				);
+
+				expect(result.avatarUrl).toContain(`avatars/user_123/`);
+				expect(mockR2.put).toHaveBeenCalledWith(
+					expect.any(String),
+					expect.any(Buffer),
+					{
+						httpMetadata: {
+							contentType: format.contentType,
+						},
+					},
+				);
+			}
+		});
+
+		it("should handle R2 storage not available", async () => {
+			const contextWithoutR2 = createAuthenticatedContext(createMockUser(), {
+				db: mockPrisma,
+				env: {}, // No R2
+			});
+
+			const error = await expectORPCError(
+				usersProcedures.uploadAvatar,
+				validInput,
+				contextWithoutR2,
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("INTERNAL_SERVER_ERROR");
+			expect(error.message).toBe("Storage not available");
+		});
+
+		it("should require authentication", async () => {
+			const error = await expectORPCError(
+				usersProcedures.uploadAvatar,
+				validInput,
+				mockContext, // Unauthenticated context
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("UNAUTHORIZED");
+		});
+
+		it("should handle database errors gracefully", async () => {
+			mockPrisma.user.update.mockRejectedValue(new Error("Database error"));
+
+			const error = await expectORPCError(
+				usersProcedures.uploadAvatar,
+				validInput,
+				authenticatedContext,
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("INTERNAL_SERVER_ERROR");
+			expect(error.message).toBe("Failed to upload avatar");
+		});
+
+		it("should handle R2 upload errors gracefully", async () => {
+			mockR2.put.mockRejectedValue(new Error("R2 upload failed"));
+
+			const error = await expectORPCError(
+				usersProcedures.uploadAvatar,
+				validInput,
+				authenticatedContext,
+			);
+
+			expect(error).toBeInstanceOf(ORPCError);
+			expect((error as ORPCError).code).toBe("INTERNAL_SERVER_ERROR");
+			expect(error.message).toBe("Failed to upload avatar");
 		});
 	});
 });
