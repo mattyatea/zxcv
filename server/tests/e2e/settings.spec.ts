@@ -2,6 +2,8 @@ import { test, expect } from "@playwright/test";
 import { login, testUsers } from "./helpers/auth";
 import { waitForToast, generateUniqueId } from "./helpers/test-utils";
 
+// Profile settings E2E tests
+
 test.describe("Settings Page", () => {
 	test.beforeEach(async ({ page }) => {
 		await login(page, testUsers.default);
