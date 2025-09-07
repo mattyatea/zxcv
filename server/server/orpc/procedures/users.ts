@@ -52,6 +52,11 @@ export const getProfile = os.users.getProfile
 				email: true,
 				username: true,
 				emailVerified: true,
+				displayName: true,
+				bio: true,
+				location: true,
+				website: true,
+				avatarUrl: true,
 				createdAt: true,
 				updatedAt: true,
 			},
@@ -111,6 +116,11 @@ export const getProfile = os.users.getProfile
 				username: user.username,
 				email: isOwnProfile ? user.email : null,
 				emailVerified: user.emailVerified,
+				displayName: user.displayName,
+				bio: user.bio,
+				location: user.location,
+				website: user.website,
+				avatarUrl: user.avatarUrl,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,
 			},
@@ -156,36 +166,15 @@ export const profile = os.users.profile.use(dbWithAuth).handler(async ({ context
 export const updateProfile = os.users.updateProfile
 	.use(dbWithAuth)
 	.handler(async ({ input, context }) => {
-		const { email, username } = input;
+		const { displayName, bio, location, website } = input;
 		const { db, user } = context;
 
-		// Check if email or username already exist
-		// Use separate queries for better index utilization
-		if (email) {
-			const existingUserByEmail = await db.user.findFirst({
-				where: {
-					email: email.toLowerCase(),
-					id: { not: user.id },
-				},
-			});
-
-			if (existingUserByEmail) {
-				const locale: Locale = "ja"; // Default to Japanese
-				throw new ORPCError("CONFLICT", { message: authErrors.emailAlreadyInUse(locale) });
-			}
-		}
-
-		if (username) {
-			const existingUserByUsername = await db.user.findFirst({
-				where: {
-					username: username.toLowerCase(),
-					id: { not: user.id },
-				},
-			});
-
-			if (existingUserByUsername) {
-				const locale: Locale = "ja"; // Default to Japanese
-				throw new ORPCError("CONFLICT", { message: authErrors.usernameAlreadyInUse(locale) });
+		// Validate website URL if provided
+		if (website && website !== "") {
+			try {
+				new URL(website);
+			} catch {
+				throw new ORPCError("BAD_REQUEST", { message: "Invalid website URL" });
 			}
 		}
 
@@ -193,31 +182,29 @@ export const updateProfile = os.users.updateProfile
 		const updatedUser = await db.user.update({
 			where: { id: user.id },
 			data: {
-				...(email && {
-					email: email.toLowerCase(),
-					emailVerified: false, // Reset email verification when email changes
-				}),
-				...(username && { username: username.toLowerCase() }),
+				...(displayName !== undefined && { displayName }),
+				...(bio !== undefined && { bio }),
+				...(location !== undefined && { location }),
+				...(website !== undefined && { website: website || null }),
 				updatedAt: Math.floor(Date.now() / 1000),
+			},
+			select: {
+				id: true,
+				email: true,
+				username: true,
+				emailVerified: true,
+				displayName: true,
+				bio: true,
+				location: true,
+				website: true,
+				avatarUrl: true,
+				createdAt: true,
+				updatedAt: true,
 			},
 		});
 
-		// If email changed, send verification email
-		if (email && email.toLowerCase() !== user.email.toLowerCase()) {
-			const { EmailVerificationService } = await import("../../services/emailVerification");
-			const emailService = new EmailVerificationService(db, context.env);
-			await emailService.sendVerificationEmail(user.id, email.toLowerCase());
-		}
-
 		return {
-			user: {
-				id: updatedUser.id,
-				email: updatedUser.email,
-				username: updatedUser.username,
-				emailVerified: updatedUser.emailVerified,
-				createdAt: updatedUser.createdAt,
-				updatedAt: updatedUser.updatedAt,
-			},
+			user: updatedUser,
 		};
 	});
 
@@ -342,6 +329,67 @@ export const updateSettings = os.users.updateSettings
 		};
 	});
 
+export const uploadAvatar = os.users.uploadAvatar
+	.use(dbWithAuth)
+	.handler(async ({ input, context }) => {
+		const { image, filename } = input;
+		const { db, user, env } = context;
+
+		try {
+			// Decode base64 image
+			const imageData = Buffer.from(image, "base64");
+
+			// Validate image size (max 5MB)
+			if (imageData.length > 5 * 1024 * 1024) {
+				throw new ORPCError("BAD_REQUEST", { message: "Image size must be less than 5MB" });
+			}
+
+			// Validate image format (simple check by filename extension)
+			const ext = filename.toLowerCase().split(".").pop();
+			if (!ext || !["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Unsupported image format. Use JPG, PNG, GIF, or WebP",
+				});
+			}
+
+			// Generate unique filename
+			const { nanoid } = await import("nanoid");
+			const avatarKey = `avatars/${user.id}/${nanoid()}.${ext}`;
+
+			// Upload to R2
+			if (!env.R2) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Storage not available" });
+			}
+
+			await env.R2.put(avatarKey, imageData, {
+				httpMetadata: {
+					contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
+				},
+			});
+
+			// Update user avatar URL
+			const updatedUser = await db.user.update({
+				where: { id: user.id },
+				data: {
+					avatarUrl: avatarKey,
+					updatedAt: Math.floor(Date.now() / 1000),
+				},
+				select: {
+					avatarUrl: true,
+				},
+			});
+
+			return {
+				avatarUrl: updatedUser.avatarUrl || "",
+			};
+		} catch (error) {
+			if (error instanceof ORPCError) {
+				throw error;
+			}
+			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to upload avatar" });
+		}
+	});
+
 export const deleteAccount = os.users.deleteAccount
 	.use(dbWithAuth)
 	.handler(async ({ input, context }) => {
@@ -426,6 +474,11 @@ export const getPublicProfile = os.users.getPublicProfile
 			select: {
 				id: true,
 				username: true,
+				displayName: true,
+				bio: true,
+				location: true,
+				website: true,
+				avatarUrl: true,
 				createdAt: true,
 			},
 		});
@@ -485,6 +538,11 @@ export const getPublicProfile = os.users.getPublicProfile
 			user: {
 				id: user.id,
 				username: user.username,
+				displayName: user.displayName,
+				bio: user.bio,
+				location: user.location,
+				website: user.website,
+				avatarUrl: user.avatarUrl,
 				createdAt: user.createdAt,
 			},
 			stats: {
@@ -511,6 +569,7 @@ export const usersProcedures = {
 	changePassword,
 	settings,
 	updateSettings,
+	uploadAvatar,
 	deleteAccount,
 	getPublicProfile,
 };

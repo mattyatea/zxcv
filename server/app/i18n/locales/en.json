@@ -444,16 +444,57 @@
   },
   "settings": {
     "title": "Settings",
-    "account": "Account",
-    "security": "Security",
-    "notifications": "Notifications",
-    "preferences": "Preferences",
+    "tabs": {
+      "profile": "Profile",
+      "account": "Account",
+      "security": "Security",
+      "notifications": "Notifications",
+      "preferences": "Preferences"
+    },
+    "profile": {
+      "title": "Profile Information",
+      "avatar": "Avatar Image",
+      "avatarAlt": "Profile avatar image",
+      "changeAvatar": "Change",
+      "avatarHint": "JPG, PNG, GIF, WebP (Max 5MB)",
+      "displayName": "Display Name",
+      "displayNamePlaceholder": "Your name",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us a little about yourself",
+      "location": "Location",
+      "locationPlaceholder": "Tokyo, Japan",
+      "website": "Website",
+      "websitePlaceholder": "https://example.com",
+      "save": "Save changes",
+      "saving": "Saving..."
+    },
+    "account": {
+      "title": "Account Settings",
+      "placeholder": "Account settings features are coming soon."
+    },
+    "security": {
+      "title": "Security Settings",
+      "placeholder": "Security settings features are coming soon.",
+      "changePassword": "Change password",
+      "twoFactor": "Two-factor authentication",
+      "apiKeys": "API Keys",
+      "deleteAccount": "Delete account"
+    },
+    "success": {
+      "profileUpdated": "Profile updated successfully",
+      "avatarUploaded": "Avatar image updated successfully"
+    },
+    "error": {
+      "fetchProfile": "Failed to fetch profile",
+      "updateProfile": "Failed to update profile",
+      "uploadAvatar": "Failed to upload avatar image",
+      "invalidImageType": "Unsupported image format",
+      "imageTooLarge": "Image size exceeds 5MB"
+    },
     "language": "Language",
     "theme": "Theme",
-    "changePassword": "Change password",
-    "twoFactor": "Two-factor authentication",
-    "apiKeys": "API Keys",
-    "deleteAccount": "Delete account"
+    "notifications": "Notifications",
+    "preferences": "Preferences"
   },
   "errors": {
     "notFound": "Page not found",

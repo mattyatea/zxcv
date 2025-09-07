@@ -17,23 +17,72 @@
 				<!-- Profile header -->
 				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
 					<div class="flex items-start justify-between">
-						<div class="flex items-center space-x-4">
+						<div class="flex items-center space-x-6">
 							<!-- アバター -->
-							<div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
-								{{ profileData.user.username.charAt(0).toUpperCase() }}
+							<div class="flex-shrink-0">
+								<div
+									v-if="profileData.user.avatarUrl"
+									class="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700"
+								>
+									<img
+										:src="getAvatarUrl(profileData.user.avatarUrl)"
+										:alt="`${profileData.user.username}'s avatar`"
+										class="w-full h-full object-cover"
+									/>
+								</div>
+								<div
+									v-else
+									class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold"
+								>
+									{{ (profileData.user.displayName || profileData.user.username).charAt(0).toUpperCase() }}
+								</div>
 							</div>
-							<div>
-								<h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-									{{ profileData.user.username }}
-								</h1>
-								<div class="flex items-center gap-6 text-gray-600 dark:text-gray-400">
-									<div class="flex items-center gap-2">
-										<Icon name="ph:calendar" class="w-4 h-4 text-gray-600 dark:text-gray-400" />
+							<div class="flex-1 min-w-0">
+								<!-- Display name and username -->
+								<div class="mb-2">
+									<h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+										{{ profileData.user.displayName || profileData.user.username }}
+									</h1>
+									<p v-if="profileData.user.displayName" class="text-lg text-gray-600 dark:text-gray-400">
+										@{{ profileData.user.username }}
+									</p>
+								</div>
+
+								<!-- Bio -->
+								<p v-if="profileData.user.bio" class="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap">
+									{{ profileData.user.bio }}
+								</p>
+
+								<!-- Profile metadata -->
+								<div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+									<!-- Location -->
+									<div v-if="profileData.user.location" class="flex items-center gap-1">
+										<Icon name="heroicons:map-pin" class="w-4 h-4" />
+										<span>{{ profileData.user.location }}</span>
+									</div>
+									
+									<!-- Website -->
+									<div v-if="profileData.user.website" class="flex items-center gap-1">
+										<Icon name="heroicons:link" class="w-4 h-4" />
+										<a
+											:href="profileData.user.website"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
+										>
+											{{ formatWebsiteUrl(profileData.user.website) }}
+										</a>
+									</div>
+									
+									<!-- Registration date -->
+									<div class="flex items-center gap-1">
+										<Icon name="heroicons:calendar" class="w-4 h-4" />
 										<span>{{ t('profile.registeredDate') }}: {{ formatDate(profileData.user.createdAt) }}</span>
 									</div>
 								</div>
+
 								<!-- Email and verification status (only show for own profile) -->
-								<div v-if="isOwnProfile && authStore.user" class="mt-2">
+								<div v-if="isOwnProfile && authStore.user" class="mt-4">
 									<p class="text-gray-600 dark:text-gray-400">{{ authStore.user.email }}</p>
 									<div class="flex items-center mt-1">
 										<span
@@ -58,6 +107,17 @@
 									</div>
 								</div>
 							</div>
+						</div>
+						
+						<!-- Edit Profile button for own profile -->
+						<div v-if="isOwnProfile" class="flex-shrink-0">
+							<NuxtLink
+								to="/settings"
+								class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+							>
+								<Icon name="heroicons:pencil-square" class="w-4 h-4 mr-2" />
+								{{ t('profile.editProfile') }}
+							</NuxtLink>
 						</div>
 					</div>
 
@@ -162,6 +222,24 @@ function formatDate(timestamp: number) {
 		month: "long",
 		day: "numeric",
 	});
+}
+
+// Get avatar URL
+function getAvatarUrl(avatarUrl: string) {
+	// If it's already a full URL, return as-is
+	if (avatarUrl.startsWith('http')) return avatarUrl;
+	// Otherwise, construct the R2 public URL (this will need to be configured)
+	return `/api/avatars/${avatarUrl}`;
+}
+
+// Format website URL for display
+function formatWebsiteUrl(url: string) {
+	try {
+		const parsedUrl = new URL(url);
+		return parsedUrl.hostname + (parsedUrl.pathname !== '/' ? parsedUrl.pathname : '');
+	} catch {
+		return url;
+	}
 }
 
 // Set page meta

@@ -23,6 +23,11 @@ model User {
   passwordHash String?  @map("password_hash") // Nullable for OAuth users
   emailVerified Boolean  @default(false) @map("email_verified")
   settings     String   @default("{}") // JSON string for user settings
+  displayName  String?  @map("display_name") // User's display name
+  bio          String?  // User's biography/description
+  location     String?  // User's location
+  website      String?  // User's website URL
+  avatarUrl    String?  @map("avatar_url") // Avatar image URL (R2 object key)
   createdAt    Int      @default(dbgenerated("(unixepoch())")) @map("created_at")
   updatedAt    Int      @default(dbgenerated("(unixepoch())")) @map("updated_at")
 
