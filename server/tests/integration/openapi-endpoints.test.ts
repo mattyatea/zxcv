@@ -1155,6 +1155,11 @@ describe("OpenAPI Endpoints via REST", () => {
 				username: "testuser",
 				email: "test@example.com",
 				emailVerified: true,
+				displayName: "Test User",
+				bio: "This is a test bio",
+				location: "Tokyo, Japan",
+				website: "https://example.com",
+				avatarUrl: "avatars/user_123/avatar.jpg",
 				createdAt: mockNow,
 				updatedAt: mockNow,
 			};
@@ -1214,16 +1219,22 @@ describe("OpenAPI Endpoints via REST", () => {
 				username: "testuser",
 				email: "test@example.com",
 				emailVerified: true,
+				displayName: "Test User",
+				bio: "Original bio",
+				location: "Original Location",
+				website: "https://original.com",
+				avatarUrl: null,
 				createdAt: mockNow,
 				updatedAt: mockNow,
 			};
 
 			mockDb.user.findUnique.mockResolvedValue(mockUser);
-			// メールの重複チェック用のモック
-			mockDb.user.findFirst.mockResolvedValue(null);
 			mockDb.user.update.mockResolvedValue({
 				...mockUser,
-				email: "newemail@example.com",
+				displayName: "Updated Name",
+				bio: "Updated bio",
+				location: "New Location", 
+				website: "https://example.com",
 				updatedAt: mockNow,
 			});
 
@@ -1234,7 +1245,10 @@ describe("OpenAPI Endpoints via REST", () => {
 					Authorization: "Bearer mock_jwt_token",
 				},
 				body: JSON.stringify({
-					email: "newemail@example.com",
+					displayName: "Updated Name",
+					bio: "Updated bio", 
+					location: "New Location",
+					website: "https://example.com",
 				}),
 			});
 
@@ -1259,7 +1273,11 @@ describe("OpenAPI Endpoints via REST", () => {
 			expect(response.response.status).toBe(200);
 
 			const data = await response.response.json();
-			expect(data.user.email).toBe("newemail@example.com");
+			expect(data.user.displayName).toBe("Updated Name");
+			expect(data.user.bio).toBe("Updated bio");
+			expect(data.user.location).toBe("New Location");
+			expect(data.user.website).toBe("https://example.com");
+			expect(data.user.email).toBe("test@example.com"); // Email should not change in updateProfile
 		});
 	});
 });

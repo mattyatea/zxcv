@@ -752,16 +752,23 @@ describe("Auth Integration Tests", () => {
 			};
 
 			const updateData = {
-				email: "newemail@example.com",
-				username: "newusername",
+				displayName: "New Display Name",
+				bio: "Updated bio",
+				location: "New Location",
+				website: "https://example.com",
 			};
 
 			vi.mocked(mockDb.user.update).mockResolvedValue({
 				id: "user_123",
-				username: updateData.username,
-				email: updateData.email,
+				username: "testuser",
+				email: "test@example.com",
 				passwordHash: "hashed",
-				emailVerified: false, // Reset when email changes
+				emailVerified: true,
+				displayName: updateData.displayName,
+				bio: updateData.bio,
+				location: updateData.location,
+				website: updateData.website,
+				avatarUrl: null,
 				settings: "{}",
 				createdAt: 1234567890,
 				updatedAt: Date.now() / 1000,
@@ -777,19 +784,27 @@ describe("Auth Integration Tests", () => {
 			const updateResult = await authClient.users.updateProfile(updateData);
 
 			expect(updateResult.user).toMatchObject({
-				email: updateData.email,
-				username: updateData.username,
-				emailVerified: false,
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+				displayName: updateData.displayName,
+				bio: updateData.bio,
+				location: updateData.location,
+				website: updateData.website,
+				avatarUrl: null,
 			});
 
 			// Verify update was called correctly
 			expect(mockDb.user.update).toHaveBeenCalledWith({
 				where: { id: "user_123" },
 				data: expect.objectContaining({
-					email: updateData.email.toLowerCase(),
-					username: updateData.username.toLowerCase(),
-					emailVerified: false,
+					displayName: updateData.displayName,
+					bio: updateData.bio,
+					location: updateData.location,
+					website: updateData.website,
+					updatedAt: expect.any(Number),
 				}),
+				select: expect.any(Object),
 			});
 		});
 	});
