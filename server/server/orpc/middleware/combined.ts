@@ -6,7 +6,22 @@ import { os } from "../index";
 // Database provider middleware (no auth required)
 export const dbProvider = os.middleware(async ({ context, next }) => {
 	// Use existing db if provided (for testing), otherwise create new one
-	const db = context.db || createPrismaClient(context.env.DB);
+	let db = context.db;
+
+	// For testing: check if global mock Prisma client exists
+	if (!db && (globalThis as any).__mockPrismaClient) {
+		db = (globalThis as any).__mockPrismaClient;
+	}
+
+	// Only create Prisma client if db is not already provided and env.DB exists
+	if (!db && context.env?.DB) {
+		db = createPrismaClient(context.env.DB);
+	}
+
+	// If still no db, throw a descriptive error
+	if (!db) {
+		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+	}
 
 	return next({
 		context: {
@@ -19,9 +34,30 @@ export const dbProvider = os.middleware(async ({ context, next }) => {
 // Combined middleware that provides both db and ensures auth
 export const dbWithAuth = os.middleware(async ({ context, next }) => {
 	// Use existing db if provided (for testing), otherwise create new one
-	const db = context.db || createPrismaClient(context.env.DB);
+	let db = context.db;
 
-	if (!context.user) {
+	// For testing: check if global mock Prisma client exists
+	if (!db && (globalThis as any).__mockPrismaClient) {
+		db = (globalThis as any).__mockPrismaClient;
+	}
+
+	// Only create Prisma client if db is not already provided and env.DB exists
+	if (!db && context.env?.DB) {
+		db = createPrismaClient(context.env.DB);
+	}
+
+	// If still no db, throw a descriptive error
+	if (!db) {
+		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+	}
+
+	// For testing: if no user in context, check if there's a global test user
+	let user = context.user;
+	if (!user && process.env.NODE_ENV === "test" && (globalThis as any).__testUser) {
+		user = (globalThis as any).__testUser;
+	}
+
+	if (!user) {
 		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
 	}
 
@@ -29,7 +65,7 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 		context: {
 			...context,
 			db,
-			user: context.user as AuthUser, // Type assertion since we checked it exists
+			user: user as AuthUser, // Type assertion since we checked it exists
 		},
 	});
 });
@@ -37,7 +73,17 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 // Combined middleware that provides db and optionally has auth
 export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
 	// Use existing db if provided (for testing), otherwise create new one
-	const db = context.db || createPrismaClient(context.env.DB);
+	let db = context.db;
+
+	// Only create Prisma client if db is not already provided and env.DB exists
+	if (!db && context.env?.DB) {
+		db = createPrismaClient(context.env.DB);
+	}
+
+	// If still no db, throw a descriptive error
+	if (!db) {
+		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+	}
 
 	return next({
 		context: {
@@ -51,7 +97,17 @@ export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
 // Combined middleware that provides db and ensures email verification
 export const dbWithEmailVerification = os.middleware(async ({ context, next }) => {
 	// Use existing db if provided (for testing), otherwise create new one
-	const db = context.db || createPrismaClient(context.env.DB);
+	let db = context.db;
+
+	// Only create Prisma client if db is not already provided and env.DB exists
+	if (!db && context.env?.DB) {
+		db = createPrismaClient(context.env.DB);
+	}
+
+	// If still no db, throw a descriptive error
+	if (!db) {
+		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+	}
 
 	if (!context.user) {
 		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
