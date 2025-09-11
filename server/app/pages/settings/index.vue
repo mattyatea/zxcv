@@ -3,7 +3,7 @@
 		<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 			<div class="bg-white shadow">
 				<div class="px-4 py-5 sm:p-6">
-					<h1 class="text-2xl font-bold text-gray-900 mb-6">{{ $t('settings.title') }}</h1>
+					<h1 class="text-2xl font-bold text-gray-900 mb-6">{{ t('settings.title') }}</h1>
 
 					<!-- Tab Navigation -->
 					<div class="border-b border-gray-200">
@@ -40,10 +40,10 @@
 						<div v-else-if="activeTab === 'account'" class="space-y-6">
 							<div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
 								<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-									{{ $t('settings.account.title') }}
+									{{ t('settings.account.title') }}
 								</h3>
 								<!-- Account settings content will be added here -->
-								<p class="text-gray-500">{{ $t('settings.account.placeholder') }}</p>
+								<p class="text-gray-500">{{ t('settings.account.placeholder') }}</p>
 							</div>
 						</div>
 
@@ -51,10 +51,10 @@
 						<div v-else-if="activeTab === 'security'" class="space-y-6">
 							<div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
 								<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-									{{ $t('settings.security.title') }}
+									{{ t('settings.security.title') }}
 								</h3>
 								<!-- Security settings content will be added here -->
-								<p class="text-gray-500">{{ $t('settings.security.placeholder') }}</p>
+								<p class="text-gray-500">{{ t('settings.security.placeholder') }}</p>
 							</div>
 						</div>
 					</div>
@@ -77,7 +77,7 @@ definePageMeta({
 
 // Composables
 const { $rpc } = useNuxtApp();
-const { $t } = useI18n();
+const { t } = useI18n();
 const { showToast } = useToast();
 
 // Reactive data
@@ -87,21 +87,21 @@ const userProfile = ref<UserProfile | null>(null);
 
 // Tab configuration
 const tabs = computed(() => [
-	{ id: 'profile', name: $t('settings.tabs.profile') },
-	{ id: 'account', name: $t('settings.tabs.account') },
-	{ id: 'security', name: $t('settings.tabs.security') },
+	{ id: 'profile', name: t('settings.tabs.profile') },
+	{ id: 'account', name: t('settings.tabs.account') },
+	{ id: 'security', name: t('settings.tabs.security') },
 ]);
 
 // Fetch user profile
 const fetchUserProfile = async () => {
 	try {
 		loading.value = true;
-		const response = await $rpc.users.getProfile({ username: 'me' }); // This will need to be updated
+		const response = await $rpc.users.
 		userProfile.value = response.user;
 	} catch (error) {
 		console.error('Failed to fetch user profile:', error);
 		showToast({
-			message: $t('settings.error.fetchProfile'),
+			message: t('settings.error.fetchProfile'),
 			type: 'error',
 		});
 	} finally {
@@ -121,13 +121,13 @@ const handleProfileUpdate = async (profileData: {
 		const response = await $rpc.users.updateProfile(profileData);
 		userProfile.value = response.user;
 		showToast({
-			message: $t('settings.success.profileUpdated'),
+			message: t('settings.success.profileUpdated'),
 			type: 'success',
 		});
 	} catch (error) {
 		console.error('Failed to update profile:', error);
 		showToast({
-			message: $t('settings.error.updateProfile'),
+			message: t('settings.error.updateProfile'),
 			type: 'error',
 		});
 	} finally {
@@ -164,13 +164,13 @@ const handleAvatarUpload = async (file: File) => {
 		}
 
 		showToast({
-			message: $t('settings.success.avatarUploaded'),
+			message: t('settings.success.avatarUploaded'),
 			type: 'success',
 		});
 	} catch (error) {
 		console.error('Failed to upload avatar:', error);
 		showToast({
-			message: $t('settings.error.uploadAvatar'),
+			message: t('settings.error.uploadAvatar'),
 			type: 'error',
 		});
 	} finally {
