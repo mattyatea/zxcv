@@ -1,0 +1,401 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.0, v1.2.0-beta.1, v1.2.0-alpha.1)'
+        required: true
+        type: string
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - alpha
+          - beta
+          - rc
+      include_cli:
+        description: 'Include CLI release'
+        required: false
+        default: false
+        type: boolean
+
+# Prevent multiple release preparations from running simultaneously
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-release:
+    name: Prepare Release PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: |
+          # Set Prisma engine download timeout and retry
+          export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+          export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+          
+          # Retry mechanism for network issues
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+             pnpm run prisma:generate && break
+             n=$((n+1))
+             echo "Attempt $n failed, retrying in 5 seconds..."
+             sleep 5
+          done
+          
+          if [ "$n" -ge 3 ]; then
+            echo "Failed to generate Prisma Client after 3 attempts"
+            exit 1
+          fi
+
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create release branch
+        id: branch
+        run: |
+          BRANCH_NAME="release/${{ inputs.version }}"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          git checkout -b "$BRANCH_NAME"
+          echo "Created release branch: $BRANCH_NAME"
+
+      - name: Update package versions
+        id: versions
+        run: |
+          VERSION="${{ inputs.version }}"
+          # Remove 'v' prefix if present
+          VERSION_NUMBER=${VERSION#v}
+          
+          echo "Updating versions to $VERSION_NUMBER"
+          
+          # Update server package.json if it exists
+          if [ -f "server/package.json" ]; then
+            jq ".version = \"$VERSION_NUMBER\"" server/package.json > server/package.json.tmp
+            mv server/package.json.tmp server/package.json
+            echo "✅ Updated server/package.json to $VERSION_NUMBER"
+          fi
+          
+          # Update CLI package.json if CLI release is included
+          if [ "${{ inputs.include_cli }}" == "true" ] && [ -f "cli/package.json" ]; then
+            jq ".version = \"$VERSION_NUMBER\"" cli/package.json > cli/package.json.tmp
+            mv cli/package.json.tmp cli/package.json
+            echo "✅ Updated cli/package.json to $VERSION_NUMBER"
+          fi
+          
+          # Update root package.json if it exists
+          if [ -f "package.json" ]; then
+            jq ".version = \"$VERSION_NUMBER\"" package.json > package.json.tmp
+            mv package.json.tmp package.json
+            echo "✅ Updated root package.json to $VERSION_NUMBER"
+          fi
+          
+          echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "Generating changelog for ${{ inputs.version }}"
+          
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No previous tags found, generating full changelog"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            echo "Generating changelog since $LATEST_TAG"
+            CHANGELOG=$(git log $LATEST_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Create changelog content
+          cat > CHANGELOG_TEMP.md << EOF
+          # Release ${{ inputs.version }}
+          
+          ## Changes
+          
+          $CHANGELOG
+          
+          ## Release Notes
+          
+          This release includes:
+          - Server application updates
+          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- CLI tool updates"; fi)
+          - Bug fixes and improvements
+          - Performance optimizations
+          
+          ## Deployment
+          
+          - **Staging**: Automatically deployed when merged to \`dev\`
+          - **Production**: Automatically deployed when merged to \`main\`
+          
+          EOF
+          
+          # Save changelog content for PR body
+          echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG_TEMP.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run tests before release
+        run: |
+          echo "🧪 Running tests before creating release PR..."
+          pnpm run test:server || {
+            echo "❌ Tests failed! Cannot create release PR."
+            exit 1
+          }
+          echo "✅ All tests passed!"
+
+      - name: Build and verify
+        run: |
+          echo "🔨 Building applications..."
+          
+          # Build server application
+          if ! pnpm run build:server; then
+            echo "❌ Server build failed!"
+            echo "Please check server code and dependencies before creating release."
+            exit 1
+          fi
+          
+          echo "✅ Server build successful!"
+          
+          # Build CLI if included
+          if [ "${{ inputs.include_cli }}" == "true" ]; then
+            echo "🔨 Building CLI application..."
+            
+            # Setup Bun for CLI builds with error handling
+            if ! curl -fsSL https://bun.sh/install | bash; then
+              echo "❌ Failed to install Bun runtime!"
+              echo "CLI build cannot proceed without Bun."
+              exit 1
+            fi
+            
+            export PATH="$HOME/.bun/bin:$PATH"
+            
+            # Verify Bun installation
+            if ! command -v bun >/dev/null 2>&1; then
+              echo "❌ Bun command not found after installation!"
+              exit 1
+            fi
+            
+            cd cli || {
+              echo "❌ CLI directory not found!"
+              exit 1
+            }
+            
+            # Install CLI dependencies with retry
+            RETRY_COUNT=0
+            MAX_RETRIES=3
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if bun install; then
+                echo "✅ CLI dependencies installed successfully"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "⚠️ CLI dependency installation failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+                if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                  echo "❌ Failed to install CLI dependencies after $MAX_RETRIES attempts!"
+                  cd ..
+                  exit 1
+                fi
+                sleep 5
+              fi
+            done
+            
+            # Build CLI with detailed error reporting
+            if ! bun run build; then
+              echo "❌ CLI build failed!"
+              echo "Build logs:"
+              echo "---"
+              bun run build 2>&1 || true
+              echo "---"
+              echo "Please check CLI code and build configuration."
+              cd ..
+              exit 1
+            fi
+            
+            # Verify CLI binary was created
+            if [ ! -f "dist/zxcv" ]; then
+              echo "❌ CLI binary not found after build!"
+              echo "Expected: cli/dist/zxcv"
+              ls -la dist/ || echo "dist/ directory not found"
+              cd ..
+              exit 1
+            fi
+            
+            cd ..
+            echo "✅ CLI build successful!"
+          fi
+          
+          echo "✅ All builds completed successfully!"
+
+      - name: Commit version updates
+        run: |
+          git add -A
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: bump version to ${{ inputs.version }}
+
+          - Update package.json versions
+          - Prepare for ${{ inputs.release_type }} release
+          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- Include CLI release"; fi)
+          
+          🤖 Generated with [Claude Code](https://claude.ai/code)
+          
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+            
+            echo "✅ Committed version updates"
+          fi
+
+      - name: Push release branch
+        run: |
+          # Push release branch with error handling
+          if ! git push -u origin ${{ steps.branch.outputs.branch_name }}; then
+            echo "❌ Failed to push release branch to origin"
+            echo "This might be due to network issues or branch conflicts"
+            
+            # Clean up local branch
+            git checkout dev 2>/dev/null || git checkout main 2>/dev/null || true
+            git branch -D ${{ steps.branch.outputs.branch_name }} 2>/dev/null || true
+            
+            exit 1
+          fi
+          
+          echo "✅ Pushed release branch to origin"
+
+      - name: Create Release PR
+        id: pr
+        run: |
+          PR_URL=$(gh pr create \
+            --title "🚀 Release ${{ inputs.version }}" \
+            --body "$(cat <<'EOF'
+          ## 🚀 Release ${{ inputs.version }}
+          
+          This PR prepares the release of version ${{ inputs.version }}.
+          
+          ### 📋 Release Checklist
+          
+          - [x] Version numbers updated in package.json files
+          - [x] Tests are passing
+          - [x] Builds are successful
+          - [ ] Review and approve this PR
+          - [ ] Merge to main for production deployment
+          
+          ### 📝 Changelog
+          
+          ${{ steps.changelog.outputs.changelog_content }}
+          
+          ### 🔄 Deployment Flow
+          
+          1. **Review**: Review this PR for any issues
+          2. **Merge**: Merge this PR to \`main\` branch
+          3. **Deploy**: Production deployment will trigger automatically
+          4. **Tag**: GitHub release will be created after successful deployment
+          
+          ### 🛠️ Release Contents
+          
+          - **Server**: ✅ Included
+          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- **CLI**: ✅ Included"; else echo "- **CLI**: ❌ Not included"; fi)
+          - **Type**: ${{ inputs.release_type }} release
+          $(if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then echo "- **Prerelease**: This is a prerelease version"; fi)
+          
+          ---
+          
+          🤖 Generated with [Claude Code](https://claude.ai/code)
+          
+          /cc @${{ github.actor }}
+          EOF
+          )" \
+            --base main \
+            --head ${{ steps.branch.outputs.branch_name }} \
+            --label "release" \
+            --label "${{ inputs.release_type }}")
+          
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "✅ Created release PR: $PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add PR to project (if configured)
+        run: |
+          echo "🎯 Release PR created successfully!"
+          echo "📋 PR URL: ${{ steps.pr.outputs.pr_url }}"
+          echo "🏷️ Version: ${{ inputs.version }}"
+          echo "📦 Release Type: ${{ inputs.release_type }}"
+          echo "🛠️ CLI Included: ${{ inputs.include_cli }}"
+          
+          echo "### Next Steps:"
+          echo "1. Review the PR: ${{ steps.pr.outputs.pr_url }}"
+          echo "2. Approve and merge to main for production release"
+          echo "3. Monitor deployment in the Actions tab"
+
+      - name: Create draft GitHub release
+        run: |
+          # Determine if this is a prerelease
+          PRERELEASE_FLAG=""
+          if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then
+            PRERELEASE_FLAG="--prerelease"
+            echo "📋 Creating prerelease for ${{ inputs.version }}"
+          else
+            PRERELEASE_FLAG="--latest"
+            echo "📋 Creating stable release for ${{ inputs.version }}"
+          fi
+          
+          gh release create "${{ inputs.version }}" \
+            --title "🚀 Release ${{ inputs.version }}" \
+            --notes "$(cat <<'EOF'
+          ${{ steps.changelog.outputs.changelog_content }}
+          
+          ## Installation
+          
+          ### Web Application
+          - **Production**: https://zxcv.nanasi-apps.xyz
+          - **Staging**: https://zxcv-staging.mattyatea.me
+          
+          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "### CLI Tool"; echo ""; echo "Download the appropriate binary for your platform from the assets below."; fi)
+          
+          $(if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then echo ""; echo "⚠️ **This is a prerelease version** - Use for testing purposes only."; fi)
+          EOF
+          )" \
+            --draft \
+            $PRERELEASE_FLAG \
+            --target ${{ steps.branch.outputs.branch_name }}
+          
+          echo "✅ Created draft GitHub release"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
