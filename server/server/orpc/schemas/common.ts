@@ -14,6 +14,11 @@ export const UserSchema = z.object({
 });
 
 export const UserProfileSchema = UserSchema.extend({
+	displayName: z.string().nullable(),
+	bio: z.string().nullable(),
+	location: z.string().nullable(),
+	website: z.string().url().nullable().or(z.literal("")),
+	avatarUrl: z.string().nullable(),
 	createdAt: z.number(),
 	updatedAt: z.number(),
 });
@@ -23,6 +28,9 @@ export const AuthUserSchema = UserSchema.pick({
 	email: true,
 	username: true,
 	emailVerified: true,
+}).extend({
+	displayName: z.string().nullable(),
+	avatarUrl: z.string().nullable(),
 });
 
 // 組織関連スキーマ

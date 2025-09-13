@@ -236,15 +236,48 @@ describe("OpenAPI Endpoints via REST", () => {
 		});
 
 		it("GET /api/users/me - should return current user profile", async () => {
-			// Mock the database response for profile endpoint
-			mockDb.user.findUnique.mockResolvedValue({
+			console.log("[OPENAPI TEST DEBUG] Setting up mocks for users.me test");
+
+			// Clear and reset all mocks to ensure clean state
+			vi.clearAllMocks();
+
+			const userDetails = {
 				id: "user_123",
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
 				passwordHash: "hash",
+				displayName: "Test User",
+				bio: "Test bio",
+				location: "Test City", 
+				website: "https://example.com",
+				avatarUrl: "https://example.com/avatar.jpg",
 				createdAt: mockNow,
 				updatedAt: mockNow,
+			};
+
+			// Mock the database response for profile endpoint with logging
+			mockDb.user.findUnique.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] user.findUnique called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning userDetails:", JSON.stringify(userDetails, null, 2));
+				return userDetails;
+			});
+
+			// Explicitly mock the count queries used by users.me with logging
+			mockDb.rule.count.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] rule.count called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning 0");
+				return 0;
+			});
+			mockDb.organizationMember.count.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] organizationMember.count called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning 0");
+				return 0;
+			});
+			mockDb.ruleStar.count.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] ruleStar.count called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning 0");
+				return 0;
 			});
 
 			const request = new Request("http://localhost:3000/api/users/me", {
@@ -272,22 +305,31 @@ describe("OpenAPI Endpoints via REST", () => {
 			});
 
 			// Debug response
+			console.log("[OPENAPI TEST DEBUG] Response status:", response.response.status);
+			console.log("[OPENAPI TEST DEBUG] Response matched:", response.matched);
+			
 			if (!response.matched) {
-				console.log("Response not matched for /api/users/me");
-				const body = await response.response.text();
-				console.log("Response body:", body);
+				console.log("[OPENAPI TEST DEBUG] Response not matched for /api/users/me");
+			}
+			
+			if (response.response.status !== 200) {
+				// Clone the response to avoid consuming it
+				const responseClone = response.response.clone();
+				const body = await responseClone.text();
+				console.log("[OPENAPI TEST DEBUG] Non-200 response, body:", body);
 			}
 			
 			expect(response.matched).toBe(true);
 			expect(response.response.status).toBe(200);
 
 			const data = await response.response.json();
+			console.log("[OPENAPI TEST DEBUG] Response data:", JSON.stringify(data, null, 2));
 			expect(data).toMatchObject({
 				id: "user_123",
 				email: "test@example.com",
 				username: "testuser",
-				created_at: mockNow,
-				updated_at: mockNow,
+				createdAt: mockNow,
+				updatedAt: mockNow,
 			});
 		});
 	});
@@ -314,6 +356,8 @@ describe("OpenAPI Endpoints via REST", () => {
 						id: "user_123",
 						username: "testuser",
 						email: "test@example.com",
+						displayName: null,
+						avatarUrl: null,
 					},
 					organization: null,
 				},
@@ -1155,6 +1199,11 @@ describe("OpenAPI Endpoints via REST", () => {
 				username: "testuser",
 				email: "test@example.com",
 				emailVerified: true,
+				displayName: "Test User",
+				bio: "This is a test bio",
+				location: "Tokyo, Japan",
+				website: "https://example.com",
+				avatarUrl: "avatars/user_123/avatar.jpg",
 				createdAt: mockNow,
 				updatedAt: mockNow,
 			};
@@ -1214,16 +1263,22 @@ describe("OpenAPI Endpoints via REST", () => {
 				username: "testuser",
 				email: "test@example.com",
 				emailVerified: true,
+				displayName: "Test User",
+				bio: "Original bio",
+				location: "Original Location",
+				website: "https://original.com",
+				avatarUrl: null,
 				createdAt: mockNow,
 				updatedAt: mockNow,
 			};
 
 			mockDb.user.findUnique.mockResolvedValue(mockUser);
-			// メールの重複チェック用のモック
-			mockDb.user.findFirst.mockResolvedValue(null);
 			mockDb.user.update.mockResolvedValue({
 				...mockUser,
-				email: "newemail@example.com",
+				displayName: "Updated Name",
+				bio: "Updated bio",
+				location: "New Location", 
+				website: "https://example.com",
 				updatedAt: mockNow,
 			});
 
@@ -1234,7 +1289,10 @@ describe("OpenAPI Endpoints via REST", () => {
 					Authorization: "Bearer mock_jwt_token",
 				},
 				body: JSON.stringify({
-					email: "newemail@example.com",
+					displayName: "Updated Name",
+					bio: "Updated bio", 
+					location: "New Location",
+					website: "https://example.com",
 				}),
 			});
 
@@ -1259,7 +1317,11 @@ describe("OpenAPI Endpoints via REST", () => {
 			expect(response.response.status).toBe(200);
 
 			const data = await response.response.json();
-			expect(data.user.email).toBe("newemail@example.com");
+			expect(data.user.displayName).toBe("Updated Name");
+			expect(data.user.bio).toBe("Updated bio");
+			expect(data.user.location).toBe("New Location");
+			expect(data.user.website).toBe("https://example.com");
+			expect(data.user.email).toBe("test@example.com"); // Email should not change in updateProfile
 		});
 	});
 });

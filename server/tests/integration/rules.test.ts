@@ -372,6 +372,8 @@ describe("Rules Integration Tests", () => {
 						id: "user_456",
 						username: "otheruser",
 						email: "other@example.com",
+						displayName: null,
+						avatarUrl: null,
 					},
 					organization: null,
 				},

@@ -1,5 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import type { AuthUser } from "../../utils/auth";
+import { getLocaleFromRequest, type Locale } from "../../utils/locale";
 import { createPrismaClient } from "../../utils/prisma";
 import { os } from "../index";
 
@@ -23,10 +24,15 @@ export const dbProvider = os.middleware(async ({ context, next }) => {
 		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
 	}
 
+	// Auto-detect locale from request headers
+	const request = context.cloudflare?.request;
+	const locale = getLocaleFromRequest(request);
+
 	return next({
 		context: {
 			...context,
 			db,
+			locale,
 		},
 	});
 });
@@ -61,11 +67,16 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
 	}
 
+	// Auto-detect locale from request headers
+	const request = context.cloudflare?.request;
+	const locale = getLocaleFromRequest(request);
+
 	return next({
 		context: {
 			...context,
 			db,
 			user: user as AuthUser, // Type assertion since we checked it exists
+			locale,
 		},
 	});
 });
@@ -85,11 +96,16 @@ export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
 		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
 	}
 
+	// Auto-detect locale from request headers
+	const request = context.cloudflare?.request;
+	const locale = getLocaleFromRequest(request);
+
 	return next({
 		context: {
 			...context,
 			db,
 			user: context.user,
+			locale,
 		},
 	});
 });
@@ -118,11 +134,16 @@ export const dbWithEmailVerification = os.middleware(async ({ context, next }) =
 	// 	throw new ORPCError("FORBIDDEN", { message: "Email verification required" });
 	// }
 
+	// Auto-detect locale from request headers
+	const request = context.cloudflare?.request;
+	const locale = getLocaleFromRequest(request);
+
 	return next({
 		context: {
 			...context,
 			db,
 			user: context.user as AuthUser, // Type assertion since we checked it exists
+			locale,
 		},
 	});
 });

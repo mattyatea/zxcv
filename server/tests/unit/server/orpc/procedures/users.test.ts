@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { ORPCError, call } from "@orpc/server";
-import { createMockContext, createAuthenticatedContext } from "~/tests/helpers/mocks";
-import type { PrismaClient } from "@prisma/client";
+import { createMockContext } from "~/tests/helpers/mocks";
 import { getPublicProfile } from "~/server/orpc/procedures/users";
 import { searchByUsername } from "~/server/orpc/procedures/users";
 
@@ -60,10 +59,12 @@ describe("users procedures", () => {
 		const mockUser = {
 			id: "user_123",
 			username: "testuser",
-			email: "test@example.com",
-			emailVerified: true,
+			displayName: "Test User Display",
+			bio: "This is my bio",
+			location: "Tokyo, Japan",
+			website: "https://testuser.example.com",
+			avatarUrl: "avatars/user_123/avatar.jpg",
 			createdAt: 1640995200,
-			updatedAt: 1640995200,
 		};
 
 		const mockPublicRules = [
@@ -109,6 +110,11 @@ describe("users procedures", () => {
 				user: {
 					id: "user_123",
 					username: "testuser",
+					displayName: "Test User Display",
+					bio: "This is my bio",
+					location: "Tokyo, Japan",
+					website: "https://testuser.example.com",
+					avatarUrl: "avatars/user_123/avatar.jpg",
 					createdAt: 1640995200,
 				},
 				stats: {
@@ -143,6 +149,11 @@ describe("users procedures", () => {
 				select: {
 					id: true,
 					username: true,
+					displayName: true,
+					bio: true,
+					location: true,
+					website: true,
+					avatarUrl: true,
 					createdAt: true,
 				},
 			});
@@ -207,6 +218,11 @@ describe("users procedures", () => {
 				select: {
 					id: true,
 					username: true,
+					displayName: true,
+					bio: true,
+					location: true,
+					website: true,
+					avatarUrl: true,
 					createdAt: true,
 				},
 			});

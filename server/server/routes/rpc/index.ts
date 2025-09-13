@@ -8,6 +8,7 @@ import type { H3EventContext } from "../../types/bindings";
 import type { Env } from "../../types/env";
 import type { AuthUser } from "../../utils/auth";
 import { verifyJWT } from "../../utils/jwt";
+import { createLogger } from "../../utils/logger";
 
 // Extend globalThis for test environment
 declare global {
@@ -42,38 +43,51 @@ async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
 			email: payload.email,
 			username: payload.username,
 			emailVerified: payload.emailVerified || false,
+			displayName: payload.displayName || null,
+			avatarUrl: payload.avatarUrl || null,
 		};
 	} catch {
 		return undefined;
 	}
 }
 
-const handler = new RPCHandler(router, {
-	// Enable error handling
-	plugins: [],
-	interceptors: [
-		onError((error) => {
-			console.log("oRPC onError interceptor:", {
-				error,
-				isORPCError: error instanceof ORPCError,
-				code: (error as { code?: string })?.code,
-				message: (error as { message?: string })?.message,
-			});
-			// Re-throw the error to let RPCHandler process it
-			throw error;
-		}),
-	],
-});
-
 export default defineEventHandler(async (event: H3Event) => {
-	console.log("RPC handler called:", {
+	// Get environment from context first to initialize logger properly
+	const context = event.context as BaseH3EventContext & H3EventContext;
+	const env = context.cloudflare?.env as Env;
+	const logger = createLogger(env);
+
+	logger.debug("RPC handler called", {
 		method: event.node.req.method,
 		url: event.node.req.url,
 		path: event.path,
+		environment: env?.ENVIRONMENT || "unknown",
 	});
 
-	// In test environment, ensure context is properly set
-	const context = event.context as BaseH3EventContext & H3EventContext;
+	const handler = new RPCHandler(router, {
+		plugins: [],
+		interceptors: [
+			onError((error: unknown) => {
+				const errorLogger = createLogger(env);
+
+				// Type-safe error handling
+				const errorInfo = {
+					isORPCError: error instanceof ORPCError,
+					code: error instanceof ORPCError ? error.code : undefined,
+					errorMessage: error instanceof Error ? error.message : String(error),
+				};
+
+				errorLogger.error(
+					"oRPC error interceptor",
+					error instanceof Error ? error : undefined,
+					errorInfo,
+				);
+
+				// Re-throw the error to let RPCHandler process it
+				throw error;
+			}),
+		],
+	});
 
 	// Ensure cloudflare context exists
 	if (!context.cloudflare) {
@@ -137,9 +151,11 @@ export default defineEventHandler(async (event: H3Event) => {
 			body: rawBody,
 		});
 
-		console.log("Request URL:", url.toString());
-		console.log("Request method:", event.node.req.method);
-		console.log("User authenticated:", !!user);
+		logger.debug("Processing RPC request", {
+			url: url.toString(),
+			method: event.node.req.method,
+			userAuthenticated: !!user,
+		});
 
 		let response: Awaited<ReturnType<typeof handler.handle>>;
 		try {
@@ -152,18 +168,18 @@ export default defineEventHandler(async (event: H3Event) => {
 				},
 			});
 		} catch (handlerError) {
-			console.error("Handler error details:", {
-				error: handlerError,
+			logger.error("Handler error occurred", handlerError as Error, {
 				message: (handlerError as { message?: string })?.message,
 				code: (handlerError as { code?: string })?.code,
-				stack: (handlerError as { stack?: string })?.stack,
 				isORPCError: handlerError instanceof ORPCError,
 			});
 			throw handlerError;
 		}
 
-		console.log("Response matched:", response.matched);
-		console.log("Response status:", response.response?.status);
+		logger.debug("RPC response details", {
+			matched: response.matched,
+			status: response.response?.status,
+		});
 
 		if (!response.matched) {
 			setResponseStatus(event, 404, "Not Found");
@@ -185,9 +201,10 @@ export default defineEventHandler(async (event: H3Event) => {
 		}
 		return await response.response.text();
 	} catch (error) {
-		console.error("RPC Handler Error:", error);
-		console.error("Error type:", error?.constructor?.name);
-		console.error("Is ORPCError:", error instanceof ORPCError);
+		logger.error("RPC Handler Error", error as Error, {
+			errorType: error?.constructor?.name,
+			isORPCError: error instanceof ORPCError,
+		});
 
 		// Check if the error has already been processed by RPCHandler
 		if (
@@ -197,7 +214,7 @@ export default defineEventHandler(async (event: H3Event) => {
 			(error as { response?: unknown }).response instanceof Response
 		) {
 			const errorResponse = (error as { response: Response }).response;
-			console.log("Error has Response object, status:", errorResponse.status);
+			logger.debug("Error has Response object", { status: errorResponse.status });
 
 			// Send the error response back through H3
 			setResponseStatus(event, errorResponse.status);
@@ -221,7 +238,10 @@ export default defineEventHandler(async (event: H3Event) => {
 			(error && typeof error === "object" && "code" in error && "__isORPCError" in error)
 		) {
 			const orpcError = error as ORPCError<ORPCErrorCode, unknown>;
-			console.log("Handling ORPCError:", { code: orpcError.code, message: orpcError.message });
+			logger.error("Handling ORPCError", undefined, {
+				code: orpcError.code,
+				message: orpcError.message,
+			});
 
 			const statusMap: Record<string, number> = {
 				UNAUTHORIZED: 401,
@@ -245,7 +265,7 @@ export default defineEventHandler(async (event: H3Event) => {
 		}
 
 		// For other errors, return 500
-		console.error("Unhandled error type, returning 500");
+		logger.error("Unhandled error type, returning 500", error as Error);
 		setResponseStatus(event, 500);
 		return {
 			defined: false,

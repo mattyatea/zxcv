@@ -411,16 +411,61 @@
   },
   "settings": {
     "title": "設定",
-    "account": "アカウント",
-    "security": "セキュリティ",
-    "notifications": "通知",
-    "preferences": "環境設定",
+    "tabs": {
+      "profile": "プロフィール",
+      "account": "アカウント",
+      "security": "セキュリティ",
+      "notifications": "通知",
+      "preferences": "環境設定"
+    },
+    "profile": {
+      "title": "プロフィール情報",
+      "avatar": "アバター画像",
+      "avatarAlt": "プロフィールのアバター画像",
+      "changeAvatar": "変更",
+      "avatarHint": "JPG、PNG、GIF、WebP（最大5MB）",
+      "displayName": "表示名",
+      "displayNamePlaceholder": "あなたの名前",
+      "bio": "自己紹介",
+      "bioPlaceholder": "あなたについて少し教えてください",
+      "location": "場所",
+      "locationPlaceholder": "東京, 日本",
+      "website": "ウェブサイト",
+      "websitePlaceholder": "https://example.com",
+      "save": "変更を保存",
+      "saving": "保存中...",
+      "errors": {
+        "invalidFileType": "サポートされていないファイル形式です。JPEG、PNG、GIF、WebP形式のみアップロード可能です。",
+        "fileTooLarge": "ファイルサイズが大きすぎます。5MB以下のファイルをアップロードしてください。"
+      }
+    },
+    "account": {
+      "title": "アカウント設定",
+      "placeholder": "アカウント設定機能は近日実装予定です。"
+    },
+    "security": {
+      "title": "セキュリティ設定",
+      "placeholder": "セキュリティ設定機能は近日実装予定です。",
+      "changePassword": "パスワードを変更",
+      "twoFactor": "二要素認証",
+      "apiKeys": "APIキー",
+      "deleteAccount": "アカウントを削除"
+    },
+    "success": {
+      "profileUpdated": "プロフィールを更新しました",
+      "avatarUploaded": "アバター画像を更新しました"
+    },
+    "error": {
+      "fetchProfile": "プロフィールの取得に失敗しました",
+      "updateProfile": "プロフィールの更新に失敗しました",
+      "uploadAvatar": "アバター画像のアップロードに失敗しました",
+      "invalidImageType": "サポートされていない画像形式です",
+      "imageTooLarge": "画像サイズが5MBを超えています"
+    },
     "language": "言語",
     "theme": "テーマ",
-    "changePassword": "パスワードを変更",
-    "twoFactor": "二要素認証",
-    "apiKeys": "APIキー",
-    "deleteAccount": "アカウントを削除"
+    "notifications": "通知",
+    "preferences": "環境設定"
   },
   "errors": {
     "notFound": "ページが見つかりません",

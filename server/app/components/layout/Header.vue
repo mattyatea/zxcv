@@ -158,9 +158,15 @@
                 @click="showUserMenu = !showUserMenu"
                 class="flex items-center space-x-2 p-2 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-all duration-200 group active:scale-95"
               >
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-medium shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-200">
-                  {{ user.username[0].toUpperCase() }}
-                </div>
+                <Avatar
+                  :src="user.avatarUrl"
+                  :name="user.displayName || user.username"
+                  :alt="`${user.username}'s avatar`"
+                  size="sm"
+                  shape="circle"
+                  :use-gradient="true"
+                  class="shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-200"
+                />
                 <svg class="w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform duration-200" :class="showUserMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -296,6 +302,7 @@ import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { useThemeStore } from "~/stores/theme";
+import Avatar from "~/components/common/Avatar.vue";
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);

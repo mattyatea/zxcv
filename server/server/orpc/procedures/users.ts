@@ -4,6 +4,7 @@ import { authErrors, type Locale } from "../../utils/i18n";
 import { os } from "../index";
 import { dbWithAuth } from "../middleware/combined";
 import { dbProvider } from "../middleware/db";
+import { avatarUploadRateLimit } from "../middleware/rateLimit";
 
 // Search users by username (for organization invitations)
 export const searchByUsername = os.users.searchByUsername
@@ -52,6 +53,11 @@ export const getProfile = os.users.getProfile
 				email: true,
 				username: true,
 				emailVerified: true,
+				displayName: true,
+				bio: true,
+				location: true,
+				website: true,
+				avatarUrl: true,
 				createdAt: true,
 				updatedAt: true,
 			},
@@ -111,6 +117,11 @@ export const getProfile = os.users.getProfile
 				username: user.username,
 				email: isOwnProfile ? user.email : null,
 				emailVerified: user.emailVerified,
+				displayName: user.displayName,
+				bio: user.bio,
+				location: user.location,
+				website: user.website,
+				avatarUrl: user.avatarUrl,
 				createdAt: user.createdAt,
 				updatedAt: user.updatedAt,
 			},
@@ -125,67 +136,134 @@ export const getProfile = os.users.getProfile
 		};
 	});
 
-export const profile = os.users.profile.use(dbWithAuth).handler(async ({ context }) => {
-	const { db, user } = context;
+export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
+	try {
+		const { db, user } = context;
 
-	// Get user profile from database
-	const userProfile = await db.user.findUnique({
-		where: { id: user.id },
-		select: {
-			id: true,
-			email: true,
-			username: true,
-			createdAt: true,
-			updatedAt: true,
-		},
-	});
+		console.log("[DEBUG] users.me called for user:", user?.id);
+		console.log("[DEBUG] context available:", { hasDb: !!db, hasUser: !!user });
 
-	if (!userProfile) {
-		throw new ORPCError("NOT_FOUND", { message: "User not found" });
+		if (!db) {
+			console.log("[DEBUG] Database not available in context");
+			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Database not available" });
+		}
+
+		if (!user || !user.id) {
+			console.log("[DEBUG] User not available in context");
+			throw new ORPCError("UNAUTHORIZED", { message: "User not authenticated" });
+		}
+
+		// Get detailed user profile from database
+		console.log("[DEBUG] About to call db.user.findUnique");
+		const userProfile = await db.user.findUnique({
+			where: { id: user.id },
+			select: {
+				id: true,
+				email: true,
+				username: true,
+				emailVerified: true,
+				displayName: true,
+				bio: true,
+				location: true,
+				website: true,
+				avatarUrl: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		console.log("[DEBUG] userProfile from DB:", userProfile);
+
+		if (!userProfile) {
+			throw new ORPCError("NOT_FOUND", { message: "User not found" });
+		}
+
+		// Get user statistics with robust error handling
+		let rulesCount = 0;
+		let organizationsCount = 0;
+		let totalStars = 0;
+
+		try {
+			const stats = await Promise.all([
+				db.rule.count({
+					where: {
+						userId: user.id,
+					},
+				}),
+				db.organizationMember.count({
+					where: {
+						userId: user.id,
+					},
+				}),
+				db.ruleStar.count({
+					where: {
+						rule: {
+							userId: user.id,
+						},
+					},
+				}),
+			]);
+
+			// Ensure we always get numbers, even if the database returns unexpected values
+			rulesCount = typeof stats[0] === "number" ? stats[0] : 0;
+			organizationsCount = typeof stats[1] === "number" ? stats[1] : 0;
+			totalStars = typeof stats[2] === "number" ? stats[2] : 0;
+
+			console.log("[DEBUG] stats from DB:", { rulesCount, organizationsCount, totalStars });
+		} catch (error) {
+			console.log("[DEBUG] Error getting stats, using defaults:", error);
+			// Use defaults if there's any error
+			rulesCount = 0;
+			organizationsCount = 0;
+			totalStars = 0;
+		}
+
+		const result = {
+			id: userProfile.id,
+			email: userProfile.email,
+			username: userProfile.username,
+			emailVerified: userProfile.emailVerified,
+			displayName: userProfile.displayName ?? null,
+			bio: userProfile.bio ?? null,
+			location: userProfile.location ?? null,
+			website: userProfile.website ?? null,
+			avatarUrl: userProfile.avatarUrl ?? null,
+			createdAt: userProfile.createdAt,
+			updatedAt: userProfile.updatedAt,
+			stats: {
+				rulesCount,
+				organizationsCount,
+				totalStars,
+			},
+		};
+
+		console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
+
+		return result;
+	} catch (error) {
+		console.log("[DEBUG] Error in users.me procedure:", error);
+		console.log("[DEBUG] Error stack:", error instanceof Error ? error.stack : "No stack trace");
+		// Re-throw ORPC errors as-is
+		if (error instanceof ORPCError) {
+			throw error;
+		}
+		// Wrap other errors
+		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Internal server error in users.me" });
 	}
-
-	return {
-		id: userProfile.id,
-		email: userProfile.email,
-		username: userProfile.username,
-		created_at: userProfile.createdAt,
-		updated_at: userProfile.updatedAt,
-	};
 });
 
 export const updateProfile = os.users.updateProfile
 	.use(dbWithAuth)
 	.handler(async ({ input, context }) => {
-		const { email, username } = input;
+		const { displayName, bio, location, website } = input;
 		const { db, user } = context;
 
-		// Check if email or username already exist
-		// Use separate queries for better index utilization
-		if (email) {
-			const existingUserByEmail = await db.user.findFirst({
-				where: {
-					email: email.toLowerCase(),
-					id: { not: user.id },
-				},
-			});
-
-			if (existingUserByEmail) {
-				const locale: Locale = "ja"; // Default to Japanese
-				throw new ORPCError("CONFLICT", { message: authErrors.emailAlreadyInUse(locale) });
-			}
-		}
-
-		if (username) {
-			const existingUserByUsername = await db.user.findFirst({
-				where: {
-					username: username.toLowerCase(),
-					id: { not: user.id },
-				},
-			});
-
-			if (existingUserByUsername) {
-				const locale: Locale = "ja"; // Default to Japanese
-				throw new ORPCError("CONFLICT", { message: authErrors.usernameAlreadyInUse(locale) });
+		// Validate website URL if provided
+		if (website && website !== "") {
+			try {
+				new URL(website);
+			} catch {
+				throw new ORPCError("BAD_REQUEST", { message: "Invalid website URL" });
 			}
 		}
 
@@ -193,31 +271,29 @@ export const updateProfile = os.users.updateProfile
 		const updatedUser = await db.user.update({
 			where: { id: user.id },
 			data: {
-				...(email && {
-					email: email.toLowerCase(),
-					emailVerified: false, // Reset email verification when email changes
-				}),
-				...(username && { username: username.toLowerCase() }),
+				...(displayName !== undefined && { displayName }),
+				...(bio !== undefined && { bio }),
+				...(location !== undefined && { location }),
+				...(website !== undefined && { website: website || null }),
 				updatedAt: Math.floor(Date.now() / 1000),
+			},
+			select: {
+				id: true,
+				email: true,
+				username: true,
+				emailVerified: true,
+				displayName: true,
+				bio: true,
+				location: true,
+				website: true,
+				avatarUrl: true,
+				createdAt: true,
+				updatedAt: true,
 			},
 		});
 
-		// If email changed, send verification email
-		if (email && email.toLowerCase() !== user.email.toLowerCase()) {
-			const { EmailVerificationService } = await import("../../services/emailVerification");
-			const emailService = new EmailVerificationService(db, context.env);
-			await emailService.sendVerificationEmail(user.id, email.toLowerCase());
-		}
-
 		return {
-			user: {
-				id: updatedUser.id,
-				email: updatedUser.email,
-				username: updatedUser.username,
-				emailVerified: updatedUser.emailVerified,
-				createdAt: updatedUser.createdAt,
-				updatedAt: updatedUser.updatedAt,
-			},
+			user: updatedUser,
 		};
 	});
 
@@ -342,6 +418,77 @@ export const updateSettings = os.users.updateSettings
 		};
 	});
 
+export const uploadAvatar = os.users.uploadAvatar
+	.use(avatarUploadRateLimit)
+	.handler(async ({ input, context }) => {
+		const { image, filename } = input;
+		const { db, env } = context;
+
+		// Ensure user is authenticated
+		if (!context.user) {
+			throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
+		}
+		const user = context.user;
+
+		try {
+			// Decode base64 image using Uint8Array (Cloudflare Workers compatible)
+			const binaryString = atob(image);
+			const imageData = new Uint8Array(binaryString.length);
+			for (let i = 0; i < binaryString.length; i++) {
+				imageData[i] = binaryString.charCodeAt(i);
+			}
+
+			// Validate image size (max 5MB)
+			if (imageData.length > 5 * 1024 * 1024) {
+				throw new ORPCError("BAD_REQUEST", { message: "Image size must be less than 5MB" });
+			}
+
+			// Validate image format (simple check by filename extension)
+			const ext = filename.toLowerCase().split(".").pop();
+			if (!ext || !["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Unsupported image format. Use JPG, PNG, GIF, or WebP",
+				});
+			}
+
+			// Generate unique filename
+			const { nanoid } = await import("nanoid");
+			const avatarKey = `avatars/${user.id}/${nanoid()}.${ext}`;
+
+			// Upload to R2
+			if (!env.R2) {
+				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Storage not available" });
+			}
+
+			await env.R2.put(avatarKey, imageData, {
+				httpMetadata: {
+					contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
+				},
+			});
+
+			// Update user avatar URL
+			const updatedUser = await db.user.update({
+				where: { id: user.id },
+				data: {
+					avatarUrl: avatarKey,
+					updatedAt: Math.floor(Date.now() / 1000),
+				},
+				select: {
+					avatarUrl: true,
+				},
+			});
+
+			return {
+				avatarUrl: updatedUser.avatarUrl || "",
+			};
+		} catch (error) {
+			if (error instanceof ORPCError) {
+				throw error;
+			}
+			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to upload avatar" });
+		}
+	});
+
 export const deleteAccount = os.users.deleteAccount
 	.use(dbWithAuth)
 	.handler(async ({ input, context }) => {
@@ -426,6 +573,11 @@ export const getPublicProfile = os.users.getPublicProfile
 			select: {
 				id: true,
 				username: true,
+				displayName: true,
+				bio: true,
+				location: true,
+				website: true,
+				avatarUrl: true,
 				createdAt: true,
 			},
 		});
@@ -485,6 +637,11 @@ export const getPublicProfile = os.users.getPublicProfile
 			user: {
 				id: user.id,
 				username: user.username,
+				displayName: user.displayName,
+				bio: user.bio,
+				location: user.location,
+				website: user.website,
+				avatarUrl: user.avatarUrl,
 				createdAt: user.createdAt,
 			},
 			stats: {
@@ -506,11 +663,12 @@ export const getPublicProfile = os.users.getPublicProfile
 export const usersProcedures = {
 	searchByUsername,
 	getProfile,
-	profile,
+	me,
 	updateProfile,
 	changePassword,
 	settings,
 	updateSettings,
+	uploadAvatar,
 	deleteAccount,
 	getPublicProfile,
 };

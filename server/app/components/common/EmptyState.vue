@@ -34,8 +34,10 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from "vue";
+
 interface Props {
-  icon?: any;
+  icon?: Component;
   title: string;
   description?: string;
 }
