@@ -12,6 +12,7 @@ interface AuthState {
 	accessToken: string | null;
 	refreshToken: string | null;
 	isLoading: boolean;
+	isInitialized: boolean;
 }
 
 interface LoginCredentials {
@@ -32,9 +33,11 @@ export const useAuthStore = defineStore("auth", () => {
 	const accessToken = ref<string | null>(null);
 	const refreshToken = ref<string | null>(null);
 	const isLoading = ref(false);
+	const isInitialized = ref(false);
 
 	// Getters
 	const isAuthenticated = computed(() => !!user.value && !!accessToken.value);
+	const isReady = computed(() => isInitialized.value); // ストアが初期化済みかどうか
 
 	// Initialize from localStorage on client side
 	const initializeAuth = () => {
@@ -54,9 +57,13 @@ export const useAuthStore = defineStore("auth", () => {
 					user.value = JSON.parse(storedUser);
 				} catch (e) {
 					console.error("Failed to parse stored user data:", e);
+					// 無効なユーザーデータの場合はクリア
+					localStorage.removeItem("user");
 				}
 			}
 		}
+		// 初期化完了をマーク
+		isInitialized.value = true;
 	};
 
 	// Actions
@@ -217,6 +224,34 @@ export const useAuthStore = defineStore("auth", () => {
 		}
 	};
 
+	// トークンの有効性を確認
+	const validateToken = async () => {
+		if (!accessToken.value) {
+			return false;
+		}
+
+		try {
+			const $rpc = useRpc();
+			await $rpc.users.me();
+			return true;
+		} catch (error: any) {
+			console.log("Token validation failed:", error);
+			
+			// 401やその他の認証エラーの場合はトークンをクリア
+			if (
+				error?.status === 401 ||
+				error?.message?.includes("UNAUTHORIZED") ||
+				error?.message?.includes("User not found")
+			) {
+				await logout();
+				return false;
+			}
+			
+			// その他のエラー（ネットワークエラーなど）の場合は現在の状態を維持
+			return true;
+		}
+	};
+
 	// Initialize on store creation
 	initializeAuth();
 
@@ -226,8 +261,10 @@ export const useAuthStore = defineStore("auth", () => {
 		accessToken: readonly(accessToken),
 		refreshToken: readonly(refreshToken),
 		isLoading: readonly(isLoading),
+		isInitialized: readonly(isInitialized),
 		// Getters
 		isAuthenticated,
+		isReady,
 		// Actions
 		login,
 		register,
@@ -237,5 +274,6 @@ export const useAuthStore = defineStore("auth", () => {
 		updateUser,
 		setAuthData,
 		initializeAuth,
+		validateToken,
 	};
 });
