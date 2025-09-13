@@ -466,7 +466,11 @@
       "website": "Website",
       "websitePlaceholder": "https://example.com",
       "save": "Save changes",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "errors": {
+        "invalidFileType": "Unsupported file format. Only JPEG, PNG, GIF, and WebP formats are allowed.",
+        "fileTooLarge": "File size is too large. Please upload a file smaller than 5MB."
+      }
     },
     "account": {
       "title": "Account Settings",

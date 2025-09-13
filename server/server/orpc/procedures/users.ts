@@ -4,6 +4,7 @@ import { authErrors, type Locale } from "../../utils/i18n";
 import { os } from "../index";
 import { dbWithAuth } from "../middleware/combined";
 import { dbProvider } from "../middleware/db";
+import { avatarUploadRateLimit } from "../middleware/rateLimit";
 
 // Search users by username (for organization invitations)
 export const searchByUsername = os.users.searchByUsername
@@ -418,10 +419,16 @@ export const updateSettings = os.users.updateSettings
 	});
 
 export const uploadAvatar = os.users.uploadAvatar
-	.use(dbWithAuth)
+	.use(avatarUploadRateLimit)
 	.handler(async ({ input, context }) => {
 		const { image, filename } = input;
-		const { db, user, env } = context;
+		const { db, env } = context;
+
+		// Ensure user is authenticated
+		if (!context.user) {
+			throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
+		}
+		const user = context.user;
 
 		try {
 			// Decode base64 image using Uint8Array (Cloudflare Workers compatible)

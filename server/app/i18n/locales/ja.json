@@ -433,7 +433,11 @@
       "website": "ウェブサイト",
       "websitePlaceholder": "https://example.com",
       "save": "変更を保存",
-      "saving": "保存中..."
+      "saving": "保存中...",
+      "errors": {
+        "invalidFileType": "サポートされていないファイル形式です。JPEG、PNG、GIF、WebP形式のみアップロード可能です。",
+        "fileTooLarge": "ファイルサイズが大きすぎます。5MB以下のファイルをアップロードしてください。"
+      }
     },
     "account": {
       "title": "アカウント設定",

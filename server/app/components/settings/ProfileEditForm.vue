@@ -153,17 +153,17 @@ const props = withDefaults(defineProps<Props>(), {
 	loading: false,
 });
 
+// Profile update data interface
+interface ProfileUpdateData {
+	displayName?: string | null;
+	bio?: string | null;
+	location?: string | null;
+	website?: string | null;
+}
+
 // Emits
 interface Emits {
-	(
-		e: "update",
-		data: {
-			displayName?: string;
-			bio?: string;
-			location?: string;
-			website?: string;
-		},
-	): void;
+	(e: "update", data: ProfileUpdateData): void;
 	(e: "upload-avatar", file: File): void;
 }
 
@@ -235,7 +235,7 @@ watch(() => props.user, initializeForm, { immediate: true });
 const handleSubmit = () => {
 	if (!isFormValid.value || !hasChanges.value) return;
 
-	const updateData: any = {};
+	const updateData: ProfileUpdateData = {};
 
 	if (form.value.displayName !== originalForm.value.displayName) {
 		updateData.displayName = form.value.displayName || null;
@@ -266,8 +266,11 @@ const handleAvatarChange = (event: Event) => {
 
 	if (!file) return;
 
-	// Validate file type
-	if (!file.type.startsWith("image/")) {
+	// Define allowed MIME types for images
+	const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+	// Validate file type with specific MIME types
+	if (!allowedMimeTypes.includes(file.type)) {
 		showToast({
 			message: t('settings.profile.errors.invalidFileType'),
 			type: "error",

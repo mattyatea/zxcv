@@ -1,4 +1,5 @@
 import { ORPCError } from "@orpc/server";
+import { getLocaleFromRequest } from "../../utils/locale";
 import { createLogger } from "../../utils/logger";
 import { createPrismaClient } from "../../utils/prisma";
 import { os } from "../index";
@@ -80,11 +81,16 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 				});
 			}
 
-			// Continue to next middleware with db in context
+			// Auto-detect locale from request headers
+			const request = context.cloudflare?.request;
+			const locale = getLocaleFromRequest(request);
+
+			// Continue to next middleware with db and locale in context
 			return next({
 				context: {
 					...context,
 					db,
+					locale,
 				},
 			});
 		} catch (error) {
@@ -93,11 +99,16 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
 			}
 			const logger = createLogger(env);
 			logger.error("Rate limit middleware error", error as Error);
+			// Auto-detect locale from request headers even on error
+			const request = context.cloudflare?.request;
+			const locale = getLocaleFromRequest(request);
+
 			// On error, allow the request to proceed
 			return next({
 				context: {
 					...context,
 					db,
+					locale,
 				},
 			});
 		}
@@ -164,4 +175,11 @@ export const apiRateLimit = createRateLimitMiddleware({
 	windowMs: 60 * 1000, // 1 minute
 	maxRequests: 60, // 60 requests per minute
 	keyPrefix: "api",
+});
+
+// Rate limit for avatar upload to prevent abuse
+export const avatarUploadRateLimit = createRateLimitMiddleware({
+	windowMs: 60 * 60 * 1000, // 1 hour
+	maxRequests: 10, // 10 avatar uploads per hour per user
+	keyPrefix: "avatar:upload",
 });
