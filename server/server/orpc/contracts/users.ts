@@ -113,19 +113,30 @@ export const usersContract = {
 			}),
 		),
 
-	profile: oc
+	me: oc
 		.route({
 			method: "GET",
 			path: "/users/me",
-			description: "Get current user profile",
+			description: "Get current user information",
 		})
 		.output(
 			z.object({
 				id: z.string(),
 				email: z.string(),
 				username: z.string(),
-				created_at: z.number(),
-				updated_at: z.number(),
+				emailVerified: z.boolean(),
+				displayName: z.string().nullable(),
+				bio: z.string().nullable(),
+				location: z.string().nullable(),
+				website: z.string().nullable(),
+				avatarUrl: z.string().nullable(),
+				createdAt: z.number(),
+				updatedAt: z.number(),
+				stats: z.object({
+					rulesCount: z.number(),
+					organizationsCount: z.number(),
+					totalStars: z.number(),
+				}),
 			}),
 		),
 

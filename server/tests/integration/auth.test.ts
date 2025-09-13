@@ -732,15 +732,21 @@ describe("Auth Integration Tests", () => {
 			});
 			const authClient = authSetup.client;
 
-			const meResult = await authClient.users.profile();
+			const meResult = await authClient.users.me();
 
 			expect(meResult).toMatchObject({
 				id: "user_123",
 				username: "testuser",
 				email: "test@example.com",
+				emailVerified: expect.any(Boolean),
 			});
-			expect(meResult.created_at).toBeDefined();
-			expect(meResult.updated_at).toBeDefined();
+			expect(meResult.createdAt).toBeDefined();
+			expect(meResult.updatedAt).toBeDefined();
+			expect(meResult.stats).toMatchObject({
+				rulesCount: expect.any(Number),
+				organizationsCount: expect.any(Number),
+				totalStars: expect.any(Number),
+			});
 		});
 
 		it("should update user profile", async () => {

@@ -1,14 +1,14 @@
 <template>
 	<div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
 		<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-			{{ $t('settings.profile.title') }}
+			{{ t('settings.profile.title') }}
 		</h3>
 
 		<form @submit.prevent="handleSubmit" class="space-y-6">
 			<!-- Avatar Section -->
 			<div>
 				<label class="block text-sm font-medium text-gray-700 mb-2">
-					{{ $t('settings.profile.avatar') }}
+					{{ t('settings.profile.avatar') }}
 				</label>
 				<div class="flex items-center space-x-4">
 					<div class="relative">
@@ -18,7 +18,7 @@
 							<img
 								v-if="displayAvatarUrl"
 								:src="displayAvatarUrl"
-								:alt="$t('settings.profile.avatarAlt')"
+								:alt="t('settings.profile.avatarAlt')"
 								class="h-full w-full object-cover"
 							/>
 							<Icon
@@ -49,10 +49,10 @@
 							@click="$refs.avatarInput?.click()"
 							:disabled="loading"
 						>
-							{{ $t('settings.profile.changeAvatar') }}
+							{{ t('settings.profile.changeAvatar') }}
 						</Button>
 						<p class="text-xs text-gray-500 mt-1">
-							{{ $t('settings.profile.avatarHint') }}
+							{{ t('settings.profile.avatarHint') }}
 						</p>
 					</div>
 				</div>
@@ -61,13 +61,13 @@
 			<!-- Display Name -->
 			<div>
 				<label for="displayName" class="block text-sm font-medium text-gray-700">
-					{{ $t('settings.profile.displayName') }}
+					{{ t('settings.profile.displayName') }}
 				</label>
 				<Input
 					id="displayName"
 					v-model="form.displayName"
 					type="text"
-					:placeholder="$t('settings.profile.displayNamePlaceholder')"
+					:placeholder="t('settings.profile.displayNamePlaceholder')"
 					:disabled="loading"
 					maxlength="100"
 					class="mt-1"
@@ -77,12 +77,12 @@
 			<!-- Bio -->
 			<div>
 				<label for="bio" class="block text-sm font-medium text-gray-700">
-					{{ $t('settings.profile.bio') }}
+					{{ t('settings.profile.bio') }}
 				</label>
 				<Textarea
 					id="bio"
 					v-model="form.bio"
-					:placeholder="$t('settings.profile.bioPlaceholder')"
+					:placeholder="t('settings.profile.bioPlaceholder')"
 					:disabled="loading"
 					rows="3"
 					maxlength="500"
@@ -96,13 +96,13 @@
 			<!-- Location -->
 			<div>
 				<label for="location" class="block text-sm font-medium text-gray-700">
-					{{ $t('settings.profile.location') }}
+					{{ t('settings.profile.location') }}
 				</label>
 				<Input
 					id="location"
 					v-model="form.location"
 					type="text"
-					:placeholder="$t('settings.profile.locationPlaceholder')"
+					:placeholder="t('settings.profile.locationPlaceholder')"
 					:disabled="loading"
 					maxlength="100"
 					class="mt-1"
@@ -112,13 +112,13 @@
 			<!-- Website -->
 			<div>
 				<label for="website" class="block text-sm font-medium text-gray-700">
-					{{ $t('settings.profile.website') }}
+					{{ t('settings.profile.website') }}
 				</label>
 				<Input
 					id="website"
 					v-model="form.website"
 					type="url"
-					:placeholder="$t('settings.profile.websitePlaceholder')"
+					:placeholder="t('settings.profile.websitePlaceholder')"
 					:disabled="loading"
 					class="mt-1"
 				/>
@@ -132,14 +132,14 @@
 					@click="resetForm"
 					:disabled="loading || !hasChanges"
 				>
-					{{ $t('common.cancel') }}
+					{{ t('common.cancel') }}
 				</Button>
 				<Button
 					type="submit"
 					:loading="loading"
 					:disabled="loading || !hasChanges || !isFormValid"
 				>
-					{{ $t('settings.profile.save') }}
+					{{ t('settings.profile.save') }}
 				</Button>
 			</div>
 		</form>
@@ -147,8 +147,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import type { UserProfile } from '~/types/user';
+import { computed, ref, watch } from "vue";
+import type { UserProfile } from "~/types/user";
 
 // Props
 interface Props {
@@ -162,40 +162,43 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Emits
 interface Emits {
-	(e: 'update', data: {
-		displayName?: string;
-		bio?: string;
-		location?: string;
-		website?: string;
-	}): void;
-	(e: 'upload-avatar', file: File): void;
+	(
+		e: "update",
+		data: {
+			displayName?: string;
+			bio?: string;
+			location?: string;
+			website?: string;
+		},
+	): void;
+	(e: "upload-avatar", file: File): void;
 }
 
 const emit = defineEmits<Emits>();
 
 // Composables
-const { $t } = useI18n();
+const { t } = useI18n();
 
 // Form data
 const form = ref({
-	displayName: '',
-	bio: '',
-	location: '',
-	website: '',
+	displayName: "",
+	bio: "",
+	location: "",
+	website: "",
 });
 
 const originalForm = ref({
-	displayName: '',
-	bio: '',
-	location: '',
-	website: '',
+	displayName: "",
+	bio: "",
+	location: "",
+	website: "",
 });
 
 // Avatar display URL (for preview)
 const displayAvatarUrl = computed(() => {
 	if (!props.user?.avatarUrl) return null;
 	// If it's already a full URL, return as-is
-	if (props.user.avatarUrl.startsWith('http')) return props.user.avatarUrl;
+	if (props.user.avatarUrl.startsWith("http")) return props.user.avatarUrl;
 	// Otherwise, construct the R2 public URL (this will need to be configured)
 	return `/api/avatars/${props.user.avatarUrl}`;
 });
@@ -203,7 +206,7 @@ const displayAvatarUrl = computed(() => {
 // Form validation
 const isFormValid = computed(() => {
 	// Check if website is valid URL or empty
-	if (form.value.website && form.value.website !== '') {
+	if (form.value.website && form.value.website !== "") {
 		try {
 			new URL(form.value.website);
 		} catch {
@@ -227,10 +230,10 @@ const hasChanges = computed(() => {
 const initializeForm = () => {
 	if (props.user) {
 		form.value = {
-			displayName: props.user.displayName || '',
-			bio: props.user.bio || '',
-			location: props.user.location || '',
-			website: props.user.website || '',
+			displayName: props.user.displayName || "",
+			bio: props.user.bio || "",
+			location: props.user.location || "",
+			website: props.user.website || "",
 		};
 		originalForm.value = { ...form.value };
 	}
@@ -244,7 +247,7 @@ const handleSubmit = () => {
 	if (!isFormValid.value || !hasChanges.value) return;
 
 	const updateData: any = {};
-	
+
 	if (form.value.displayName !== originalForm.value.displayName) {
 		updateData.displayName = form.value.displayName || null;
 	}
@@ -258,7 +261,7 @@ const handleSubmit = () => {
 		updateData.website = form.value.website || null;
 	}
 
-	emit('update', updateData);
+	emit("update", updateData);
 	originalForm.value = { ...form.value };
 };
 
@@ -271,11 +274,11 @@ const resetForm = () => {
 const handleAvatarChange = (event: Event) => {
 	const target = event.target as HTMLInputElement;
 	const file = target.files?.[0];
-	
+
 	if (!file) return;
 
 	// Validate file type
-	if (!file.type.startsWith('image/')) {
+	if (!file.type.startsWith("image/")) {
 		// Show error toast
 		return;
 	}
@@ -286,9 +289,9 @@ const handleAvatarChange = (event: Event) => {
 		return;
 	}
 
-	emit('upload-avatar', file);
-	
+	emit("upload-avatar", file);
+
 	// Reset input
-	target.value = '';
+	target.value = "";
 };
 </script>

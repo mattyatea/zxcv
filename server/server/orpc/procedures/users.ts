@@ -135,16 +135,22 @@ export const getProfile = os.users.getProfile
 		};
 	});
 
-export const profile = os.users.profile.use(dbWithAuth).handler(async ({ context }) => {
+export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 	const { db, user } = context;
 
-	// Get user profile from database
+	// Get detailed user profile from database
 	const userProfile = await db.user.findUnique({
 		where: { id: user.id },
 		select: {
 			id: true,
 			email: true,
 			username: true,
+			emailVerified: true,
+			displayName: true,
+			bio: true,
+			location: true,
+			website: true,
+			avatarUrl: true,
 			createdAt: true,
 			updatedAt: true,
 		},
@@ -154,12 +160,44 @@ export const profile = os.users.profile.use(dbWithAuth).handler(async ({ context
 		throw new ORPCError("NOT_FOUND", { message: "User not found" });
 	}
 
+	// Get user statistics
+	const [rulesCount, organizationsCount, totalStars] = await Promise.all([
+		db.rule.count({
+			where: {
+				userId: user.id,
+			},
+		}),
+		db.organizationMember.count({
+			where: {
+				userId: user.id,
+			},
+		}),
+		db.ruleStar.count({
+			where: {
+				rule: {
+					userId: user.id,
+				},
+			},
+		}),
+	]);
+
 	return {
 		id: userProfile.id,
 		email: userProfile.email,
 		username: userProfile.username,
-		created_at: userProfile.createdAt,
-		updated_at: userProfile.updatedAt,
+		emailVerified: userProfile.emailVerified,
+		displayName: userProfile.displayName,
+		bio: userProfile.bio,
+		location: userProfile.location,
+		website: userProfile.website,
+		avatarUrl: userProfile.avatarUrl,
+		createdAt: userProfile.createdAt,
+		updatedAt: userProfile.updatedAt,
+		stats: {
+			rulesCount,
+			organizationsCount,
+			totalStars,
+		},
 	};
 });
 
@@ -564,7 +602,7 @@ export const getPublicProfile = os.users.getPublicProfile
 export const usersProcedures = {
 	searchByUsername,
 	getProfile,
-	profile,
+	me,
 	updateProfile,
 	changePassword,
 	settings,

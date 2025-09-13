@@ -18,7 +18,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
 		try {
 			// プロフィール取得を試みて認証状態を確認
-			await $rpc.users.profile();
+			await $rpc.users.me();
 		} catch (error: unknown) {
 			console.error("Auth check failed:", error);
 

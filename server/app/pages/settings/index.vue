@@ -65,14 +65,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import type { UserProfile } from '~/types/user';
-import { useToast } from '~/composables/useToast';
+import { onMounted, ref } from "vue";
+import ProfileEditForm from "~/components/settings/ProfileEditForm.vue";
+import { useToast } from "~/composables/useToast";
+import type { UserProfile } from "~/types/user";
 
 // Meta tags
 definePageMeta({
-	middleware: 'auth',
-	title: 'Settings',
+	middleware: "auth",
+	title: "Settings",
 });
 
 // Composables
@@ -81,28 +82,28 @@ const { t } = useI18n();
 const { showToast } = useToast();
 
 // Reactive data
-const activeTab = ref('profile');
+const activeTab = ref("profile");
 const loading = ref(false);
 const userProfile = ref<UserProfile | null>(null);
 
 // Tab configuration
 const tabs = computed(() => [
-	{ id: 'profile', name: t('settings.tabs.profile') },
-	{ id: 'account', name: t('settings.tabs.account') },
-	{ id: 'security', name: t('settings.tabs.security') },
+	{ id: "profile", name: t("settings.tabs.profile") },
+	{ id: "account", name: t("settings.tabs.account") },
+	{ id: "security", name: t("settings.tabs.security") },
 ]);
 
 // Fetch user profile
 const fetchUserProfile = async () => {
 	try {
 		loading.value = true;
-		const response = await $rpc.users.
+		const response = await $rpc.users.me();
 		userProfile.value = response.user;
 	} catch (error) {
-		console.error('Failed to fetch user profile:', error);
+		console.error("Failed to fetch user profile:", error);
 		showToast({
-			message: t('settings.error.fetchProfile'),
-			type: 'error',
+			message: t("settings.error.fetchProfile"),
+			type: "error",
 		});
 	} finally {
 		loading.value = false;
@@ -121,14 +122,14 @@ const handleProfileUpdate = async (profileData: {
 		const response = await $rpc.users.updateProfile(profileData);
 		userProfile.value = response.user;
 		showToast({
-			message: t('settings.success.profileUpdated'),
-			type: 'success',
+			message: t("settings.success.profileUpdated"),
+			type: "success",
 		});
 	} catch (error) {
-		console.error('Failed to update profile:', error);
+		console.error("Failed to update profile:", error);
 		showToast({
-			message: t('settings.error.updateProfile'),
-			type: 'error',
+			message: t("settings.error.updateProfile"),
+			type: "error",
 		});
 	} finally {
 		loading.value = false;
@@ -139,14 +140,14 @@ const handleProfileUpdate = async (profileData: {
 const handleAvatarUpload = async (file: File) => {
 	try {
 		loading.value = true;
-		
+
 		// Convert file to base64
 		const base64 = await new Promise<string>((resolve, reject) => {
 			const reader = new FileReader();
 			reader.onload = () => {
 				const result = reader.result as string;
 				// Remove data URL prefix (e.g., "data:image/jpeg;base64,")
-				const base64Data = result.split(',')[1];
+				const base64Data = result.split(",")[1];
 				resolve(base64Data);
 			};
 			reader.onerror = reject;
@@ -164,14 +165,14 @@ const handleAvatarUpload = async (file: File) => {
 		}
 
 		showToast({
-			message: t('settings.success.avatarUploaded'),
-			type: 'success',
+			message: t("settings.success.avatarUploaded"),
+			type: "success",
 		});
 	} catch (error) {
-		console.error('Failed to upload avatar:', error);
+		console.error("Failed to upload avatar:", error);
 		showToast({
-			message: t('settings.error.uploadAvatar'),
-			type: 'error',
+			message: t("settings.error.uploadAvatar"),
+			type: "error",
 		});
 	} finally {
 		loading.value = false;
