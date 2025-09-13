@@ -227,8 +227,9 @@ function formatDate(timestamp: number) {
 function getAvatarUrl(avatarUrl: string) {
 	// If it's already a full URL, return as-is
 	if (avatarUrl.startsWith("http")) return avatarUrl;
-	// Otherwise, construct the R2 public URL (this will need to be configured)
-	return `/api/avatars/${avatarUrl}`;
+	// Remove 'avatars/' prefix if it exists, then construct the API URL
+	const avatarPath = avatarUrl.replace(/^avatars\//, '');
+	return `/api/avatars/${avatarPath}`;
 }
 
 // Format website URL for display

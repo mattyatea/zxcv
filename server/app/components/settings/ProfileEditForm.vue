@@ -152,11 +152,11 @@ import { computed, ref, watch } from "vue";
 import Button from "~/components/common/Button.vue";
 import Input from "~/components/common/Input.vue";
 import Textarea from "~/components/common/Textarea.vue";
-import type { UserProfile } from "~/types/user";
+import type { CurrentUser } from "~/types/user";
 
 // Props
 interface Props {
-	user: UserProfile["user"]  | null;
+	user: CurrentUser | null;
 	loading?: boolean;
 }
 
@@ -207,8 +207,9 @@ const displayAvatarUrl = computed(() => {
 	if (!props.user?.avatarUrl) return null;
 	// If it's already a full URL, return as-is
 	if (props.user.avatarUrl.startsWith("http")) return props.user.avatarUrl;
-	// Otherwise, construct the R2 public URL (this will need to be configured)
-	return `/api/avatars/${props.user.avatarUrl}`;
+	// Remove 'avatars/' prefix if it exists, then construct the API URL
+	const avatarPath = props.user.avatarUrl.replace(/^avatars\//, '');
+	return `/api/avatars/${avatarPath}`;
 });
 
 // Form validation

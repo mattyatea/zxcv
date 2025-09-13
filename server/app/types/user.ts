@@ -5,3 +5,4 @@ type Outputs = InferContractRouterOutputs<typeof contract>; // FIXME: そのう�
 
 export type UserProfile = Outputs["users"]["getProfile"];
 export type PublicUserProfile = Outputs["users"]["getPublicProfile"];
+export type CurrentUser = Outputs["users"]["me"];

@@ -68,7 +68,7 @@
 import { onMounted, ref } from "vue";
 import ProfileEditForm from "~/components/settings/ProfileEditForm.vue";
 import { useToast } from "~/composables/useToast";
-import type { UserProfile } from "~/types/user";
+import type { CurrentUser } from "~/types/user";
 
 // Meta tags
 definePageMeta({
@@ -84,7 +84,7 @@ const { showToast } = useToast();
 // Reactive data
 const activeTab = ref("profile");
 const loading = ref(false);
-const userProfile = ref<UserProfile["user"] | null>(null);
+const userProfile = ref<CurrentUser | null>(null);
 
 // Tab configuration
 const tabs = computed(() => [
@@ -98,7 +98,7 @@ const fetchUserProfile = async () => {
 	try {
 		loading.value = true;
 		const response = await $rpc.users.me();
-		userProfile.value = response.user;
+		userProfile.value = response;
 	} catch (error) {
 		showToast({
 			message: t("settings.error.fetchProfile"),

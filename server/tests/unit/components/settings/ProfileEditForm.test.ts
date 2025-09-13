@@ -88,7 +88,7 @@ describe("ProfileEditForm", () => {
 
 		it("should display avatar when available", () => {
 			wrapper = mountComponent();
-			expect(wrapper.vm.displayAvatarUrl).toContain("/api/avatars/avatars/user_123/avatar.jpg");
+			expect(wrapper.vm.displayAvatarUrl).toContain("/api/avatars/user_123/avatar.jpg");
 		});
 
 		it("should show default avatar when no avatar URL", () => {
