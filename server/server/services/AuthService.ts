@@ -352,6 +352,8 @@ export class AuthService {
 				email: user.email,
 				username: user.username,
 				emailVerified: user.emailVerified,
+				displayName: user.displayName,
+				avatarUrl: user.avatarUrl,
 			},
 			this.env.JWT_SECRET,
 			"1h",

@@ -356,6 +356,8 @@ describe("OpenAPI Endpoints via REST", () => {
 						id: "user_123",
 						username: "testuser",
 						email: "test@example.com",
+						displayName: null,
+						avatarUrl: null,
 					},
 					organization: null,
 				},
