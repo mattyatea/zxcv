@@ -22,6 +22,11 @@ on:
         default: false
         type: boolean
 
+# Prevent multiple release preparations from running simultaneously
+concurrency:
+  group: release-preparation
+  cancel-in-progress: false
+
 jobs:
   prepare-release:
     name: Prepare Release PR
@@ -173,26 +178,86 @@ jobs:
       - name: Build and verify
         run: |
           echo "🔨 Building applications..."
-          pnpm run build:server || {
-            echo "❌ Server build failed!"
-            exit 1
-          }
           
-          if [ "${{ inputs.include_cli }}" == "true" ]; then
-            # Setup Bun for CLI builds
-            curl -fsSL https://bun.sh/install | bash
-            export PATH="$HOME/.bun/bin:$PATH"
-            
-            cd cli
-            bun install
-            bun run build || {
-              echo "❌ CLI build failed!"
-              exit 1
-            }
-            cd ..
+          # Build server application
+          if ! pnpm run build:server; then
+            echo "❌ Server build failed!"
+            echo "Please check server code and dependencies before creating release."
+            exit 1
           fi
           
-          echo "✅ All builds successful!"
+          echo "✅ Server build successful!"
+          
+          # Build CLI if included
+          if [ "${{ inputs.include_cli }}" == "true" ]; then
+            echo "🔨 Building CLI application..."
+            
+            # Setup Bun for CLI builds with error handling
+            if ! curl -fsSL https://bun.sh/install | bash; then
+              echo "❌ Failed to install Bun runtime!"
+              echo "CLI build cannot proceed without Bun."
+              exit 1
+            fi
+            
+            export PATH="$HOME/.bun/bin:$PATH"
+            
+            # Verify Bun installation
+            if ! command -v bun >/dev/null 2>&1; then
+              echo "❌ Bun command not found after installation!"
+              exit 1
+            fi
+            
+            cd cli || {
+              echo "❌ CLI directory not found!"
+              exit 1
+            }
+            
+            # Install CLI dependencies with retry
+            RETRY_COUNT=0
+            MAX_RETRIES=3
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if bun install; then
+                echo "✅ CLI dependencies installed successfully"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "⚠️ CLI dependency installation failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+                if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                  echo "❌ Failed to install CLI dependencies after $MAX_RETRIES attempts!"
+                  cd ..
+                  exit 1
+                fi
+                sleep 5
+              fi
+            done
+            
+            # Build CLI with detailed error reporting
+            if ! bun run build; then
+              echo "❌ CLI build failed!"
+              echo "Build logs:"
+              echo "---"
+              bun run build 2>&1 || true
+              echo "---"
+              echo "Please check CLI code and build configuration."
+              cd ..
+              exit 1
+            fi
+            
+            # Verify CLI binary was created
+            if [ ! -f "dist/zxcv" ]; then
+              echo "❌ CLI binary not found after build!"
+              echo "Expected: cli/dist/zxcv"
+              ls -la dist/ || echo "dist/ directory not found"
+              cd ..
+              exit 1
+            fi
+            
+            cd ..
+            echo "✅ CLI build successful!"
+          fi
+          
+          echo "✅ All builds completed successfully!"
 
       - name: Commit version updates
         run: |
@@ -216,7 +281,18 @@ jobs:
 
       - name: Push release branch
         run: |
-          git push -u origin ${{ steps.branch.outputs.branch_name }}
+          # Push release branch with error handling
+          if ! git push -u origin ${{ steps.branch.outputs.branch_name }}; then
+            echo "❌ Failed to push release branch to origin"
+            echo "This might be due to network issues or branch conflicts"
+            
+            # Clean up local branch
+            git checkout dev 2>/dev/null || git checkout main 2>/dev/null || true
+            git branch -D ${{ steps.branch.outputs.branch_name }} 2>/dev/null || true
+            
+            exit 1
+          fi
+          
           echo "✅ Pushed release branch to origin"
 
       - name: Create Release PR

@@ -8,6 +8,11 @@ on:
       - 'server/package.json' 
       - 'cli/package.json'
 
+# Prevent multiple post-release actions from running simultaneously
+concurrency:
+  group: post-release
+  cancel-in-progress: false
+
 jobs:
   check-release:
     name: Check for Release
@@ -82,10 +87,63 @@ jobs:
       - name: Wait for deployment to complete
         run: |
           echo "⏳ Waiting for production deployment to complete..."
-          sleep 60  # Give time for deployment to start
           
-          # Check deployment status (simplified - could be enhanced)
-          echo "✅ Assuming deployment completed successfully"
+          # Wait for deployment to start
+          sleep 30
+          
+          # Check GitHub deployment status
+          DEPLOYMENT_ID=""
+          MAX_ATTEMPTS=20
+          ATTEMPT=0
+          
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            echo "Checking deployment status (attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS)..."
+            
+            # Get the latest deployment for production environment
+            DEPLOYMENT_DATA=$(gh api repos/${{ github.repository }}/deployments \
+              --jq '.[] | select(.environment == "production") | select(.created_at > (now - 300)) | .[0]' 2>/dev/null || echo "")
+            
+            if [ -n "$DEPLOYMENT_DATA" ]; then
+              DEPLOYMENT_ID=$(echo "$DEPLOYMENT_DATA" | jq -r '.id // empty' 2>/dev/null || echo "")
+              
+              if [ -n "$DEPLOYMENT_ID" ]; then
+                # Check deployment status
+                STATUS=$(gh api repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses \
+                  --jq '.[0].state // empty' 2>/dev/null || echo "")
+                
+                echo "Deployment $DEPLOYMENT_ID status: $STATUS"
+                
+                case "$STATUS" in
+                  "success")
+                    echo "✅ Deployment completed successfully!"
+                    break
+                    ;;
+                  "failure"|"error")
+                    echo "❌ Deployment failed!"
+                    exit 1
+                    ;;
+                  "pending"|"in_progress")
+                    echo "⏳ Deployment still in progress..."
+                    ;;
+                  *)
+                    echo "🔍 Unknown deployment status: $STATUS"
+                    ;;
+                esac
+              fi
+            fi
+            
+            ATTEMPT=$((ATTEMPT + 1))
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              sleep 15
+            fi
+          done
+          
+          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+            echo "⚠️ Deployment status check timed out, proceeding with release finalization"
+            echo "Please verify deployment manually: https://zxcv.nanasi-apps.xyz"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Git tag
         run: |
@@ -94,16 +152,47 @@ jobs:
           
           VERSION="${{ needs.check-release.outputs.version }}"
           
-          git tag -a "$VERSION" -m "Release $VERSION
+          # Check if tag already exists
+          if git tag -l "$VERSION" | grep -q "$VERSION"; then
+            echo "⚠️ Tag $VERSION already exists, skipping tag creation"
+          else
+            # Create tag with error handling
+            if ! git tag -a "$VERSION" -m "Release $VERSION
 
-          🚀 Production release created automatically after successful deployment.
+            🚀 Production release created automatically after successful deployment.
 
-          🤖 Generated with [Claude Code](https://claude.ai/code)
+            🤖 Generated with [Claude Code](https://claude.ai/code)
 
-          Co-Authored-By: Claude <noreply@anthropic.com>"
-          
-          git push origin "$VERSION"
-          echo "✅ Created and pushed tag: $VERSION"
+            Co-Authored-By: Claude <noreply@anthropic.com>"; then
+              echo "❌ Failed to create Git tag $VERSION"
+              exit 1
+            fi
+            
+            # Push tag with error handling and retry
+            RETRY_COUNT=0
+            MAX_RETRIES=3
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push origin "$VERSION"; then
+                echo "✅ Created and pushed tag: $VERSION"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "⚠️ Failed to push tag (attempt $RETRY_COUNT/$MAX_RETRIES)"
+                
+                if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                  echo "❌ Failed to push tag after $MAX_RETRIES attempts"
+                  echo "Tag created locally but not pushed to remote"
+                  
+                  # Clean up local tag
+                  git tag -d "$VERSION" 2>/dev/null || true
+                  exit 1
+                fi
+                
+                sleep 5
+              fi
+            done
+          fi
 
       - name: Update GitHub release from draft
         run: |
@@ -191,22 +280,62 @@ jobs:
         run: |
           echo "🔄 Merging release changes back to dev branch..."
           
-          git fetch origin
-          git checkout dev
-          git pull origin dev
+          # Fetch latest changes with error handling
+          if ! git fetch origin; then
+            echo "❌ Failed to fetch from origin"
+            exit 1
+          fi
+          
+          # Checkout dev branch with error handling
+          if ! git checkout dev; then
+            echo "❌ Failed to checkout dev branch"
+            exit 1
+          fi
+          
+          # Pull latest dev changes
+          if ! git pull origin dev; then
+            echo "❌ Failed to pull latest dev changes"
+            exit 1
+          fi
           
           # Merge main into dev to keep branches in sync
-          git merge origin/main --no-ff -m "chore: merge release ${{ needs.check-release.outputs.version }} back to dev
+          if ! git merge origin/main --no-ff -m "chore: merge release ${{ needs.check-release.outputs.version }} back to dev
 
           🔄 Automatic merge after successful release.
 
           🤖 Generated with [Claude Code](https://claude.ai/code)
 
-          Co-Authored-By: Claude <noreply@anthropic.com>"
+          Co-Authored-By: Claude <noreply@anthropic.com>"; then
+            echo "❌ Failed to merge main into dev"
+            echo "This might be due to merge conflicts."
+            echo "Manual intervention required."
+            
+            # Show conflict information
+            git status || true
+            echo "Please resolve conflicts manually and complete the merge."
+            exit 1
+          fi
           
-          git push origin dev
+          # Push merged changes with retry
+          RETRY_COUNT=0
+          MAX_RETRIES=3
           
-          echo "✅ Merged release changes back to dev"
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if git push origin dev; then
+              echo "✅ Merged release changes back to dev"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⚠️ Failed to push to dev (attempt $RETRY_COUNT/$MAX_RETRIES)"
+              
+              if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                echo "❌ Failed to push dev branch after $MAX_RETRIES attempts"
+                exit 1
+              fi
+              
+              sleep 5
+            fi
+          done
 
       - name: Clean up release branch
         run: |

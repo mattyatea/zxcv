@@ -136,19 +136,45 @@ docs: update API documentation
 ## 🚨 Troubleshooting
 
 ### Release Workflow Fails
-- Check workflow logs in Actions tab
-- Verify all required secrets are set
-- Ensure branch permissions allow PR creation
+- **Check workflow logs**: Go to Actions tab and examine detailed logs
+- **Verify secrets**: Ensure `GITHUB_TOKEN`, `CLOUDFLARE_API_TOKEN`, etc. are set
+- **Branch permissions**: Confirm PR creation permissions are enabled
+- **Concurrency conflicts**: Only one release can be prepared at a time
 
-### Deployment Issues
-- Monitor Cloudflare Workers deployment
-- Check production site accessibility
-- Review error logs
+### Common Error Scenarios
 
-### CLI Build Problems
-- Verify Bun installation in CI
-- Check cross-compilation settings
-- Validate binary permissions
+#### CLI Build Failures
+- **Bun installation fails**: Network issues or platform compatibility
+- **Dependencies fail**: Package resolution or network timeouts (auto-retry up to 3 times)
+- **Build process fails**: TypeScript errors or missing dependencies
+- **Binary not created**: Build configuration issues
+
+#### Git Operation Failures
+- **Push failures**: Network issues or branch conflicts (auto-cleanup on failure)
+- **Tag conflicts**: Tag already exists (skips duplicate tag creation)
+- **Merge conflicts**: Manual resolution required for dev branch merge
+
+#### Deployment Issues
+- **Status verification**: Enhanced deployment monitoring with 20 retry attempts
+- **Timeout handling**: Proceeds with warning if deployment status unclear
+- **Manual verification**: Check https://zxcv.nanasi-apps.xyz if automated check fails
+
+### Enhanced Error Handling
+
+The system now includes:
+- **Retry mechanisms** for network operations (3-20 attempts depending on operation)
+- **Automatic cleanup** of failed Git operations
+- **Detailed error messages** with actionable guidance
+- **Graceful degradation** when non-critical operations fail
+- **Concurrency protection** to prevent race conditions
+
+### Manual Recovery Steps
+
+If a release fails:
+1. **Check the workflow logs** for specific error messages
+2. **Clean up artifacts**: Delete failed release branch if created
+3. **Address root cause**: Fix code, dependencies, or configuration
+4. **Retry release**: Run the workflow again with same or updated version
 
 ---
 
