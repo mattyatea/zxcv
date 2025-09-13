@@ -68,6 +68,7 @@
 import { onMounted, ref } from "vue";
 import ProfileEditForm from "~/components/settings/ProfileEditForm.vue";
 import { useToast } from "~/composables/useToast";
+import { useRpc } from "~/composables/useRpc";
 import type { CurrentUser } from "~/types/user";
 
 // Meta tags
@@ -77,7 +78,7 @@ definePageMeta({
 });
 
 // Composables
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const { t } = useI18n();
 const { showToast } = useToast();
 
