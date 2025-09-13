@@ -1,19 +1,19 @@
 <template>
-	<div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
-		<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+	<div class="bg-white dark:bg-gray-800 shadow px-4 py-5 sm:rounded-lg sm:p-6">
+		<h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
 			{{ t('settings.profile.title') }}
 		</h3>
 
 		<form @submit.prevent="handleSubmit" class="space-y-6">
 			<!-- Avatar Section -->
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">
+				<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
 					{{ t('settings.profile.avatar') }}
 				</label>
 				<div class="flex items-center space-x-4">
 					<div class="relative">
 						<div
-							class="h-20 w-20 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden"
+							class="h-20 w-20 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center overflow-hidden"
 						>
 							<img
 								v-if="displayAvatarUrl"
@@ -24,18 +24,19 @@
 							<Icon
 								v-else
 								name="heroicons:user-circle"
-								class="h-16 w-16 text-gray-400"
+								class="h-16 w-16 text-gray-400 dark:text-gray-500"
 							/>
 						</div>
 						<label
 							for="avatar-upload"
-							class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 hover:opacity-100 cursor-pointer transition-opacity"
+							class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-60 rounded-full opacity-0 hover:opacity-100 cursor-pointer transition-opacity"
 						>
 							<Icon name="heroicons:camera" class="h-6 w-6 text-white" />
 						</label>
 					</div>
 					<div>
 						<input
+							ref="avatarInput"
 							id="avatar-upload"
 							type="file"
 							accept="image/*"
@@ -46,12 +47,12 @@
 							type="button"
 							variant="secondary"
 							size="sm"
-							@click="$refs.avatarInput?.click()"
+							@click="avatarInput?.click()"
 							:disabled="loading"
 						>
 							{{ t('settings.profile.changeAvatar') }}
 						</Button>
-						<p class="text-xs text-gray-500 mt-1">
+						<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
 							{{ t('settings.profile.avatarHint') }}
 						</p>
 					</div>
@@ -60,7 +61,7 @@
 
 			<!-- Display Name -->
 			<div>
-				<label for="displayName" class="block text-sm font-medium text-gray-700">
+				<label for="displayName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
 					{{ t('settings.profile.displayName') }}
 				</label>
 				<Input
@@ -76,7 +77,7 @@
 
 			<!-- Bio -->
 			<div>
-				<label for="bio" class="block text-sm font-medium text-gray-700">
+				<label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
 					{{ t('settings.profile.bio') }}
 				</label>
 				<Textarea
@@ -84,18 +85,18 @@
 					v-model="form.bio"
 					:placeholder="t('settings.profile.bioPlaceholder')"
 					:disabled="loading"
-					rows="3"
+					:rows="3"
 					maxlength="500"
 					class="mt-1"
 				/>
-				<p class="text-xs text-gray-500 mt-1">
+				<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
 					{{ (form.bio || '').length }}/500
 				</p>
 			</div>
 
 			<!-- Location -->
 			<div>
-				<label for="location" class="block text-sm font-medium text-gray-700">
+				<label for="location" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
 					{{ t('settings.profile.location') }}
 				</label>
 				<Input
@@ -111,7 +112,7 @@
 
 			<!-- Website -->
 			<div>
-				<label for="website" class="block text-sm font-medium text-gray-700">
+				<label for="website" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
 					{{ t('settings.profile.website') }}
 				</label>
 				<Input
@@ -148,11 +149,14 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import Button from "~/components/common/Button.vue";
+import Input from "~/components/common/Input.vue";
+import Textarea from "~/components/common/Textarea.vue";
 import type { UserProfile } from "~/types/user";
 
 // Props
 interface Props {
-	user: UserProfile | null;
+	user: UserProfile["user"]  | null;
 	loading?: boolean;
 }
 
@@ -178,6 +182,10 @@ const emit = defineEmits<Emits>();
 
 // Composables
 const { t } = useI18n();
+const { showToast } = useToast();
+
+// Template refs
+const avatarInput = ref<HTMLInputElement>();
 
 // Form data
 const form = ref({
@@ -279,13 +287,19 @@ const handleAvatarChange = (event: Event) => {
 
 	// Validate file type
 	if (!file.type.startsWith("image/")) {
-		// Show error toast
+		showToast({
+			message: t('settings.profile.errors.invalidFileType'),
+			type: "error",
+		});
 		return;
 	}
 
 	// Validate file size (5MB max)
 	if (file.size > 5 * 1024 * 1024) {
-		// Show error toast
+		showToast({
+			message: t('settings.profile.errors.fileTooLarge'),
+			type: "error",
+		});
 		return;
 	}
 

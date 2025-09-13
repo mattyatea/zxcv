@@ -1,34 +1,7 @@
-export interface UserProfile {
-	id: string;
-	email: string;
-	username: string;
-	emailVerified: boolean;
-	displayName: string | null;
-	bio: string | null;
-	location: string | null;
-	website: string | null;
-	avatarUrl: string | null;
-	createdAt: number;
-	updatedAt: number;
-}
+import type { InferContractRouterOutputs } from "@orpc/contract";
+import type {contract} from "~/server/orpc/contracts";
 
-export interface PublicUserProfile {
-	id: string;
-	username: string;
-	displayName: string | null;
-	bio: string | null;
-	location: string | null;
-	website: string | null;
-	avatarUrl: string | null;
-	createdAt: number;
-}
+type Outputs = InferContractRouterOutputs<typeof contract>; // FIXME: そのうちちゃんと定義する場所を統一して、いい感じに使うようにする
 
-export interface UserStats {
-	rulesCount: number;
-	organizationsCount: number;
-}
-
-export interface PublicUserStats {
-	publicRulesCount: number;
-	totalStars: number;
-}
+export type UserProfile = Outputs["users"]["getProfile"];
+export type PublicUserProfile = Outputs["users"]["getPublicProfile"];

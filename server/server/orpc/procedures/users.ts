@@ -373,9 +373,16 @@ export const uploadAvatar = os.users.uploadAvatar
 		const { image, filename } = input;
 		const { db, user, env } = context;
 
+		console.log("Avatar upload started:", {
+			userId: user.id,
+			filename,
+			base64Length: image.length,
+		});
+
 		try {
 			// Decode base64 image
 			const imageData = Buffer.from(image, "base64");
+			console.log("Image decoded, buffer length:", imageData.length);
 
 			// Validate image size (max 5MB)
 			if (imageData.length > 5 * 1024 * 1024) {
@@ -393,19 +400,24 @@ export const uploadAvatar = os.users.uploadAvatar
 			// Generate unique filename
 			const { nanoid } = await import("nanoid");
 			const avatarKey = `avatars/${user.id}/${nanoid()}.${ext}`;
+			console.log("Generated avatar key:", avatarKey);
 
 			// Upload to R2
 			if (!env.R2) {
+				console.error("R2 storage not available");
 				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Storage not available" });
 			}
 
+			console.log("Uploading to R2...");
 			await env.R2.put(avatarKey, imageData, {
 				httpMetadata: {
 					contentType: `image/${ext === "jpg" ? "jpeg" : ext}`,
 				},
 			});
+			console.log("R2 upload completed");
 
 			// Update user avatar URL
+			console.log("Updating user avatar URL in database...");
 			const updatedUser = await db.user.update({
 				where: { id: user.id },
 				data: {
@@ -416,11 +428,13 @@ export const uploadAvatar = os.users.uploadAvatar
 					avatarUrl: true,
 				},
 			});
+			console.log("Database update completed");
 
 			return {
 				avatarUrl: updatedUser.avatarUrl || "",
 			};
 		} catch (error) {
+			console.error("Avatar upload error:", error);
 			if (error instanceof ORPCError) {
 				throw error;
 			}

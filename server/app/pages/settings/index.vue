@@ -1,12 +1,12 @@
 <template>
-	<div class="min-h-screen bg-gray-50 py-12">
+	<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
 		<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-			<div class="bg-white shadow">
+			<div class="bg-white dark:bg-gray-800 shadow">
 				<div class="px-4 py-5 sm:p-6">
-					<h1 class="text-2xl font-bold text-gray-900 mb-6">{{ t('settings.title') }}</h1>
+					<h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ t('settings.title') }}</h1>
 
 					<!-- Tab Navigation -->
-					<div class="border-b border-gray-200">
+					<div class="border-b border-gray-200 dark:border-gray-700">
 						<nav class="-mb-px flex space-x-8">
 							<button
 								v-for="tab in tabs"
@@ -15,8 +15,8 @@
 								:class="[
 									'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm',
 									activeTab === tab.id
-										? 'border-blue-500 text-blue-600'
-										: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+										? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+										: 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
 								]"
 							>
 								{{ tab.name }}
@@ -38,23 +38,23 @@
 
 						<!-- Account Tab -->
 						<div v-else-if="activeTab === 'account'" class="space-y-6">
-							<div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
-								<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+							<div class="bg-white dark:bg-gray-800 shadow px-4 py-5 sm:rounded-lg sm:p-6">
+								<h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
 									{{ t('settings.account.title') }}
 								</h3>
 								<!-- Account settings content will be added here -->
-								<p class="text-gray-500">{{ t('settings.account.placeholder') }}</p>
+								<p class="text-gray-500 dark:text-gray-400">{{ t('settings.account.placeholder') }}</p>
 							</div>
 						</div>
 
 						<!-- Security Tab -->
 						<div v-else-if="activeTab === 'security'" class="space-y-6">
-							<div class="bg-white shadow px-4 py-5 sm:rounded-lg sm:p-6">
-								<h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+							<div class="bg-white dark:bg-gray-800 shadow px-4 py-5 sm:rounded-lg sm:p-6">
+								<h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
 									{{ t('settings.security.title') }}
 								</h3>
 								<!-- Security settings content will be added here -->
-								<p class="text-gray-500">{{ t('settings.security.placeholder') }}</p>
+								<p class="text-gray-500 dark:text-gray-400">{{ t('settings.security.placeholder') }}</p>
 							</div>
 						</div>
 					</div>
@@ -84,7 +84,7 @@ const { showToast } = useToast();
 // Reactive data
 const activeTab = ref("profile");
 const loading = ref(false);
-const userProfile = ref<UserProfile | null>(null);
+const userProfile = ref<UserProfile["user"] | null>(null);
 
 // Tab configuration
 const tabs = computed(() => [
@@ -100,7 +100,6 @@ const fetchUserProfile = async () => {
 		const response = await $rpc.users.me();
 		userProfile.value = response.user;
 	} catch (error) {
-		console.error("Failed to fetch user profile:", error);
 		showToast({
 			message: t("settings.error.fetchProfile"),
 			type: "error",
@@ -126,7 +125,6 @@ const handleProfileUpdate = async (profileData: {
 			type: "success",
 		});
 	} catch (error) {
-		console.error("Failed to update profile:", error);
 		showToast({
 			message: t("settings.error.updateProfile"),
 			type: "error",
@@ -140,6 +138,7 @@ const handleProfileUpdate = async (profileData: {
 const handleAvatarUpload = async (file: File) => {
 	try {
 		loading.value = true;
+		
 
 		// Convert file to base64
 		const base64 = await new Promise<string>((resolve, reject) => {
@@ -150,7 +149,9 @@ const handleAvatarUpload = async (file: File) => {
 				const base64Data = result.split(",")[1];
 				resolve(base64Data);
 			};
-			reader.onerror = reject;
+			reader.onerror = (error) => {
+				reject(error);
+			};
 			reader.readAsDataURL(file);
 		});
 
@@ -168,10 +169,13 @@ const handleAvatarUpload = async (file: File) => {
 			message: t("settings.success.avatarUploaded"),
 			type: "success",
 		});
-	} catch (error) {
-		console.error("Failed to upload avatar:", error);
+	} catch (error: any) {
+		
+		// Extract error message if available
+		const errorMessage = error?.message || error?.data?.message || t("settings.error.uploadAvatar");
+		
 		showToast({
-			message: t("settings.error.uploadAvatar"),
+			message: errorMessage,
 			type: "error",
 		});
 	} finally {

@@ -175,13 +175,12 @@
 </template>
 
 <script setup lang="ts">
-import type { InferOutput } from "@orpc/contract";
-import { useI18n } from "~/composables/useI18n";
-import { useRpc } from "~/composables/useRpc";
+import type { InferContractRouterOutputs } from "@orpc/contract";
 import type { contract } from "~/server/orpc/contracts";
-import { useAuthStore } from "~/stores/auth";
 
-type UserPublicProfile = InferOutput<typeof contract.users.getPublicProfile>;
+type Outputs = InferContractRouterOutputs<typeof contract>; // FIXME: そのうちちゃんと定義する場所を統一して、いい感じに使うようにする
+
+type UserPublicProfile = Outputs["users"]["getPublicProfile"];
 
 const route = useRoute();
 const $rpc = useRpc();
@@ -227,7 +226,7 @@ function formatDate(timestamp: number) {
 // Get avatar URL
 function getAvatarUrl(avatarUrl: string) {
 	// If it's already a full URL, return as-is
-	if (avatarUrl.startsWith('http')) return avatarUrl;
+	if (avatarUrl.startsWith("http")) return avatarUrl;
 	// Otherwise, construct the R2 public URL (this will need to be configured)
 	return `/api/avatars/${avatarUrl}`;
 }
@@ -236,7 +235,7 @@ function getAvatarUrl(avatarUrl: string) {
 function formatWebsiteUrl(url: string) {
 	try {
 		const parsedUrl = new URL(url);
-		return parsedUrl.hostname + (parsedUrl.pathname !== '/' ? parsedUrl.pathname : '');
+		return parsedUrl.hostname + (parsedUrl.pathname !== "/" ? parsedUrl.pathname : "");
 	} catch {
 		return url;
 	}
