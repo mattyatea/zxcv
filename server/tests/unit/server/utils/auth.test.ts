@@ -100,6 +100,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: undefined,
+				avatarUrl: undefined,
 			});
 			expect(result.apiKeyScopes).toEqual(["read:rules", "write:rules"]);
 			expect(mockPrisma.apiKey.update).toHaveBeenCalledWith({
@@ -129,6 +131,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 			expect(result.apiKeyScopes).toBeUndefined();
 			expect(jwtUtils.verifyJWT).toHaveBeenCalledWith(
@@ -240,6 +244,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 		});
 
@@ -277,6 +283,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 		});
 
