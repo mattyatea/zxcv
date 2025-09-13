@@ -23,14 +23,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup project
-        uses: ./.github/actions/setup
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.9
+
+      - name: Install CLI dependencies
+        run: |
+          cd cli
+          bun install
 
       - name: Test CLI
-        run: pnpm -F cli test
+        run: |
+          cd cli
+          bun test
 
       - name: Build CLI
-        run: pnpm run build:cli
+        run: |
+          cd cli
+          bun run build
 
       - name: Test CLI build
         run: |
@@ -52,11 +63,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup project
-        uses: ./.github/actions/setup
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.9
+
+      - name: Install CLI dependencies
+        run: |
+          cd cli
+          bun install
 
       - name: Build CLI for release
-        run: pnpm run build:cli
+        run: |
+          cd cli
+          bun run build
 
       - name: Create release
         # Add release logic here if needed
