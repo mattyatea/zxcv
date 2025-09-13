@@ -698,12 +698,34 @@ describe("Auth Integration Tests", () => {
 				location: "Test City",
 			};
 
-			vi.mocked(mockDb.user.findUnique).mockResolvedValue(userDetails);
+			console.log("[TEST DEBUG] Setting up mocks for users.me test");
 
-			// Explicitly mock the count queries used by users.me
-			vi.mocked(mockDb.rule.count).mockResolvedValue(0);
-			vi.mocked(mockDb.organizationMember.count).mockResolvedValue(0);
-			vi.mocked(mockDb.ruleStar.count).mockResolvedValue(0);
+			// Clear and reset all mocks to ensure clean state
+			vi.clearAllMocks();
+
+			// Mock user.findUnique with detailed logging
+			vi.mocked(mockDb.user.findUnique).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] user.findUnique called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning userDetails:", JSON.stringify(userDetails, null, 2));
+				return userDetails;
+			});
+
+			// Explicitly mock the count queries used by users.me with detailed logging
+			vi.mocked(mockDb.rule.count).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] rule.count called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning 0");
+				return 0;
+			});
+			vi.mocked(mockDb.organizationMember.count).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] organizationMember.count called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning 0");
+				return 0;
+			});
+			vi.mocked(mockDb.ruleStar.count).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] ruleStar.count called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning 0");
+				return 0;
+			});
 
 			// Add teams membership
 			vi.mocked(mockDb.teamMember.findMany).mockResolvedValue([

@@ -138,6 +138,8 @@ export const getProfile = os.users.getProfile
 export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 	const { db, user } = context;
 
+	console.log("[DEBUG] users.me called for user:", user.id);
+
 	// Get detailed user profile from database
 	const userProfile = await db.user.findUnique({
 		where: { id: user.id },
@@ -156,32 +158,53 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 		},
 	});
 
+	console.log("[DEBUG] userProfile from DB:", userProfile);
+
 	if (!userProfile) {
 		throw new ORPCError("NOT_FOUND", { message: "User not found" });
 	}
 
-	// Get user statistics
-	const [rulesCount, organizationsCount, totalStars] = await Promise.all([
-		db.rule.count({
-			where: {
-				userId: user.id,
-			},
-		}),
-		db.organizationMember.count({
-			where: {
-				userId: user.id,
-			},
-		}),
-		db.ruleStar.count({
-			where: {
-				rule: {
+	// Get user statistics with robust error handling
+	let rulesCount = 0;
+	let organizationsCount = 0;
+	let totalStars = 0;
+
+	try {
+		const stats = await Promise.all([
+			db.rule.count({
+				where: {
 					userId: user.id,
 				},
-			},
-		}),
-	]);
+			}),
+			db.organizationMember.count({
+				where: {
+					userId: user.id,
+				},
+			}),
+			db.ruleStar.count({
+				where: {
+					rule: {
+						userId: user.id,
+					},
+				},
+			}),
+		]);
 
-	return {
+		// Ensure we always get numbers, even if the database returns unexpected values
+		rulesCount = typeof stats[0] === "number" ? stats[0] : 0;
+		organizationsCount = typeof stats[1] === "number" ? stats[1] : 0;
+		totalStars = typeof stats[2] === "number" ? stats[2] : 0;
+
+		console.log("[DEBUG] stats from DB:", { rulesCount, organizationsCount, totalStars });
+	} catch (error) {
+		console.log("[DEBUG] Error getting stats, using defaults:", error);
+		// Use defaults if there's any error
+		rulesCount = 0;
+		organizationsCount = 0;
+		totalStars = 0;
+	}
+
+	const result = {
 		id: userProfile.id,
 		email: userProfile.email,
 		username: userProfile.username,
@@ -194,11 +217,15 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 		createdAt: userProfile.createdAt,
 		updatedAt: userProfile.updatedAt,
 		stats: {
-			rulesCount: rulesCount ?? 0,
-			organizationsCount: organizationsCount ?? 0,
-			totalStars: totalStars ?? 0,
+			rulesCount,
+			organizationsCount,
+			totalStars,
 		},
 	};
+
+	console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
+
+	return result;
 });
 
 export const updateProfile = os.users.updateProfile

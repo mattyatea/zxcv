@@ -236,8 +236,12 @@ describe("OpenAPI Endpoints via REST", () => {
 		});
 
 		it("GET /api/users/me - should return current user profile", async () => {
-			// Mock the database response for profile endpoint
-			mockDb.user.findUnique.mockResolvedValue({
+			console.log("[OPENAPI TEST DEBUG] Setting up mocks for users.me test");
+
+			// Clear and reset all mocks to ensure clean state
+			vi.clearAllMocks();
+
+			const userDetails = {
 				id: "user_123",
 				email: "test@example.com",
 				username: "testuser",
@@ -250,12 +254,31 @@ describe("OpenAPI Endpoints via REST", () => {
 				avatarUrl: "https://example.com/avatar.jpg",
 				createdAt: mockNow,
 				updatedAt: mockNow,
+			};
+
+			// Mock the database response for profile endpoint with logging
+			mockDb.user.findUnique.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] user.findUnique called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning userDetails:", JSON.stringify(userDetails, null, 2));
+				return userDetails;
 			});
 
-			// Explicitly mock the count queries used by users.me  
-			mockDb.rule.count.mockResolvedValue(0);
-			mockDb.organizationMember.count.mockResolvedValue(0);
-			mockDb.ruleStar.count.mockResolvedValue(0);
+			// Explicitly mock the count queries used by users.me with logging
+			mockDb.rule.count.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] rule.count called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning 0");
+				return 0;
+			});
+			mockDb.organizationMember.count.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] organizationMember.count called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning 0");
+				return 0;
+			});
+			mockDb.ruleStar.count.mockImplementation(async (args: any) => {
+				console.log("[OPENAPI TEST DEBUG] ruleStar.count called with:", JSON.stringify(args, null, 2));
+				console.log("[OPENAPI TEST DEBUG] returning 0");
+				return 0;
+			});
 
 			const request = new Request("http://localhost:3000/api/users/me", {
 				method: "GET",
@@ -282,16 +305,24 @@ describe("OpenAPI Endpoints via REST", () => {
 			});
 
 			// Debug response
+			console.log("[OPENAPI TEST DEBUG] Response status:", response.response.status);
+			console.log("[OPENAPI TEST DEBUG] Response matched:", response.matched);
+			
 			if (!response.matched) {
-				console.log("Response not matched for /api/users/me");
+				console.log("[OPENAPI TEST DEBUG] Response not matched for /api/users/me");
 				const body = await response.response.text();
-				console.log("Response body:", body);
+				console.log("[OPENAPI TEST DEBUG] Response body:", body);
+			}
+			
+			if (response.response.status !== 200) {
+				console.log("[OPENAPI TEST DEBUG] Non-200 response, body:", await response.response.text());
 			}
 			
 			expect(response.matched).toBe(true);
 			expect(response.response.status).toBe(200);
 
 			const data = await response.response.json();
+			console.log("[OPENAPI TEST DEBUG] Response data:", JSON.stringify(data, null, 2));
 			expect(data).toMatchObject({
 				id: "user_123",
 				email: "test@example.com",
