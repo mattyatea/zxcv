@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., v1.2.0)'
+        description: 'Release version (e.g., v1.2.0, v1.2.0-beta.1, v1.2.0-alpha.1)'
         required: true
         type: string
       release_type:
@@ -16,6 +16,9 @@ on:
           - patch
           - minor
           - major
+          - alpha
+          - beta
+          - rc
       include_cli:
         description: 'Include CLI release'
         required: false
@@ -329,6 +332,7 @@ jobs:
           - **Server**: ✅ Included
           $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- **CLI**: ✅ Included"; else echo "- **CLI**: ❌ Not included"; fi)
           - **Type**: ${{ inputs.release_type }} release
+          $(if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then echo "- **Prerelease**: This is a prerelease version"; fi)
           
           ---
           
@@ -362,6 +366,16 @@ jobs:
 
       - name: Create draft GitHub release
         run: |
+          # Determine if this is a prerelease
+          PRERELEASE_FLAG=""
+          if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then
+            PRERELEASE_FLAG="--prerelease"
+            echo "📋 Creating prerelease for ${{ inputs.version }}"
+          else
+            PRERELEASE_FLAG="--latest"
+            echo "📋 Creating stable release for ${{ inputs.version }}"
+          fi
+          
           gh release create "${{ inputs.version }}" \
             --title "🚀 Release ${{ inputs.version }}" \
             --notes "$(cat <<'EOF'
@@ -374,10 +388,12 @@ jobs:
           - **Staging**: https://zxcv-staging.mattyatea.me
           
           $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "### CLI Tool"; echo ""; echo "Download the appropriate binary for your platform from the assets below."; fi)
+          
+          $(if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then echo ""; echo "⚠️ **This is a prerelease version** - Use for testing purposes only."; fi)
           EOF
           )" \
             --draft \
-            --latest \
+            $PRERELEASE_FLAG \
             --target ${{ steps.branch.outputs.branch_name }}
           
           echo "✅ Created draft GitHub release"

@@ -43,11 +43,11 @@ jobs:
           VERSION=""
           INCLUDE_CLI=false
           
-          # Method 1: Check commit message for version bump pattern
-          if [[ "$COMMIT_MSG" =~ ^chore:\ bump\ version\ to\ v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          # Method 1: Check commit message for version bump pattern (including prerelease)
+          if [[ "$COMMIT_MSG" =~ ^chore:\ bump\ version\ to\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]]; then
             echo "✅ Release detected via commit message pattern"
             IS_RELEASE=true
-            VERSION=$(echo "$COMMIT_MSG" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+" | head -1)
+            VERSION=$(echo "$COMMIT_MSG" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
           fi
           
           # Method 2: Check for merge commit from release branch
@@ -66,11 +66,11 @@ jobs:
                 echo "PR Title: $PR_TITLE"
                 echo "PR Labels: $PR_LABELS"
                 
-                # Check if PR has release indicators
-                if [[ "$PR_TITLE" =~ ^🚀\ Release\ v[0-9]+\.[0-9]+\.[0-9]+ ]] || [[ "$PR_LABELS" =~ release ]]; then
+                # Check if PR has release indicators (including prerelease)
+                if [[ "$PR_TITLE" =~ ^🚀\ Release\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]] || [[ "$PR_LABELS" =~ release ]]; then
                   echo "✅ Release detected via PR merge"
                   IS_RELEASE=true
-                  VERSION=$(echo "$PR_TITLE" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+" | head -1)
+                  VERSION=$(echo "$PR_TITLE" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
                 fi
               fi
             fi
@@ -90,8 +90,8 @@ jobs:
                 if [ -f "$file" ] && echo "$CHANGED_FILES" | grep -q "$file"; then
                   CURRENT_VERSION=$(jq -r '.version // ""' "$file" 2>/dev/null)
                   if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "null" ]; then
-                    # Check if this looks like a new release version
-                    if [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    # Check if this looks like a new release version (including prerelease)
+                    if [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
                       echo "✅ Release detected via package.json version: $CURRENT_VERSION"
                       IS_RELEASE=true
                       VERSION="v$CURRENT_VERSION"
@@ -113,9 +113,10 @@ jobs:
               echo "ℹ️ CLI release not included"
             fi
             
-            # Validate version format
-            if [ -z "$VERSION" ] || [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # Validate version format (support prerelease versions)
+            if [ -z "$VERSION" ] || [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
               echo "⚠️ Invalid version format detected: '$VERSION'"
+              echo "Supported formats: v1.2.3, v1.2.3-alpha.1, v1.2.3-beta.1, v1.2.3-rc.1"
               IS_RELEASE=false
             fi
           fi
@@ -344,6 +345,16 @@ jobs:
             CHANGELOG=$(git log $LATEST_TAG..$VERSION --pretty=format:"- %s (%h)" --no-merges)
           fi
           
+          # Determine if this is a prerelease
+          PRERELEASE_FLAG=""
+          if [[ "$VERSION" =~ -[a-zA-Z]+ ]]; then
+            PRERELEASE_FLAG="--prerelease"
+            echo "📋 Publishing prerelease $VERSION"
+          else
+            PRERELEASE_FLAG="--latest"
+            echo "📋 Publishing stable release $VERSION"
+          fi
+          
           # Update the draft release to published
           gh release edit "$VERSION" \
             --title "🚀 Release $VERSION" \
@@ -359,6 +370,8 @@ jobs:
           
           $(if [ "${{ needs.check-release.outputs.include_cli }}" == "true" ]; then echo "## 📦 CLI Tool"; echo ""; echo "Download the appropriate binary for your platform from the assets below."; echo ""; echo '```bash'; echo '# Install CLI (replace with actual download URL)'; echo 'curl -L https://github.com/mattyatea/zxcv/releases/download/$VERSION/zxcv-[platform] -o zxcv'; echo 'chmod +x zxcv'; echo 'sudo mv zxcv /usr/local/bin/'; echo '```'; fi)
           
+          $(if [[ "$VERSION" =~ -[a-zA-Z]+ ]]; then echo ""; echo "⚠️ **This is a prerelease version** - Use for testing purposes only."; echo "Stable releases are available at: https://github.com/mattyatea/zxcv/releases"; fi)
+          
           ---
           
           🤖 **Automated Release** - This release was created automatically after successful production deployment.
@@ -366,7 +379,8 @@ jobs:
           For issues or questions, please visit our [GitHub Issues](https://github.com/mattyatea/zxcv/issues).
           EOF
           )" \
-            --draft=false
+            --draft=false \
+            $PRERELEASE_FLAG
           
           echo "✅ Published GitHub release: $VERSION"
         env:

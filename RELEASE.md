@@ -10,8 +10,8 @@ This document describes the automated release process for the zxcv project.
 2. Select **"Prepare Release"** workflow  
 3. Click **"Run workflow"**
 4. Fill in the parameters:
-   - **Version**: `v1.2.0` (semantic versioning)
-   - **Release Type**: `patch`, `minor`, or `major`
+   - **Version**: `v1.2.0` (stable) or `v1.2.0-beta.1` (prerelease)
+   - **Release Type**: `patch`, `minor`, `major`, `alpha`, `beta`, or `rc`
    - **Include CLI**: Check if CLI should be included in this release
 
 ### 2. Automated Process
@@ -67,9 +67,23 @@ graph TD
 
 We follow [Semantic Versioning (SemVer)](https://semver.org/):
 
+### Stable Releases
 - **MAJOR** (`1.0.0`): Breaking changes
 - **MINOR** (`0.1.0`): New features (backwards compatible)
 - **PATCH** (`0.0.1`): Bug fixes (backwards compatible)
+
+### Prerelease Versions
+- **Alpha** (`1.2.0-alpha.1`): Early development, unstable features
+- **Beta** (`1.2.0-beta.1`): Feature-complete, testing phase
+- **Release Candidate** (`1.2.0-rc.1`): Production-ready candidate
+
+### Version Format Examples
+```
+v1.2.3          # Stable release
+v1.2.3-alpha.1  # Alpha prerelease
+v1.2.3-beta.2   # Beta prerelease  
+v1.2.3-rc.1     # Release candidate
+```
 
 ## 🌍 Deployment Environments
 
@@ -81,10 +95,16 @@ We follow [Semantic Versioning (SemVer)](https://semver.org/):
 The system automatically:
 
 1. **Creates Git Tags**: For version tracking
-2. **Publishes GitHub Release**: From draft to public
+2. **Publishes GitHub Release**: Stable or prerelease based on version
 3. **Uploads CLI Assets**: If CLI is included
 4. **Merges Back to Dev**: Keeps branches synchronized
 5. **Cleans Up**: Removes temporary release branches
+
+### Prerelease Behavior
+- **Prerelease versions** (`alpha`, `beta`, `rc`) are marked as "prerelease" on GitHub
+- **Stable versions** are marked as "latest release"
+- **Prerelease deployments** still go to production but with clear warnings
+- **Installation instructions** include prerelease warnings
 
 ## ⚠️ Important Notes
 
@@ -131,6 +151,56 @@ Use conventional commits for better changelog:
 feat: add user profile page
 fix: resolve authentication issue  
 docs: update API documentation
+```
+
+## 🧪 Prerelease Strategy
+
+### When to Use Prereleases
+
+**Alpha Releases** (`v1.2.0-alpha.1`)
+- Early development features
+- API might change significantly
+- Not recommended for production use
+- Used for internal testing and feedback
+
+**Beta Releases** (`v1.2.0-beta.1`)
+- Feature-complete versions
+- API is mostly stable
+- Suitable for testing environments
+- Community testing and feedback
+
+**Release Candidates** (`v1.2.0-rc.1`)
+- Production-ready candidates
+- No new features, only bug fixes
+- Final testing before stable release
+- Recommended for staging environments
+
+### Prerelease Workflow
+
+1. **Create Alpha**: `v1.2.0-alpha.1` for early testing
+2. **Iterate**: `v1.2.0-alpha.2`, `v1.2.0-alpha.3` as needed
+3. **Beta Phase**: `v1.2.0-beta.1` when features are complete
+4. **Release Candidate**: `v1.2.0-rc.1` when ready for production
+5. **Stable Release**: `v1.2.0` after final validation
+
+### Example Usage
+
+```bash
+# Alpha release for new feature
+Version: v1.2.0-alpha.1
+Type: alpha
+
+# Beta release after feature completion  
+Version: v1.2.0-beta.1
+Type: beta
+
+# Release candidate before stable
+Version: v1.2.0-rc.1  
+Type: rc
+
+# Final stable release
+Version: v1.2.0
+Type: minor
 ```
 
 ## 🚨 Troubleshooting
