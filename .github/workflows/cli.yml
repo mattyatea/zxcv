@@ -1,0 +1,63 @@
+name: CLI Tests & Release
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'cli/**'
+      - '.github/workflows/cli.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'cli/**'
+      - '.github/workflows/cli.yml'
+  workflow_dispatch:
+
+jobs:
+  test-cli:
+    name: Test CLI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Test CLI
+        run: pnpm -F cli test
+
+      - name: Build CLI
+        run: pnpm run build:cli
+
+      - name: Test CLI build
+        run: |
+          if [ -f "cli/dist/zxcv" ]; then
+            echo "✅ CLI build successful"
+            ./cli/dist/zxcv --version
+          else
+            echo "❌ CLI build failed"
+            exit 1
+          fi
+
+  release-cli:
+    name: Release CLI
+    runs-on: ubuntu-latest
+    needs: test-cli
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Build CLI for release
+        run: pnpm run build:cli
+
+      - name: Create release
+        # Add release logic here if needed
+        run: echo "CLI release logic would go here"
