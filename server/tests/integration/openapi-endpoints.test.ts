@@ -243,9 +243,19 @@ describe("OpenAPI Endpoints via REST", () => {
 				username: "testuser",
 				emailVerified: true,
 				passwordHash: "hash",
+				displayName: "Test User",
+				bio: "Test bio",
+				location: "Test City", 
+				website: "https://example.com",
+				avatarUrl: "https://example.com/avatar.jpg",
 				createdAt: mockNow,
 				updatedAt: mockNow,
 			});
+
+			// Explicitly mock the count queries used by users.me  
+			mockDb.rule.count.mockResolvedValue(0);
+			mockDb.organizationMember.count.mockResolvedValue(0);
+			mockDb.ruleStar.count.mockResolvedValue(0);
 
 			const request = new Request("http://localhost:3000/api/users/me", {
 				method: "GET",

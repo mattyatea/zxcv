@@ -700,6 +700,11 @@ describe("Auth Integration Tests", () => {
 
 			vi.mocked(mockDb.user.findUnique).mockResolvedValue(userDetails);
 
+			// Explicitly mock the count queries used by users.me
+			vi.mocked(mockDb.rule.count).mockResolvedValue(0);
+			vi.mocked(mockDb.organizationMember.count).mockResolvedValue(0);
+			vi.mocked(mockDb.ruleStar.count).mockResolvedValue(0);
+
 			// Add teams membership
 			vi.mocked(mockDb.teamMember.findMany).mockResolvedValue([
 				{
