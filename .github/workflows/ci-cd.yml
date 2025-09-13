@@ -153,6 +153,8 @@ jobs:
     environment: 
       name: production
       url: https://zxcv.nanasi-apps.xyz
+    outputs:
+      deployment_status: ${{ steps.deploy.outputs.status }}
 
     steps:
       - name: Checkout code
@@ -173,6 +175,7 @@ jobs:
           workingDirectory: server
 
       - name: Deploy to Cloudflare Workers
+        id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -191,3 +194,7 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
           GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+
+      - name: Set deployment status
+        run: |
+          echo "status=success" >> $GITHUB_OUTPUT
