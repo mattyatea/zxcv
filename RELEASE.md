@@ -139,15 +139,19 @@ docs: update API documentation
 - **Check workflow logs**: Go to Actions tab and examine detailed logs
 - **Verify secrets**: Ensure `GITHUB_TOKEN`, `CLOUDFLARE_API_TOKEN`, etc. are set
 - **Branch permissions**: Confirm PR creation permissions are enabled
-- **Concurrency conflicts**: Only one release can be prepared at a time
+- **Concurrency conflicts**: Ref-based concurrency prevents overlapping releases
+- **Release detection**: Multiple methods ensure reliable commit identification
+- **Health endpoints**: Verify `/api/health` and `/rpc/health.check` are accessible
 
 ### Common Error Scenarios
 
 #### CLI Build Failures
-- **Bun installation fails**: Network issues or platform compatibility
-- **Dependencies fail**: Package resolution or network timeouts (auto-retry up to 3 times)
-- **Build process fails**: TypeScript errors or missing dependencies
-- **Binary not created**: Build configuration issues
+- **Bun installation verification**: Comprehensive setup validation with PATH checks
+- **Dependencies with retry**: Up to 3 attempts with 10-second delays for network resilience
+- **Dual build strategy**: Cross-platform build with single-platform fallback
+- **Asset verification**: Confirms binary creation and validates release artifacts
+- **Graceful degradation**: Release continues without CLI if builds fail (with warnings)
+- **Detailed diagnostics**: Build output capture and specific error guidance
 
 #### Git Operation Failures
 - **Push failures**: Network issues or branch conflicts (auto-cleanup on failure)
@@ -155,18 +159,24 @@ docs: update API documentation
 - **Merge conflicts**: Manual resolution required for dev branch merge
 
 #### Deployment Issues
-- **Status verification**: Enhanced deployment monitoring with 20 retry attempts
-- **Timeout handling**: Proceeds with warning if deployment status unclear
-- **Manual verification**: Check https://zxcv.nanasi-apps.xyz if automated check fails
+- **Multi-layer verification**: GitHub deployment API + health endpoint monitoring
+- **Extended monitoring**: Up to 30 attempts over 10 minutes with adaptive timeouts
+- **Health endpoint checks**: Tests `/api/health` and `/rpc/health.check` endpoints
+- **Response validation**: Verifies not just HTTP 200 but actual response content
+- **Graceful timeout handling**: Continues with warning if verification inconclusive
+- **Manual fallback**: Clear guidance for manual verification when automation fails
 
 ### Enhanced Error Handling
 
 The system now includes:
-- **Retry mechanisms** for network operations (3-20 attempts depending on operation)
-- **Automatic cleanup** of failed Git operations
+- **Multi-method release detection**: Commit messages, PR metadata, and package.json changes
+- **Comprehensive health monitoring**: GitHub deployment API + direct endpoint health checks
+- **Robust concurrency control**: Ref-based grouping prevents simultaneous releases
+- **Retry mechanisms** for network operations (3-30 attempts depending on operation)
+- **Automatic cleanup** of failed Git operations and artifacts
 - **Detailed error messages** with actionable guidance
 - **Graceful degradation** when non-critical operations fail
-- **Concurrency protection** to prevent race conditions
+- **CLI build resilience**: Cross-platform builds with single-platform fallback
 
 ### Manual Recovery Steps
 

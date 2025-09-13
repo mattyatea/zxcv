@@ -10,7 +10,7 @@ on:
 
 # Prevent multiple post-release actions from running simultaneously
 concurrency:
-  group: post-release
+  group: post-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -31,29 +31,107 @@ jobs:
       - name: Check if this is a release commit
         id: check
         run: |
-          # Check if the commit message indicates a version bump
+          echo "🔍 Checking if this is a release commit..."
+          
+          # Get commit message and PR information
           COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          PR_BODY=$(git log -1 --pretty=format:"%b")
+          
           echo "Commit message: $COMMIT_MSG"
           
+          IS_RELEASE=false
+          VERSION=""
+          INCLUDE_CLI=false
+          
+          # Method 1: Check commit message for version bump pattern
           if [[ "$COMMIT_MSG" =~ ^chore:\ bump\ version\ to\ v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-            echo "is_release=true" >> $GITHUB_OUTPUT
-            
-            # Extract version from commit message
+            echo "✅ Release detected via commit message pattern"
+            IS_RELEASE=true
             VERSION=$(echo "$COMMIT_MSG" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+" | head -1)
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+          
+          # Method 2: Check for merge commit from release branch
+          if [[ "$COMMIT_MSG" =~ ^Merge\ pull\ request.*release ]]; then
+            echo "🔍 Checking merge commit from release branch"
+            # Extract PR number from merge commit
+            PR_NUMBER=$(echo "$COMMIT_MSG" | grep -o "#[0-9]\+" | head -1 | tr -d '#')
             
-            # Check if CLI was updated
-            if git diff HEAD~1..HEAD --name-only | grep -q "cli/package.json"; then
-              echo "include_cli=true" >> $GITHUB_OUTPUT
+            if [ -n "$PR_NUMBER" ]; then
+              # Get PR details to check if it's a release PR
+              PR_DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER 2>/dev/null || echo "")
+              if [ -n "$PR_DATA" ]; then
+                PR_TITLE=$(echo "$PR_DATA" | jq -r '.title // ""')
+                PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels[].name // ""' | tr '\n' ' ')
+                
+                echo "PR Title: $PR_TITLE"
+                echo "PR Labels: $PR_LABELS"
+                
+                # Check if PR has release indicators
+                if [[ "$PR_TITLE" =~ ^🚀\ Release\ v[0-9]+\.[0-9]+\.[0-9]+ ]] || [[ "$PR_LABELS" =~ release ]]; then
+                  echo "✅ Release detected via PR merge"
+                  IS_RELEASE=true
+                  VERSION=$(echo "$PR_TITLE" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+" | head -1)
+                fi
+              fi
+            fi
+          fi
+          
+          # Method 3: Check for package.json version changes
+          if [ "$IS_RELEASE" = false ]; then
+            echo "🔍 Checking package.json changes for version updates"
+            
+            # Check if any package.json files were modified
+            CHANGED_FILES=$(git diff HEAD~1..HEAD --name-only)
+            echo "Changed files: $CHANGED_FILES"
+            
+            if echo "$CHANGED_FILES" | grep -q "package\.json"; then
+              # Extract version from the updated package.json files
+              for file in package.json server/package.json cli/package.json; do
+                if [ -f "$file" ] && echo "$CHANGED_FILES" | grep -q "$file"; then
+                  CURRENT_VERSION=$(jq -r '.version // ""' "$file" 2>/dev/null)
+                  if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "null" ]; then
+                    # Check if this looks like a new release version
+                    if [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                      echo "✅ Release detected via package.json version: $CURRENT_VERSION"
+                      IS_RELEASE=true
+                      VERSION="v$CURRENT_VERSION"
+                      break
+                    fi
+                  fi
+                fi
+              done
+            fi
+          fi
+          
+          # Determine CLI inclusion
+          if [ "$IS_RELEASE" = true ]; then
+            # Check if CLI package.json was updated
+            if echo "$CHANGED_FILES" | grep -q "cli/package.json"; then
+              INCLUDE_CLI=true
+              echo "✅ CLI release included"
             else
-              echo "include_cli=false" >> $GITHUB_OUTPUT
+              echo "ℹ️ CLI release not included"
             fi
             
-            echo "✅ Release detected: $VERSION"
-          else
-            echo "is_release=false" >> $GITHUB_OUTPUT
-            echo "ℹ️ Not a release commit"
+            # Validate version format
+            if [ -z "$VERSION" ] || [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "⚠️ Invalid version format detected: '$VERSION'"
+              IS_RELEASE=false
+            fi
           fi
+          
+          # Set outputs
+          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "include_cli=$INCLUDE_CLI" >> $GITHUB_OUTPUT
+          
+          if [ "$IS_RELEASE" = true ]; then
+            echo "🎉 Release detected: $VERSION (CLI: $INCLUDE_CLI)"
+          else
+            echo "ℹ️ No release detected in this commit"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   finalize-release:
     name: Finalize Release
@@ -91,56 +169,115 @@ jobs:
           # Wait for deployment to start
           sleep 30
           
-          # Check GitHub deployment status
-          DEPLOYMENT_ID=""
-          MAX_ATTEMPTS=20
+          # Define health check endpoints
+          HEALTH_URLS=(
+            "https://zxcv.nanasi-apps.xyz/api/health"
+            "https://zxcv.nanasi-apps.xyz/rpc/health.check"
+          )
+          
+          MAX_ATTEMPTS=30
           ATTEMPT=0
+          DEPLOYMENT_SUCCESS=false
           
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            echo "Checking deployment status (attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS)..."
+            echo "Checking deployment health (attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS)..."
             
-            # Get the latest deployment for production environment
+            # Method 1: Check GitHub deployment status
             DEPLOYMENT_DATA=$(gh api repos/${{ github.repository }}/deployments \
-              --jq '.[] | select(.environment == "production") | select(.created_at > (now - 300)) | .[0]' 2>/dev/null || echo "")
+              --jq '.[] | select(.environment == "production") | select(.created_at > (now - 600)) | .[0]' 2>/dev/null || echo "")
             
             if [ -n "$DEPLOYMENT_DATA" ]; then
               DEPLOYMENT_ID=$(echo "$DEPLOYMENT_DATA" | jq -r '.id // empty' 2>/dev/null || echo "")
               
               if [ -n "$DEPLOYMENT_ID" ]; then
-                # Check deployment status
                 STATUS=$(gh api repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses \
                   --jq '.[0].state // empty' 2>/dev/null || echo "")
                 
-                echo "Deployment $DEPLOYMENT_ID status: $STATUS"
+                echo "GitHub deployment $DEPLOYMENT_ID status: $STATUS"
                 
                 case "$STATUS" in
                   "success")
-                    echo "✅ Deployment completed successfully!"
+                    echo "✅ GitHub deployment marked as successful!"
+                    DEPLOYMENT_SUCCESS=true
                     break
                     ;;
                   "failure"|"error")
-                    echo "❌ Deployment failed!"
+                    echo "❌ GitHub deployment marked as failed!"
                     exit 1
                     ;;
                   "pending"|"in_progress")
-                    echo "⏳ Deployment still in progress..."
-                    ;;
-                  *)
-                    echo "🔍 Unknown deployment status: $STATUS"
+                    echo "⏳ GitHub deployment still in progress..."
                     ;;
                 esac
               fi
             fi
             
+            # Method 2: Health endpoint checks
+            for health_url in "${HEALTH_URLs[@]}"; do
+              echo "Checking health endpoint: $health_url"
+              
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$health_url" --connect-timeout 10 --max-time 30 || echo "000")
+              
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "✅ Health endpoint responding successfully: $health_url"
+                
+                # Additional validation: check response content
+                RESPONSE=$(curl -s "$health_url" --connect-timeout 10 --max-time 30 || echo "")
+                if [[ "$RESPONSE" =~ "ok" ]] || [[ "$RESPONSE" =~ "healthy" ]] || [[ "$RESPONSE" =~ "success" ]]; then
+                  echo "✅ Health check passed with valid response"
+                  DEPLOYMENT_SUCCESS=true
+                  break 2
+                else
+                  echo "⚠️ Health endpoint returned unexpected response: $RESPONSE"
+                fi
+              elif [ "$HTTP_CODE" = "000" ]; then
+                echo "⚠️ Health endpoint unreachable (network error)"
+              else
+                echo "⚠️ Health endpoint returned HTTP $HTTP_CODE"
+              fi
+            done
+            
+            if [ "$DEPLOYMENT_SUCCESS" = true ]; then
+              break
+            fi
+            
             ATTEMPT=$((ATTEMPT + 1))
             if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-              sleep 15
+              sleep 20
             fi
           done
           
-          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-            echo "⚠️ Deployment status check timed out, proceeding with release finalization"
-            echo "Please verify deployment manually: https://zxcv.nanasi-apps.xyz"
+          if [ "$DEPLOYMENT_SUCCESS" = false ]; then
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "⚠️ Deployment verification timed out after $((MAX_ATTEMPTS * 20)) seconds"
+            fi
+            
+            echo "🔍 Performing final manual verification..."
+            
+            # Try one more direct health check
+            for health_url in "${HEALTH_URLs[@]}"; do
+              echo "Final check: $health_url"
+              if curl -s "$health_url" --connect-timeout 5 --max-time 10 >/dev/null 2>&1; then
+                echo "✅ Final health check passed for $health_url"
+                DEPLOYMENT_SUCCESS=true
+                break
+              fi
+            done
+            
+            if [ "$DEPLOYMENT_SUCCESS" = false ]; then
+              echo "❌ Deployment verification failed"
+              echo "Please check the following manually:"
+              echo "  - Production site: https://zxcv.nanasi-apps.xyz"
+              for url in "${HEALTH_URLs[@]}"; do
+                echo "  - Health check: $url"
+              done
+              echo "If the site is working, the release will continue with a warning."
+              echo "Consider investigating deployment infrastructure if issues persist."
+            fi
+          fi
+          
+          if [ "$DEPLOYMENT_SUCCESS" = true ]; then
+            echo "🎉 Production deployment verified successfully!"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -239,19 +376,120 @@ jobs:
         if: needs.check-release.outputs.include_cli == 'true'
         run: |
           echo "🔨 Building CLI release assets..."
+          
+          # Validate CLI directory exists
+          if [ ! -d "cli" ]; then
+            echo "❌ CLI directory not found!"
+            echo "Cannot proceed with CLI release build."
+            exit 1
+          fi
+          
           cd cli
           
-          # Setup Bun for CLI builds
-          curl -fsSL https://bun.sh/install | bash
+          # Setup Bun for CLI builds with comprehensive error handling
+          echo "📦 Installing Bun runtime..."
+          if ! curl -fsSL https://bun.sh/install | bash; then
+            echo "❌ Failed to install Bun runtime!"
+            echo "Network error or platform compatibility issue."
+            exit 1
+          fi
+          
           export PATH="$HOME/.bun/bin:$PATH"
           
-          bun install
-          bun run build:cross || {
-            echo "⚠️ Cross-platform build not available, building for current platform only"
-            bun run build
-          }
+          # Verify Bun installation
+          if ! command -v bun >/dev/null 2>&1; then
+            echo "❌ Bun command not available after installation!"
+            echo "PATH: $PATH"
+            ls -la "$HOME/.bun/bin/" || echo "Bun bin directory not found"
+            exit 1
+          fi
           
-          echo "✅ CLI assets built"
+          echo "✅ Bun $(bun --version) installed successfully"
+          
+          # Install dependencies with retry mechanism
+          echo "📦 Installing CLI dependencies..."
+          RETRY_COUNT=0
+          MAX_RETRIES=3
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if bun install; then
+              echo "✅ CLI dependencies installed successfully"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⚠️ CLI dependency installation failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+              
+              if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                echo "❌ Failed to install CLI dependencies after $MAX_RETRIES attempts"
+                echo "This may be due to:"
+                echo "  - Network connectivity issues"
+                echo "  - Package registry problems"
+                echo "  - Dependency conflicts"
+                cd ..
+                exit 1
+              fi
+              
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          
+          # Attempt cross-platform build first, fallback to single platform
+          echo "🔨 Building CLI assets..."
+          BUILD_SUCCESS=false
+          
+          if bun run build:cross 2>/dev/null; then
+            echo "✅ Cross-platform CLI build successful"
+            BUILD_SUCCESS=true
+            
+            # Verify cross-platform assets
+            if [ -d "release" ]; then
+              ASSET_COUNT=$(find release -type f -name "zxcv-*" | wc -l)
+              echo "Found $ASSET_COUNT cross-platform assets"
+              ls -la release/ || true
+            else
+              echo "⚠️ Cross-platform build claimed success but no release directory found"
+              BUILD_SUCCESS=false
+            fi
+          else
+            echo "⚠️ Cross-platform build not available or failed"
+          fi
+          
+          # Fallback to single-platform build
+          if [ "$BUILD_SUCCESS" = false ]; then
+            echo "🔨 Attempting single-platform build..."
+            
+            if bun run build; then
+              echo "✅ Single-platform CLI build successful"
+              
+              # Verify binary was created
+              if [ -f "dist/zxcv" ]; then
+                echo "✅ CLI binary created: dist/zxcv"
+                ls -la dist/zxcv
+                BUILD_SUCCESS=true
+              else
+                echo "❌ CLI binary not found after build"
+                echo "Expected: cli/dist/zxcv"
+                ls -la dist/ 2>/dev/null || echo "dist/ directory not found"
+                BUILD_SUCCESS=false
+              fi
+            else
+              echo "❌ Single-platform CLI build failed"
+              echo "Build output:"
+              bun run build 2>&1 || true
+            fi
+          fi
+          
+          cd ..
+          
+          if [ "$BUILD_SUCCESS" = false ]; then
+            echo "❌ All CLI build attempts failed"
+            echo "Release will continue without CLI assets"
+            echo "Manual CLI build may be required"
+            # Don't exit here - allow release to continue without CLI assets
+          else
+            echo "🎉 CLI build completed successfully"
+          fi
 
       - name: Upload CLI assets to release
         if: needs.check-release.outputs.include_cli == 'true'

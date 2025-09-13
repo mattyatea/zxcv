@@ -24,7 +24,7 @@ on:
 
 # Prevent multiple release preparations from running simultaneously
 concurrency:
-  group: release-preparation
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
