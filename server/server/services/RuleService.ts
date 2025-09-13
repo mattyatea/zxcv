@@ -1090,7 +1090,7 @@ export class RuleService {
 		const prefix = `rules/${ruleId}/`;
 		const objects = await this.r2.list({ prefix });
 
-		const deletePromises = objects.objects.map((obj) => this.r2.delete(obj.key));
+		const deletePromises = objects.objects.map((obj: { key: string }) => this.r2.delete(obj.key));
 		await Promise.all(deletePromises);
 	}
 
