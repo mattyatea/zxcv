@@ -143,10 +143,10 @@
 							<div class="flex items-start justify-between">
 								<div class="flex-1">
 									<NuxtLink
-										:to="`/rules/${rule.organization ? `@${rule.organization.name}/` : ''}${rule.name}`"
+										:to="`/rules/${rule.organization ? `@${rule.organization.name}` : `@${profileData.user.username}`}/${rule.name}`"
 										class="text-lg font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
 									>
-										{{ rule.organization ? `@${rule.organization.name}/` : '' }}{{ rule.name }}
+										{{ rule.organization ? `@${rule.organization.name}` : `@${profileData.user.username}` }}/{{ rule.name }}
 									</NuxtLink>
 									<p class="text-gray-600 dark:text-gray-400 mt-1">{{ rule.description }}</p>
 									<div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
