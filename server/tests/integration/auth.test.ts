@@ -691,14 +691,11 @@ describe("Auth Integration Tests", () => {
 				passwordHash: "hashed",
 				createdAt: Math.floor(Date.now() / 1000),
 				updatedAt: Math.floor(Date.now() / 1000),
-				name: "Test User",
+				displayName: "Test User",
 				avatarUrl: "https://example.com/avatar.jpg",
 				bio: "Test bio",
 				website: "https://example.com",
 				location: "Test City",
-				company: "Test Company",
-				twitterUsername: "testuser",
-				githubUsername: "testuser",
 			};
 
 			vi.mocked(mockDb.user.findUnique).mockResolvedValue(userDetails);

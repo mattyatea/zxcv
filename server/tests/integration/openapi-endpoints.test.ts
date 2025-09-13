@@ -286,8 +286,8 @@ describe("OpenAPI Endpoints via REST", () => {
 				id: "user_123",
 				email: "test@example.com",
 				username: "testuser",
-				created_at: mockNow,
-				updated_at: mockNow,
+				createdAt: mockNow,
+				updatedAt: mockNow,
 			});
 		});
 	});
