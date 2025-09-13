@@ -24,6 +24,19 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'pnpm'
+        
+    - name: Cache dependencies and build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+          server/node_modules
+          cli/node_modules
+          .prisma
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-
 
     - name: Install dependencies
       shell: bash
@@ -51,6 +64,13 @@ runs:
           exit 1
         fi
 
-    - name: Generate Cloudflare types (optional)
+    - name: Generate Cloudflare types
       shell: bash
-      run: cd server && pnpm run cf-typegen || true
+      run: |
+        cd server
+        if pnpm run cf-typegen; then
+          echo "✅ Cloudflare types generated successfully"
+        else
+          echo "⚠️ Cloudflare types generation failed (non-critical)"
+        fi
+      continue-on-error: true

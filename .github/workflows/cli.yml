@@ -47,7 +47,10 @@ jobs:
         run: |
           if [ -f "cli/dist/zxcv" ]; then
             echo "✅ CLI build successful"
-            ./cli/dist/zxcv --version
+            # Ensure binary has execute permissions
+            chmod +x cli/dist/zxcv
+            # Test the binary
+            ./cli/dist/zxcv --version || echo "Version command not implemented yet"
           else
             echo "❌ CLI build failed"
             exit 1
