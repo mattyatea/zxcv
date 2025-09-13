@@ -34,7 +34,13 @@ export const rulesProcedures = {
 		const { rule, version, content } = result;
 
 		// Ensure we have the proper author object
-		const author = rule.user || { id: rule.userId || "", username: "Unknown", email: "" };
+		const author = rule.user || {
+			id: rule.userId || "",
+			username: "Unknown",
+			email: "",
+			displayName: null,
+			avatarUrl: null,
+		};
 
 		return {
 			id: rule.id,
@@ -228,7 +234,13 @@ export const rulesProcedures = {
 		const rule = await ruleService.getRuleById(input.id, user?.id);
 
 		// Ensure we have the proper author object
-		const author = rule.user || { id: rule.userId || "", username: "Unknown", email: "" };
+		const author = rule.user || {
+			id: rule.userId || "",
+			username: "Unknown",
+			email: "",
+			displayName: null,
+			avatarUrl: null,
+		};
 
 		return {
 			id: rule.id,

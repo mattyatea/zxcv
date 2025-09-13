@@ -111,11 +111,13 @@
                   :to="`/user/${rule.author.username}`"
                   class="flex items-center gap-2 hover:text-primary-600 dark:hover:text-primary-400"
                 >
-                  <img 
-                    :src="`https://ui-avatars.com/api/?name=${rule.author.username}&background=random`" 
+                  <Avatar
+                    :src="rule.author.avatarUrl"
+                    :name="rule.author.displayName || rule.author.username"
                     :alt="rule.author.username"
-                    class="w-6 h-6 rounded-full"
-                  >
+                    size="xs"
+                    shape="circle"
+                  />
                   <span>{{ rule.author.username }}</span>
                 </NuxtLink>
                 
@@ -426,11 +428,13 @@
                   :to="`/org/${rule.organization.name}`"
                   class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
                 >
-                  <img 
-                    :src="`https://ui-avatars.com/api/?name=${rule.organization.displayName}&background=random`" 
+                  <Avatar
+                    :src="rule.organization.avatarUrl"
+                    :name="rule.organization.displayName"
                     :alt="rule.organization.displayName"
-                    class="w-12 h-12 rounded-full"
-                  >
+                    size="lg"
+                    shape="circle"
+                  />
                   <div>
                     <p class="font-medium text-gray-900 dark:text-gray-100">{{ rule.organization.displayName }}</p>
                     <p class="text-sm text-gray-600 dark:text-gray-400">@{{ rule.organization.name }}</p>
@@ -444,11 +448,13 @@
                     :to="`/user/${rule.author.username}`"
                     class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
                   >
-                    <img 
-                      :src="`https://ui-avatars.com/api/?name=${rule.author.username}&background=random`" 
+                    <Avatar
+                      :src="rule.author.avatarUrl"
+                      :name="rule.author.displayName || rule.author.username"
                       :alt="rule.author.username"
-                      class="w-10 h-10 rounded-full"
-                    >
+                      size="md"
+                      shape="circle"
+                    />
                     <div>
                       <p class="font-medium text-gray-900 dark:text-gray-100">{{ rule.author.username }}</p>
                     </div>
@@ -462,11 +468,13 @@
                 :to="`/user/${rule.author.username}`"
                 class="flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 p-2 -m-2 rounded-lg transition-colors"
               >
-                <img 
-                  :src="`https://ui-avatars.com/api/?name=${rule.author.username}&background=random`" 
+                <Avatar
+                  :src="rule.author.avatarUrl"
+                  :name="rule.author.displayName || rule.author.username"
                   :alt="rule.author.username"
-                  class="w-12 h-12 rounded-full"
-                >
+                  size="lg"
+                  shape="circle"
+                />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-gray-100">{{ rule.author.username }}</p>
                   <p class="text-sm text-gray-600 dark:text-gray-400">{{ t('rules.detail.rulesPublished', { count: userRuleCount }) }}</p>
@@ -555,6 +563,7 @@ import type { GetRuleContentResponse } from "~/types/orpc";
 import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
+import Avatar from "~/components/common/Avatar.vue";
 
 const route = useRoute();
 const $rpc = useRpc();

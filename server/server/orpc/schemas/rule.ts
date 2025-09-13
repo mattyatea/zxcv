@@ -25,6 +25,8 @@ export const RuleWithRelationsSchema = RuleBaseSchema.extend({
 		id: z.string(),
 		username: z.string(),
 		email: z.string(),
+		displayName: z.string().nullable(),
+		avatarUrl: z.string().nullable(),
 	}),
 	organization: z
 		.object({
@@ -37,6 +39,8 @@ export const RuleWithRelationsSchema = RuleBaseSchema.extend({
 		id: z.string(),
 		username: z.string(),
 		email: z.string().optional(),
+		displayName: z.string().nullable(),
+		avatarUrl: z.string().nullable(),
 	}),
 });
 
@@ -48,6 +52,8 @@ export const RuleSummarySchema = z.object({
 	author: z.object({
 		id: z.string(),
 		username: z.string(),
+		displayName: z.string().nullable(),
+		avatarUrl: z.string().nullable(),
 	}),
 	visibility: z.string(),
 	tags: z.array(z.string()),

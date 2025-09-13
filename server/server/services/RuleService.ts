@@ -699,6 +699,8 @@ export class RuleService {
 						select: {
 							id: true,
 							username: true,
+							displayName: true,
+							avatarUrl: true,
 						},
 					},
 				},
@@ -714,7 +716,12 @@ export class RuleService {
 			id: rule.id,
 			name: rule.name,
 			description: rule.description,
-			author: rule.user || { id: rule.userId || "", username: "Unknown" },
+			author: rule.user || {
+				id: rule.userId || "",
+				username: "Unknown",
+				displayName: null,
+				avatarUrl: null,
+			},
 			visibility: rule.visibility,
 			type: rule.type || "rule",
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
@@ -835,6 +842,8 @@ export class RuleService {
 							id: true,
 							username: true,
 							email: true,
+							displayName: true,
+							avatarUrl: true,
 						},
 					},
 					organization: {
@@ -856,7 +865,13 @@ export class RuleService {
 
 		// フォーマット
 		const formattedRules = rules.map((rule) => {
-			const author = rule.user || { id: rule.userId || "", username: "Unknown", email: "" };
+			const author = rule.user || {
+				id: rule.userId || "",
+				username: "Unknown",
+				email: "",
+				displayName: null,
+				avatarUrl: null,
+			};
 			return {
 				id: rule.id,
 				name: rule.name,

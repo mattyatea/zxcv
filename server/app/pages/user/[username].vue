@@ -20,22 +20,14 @@
 						<div class="flex items-center space-x-6">
 							<!-- アバター -->
 							<div class="flex-shrink-0">
-								<div
-									v-if="profileData.user.avatarUrl"
-									class="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700"
-								>
-									<img
-										:src="getAvatarUrl(profileData.user.avatarUrl)"
-										:alt="`${profileData.user.username}'s avatar`"
-										class="w-full h-full object-cover"
-									/>
-								</div>
-								<div
-									v-else
-									class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold"
-								>
-									{{ (profileData.user.displayName || profileData.user.username).charAt(0).toUpperCase() }}
-								</div>
+								<Avatar
+									:src="profileData.user.avatarUrl"
+									:name="profileData.user.displayName || profileData.user.username"
+									:alt="`${profileData.user.username}'s avatar`"
+									size="2xl"
+									shape="circle"
+									:use-gradient="true"
+								/>
 							</div>
 							<div class="flex-1 min-w-0">
 								<!-- Display name and username -->
@@ -177,6 +169,7 @@
 <script setup lang="ts">
 import type { InferContractRouterOutputs } from "@orpc/contract";
 import type { contract } from "~/server/orpc/contracts";
+import Avatar from "~/components/common/Avatar.vue";
 
 type Outputs = InferContractRouterOutputs<typeof contract>; // FIXME: そのうちちゃんと定義する場所を統一して、いい感じに使うようにする
 
@@ -223,14 +216,6 @@ function formatDate(timestamp: number) {
 	});
 }
 
-// Get avatar URL
-function getAvatarUrl(avatarUrl: string) {
-	// If it's already a full URL, return as-is
-	if (avatarUrl.startsWith("http")) return avatarUrl;
-	// Remove 'avatars/' prefix if it exists, then construct the API URL
-	const avatarPath = avatarUrl.replace(/^avatars\//, '');
-	return `/api/avatars/${avatarPath}`;
-}
 
 // Format website URL for display
 function formatWebsiteUrl(url: string) {

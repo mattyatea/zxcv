@@ -11,29 +11,17 @@
 					{{ t('settings.profile.avatar') }}
 				</label>
 				<div class="flex items-center space-x-4">
-					<div class="relative">
-						<div
-							class="h-20 w-20 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center overflow-hidden"
-						>
-							<img
-								v-if="displayAvatarUrl"
-								:src="displayAvatarUrl"
-								:alt="t('settings.profile.avatarAlt')"
-								class="h-full w-full object-cover"
-							/>
-							<Icon
-								v-else
-								name="heroicons:user-circle"
-								class="h-16 w-16 text-gray-400 dark:text-gray-500"
-							/>
-						</div>
-						<label
-							for="avatar-upload"
-							class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 dark:bg-black dark:bg-opacity-60 rounded-full opacity-0 hover:opacity-100 cursor-pointer transition-opacity"
-						>
-							<Icon name="heroicons:camera" class="h-6 w-6 text-white" />
-						</label>
-					</div>
+					<Avatar
+						:src="props.user?.avatarUrl"
+						:name="props.user?.displayName || props.user?.username || ''"
+						:alt="t('settings.profile.avatarAlt')"
+						size="2xl"
+						shape="circle"
+						:show-icon="!props.user?.avatarUrl"
+						icon-name="heroicons:user-circle"
+						:editable="true"
+						@click="avatarInput?.click()"
+					/>
 					<div>
 						<input
 							ref="avatarInput"
@@ -152,6 +140,7 @@ import { computed, ref, watch } from "vue";
 import Button from "~/components/common/Button.vue";
 import Input from "~/components/common/Input.vue";
 import Textarea from "~/components/common/Textarea.vue";
+import Avatar from "~/components/common/Avatar.vue";
 import type { CurrentUser } from "~/types/user";
 
 // Props
@@ -202,15 +191,6 @@ const originalForm = ref({
 	website: "",
 });
 
-// Avatar display URL (for preview)
-const displayAvatarUrl = computed(() => {
-	if (!props.user?.avatarUrl) return null;
-	// If it's already a full URL, return as-is
-	if (props.user.avatarUrl.startsWith("http")) return props.user.avatarUrl;
-	// Remove 'avatars/' prefix if it exists, then construct the API URL
-	const avatarPath = props.user.avatarUrl.replace(/^avatars\//, '');
-	return `/api/avatars/${avatarPath}`;
-});
 
 // Form validation
 const isFormValid = computed(() => {

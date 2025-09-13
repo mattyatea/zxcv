@@ -15,6 +15,8 @@ export interface AuthUser {
 	email: string;
 	username: string;
 	emailVerified: boolean;
+	displayName: string | null;
+	avatarUrl: string | null;
 }
 
 export interface AuthContext {
@@ -45,6 +47,8 @@ async function verifyJWT(token: string, env: Env): Promise<AuthUser | null> {
 		email: payload.email,
 		username: payload.username,
 		emailVerified: payload.emailVerified || false,
+		displayName: payload.displayName || null,
+		avatarUrl: payload.avatarUrl || null,
 	};
 }
 
@@ -82,6 +86,8 @@ async function verifyApiKey(
 					email: storedApiKey.user.email,
 					username: storedApiKey.user.username,
 					emailVerified: storedApiKey.user.emailVerified,
+					displayName: storedApiKey.user.displayName,
+					avatarUrl: storedApiKey.user.avatarUrl,
 				},
 				scopes,
 			};

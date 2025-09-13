@@ -42,6 +42,8 @@ async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
 			email: payload.email,
 			username: payload.username,
 			emailVerified: payload.emailVerified || false,
+			displayName: payload.displayName || null,
+			avatarUrl: payload.avatarUrl || null,
 		};
 	} catch {
 		return undefined;

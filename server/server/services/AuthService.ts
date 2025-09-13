@@ -129,6 +129,8 @@ export class AuthService {
 				email: user.email,
 				username: user.username,
 				emailVerified: user.emailVerified,
+				displayName: user.displayName,
+				avatarUrl: user.avatarUrl,
 			},
 			this.env,
 		);
@@ -144,6 +146,8 @@ export class AuthService {
 				username: user.username,
 				email: user.email,
 				emailVerified: user.emailVerified,
+				displayName: user.displayName,
+				avatarUrl: user.avatarUrl,
 			},
 		};
 	}
@@ -388,6 +392,8 @@ export class AuthService {
 					username: string;
 					email: string;
 					emailVerified: boolean;
+					displayName: string | null;
+					avatarUrl: string | null;
 				};
 		  }
 		| {
@@ -471,16 +477,29 @@ export class AuthService {
 		await this.userRepository.updateLastLogin(user.id);
 
 		// トークン生成
-		const tokens = await this.generateTokens(user);
+		const accessToken = await createJWT(
+			{
+				sub: user.id,
+				email: user.email,
+				username: user.username,
+				emailVerified: user.emailVerified,
+				displayName: user.displayName,
+				avatarUrl: user.avatarUrl,
+			},
+			this.env,
+		);
+		const refreshToken = await createRefreshToken(user.id, this.env);
 
 		return {
-			accessToken: tokens.accessToken,
-			refreshToken: tokens.refreshToken,
+			accessToken,
+			refreshToken,
 			user: {
 				id: user.id,
 				username: user.username,
 				email: user.email,
 				emailVerified: user.emailVerified,
+				displayName: user.displayName,
+				avatarUrl: user.avatarUrl,
 			},
 		};
 	}

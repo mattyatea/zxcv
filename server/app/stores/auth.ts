@@ -5,6 +5,8 @@ interface AuthUser {
 	email: string;
 	username: string;
 	emailVerified: boolean;
+	displayName: string | null;
+	avatarUrl: string | null;
 }
 
 interface AuthState {
@@ -40,11 +42,10 @@ export const useAuthStore = defineStore("auth", () => {
 	const isReady = computed(() => isInitialized.value); // ストアが初期化済みかどうか
 
 	// Initialize from localStorage on client side
-	const initializeAuth = () => {
+	const initializeAuth = async () => {
 		if (import.meta.client) {
 			const storedAccessToken = localStorage.getItem("access_token");
 			const storedRefreshToken = localStorage.getItem("refresh_token");
-			const storedUser = localStorage.getItem("user");
 
 			if (storedAccessToken) {
 				accessToken.value = storedAccessToken;
@@ -52,14 +53,10 @@ export const useAuthStore = defineStore("auth", () => {
 			if (storedRefreshToken) {
 				refreshToken.value = storedRefreshToken;
 			}
-			if (storedUser) {
-				try {
-					user.value = JSON.parse(storedUser);
-				} catch (e) {
-					console.error("Failed to parse stored user data:", e);
-					// 無効なユーザーデータの場合はクリア
-					localStorage.removeItem("user");
-				}
+
+			// トークンがある場合は最新のユーザー情報を取得
+			if (storedAccessToken) {
+				await fetchCurrentUser();
 			}
 		}
 		// 初期化完了をマーク
@@ -81,11 +78,10 @@ export const useAuthStore = defineStore("auth", () => {
 			refreshToken.value = response.refreshToken;
 			user.value = response.user;
 
-			// Persist to localStorage
+			// Persist tokens to localStorage (but not user data)
 			if (import.meta.client) {
 				localStorage.setItem("access_token", response.accessToken);
 				localStorage.setItem("refresh_token", response.refreshToken);
-				localStorage.setItem("user", JSON.stringify(response.user));
 			}
 
 			return response;
@@ -122,11 +118,11 @@ export const useAuthStore = defineStore("auth", () => {
 		accessToken.value = null;
 		refreshToken.value = null;
 
-		// Clear localStorage
+		// Clear tokens from localStorage
 		if (import.meta.client) {
 			localStorage.removeItem("access_token");
 			localStorage.removeItem("refresh_token");
-			localStorage.removeItem("user");
+			// localStorage.removeItem("user"); // ユーザー情報は保存していないので削除不要
 		}
 
 		// Navigate to login
@@ -169,18 +165,17 @@ export const useAuthStore = defineStore("auth", () => {
 
 		try {
 			const $rpc = useRpc();
-			const response = await $rpc.users.settings();
+			const response = await $rpc.users.me();
 			user.value = {
 				id: response.id,
 				email: response.email,
 				username: response.username,
-				emailVerified: response.email_verified,
+				emailVerified: response.emailVerified,
+				displayName: response.displayName,
+				avatarUrl: response.avatarUrl,
 			};
 
-			// Update localStorage
-			if (import.meta.client) {
-				localStorage.setItem("user", JSON.stringify(response));
-			}
+			// localStorageにユーザー情報は保存しない（毎回サーバーから取得）
 
 			return response;
 		} catch (error) {
@@ -200,10 +195,7 @@ export const useAuthStore = defineStore("auth", () => {
 			...updatedUser,
 		};
 
-		// Update localStorage
-		if (import.meta.client) {
-			localStorage.setItem("user", JSON.stringify(user.value));
-		}
+		// localStorageは更新しない（次回アクセス時にサーバーから取得）
 	};
 
 	const setAuthData = async (data: {
@@ -216,11 +208,10 @@ export const useAuthStore = defineStore("auth", () => {
 		refreshToken.value = data.refreshToken;
 		user.value = data.user;
 
-		// Persist to localStorage
+		// Persist tokens to localStorage (but not user data)
 		if (import.meta.client) {
 			localStorage.setItem("access_token", data.accessToken);
 			localStorage.setItem("refresh_token", data.refreshToken);
-			localStorage.setItem("user", JSON.stringify(data.user));
 		}
 	};
 
@@ -234,15 +225,17 @@ export const useAuthStore = defineStore("auth", () => {
 			const $rpc = useRpc();
 			await $rpc.users.me();
 			return true;
-		} catch (error: any) {
+		} catch (error) {
 			console.log("Token validation failed:", error);
 			
-			// 401やその他の認証エラーの場合はトークンをクリア
-			if (
-				error?.status === 401 ||
-				error?.message?.includes("UNAUTHORIZED") ||
-				error?.message?.includes("User not found")
-			) {
+			// エラーの種類をチェックして認証エラーの場合はトークンをクリア
+			const isAuthError = 
+				(error && typeof error === "object" && "status" in error && error.status === 401) ||
+				(error && typeof error === "object" && "message" in error && 
+				 typeof error.message === "string" && 
+				 (error.message.includes("UNAUTHORIZED") || error.message.includes("User not found")));
+			
+			if (isAuthError) {
 				await logout();
 				return false;
 			}
@@ -253,7 +246,10 @@ export const useAuthStore = defineStore("auth", () => {
 	};
 
 	// Initialize on store creation
-	initializeAuth();
+	initializeAuth().catch((error) => {
+		console.error("Auth initialization failed:", error);
+		isInitialized.value = true; // エラーでも初期化完了とマーク
+	});
 
 	return {
 		// State

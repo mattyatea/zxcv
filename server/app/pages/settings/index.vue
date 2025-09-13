@@ -120,6 +120,13 @@ const handleProfileUpdate = async (profileData: {
 		loading.value = true;
 		const response = await $rpc.users.updateProfile(profileData);
 		userProfile.value = response.user;
+		
+		// Update auth store user info as well
+		const authStore = useAuthStore();
+		authStore.updateUser({
+			displayName: response.user.displayName,
+		});
+		
 		showToast({
 			message: t("settings.success.profileUpdated"),
 			type: "success",
@@ -164,6 +171,10 @@ const handleAvatarUpload = async (file: File) => {
 		if (userProfile.value) {
 			userProfile.value.avatarUrl = response.avatarUrl;
 		}
+		
+		// Update auth store user info as well
+		const authStore = useAuthStore();
+		authStore.updateUser({ avatarUrl: response.avatarUrl });
 
 		showToast({
 			message: t("settings.success.avatarUploaded"),

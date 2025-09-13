@@ -183,6 +183,8 @@ export const authProcedures = {
 			email: user.email,
 			username: user.username,
 			emailVerified: user.emailVerified,
+			displayName: user.displayName,
+			avatarUrl: user.avatarUrl,
 		};
 
 		const accessToken = await createJWT(
@@ -191,6 +193,8 @@ export const authProcedures = {
 				email: authUser.email,
 				username: authUser.username,
 				emailVerified: authUser.emailVerified,
+				displayName: authUser.displayName,
+				avatarUrl: authUser.avatarUrl,
 			},
 			env,
 		);
@@ -624,6 +628,8 @@ export const authProcedures = {
 						username: user.username,
 						email: user.email,
 						emailVerified: user.emailVerified,
+						displayName: user.displayName,
+						avatarUrl: user.avatarUrl,
 					},
 				};
 			} catch (error) {

@@ -28,6 +28,9 @@ export const AuthUserSchema = UserSchema.pick({
 	email: true,
 	username: true,
 	emailVerified: true,
+}).extend({
+	displayName: z.string().nullable(),
+	avatarUrl: z.string().nullable(),
 });
 
 // 組織関連スキーマ
