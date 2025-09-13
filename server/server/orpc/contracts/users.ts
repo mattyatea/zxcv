@@ -1,12 +1,6 @@
 import { oc } from "@orpc/contract";
 import * as z from "zod";
-import {
-	EmailSchema,
-	PasswordSchema,
-	SuccessResponseSchema,
-	UsernameSchema,
-	UserProfileSchema,
-} from "../schemas/common";
+import { PasswordSchema, SuccessResponseSchema, UserProfileSchema } from "../schemas/common";
 
 export const usersContract = {
 	searchByUsername: oc
@@ -44,6 +38,11 @@ export const usersContract = {
 					username: z.string(),
 					email: z.string().nullable(),
 					emailVerified: z.boolean(),
+					displayName: z.string().nullable(),
+					bio: z.string().nullable(),
+					location: z.string().nullable(),
+					website: z.string().nullable(),
+					avatarUrl: z.string().nullable(),
 					createdAt: z.number(),
 					updatedAt: z.number(),
 				}),
@@ -85,6 +84,11 @@ export const usersContract = {
 				user: z.object({
 					id: z.string(),
 					username: z.string(),
+					displayName: z.string().nullable(),
+					bio: z.string().nullable(),
+					location: z.string().nullable(),
+					website: z.string().nullable(),
+					avatarUrl: z.string().nullable(),
 					createdAt: z.number(),
 				}),
 				stats: z.object({
@@ -109,27 +113,45 @@ export const usersContract = {
 			}),
 		),
 
-	profile: oc
+	me: oc
 		.route({
 			method: "GET",
 			path: "/users/me",
-			description: "Get current user profile",
+			description: "Get current user information",
 		})
 		.output(
 			z.object({
 				id: z.string(),
 				email: z.string(),
 				username: z.string(),
-				created_at: z.number(),
-				updated_at: z.number(),
+				emailVerified: z.boolean(),
+				displayName: z.string().nullable(),
+				bio: z.string().nullable(),
+				location: z.string().nullable(),
+				website: z.string().nullable(),
+				avatarUrl: z.string().nullable(),
+				createdAt: z.number(),
+				updatedAt: z.number(),
+				stats: z.object({
+					rulesCount: z.number(),
+					organizationsCount: z.number(),
+					totalStars: z.number(),
+				}),
 			}),
 		),
 
 	updateProfile: oc
+		.route({
+			method: "POST",
+			path: "/users/updateProfile",
+			description: "Update user profile information",
+		})
 		.input(
 			z.object({
-				email: EmailSchema.optional(),
-				username: UsernameSchema.optional(),
+				displayName: z.string().max(100).optional(),
+				bio: z.string().max(500).optional(),
+				location: z.string().max(100).optional(),
+				website: z.string().url().optional().or(z.literal("")),
 			}),
 		)
 		.output(
@@ -172,6 +194,24 @@ export const usersContract = {
 			}),
 		)
 		.output(SuccessResponseSchema),
+
+	uploadAvatar: oc
+		.route({
+			method: "POST",
+			path: "/users/uploadAvatar",
+			description: "Upload user avatar image",
+		})
+		.input(
+			z.object({
+				image: z.string().describe("Base64 encoded image data"),
+				filename: z.string().describe("Original filename"),
+			}),
+		)
+		.output(
+			z.object({
+				avatarUrl: z.string(),
+			}),
+		),
 
 	deleteAccount: oc
 		.input(

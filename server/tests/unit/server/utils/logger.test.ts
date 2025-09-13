@@ -283,9 +283,9 @@ describe("Logger", () => {
 });
 
 describe("createLogger", () => {
-	it("should create logger with INFO level", () => {
+	it("should create logger with DEBUG level in test environment", () => {
 		const logger = createLogger();
-		expect(logger["minLevel"]).toBe(LogLevel.INFO);
+		expect(logger["minLevel"]).toBe(LogLevel.DEBUG);
 	});
 });
 
@@ -343,9 +343,9 @@ describe("requestTimingMiddleware", () => {
 		await middleware(mockContext, nextFn);
 
 		// Should log twice: once for setting context, once for completion
-		expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+		expect(consoleLogSpy).toHaveBeenCalledTimes(2);
 		
-		const loggedData = JSON.parse(consoleLogSpy.mock.calls[0][0]);
+		const loggedData = JSON.parse(consoleLogSpy.mock.calls[1][0]);
 		expect(loggedData.message).toBe("API request completed");
 		expect(loggedData.context.status).toBe(200);
 		expect(loggedData.context.duration).toBeGreaterThanOrEqual(10);

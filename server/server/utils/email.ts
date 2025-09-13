@@ -114,7 +114,7 @@ export class EmailService {
 	private isTestEnvironment(): boolean {
 		// Check for common test environment indicators
 		return (
-			process.env.NODE_ENV === "test" ||
+			process.env.NODE_ENV !== "production" ||
 			process.env.VITEST === "true" ||
 			// Check if we're in a test environment by checking if fromEmail is the test email
 			this.fromEmail === "test@example.com" ||

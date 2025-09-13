@@ -4,5 +4,5 @@ import type { contract } from "~/server/orpc/contracts";
 
 export const useRpc = () => {
 	const { $rpc } = useNuxtApp();
-	return $rpc as JsonifiedClient<ContractRouterClient<typeof contract>>;
+	return $rpc as ContractRouterClient<typeof contract>;
 };

@@ -1,6 +1,6 @@
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
-import { defineEventHandler, readBody, setResponseStatus } from "h3";
+import { defineEventHandler, setResponseStatus } from "h3";
 import { router } from "../../orpc/router";
 import type { H3EventContext } from "../../types/bindings";
 import {

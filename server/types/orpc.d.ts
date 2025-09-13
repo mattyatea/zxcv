@@ -1,8 +1,9 @@
-import type { RouterClient } from "@orpc/server";
-import type { router } from "~/server/orpc/router";
+import type { ContractRouterClient } from "@orpc/contract/dist/index";
+import type { JsonifiedClient } from "@orpc/openapi-client/dist/index";
+import type { contract } from "~/server/orpc/contracts";
 
 // Type alias for the router client
-export type ORPCClient = RouterClient<typeof router>;
+export type ORPCClient = JsonifiedClient<ContractRouterClient<typeof contract>>;
 
 // Augment both NuxtApp and Vue ComponentCustomProperties
 declare module "#app" {
