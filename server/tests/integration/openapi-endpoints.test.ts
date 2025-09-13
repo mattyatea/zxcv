@@ -310,12 +310,13 @@ describe("OpenAPI Endpoints via REST", () => {
 			
 			if (!response.matched) {
 				console.log("[OPENAPI TEST DEBUG] Response not matched for /api/users/me");
-				const body = await response.response.text();
-				console.log("[OPENAPI TEST DEBUG] Response body:", body);
 			}
 			
 			if (response.response.status !== 200) {
-				console.log("[OPENAPI TEST DEBUG] Non-200 response, body:", await response.response.text());
+				// Clone the response to avoid consuming it
+				const responseClone = response.response.clone();
+				const body = await responseClone.text();
+				console.log("[OPENAPI TEST DEBUG] Non-200 response, body:", body);
 			}
 			
 			expect(response.matched).toBe(true);
