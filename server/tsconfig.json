@@ -5,11 +5,11 @@
     "types": [
       "./worker-configuration.d.ts",
       "vitest/globals",
-      "./tests/types/test-env.d.ts",
-      "./tests/types/cloudflare-test.d.ts",
-      "./types/orpc.d.ts",
-      "./app/types/rpc.d.ts"
+      "./tests/types/test-env.d.ts"
     ],
+    // Cloudflare Workers TypeScript best practices with DOM support for Nuxt
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -19,6 +19,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "verbatimModuleSyntax": true,
     "paths": {
       "~/*": ["./app/*"],
       "@/*": ["./app/*"],
