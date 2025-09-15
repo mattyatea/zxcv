@@ -30,6 +30,7 @@
     }
   ],
   "vars": {
+    "JWT_SECRET": "test-jwt-secret",
     "JWT_ALGORITHM": "HS256",
     "JWT_EXPIRES_IN": "1h",
     "RATE_LIMIT_ANONYMOUS": "100",
