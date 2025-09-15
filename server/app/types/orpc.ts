@@ -1,8 +1,6 @@
-import type { InferRouterOutputs } from "@orpc/server";
-import type { router } from "~/server/orpc/router";
+import type {InferContractRouterOutputs} from "@orpc/contract";
 
-// ルーターから型を推論
-export type RouterOutputs = InferRouterOutputs<typeof router>;
+type RouterOutputs = InferContractRouterOutputs<typeof contract>; 
 
 // Auth関連
 export type RegisterResponse = RouterOutputs["auth"]["register"];
@@ -15,6 +13,7 @@ export type SendVerificationResponse = RouterOutputs["auth"]["sendVerification"]
 export type CheckUsernameResponse = RouterOutputs["auth"]["checkUsername"];
 export type CompleteOAuthRegistrationResponse = RouterOutputs["auth"]["completeOAuthRegistration"];
 export type UserType = LoginResponse["user"];
+export type MeResponse = RouterOutputs["auth"]["me"];
 
 // Rules関連
 export type SearchRulesResponse = RouterOutputs["rules"]["search"];

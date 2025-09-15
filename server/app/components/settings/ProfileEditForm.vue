@@ -141,11 +141,11 @@ import Button from "~/components/common/Button.vue";
 import Input from "~/components/common/Input.vue";
 import Textarea from "~/components/common/Textarea.vue";
 import Avatar from "~/components/common/Avatar.vue";
-import type { CurrentUser } from "~/types/user";
+import type { MeResponse } from "~/types/orpc";
 
 // Props
 interface Props {
-	user: CurrentUser | null;
+	user: MeResponse | null;
 	loading?: boolean;
 }
 

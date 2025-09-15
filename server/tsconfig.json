@@ -35,7 +35,9 @@
     ".nuxt/nuxt.d.ts",
     ".nuxt/imports.d.ts",
     ".nuxt/components.d.ts",
-    "nuxt.d.ts"
+    "nuxt.d.ts",
+    "worker-configuration.d.ts",
+    "types.d.ts"
   ],
   "exclude": [
     "node_modules",
