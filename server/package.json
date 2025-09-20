@@ -14,7 +14,7 @@
 		"postinstall": "nuxt prepare",
 		"deploy": "pnpm run build && wrangler deploy",
 		"deploy:staging": "pnpm run build:staging && wrangler deploy",
-		"cf-typegen": "wrangler types",
+		"cf-typegen": "test \"$SKIP_CF_TYPEGEN\" = \"1\" && echo \"Skipping cf-typegen\" || wrangler types",
 		"typegen": "pnpm cf-typegen && pnpm prisma:generate",
 		"prisma:generate": "prisma generate",
 		"migrate:local": "wrangler d1 migrations apply zxcv-db --local",
