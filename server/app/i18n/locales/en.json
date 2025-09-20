@@ -52,6 +52,7 @@
   "nav": {
     "home": "Home",
     "rules": "Rules",
+    "install": "Install",
     "myRules": "My Rules",
     "myOrganizations": "My Organizations", 
     "quickAccess": "Quick Access",
@@ -833,6 +834,114 @@
       "description": "Have questions or feedback? We'd love to hear from you.",
       "email": "Send us an email",
       "github": "Visit our GitHub"
+    }
+  },
+  "install": {
+    "pageTitle": "CLI Installation - zxcv",
+    "pageDescription": "Installation guide and setup instructions for the zxcv CLI tool",
+    "hero": {
+      "title": "Install zxcv CLI",
+      "subtitle": "Manage AI coding rules from the command line. Simple npm/bun-like interface for easy rule management.",
+      "quickInstall": "Quick Install",
+      "viewReleases": "View Releases"
+    },
+    "quickInstall": {
+      "title": "One-liner Installation",
+      "terminal": "Terminal",
+      "description": "This command will auto-detect your platform and install the latest version."
+    },
+    "methods": {
+      "title": "Installation Methods",
+      "script": {
+        "title": "Install Script",
+        "description": "Recommended: Auto-detects platform with checksum verification"
+      },
+      "npm": {
+        "title": "Bun/NPM Package",
+        "description": "If you have a Node.js environment"
+      },
+      "binary": {
+        "title": "Binary Download",
+        "description": "Direct download from GitHub Releases"
+      }
+    },
+    "platforms": {
+      "title": "Platform-specific Instructions",
+      "auto": {
+        "name": "Auto-detect",
+        "title": "Automatic Installation (Recommended)",
+        "steps": {
+          "1": {
+            "title": "Run the install script",
+            "description": "This command will detect your platform and download the appropriate binary."
+          },
+          "2": {
+            "title": "Verify installation",
+            "description": "Check that the installation was successful by checking the version."
+          }
+        }
+      },
+      "macos": {
+        "title": "macOS",
+        "steps": {
+          "1": {
+            "title": "Use the install script",
+            "description": "The easiest and recommended method."
+          },
+          "2": {
+            "title": "Use Homebrew (Coming Soon)",
+            "description": "Homebrew package is in preparation."
+          },
+          "3": {
+            "title": "Security verification",
+            "description": "macOS may show security warnings on first run. Allow it in System Preferences > Security & Privacy."
+          }
+        }
+      },
+      "windows": {
+        "title": "Windows",
+        "steps": {
+          "1": {
+            "title": "Download binary",
+            "description": "Download the latest Windows binary from the GitHub Releases page."
+          },
+          "2": {
+            "title": "Use Winget (Coming Soon)",
+            "description": "Winget package is in preparation."
+          },
+          "3": {
+            "title": "Verify installation",
+            "description": "Check the version using PowerShell or Command Prompt."
+          }
+        }
+      }
+    },
+    "verification": {
+      "title": "Verify Installation",
+      "description": "You can verify that zxcv CLI is correctly installed with the following command:"
+    },
+    "nextSteps": {
+      "title": "Next Steps",
+      "init": {
+        "title": "Initialize Project",
+        "description": "To start using zxcv in a new project, first initialize it."
+      },
+      "auth": {
+        "title": "Set up Authentication",
+        "description": "Authentication is required to access private rules and organization rules."
+      },
+      "explore": {
+        "title": "Explore Rules",
+        "description": "Discover public rules created by the community and add them to your project.",
+        "linkText": "Browse Rules"
+      },
+      "help": {
+        "title": "Check Help",
+        "description": "Use the help command to learn about all available commands and options."
+      }
+    },
+    "error": {
+      "copyFailed": "Failed to copy to clipboard"
     }
   }
 }
