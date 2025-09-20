@@ -1,13 +1,19 @@
+import type { PrismaClient } from "@prisma/client";
 import { createPrismaClient } from "../../utils/prisma";
 import { os } from "../index";
+
+// Type for global test objects
+declare global {
+	var __mockPrismaClient: PrismaClient | undefined;
+}
 
 export const dbProvider = os.middleware(async ({ context, next }) => {
 	// Use existing db if provided (for testing), otherwise create new one
 	let db = context.db;
 
 	// For testing: check if global mock Prisma client exists
-	if (!db && (globalThis as any).__mockPrismaClient) {
-		db = (globalThis as any).__mockPrismaClient;
+	if (!db && globalThis.__mockPrismaClient) {
+		db = globalThis.__mockPrismaClient;
 	}
 
 	// Only create Prisma client if db is not already provided and env.DB exists

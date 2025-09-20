@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Get R2 binding from Nitro/Cloudflare context
-	const env = event.context.cloudflare?.env as any;
+	const env = event.context.cloudflare?.env as Env | undefined;
 	const r2 = env?.R2;
 
 	if (!r2) {
