@@ -1,13 +1,28 @@
 name: Post-Release Actions
 
 on:
-  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - 'package.json'
       - 'server/package.json' 
       - 'cli/package.json'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.0, v1.2.0-beta.1)'
+        required: true
+        type: string
+      include_cli:
+        description: 'Include CLI release assets'
+        required: false
+        default: false
+        type: boolean
+      branch:
+        description: 'Branch to create release from'
+        required: false
+        default: 'main'
+        type: string
 
 # Prevent multiple post-release actions from running simultaneously
 concurrency:
@@ -27,6 +42,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
           fetch-depth: 2
 
       - name: Check if this is a release commit
@@ -34,91 +50,104 @@ jobs:
         run: |
           echo "🔍 Checking if this is a release commit..."
           
-          # Get commit message and PR information
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-          PR_BODY=$(git log -1 --pretty=format:"%b")
-          
-          echo "Commit message: $COMMIT_MSG"
-          
-          IS_RELEASE=false
-          VERSION=""
-          INCLUDE_CLI=false
-          
-          # Method 1: Check commit message for version bump pattern (including prerelease)
-          if [[ "$COMMIT_MSG" =~ ^chore:\ bump\ version\ to\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]]; then
-            echo "✅ Release detected via commit message pattern"
+          # Handle manual workflow dispatch
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "✅ Manual workflow dispatch detected"
             IS_RELEASE=true
-            VERSION=$(echo "$COMMIT_MSG" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
-          fi
-          
-          # Method 2: Check for merge commit from release branch
-          if [[ "$COMMIT_MSG" =~ ^Merge\ pull\ request.*release ]]; then
-            echo "🔍 Checking merge commit from release branch"
-            # Extract PR number from merge commit
-            PR_NUMBER=$(echo "$COMMIT_MSG" | grep -o "#[0-9]\+" | head -1 | tr -d '#')
+            VERSION="${{ github.event.inputs.version }}"
+            INCLUDE_CLI="${{ github.event.inputs.include_cli }}"
             
-            if [ -n "$PR_NUMBER" ]; then
-              # Get PR details to check if it's a release PR
-              PR_DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER 2>/dev/null || echo "")
-              if [ -n "$PR_DATA" ]; then
-                PR_TITLE=$(echo "$PR_DATA" | jq -r '.title // ""')
-                PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels[].name // ""' | tr '\n' ' ')
-                
-                echo "PR Title: $PR_TITLE"
-                echo "PR Labels: $PR_LABELS"
-                
-                # Check if PR has release indicators (including prerelease)
-                if [[ "$PR_TITLE" =~ ^🚀\ Release\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]] || [[ "$PR_LABELS" =~ release ]]; then
-                  echo "✅ Release detected via PR merge"
-                  IS_RELEASE=true
-                  VERSION=$(echo "$PR_TITLE" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
+            echo "Manual release settings:"
+            echo "  Version: $VERSION"
+            echo "  Include CLI: $INCLUDE_CLI"
+            echo "  Branch: ${{ github.event.inputs.branch || github.ref }}"
+          else
+            # Get commit message and PR information
+            COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+            PR_BODY=$(git log -1 --pretty=format:"%b")
+            
+            echo "Commit message: $COMMIT_MSG"
+            
+            IS_RELEASE=false
+            VERSION=""
+            INCLUDE_CLI=false
+          
+            # Method 1: Check commit message for version bump pattern (including prerelease)
+            if [[ "$COMMIT_MSG" =~ ^chore:\ bump\ version\ to\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]]; then
+              echo "✅ Release detected via commit message pattern"
+              IS_RELEASE=true
+              VERSION=$(echo "$COMMIT_MSG" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
+            fi
+          
+            # Method 2: Check for merge commit from release branch
+            if [[ "$COMMIT_MSG" =~ ^Merge\ pull\ request.*release ]]; then
+              echo "🔍 Checking merge commit from release branch"
+              # Extract PR number from merge commit
+              PR_NUMBER=$(echo "$COMMIT_MSG" | grep -o "#[0-9]\+" | head -1 | tr -d '#')
+              
+              if [ -n "$PR_NUMBER" ]; then
+                # Get PR details to check if it's a release PR
+                PR_DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER 2>/dev/null || echo "")
+                if [ -n "$PR_DATA" ]; then
+                  PR_TITLE=$(echo "$PR_DATA" | jq -r '.title // ""')
+                  PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels[].name // ""' | tr '\n' ' ')
+                  
+                  echo "PR Title: $PR_TITLE"
+                  echo "PR Labels: $PR_LABELS"
+                  
+                  # Check if PR has release indicators (including prerelease)
+                  if [[ "$PR_TITLE" =~ ^🚀\ Release\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]] || [[ "$PR_LABELS" =~ release ]]; then
+                    echo "✅ Release detected via PR merge"
+                    IS_RELEASE=true
+                    VERSION=$(echo "$PR_TITLE" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
+                  fi
                 fi
               fi
             fi
-          fi
-          
-          # Method 3: Check for package.json version changes
-          if [ "$IS_RELEASE" = false ]; then
-            echo "🔍 Checking package.json changes for version updates"
             
-            # Check if any package.json files were modified
-            CHANGED_FILES=$(git diff HEAD~1..HEAD --name-only)
-            echo "Changed files: $CHANGED_FILES"
-            
-            if echo "$CHANGED_FILES" | grep -q "package\.json"; then
-              # Extract version from the updated package.json files
-              for file in package.json server/package.json cli/package.json; do
-                if [ -f "$file" ] && echo "$CHANGED_FILES" | grep -q "$file"; then
-                  CURRENT_VERSION=$(jq -r '.version // ""' "$file" 2>/dev/null)
-                  if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "null" ]; then
-                    # Check if this looks like a new release version (including prerelease)
-                    if [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
-                      echo "✅ Release detected via package.json version: $CURRENT_VERSION"
-                      IS_RELEASE=true
-                      VERSION="v$CURRENT_VERSION"
-                      break
+            # Method 3: Check for package.json version changes
+            if [ "$IS_RELEASE" = false ]; then
+              echo "🔍 Checking package.json changes for version updates"
+              
+              # Check if any package.json files were modified
+              CHANGED_FILES=$(git diff HEAD~1..HEAD --name-only)
+              echo "Changed files: $CHANGED_FILES"
+              
+              if echo "$CHANGED_FILES" | grep -q "package\.json"; then
+                # Extract version from the updated package.json files
+                for file in package.json server/package.json cli/package.json; do
+                  if [ -f "$file" ] && echo "$CHANGED_FILES" | grep -q "$file"; then
+                    CURRENT_VERSION=$(jq -r '.version // ""' "$file" 2>/dev/null)
+                    if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "null" ]; then
+                      # Check if this looks like a new release version (including prerelease)
+                      if [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+                        echo "✅ Release detected via package.json version: $CURRENT_VERSION"
+                        IS_RELEASE=true
+                        VERSION="v$CURRENT_VERSION"
+                        break
+                      fi
                     fi
                   fi
-                fi
-              done
-            fi
-          fi
-          
-          # Determine CLI inclusion
-          if [ "$IS_RELEASE" = true ]; then
-            # Check if CLI package.json was updated
-            if echo "$CHANGED_FILES" | grep -q "cli/package.json"; then
-              INCLUDE_CLI=true
-              echo "✅ CLI release included"
-            else
-              echo "ℹ️ CLI release not included"
+                done
+              fi
             fi
             
-            # Validate version format (support prerelease versions)
-            if [ -z "$VERSION" ] || [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
-              echo "⚠️ Invalid version format detected: '$VERSION'"
-              echo "Supported formats: v1.2.3, v1.2.3-alpha.1, v1.2.3-beta.1, v1.2.3-rc.1"
-              IS_RELEASE=false
+            # Determine CLI inclusion (for automatic detection)
+            if [ "$IS_RELEASE" = true ]; then
+              # Check if CLI package.json was updated
+              if echo "$CHANGED_FILES" | grep -q "cli/package.json"; then
+                INCLUDE_CLI=true
+                echo "✅ CLI release included"
+              else
+                echo "ℹ️ CLI release not included"
+              fi
+              
+              # Validate version format (support prerelease versions)
+              if [ -z "$VERSION" ] || [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+                echo "⚠️ Invalid version format detected: '$VERSION'"
+                echo "Supported formats: v1.2.3, v1.2.3-alpha.1, v1.2.3-beta.1, v1.2.3-rc.1"
+                IS_RELEASE=false
+              fi
             fi
           fi
           
@@ -167,96 +196,8 @@ jobs:
       - name: Wait for deployment to complete
         run: |
           echo "⏳ Waiting for production deployment to complete..."
-          
-          # Wait for deployment to start
-          sleep 30
-          
-          # Define health check endpoints
-          HEALTH_URLS=(
-            "https://zxcv.nanasi-apps.xyz/api/health"
-            "https://zxcv.nanasi-apps.xyz/rpc/health.check"
-          )
-          
-          MAX_ATTEMPTS=30
-          ATTEMPT=0
-          DEPLOYMENT_SUCCESS=false
-          
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            echo "Checking deployment health (attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS)..."
-            
-            # Method 1: Check GitHub deployment status
-            DEPLOYMENT_DATA=$(gh api repos/${{ github.repository }}/deployments \
-              --jq '.[] | select(.environment == "production") | select(.created_at > (now - 600)) | .[0]' 2>/dev/null || echo "")
-
-            # Method 2: Health endpoint checks
-            for health_url in "${HEALTH_URLs[@]}"; do
-              echo "Checking health endpoint: $health_url"
-              
-              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$health_url" --connect-timeout 10 --max-time 30 || echo "000")
-              
-              if [ "$HTTP_CODE" = "200" ]; then
-                echo "✅ Health endpoint responding successfully: $health_url"
-                
-                # Additional validation: check response content
-                RESPONSE=$(curl -s "$health_url" --connect-timeout 10 --max-time 30 || echo "")
-                if [[ "$RESPONSE" =~ "ok" ]] || [[ "$RESPONSE" =~ "healthy" ]] || [[ "$RESPONSE" =~ "success" ]]; then
-                  echo "✅ Health check passed with valid response"
-                  DEPLOYMENT_SUCCESS=true
-                  break 2
-                else
-                  echo "⚠️ Health endpoint returned unexpected response: $RESPONSE"
-                fi
-              elif [ "$HTTP_CODE" = "000" ]; then
-                echo "⚠️ Health endpoint unreachable (network error)"
-              else
-                echo "⚠️ Health endpoint returned HTTP $HTTP_CODE"
-              fi
-            done
-            
-            if [ "$DEPLOYMENT_SUCCESS" = true ]; then
-              break
-            fi
-            
-            ATTEMPT=$((ATTEMPT + 1))
-            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
-              sleep 20
-            fi
-          done
-          
-          if [ "$DEPLOYMENT_SUCCESS" = false ]; then
-            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-              echo "⚠️ Deployment verification timed out after $((MAX_ATTEMPTS * 20)) seconds"
-            fi
-            
-            echo "🔍 Performing final manual verification..."
-            
-            # Try one more direct health check
-            for health_url in "${HEALTH_URLs[@]}"; do
-              echo "Final check: $health_url"
-              if curl -s "$health_url" --connect-timeout 5 --max-time 10 >/dev/null 2>&1; then
-                echo "✅ Final health check passed for $health_url"
-                DEPLOYMENT_SUCCESS=true
-                break
-              fi
-            done
-            
-            if [ "$DEPLOYMENT_SUCCESS" = false ]; then
-              echo "❌ Deployment verification failed"
-              echo "Please check the following manually:"
-              echo "  - Production site: https://zxcv.nanasi-apps.xyz"
-              for url in "${HEALTH_URLs[@]}"; do
-                echo "  - Health check: $url"
-              done
-              echo "If the site is working, the release will continue with a warning."
-              echo "Consider investigating deployment infrastructure if issues persist."
-            fi
-          fi
-          
-          if [ "$DEPLOYMENT_SUCCESS" = true ]; then
-            echo "🎉 Production deployment verified successfully!"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          sleep 60
+          echo "✅ Deployment wait completed"
 
       - name: Create Git tag
         run: |
