@@ -52,6 +52,7 @@
   "nav": {
     "home": "ホーム",
     "rules": "ルール",
+    "install": "インストール",
     "myRules": "マイルール",
     "myOrganizations": "マイ組織",
     "quickAccess": "クイックアクセス",
@@ -803,6 +804,130 @@
       "description": "ご質問やご意見がありましたら、お気軽にお問い合わせください。",
       "email": "メールでお問い合わせ",
       "github": "GitHubを訪問"
+    }
+  },
+  "install": {
+    "pageTitle": "CLIインストール - zxcv",
+    "pageDescription": "zxcv CLIツールのインストール方法とセットアップガイド",
+    "hero": {
+      "title": "zxcv CLIをインストール",
+      "subtitle": "コマンドラインからAIコーディングルールを管理しよう。npm/bunライクなインターフェースで簡単操作。",
+      "quickInstall": "すぐにインストール",
+      "viewReleases": "リリースを見る"
+    },
+    "quickInstall": {
+      "title": "ワンライナーインストール",
+      "terminal": "ターミナル",
+      "description": "このコマンドはあなたのプラットフォームを自動検出し、最新版をインストールします。"
+    },
+    "methods": {
+      "title": "インストール方法",
+      "script": {
+        "title": "インストールスクリプト",
+        "description": "推奨：自動プラットフォーム検出とチェックサム検証付き"
+      },
+      "binary": {
+        "title": "バイナリダウンロード",
+        "description": "GitHub Releasesから直接ダウンロード"
+      }
+    },
+    "platforms": {
+      "title": "プラットフォーム別手順",
+      "auto": {
+        "name": "自動検出",
+        "title": "自動インストール（推奨）",
+        "steps": {
+          "1": {
+            "title": "インストールスクリプトを実行",
+            "description": "このコマンドがプラットフォームを検出し、適切なバイナリをダウンロード・インストールします。"
+          },
+          "2": {
+            "title": "インストールを確認",
+            "description": "正常にインストールされたかバージョンを確認してください。"
+          }
+        }
+      },
+      "macos": {
+        "name": "macOS",
+        "title": "macOS",
+        "steps": {
+          "1": {
+            "title": "インストールスクリプトを使用",
+            "description": "最も簡単で推奨される方法です。"
+          },
+          "2": {
+            "title": "Homebrewを使用（将来対応予定）",
+            "description": "Homebrewパッケージは準備中です。"
+          },
+          "3": {
+            "title": "セキュリティ確認",
+            "description": "macOSでは初回実行時にセキュリティ警告が表示される場合があります。システム環境設定のセキュリティとプライバシーで許可してください。"
+          }
+        }
+      },
+      "windows": {
+        "name": "Windows",
+        "title": "Windows",
+        "steps": {
+          "1": {
+            "title": "バイナリをダウンロード",
+            "description": "GitHub Releasesページから最新のWindows用バイナリをダウンロードしてください。"
+          },
+          "2": {
+            "title": "Wingetを使用（将来対応予定）",
+            "description": "Wingetパッケージは準備中です。"
+          },
+          "3": {
+            "title": "インストールを確認",
+            "description": "PowerShellまたはコマンドプロンプトでバージョンを確認してください。"
+          }
+        }
+      },
+      "linux": {
+        "name": "Linux",
+        "title": "Linux",
+        "steps": {
+          "1": {
+            "title": "インストールスクリプトを使用",
+            "description": "最も簡単で推奨される方法です。"
+          },
+          "2": {
+            "title": "バイナリを直接ダウンロード",
+            "description": "GitHub Releasesページから最新のLinux用バイナリをダウンロードしてください。"
+          },
+          "3": {
+            "title": "インストールを確認",
+            "description": "バイナリに実行権限を付与し、バージョンを確認してください。"
+          }
+        }
+      }
+    },
+    "verification": {
+      "title": "インストールを確認",
+      "description": "以下のコマンドでzxcv CLIが正しくインストールされているか確認できます："
+    },
+    "nextSteps": {
+      "title": "次のステップ",
+      "init": {
+        "title": "プロジェクトを初期化",
+        "description": "新しいプロジェクトでzxcvを使い始めるには、まず初期化を行います。"
+      },
+      "auth": {
+        "title": "認証を設定",
+        "description": "プライベートルールや組織のルールにアクセスするには認証が必要です。"
+      },
+      "explore": {
+        "title": "ルールを探索",
+        "description": "コミュニティが作成した公開ルールを発見し、プロジェクトに追加しましょう。",
+        "linkText": "ルール一覧を見る"
+      },
+      "help": {
+        "title": "ヘルプを確認",
+        "description": "すべてのコマンドとオプションについて詳しく知りたい場合は、ヘルプコマンドを使用してください。"
+      }
+    },
+    "error": {
+      "copyFailed": "クリップボードへのコピーに失敗しました"
     }
   }
 }
