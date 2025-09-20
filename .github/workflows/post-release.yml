@@ -1,6 +1,7 @@
 name: Post-Release Actions
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -186,33 +187,7 @@ jobs:
             # Method 1: Check GitHub deployment status
             DEPLOYMENT_DATA=$(gh api repos/${{ github.repository }}/deployments \
               --jq '.[] | select(.environment == "production") | select(.created_at > (now - 600)) | .[0]' 2>/dev/null || echo "")
-            
-            if [ -n "$DEPLOYMENT_DATA" ]; then
-              DEPLOYMENT_ID=$(echo "$DEPLOYMENT_DATA" | jq -r '.id // empty' 2>/dev/null || echo "")
-              
-              if [ -n "$DEPLOYMENT_ID" ]; then
-                STATUS=$(gh api repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses \
-                  --jq '.[0].state // empty' 2>/dev/null || echo "")
-                
-                echo "GitHub deployment $DEPLOYMENT_ID status: $STATUS"
-                
-                case "$STATUS" in
-                  "success")
-                    echo "✅ GitHub deployment marked as successful!"
-                    DEPLOYMENT_SUCCESS=true
-                    break
-                    ;;
-                  "failure"|"error")
-                    echo "❌ GitHub deployment marked as failed!"
-                    exit 1
-                    ;;
-                  "pending"|"in_progress")
-                    echo "⏳ GitHub deployment still in progress..."
-                    ;;
-                esac
-              fi
-            fi
-            
+
             # Method 2: Health endpoint checks
             for health_url in "${HEALTH_URLs[@]}"; do
               echo "Checking health endpoint: $health_url"
