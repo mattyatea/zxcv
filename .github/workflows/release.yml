@@ -329,6 +329,7 @@ jobs:
 
       - name: Create Release PR
         id: pr
+        continue-on-error: true
         run: |
           # Check if PR already exists for this branch
           EXISTING_PR=$(gh pr list --head "${{ steps.branch.outputs.branch_name }}" --json number --jq '.[0].number' || echo "")
@@ -339,7 +340,7 @@ jobs:
             echo "📋 Updating existing PR instead of creating new one"
             
             # Update the existing PR
-            gh pr edit "$EXISTING_PR" \
+            if gh pr edit "$EXISTING_PR" \
               --title "🚀 Release ${{ inputs.version }}" \
               --body "$(cat <<'EOF'
           ## 🚀 Release ${{ inputs.version }} (Updated)
@@ -381,9 +382,15 @@ jobs:
           /cc @${{ github.actor }}
           EOF
           )"
+            then
+              echo "✅ Updated existing PR: $PR_URL"
+            else
+              echo "❌ Failed to update existing PR"
+              PR_URL=$(gh pr view "$EXISTING_PR" --json url --jq '.url')
+            fi
           else
             echo "📋 Creating new PR for release ${{ inputs.version }}"
-            PR_URL=$(gh pr create \
+            if PR_URL=$(gh pr create \
             --title "🚀 Release ${{ inputs.version }}" \
             --body "$(cat <<'EOF'
           ## 🚀 Release ${{ inputs.version }}
@@ -425,25 +432,48 @@ jobs:
           )" \
             --base main \
             --head ${{ steps.branch.outputs.branch_name }})
+            then
+              echo "✅ Created new PR: $PR_URL"
+            else
+              echo "❌ Failed to create PR automatically"
+              echo "This is likely due to GitHub Actions not having permission to create PRs"
+              PR_URL="https://github.com/${{ github.repository }}/compare/main...${{ steps.branch.outputs.branch_name }}"
+              echo "📋 Manual PR creation URL: $PR_URL"
+            fi
           fi
           
           echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
-          echo "✅ Release PR ready: $PR_URL"
+          if [[ "$PR_URL" == *"compare"* ]]; then
+            echo "⚠️ PR needs to be created manually: $PR_URL"
+          else
+            echo "✅ Release PR ready: $PR_URL"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Add PR to project (if configured)
+      - name: Release Summary
         run: |
-          echo "🎯 Release PR created successfully!"
+          echo "🎯 Release preparation completed!"
           echo "📋 PR URL: ${{ steps.pr.outputs.pr_url }}"
           echo "🏷️ Version: ${{ inputs.version }}"
           echo "📦 Release Type: ${{ inputs.release_type }}"
           echo "🛠️ CLI Included: ${{ inputs.include_cli }}"
           
           echo "### Next Steps:"
-          echo "1. Review the PR: ${{ steps.pr.outputs.pr_url }}"
-          echo "2. Approve and merge to main for production release"
-          echo "3. Monitor deployment in the Actions tab"
+          if [[ "${{ steps.pr.outputs.pr_url }}" == *"compare"* ]]; then
+            echo "1. 🔧 **Create PR manually**: ${{ steps.pr.outputs.pr_url }}"
+            echo "2. 📝 **Copy title**: 🚀 Release ${{ inputs.version }}"
+            echo "3. 📋 **Copy description from changelog above**"
+            echo "4. ✅ **Review and merge** to main for production release"
+            echo "5. 📊 **Monitor deployment** in the Actions tab"
+            echo ""
+            echo "⚠️  **Note**: Automatic PR creation failed due to GitHub Actions permissions."
+            echo "The release branch has been created and pushed successfully."
+          else
+            echo "1. Review the PR: ${{ steps.pr.outputs.pr_url }}"
+            echo "2. Approve and merge to main for production release"
+            echo "3. Monitor deployment in the Actions tab"
+          fi
 
       - name: Create draft GitHub release
         run: |
