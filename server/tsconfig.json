@@ -4,8 +4,7 @@
   "compilerOptions": {
     "types": [
       "./worker-configuration.d.ts",
-      "vitest/globals",
-      "./tests/types/test-env.d.ts"
+      "vitest/globals"
     ],
     // Cloudflare Workers TypeScript best practices with DOM support for Nuxt
     "target": "ES2022",
@@ -35,14 +34,14 @@
     ".nuxt/nuxt.d.ts",
     ".nuxt/imports.d.ts",
     ".nuxt/components.d.ts",
-    "nuxt.d.ts",
-    "worker-configuration.d.ts",
-    "types.d.ts"
+    "worker-configuration.d.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "coverage",
+    ".output",
+    ".nuxt",
     "tests/",
     "nuxt.config.ts"
   ]

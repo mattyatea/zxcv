@@ -1088,10 +1088,40 @@ export class RuleService {
 	 */
 	private async deleteRuleContents(ruleId: string) {
 		const prefix = `rules/${ruleId}/`;
-		const objects = await this.r2.list({ prefix });
+		const maxConcurrent = 10; // 並列削除操作の最大数
+		let cursor: string | undefined;
 
-		const deletePromises = objects.objects.map((obj: { key: string }) => this.r2.delete(obj.key));
-		await Promise.all(deletePromises);
+		do {
+			// ページング処理でオブジェクトを取得
+			const objects = await this.r2.list({
+				prefix,
+				cursor
+			});
+
+			if (objects.objects.length === 0) {
+				break;
+			}
+
+			// 並列操作制限付きで削除
+			const deletePromises: Promise<void>[] = [];
+			for (let i = 0; i < objects.objects.length; i += maxConcurrent) {
+				const batch = objects.objects.slice(i, i + maxConcurrent);
+				const batchPromises = batch.map((obj: { key: string }) => this.r2.delete(obj.key));
+				deletePromises.push(...batchPromises);
+
+				// バッチごとに処理を待機
+				if (deletePromises.length >= maxConcurrent) {
+					await Promise.all(deletePromises.splice(0, maxConcurrent));
+				}
+			}
+
+			// 残りの削除操作を完了
+			if (deletePromises.length > 0) {
+				await Promise.all(deletePromises);
+			}
+
+			cursor = objects.truncated ? objects.cursor : undefined;
+		} while (cursor);
 	}
 
 	/**

@@ -65,11 +65,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ProfileEditForm from "~/components/settings/ProfileEditForm.vue";
 import { useToast } from "~/composables/useToast";
 import { useRpc } from "~/composables/useRpc";
 import type { CurrentUser } from "~/types/user";
+import type { MeResponse } from "~/types/orpc";
 
 // Meta tags
 definePageMeta({
