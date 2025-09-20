@@ -37,6 +37,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
 
     steps:
       - name: Checkout code
@@ -90,6 +91,10 @@ jobs:
           BRANCH_NAME="release/${{ inputs.version }}"
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
           
+          # Ensure we're starting from the correct base
+          git checkout dev
+          git pull origin dev
+          
           # Check if branch already exists locally
           if git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
             echo "⚠️ Local branch $BRANCH_NAME already exists, deleting it"
@@ -100,14 +105,13 @@ jobs:
           if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
             echo "⚠️ Remote branch $BRANCH_NAME already exists"
             echo "This might be from a previous release attempt"
-            echo "Fetching and checking out existing branch for update"
-            git fetch origin "$BRANCH_NAME:$BRANCH_NAME"
-            git checkout "$BRANCH_NAME"
-            echo "Checked out existing release branch: $BRANCH_NAME"
-          else
-            git checkout -b "$BRANCH_NAME"
-            echo "Created new release branch: $BRANCH_NAME"
+            echo "Deleting remote branch and creating fresh one"
+            git push origin --delete "$BRANCH_NAME" || true
           fi
+          
+          # Create fresh branch from dev
+          git checkout -b "$BRANCH_NAME"
+          echo "Created new release branch: $BRANCH_NAME from dev"
 
       - name: Update package versions
         id: versions
@@ -280,10 +284,12 @@ jobs:
 
       - name: Commit version updates
         run: |
-          git add -A
+          # Only add package.json files to avoid workflow permission issues
+          find . -name "package.json" -not -path "./node_modules/*" -exec git add {} \;
           
+          # Check if we have any changes to commit
           if git diff --staged --quiet; then
-            echo "No changes to commit"
+            echo "No package.json changes to commit"
           else
             git commit -m "chore: bump version to ${{ inputs.version }}
 
