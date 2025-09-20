@@ -27,6 +27,9 @@ jobs:
       - name: Lint and format check
         run: pnpm run check
 
+      - name: Build for tests
+        run: pnpm run build:server
+
       - name: Run server tests
         run: pnpm run test:server
         env:
