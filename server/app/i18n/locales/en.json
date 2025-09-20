@@ -878,6 +878,7 @@
         }
       },
       "macos": {
+        "name": "macOS",
         "title": "macOS",
         "steps": {
           "1": {
@@ -895,6 +896,7 @@
         }
       },
       "windows": {
+        "name": "Windows",
         "title": "Windows",
         "steps": {
           "1": {
@@ -908,6 +910,24 @@
           "3": {
             "title": "Verify installation",
             "description": "Check the version using PowerShell or Command Prompt."
+          }
+        }
+      },
+      "linux": {
+        "name": "Linux",
+        "title": "Linux",
+        "steps": {
+          "1": {
+            "title": "Use the install script",
+            "description": "The easiest and recommended method."
+          },
+          "2": {
+            "title": "Download binary directly",
+            "description": "Download the latest Linux binary from the GitHub Releases page."
+          },
+          "3": {
+            "title": "Verify installation",
+            "description": "Make the binary executable and check the version."
           }
         }
       }

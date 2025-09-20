@@ -848,6 +848,7 @@
         }
       },
       "macos": {
+        "name": "macOS",
         "title": "macOS",
         "steps": {
           "1": {
@@ -865,6 +866,7 @@
         }
       },
       "windows": {
+        "name": "Windows",
         "title": "Windows",
         "steps": {
           "1": {
@@ -878,6 +880,24 @@
           "3": {
             "title": "インストールを確認",
             "description": "PowerShellまたはコマンドプロンプトでバージョンを確認してください。"
+          }
+        }
+      },
+      "linux": {
+        "name": "Linux",
+        "title": "Linux",
+        "steps": {
+          "1": {
+            "title": "インストールスクリプトを使用",
+            "description": "最も簡単で推奨される方法です。"
+          },
+          "2": {
+            "title": "バイナリを直接ダウンロード",
+            "description": "GitHub Releasesページから最新のLinux用バイナリをダウンロードしてください。"
+          },
+          "3": {
+            "title": "インストールを確認",
+            "description": "バイナリに実行権限を付与し、バージョンを確認してください。"
           }
         }
       }

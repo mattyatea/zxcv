@@ -123,7 +123,7 @@
           {{ t('install.platforms.title') }}
         </h2>
         <div class="max-w-4xl mx-auto">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Button
               v-for="platform in platforms"
               :key="platform.id"
@@ -200,7 +200,7 @@
             <div class="flex items-center justify-between mb-4">
               <span class="text-sm text-gray-400 font-mono">{{ t('install.quickInstall.terminal') }}</span>
               <Button
-                @click="copyCommand('zxcv --version')"
+                @click="copyCommand(INSTALL_COMMANDS.version)"
                 size="sm"
                 variant="ghost"
                 class="text-gray-400 hover:text-white"
@@ -280,8 +280,15 @@ const { showToast } = useToast();
 
 const selectedPlatform = ref('auto');
 
+// Install commands - centralized
+const INSTALL_COMMANDS = {
+  script: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash',
+  version: 'zxcv --version',
+  binaryLinux: 'wget https://github.com/mattyatea/zxcv/releases/latest/download/zxcv-linux-x64'
+};
+
 // Install command
-const installCommand = 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash';
+const installCommand = INSTALL_COMMANDS.script;
 
 // Copy command function
 const copyCommand = async (command: string) => {
@@ -340,18 +347,18 @@ const installMethods = [
     icon: TerminalIcon,
     titleKey: 'install.methods.script.title',
     descriptionKey: 'install.methods.script.description',
-    command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash'
+    command: INSTALL_COMMANDS.script
   },
   {
     icon: DownloadIcon,
     titleKey: 'install.methods.binary.title',
     descriptionKey: 'install.methods.binary.description',
-    command: 'wget https://github.com/mattyatea/zxcv/releases/latest/download/zxcv-linux-x64'
+    command: INSTALL_COMMANDS.binaryLinux
   }
 ];
 
 // Platforms
-const platforms = [
+const platforms = computed(() => [
   {
     id: 'auto',
     name: t('install.platforms.auto.name'),
@@ -360,24 +367,24 @@ const platforms = [
       {
         titleKey: 'install.platforms.auto.steps.1.title',
         descriptionKey: 'install.platforms.auto.steps.1.description',
-        command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash'
+        command: INSTALL_COMMANDS.script
       },
       {
         titleKey: 'install.platforms.auto.steps.2.title',
         descriptionKey: 'install.platforms.auto.steps.2.description',
-        command: 'zxcv --version'
+        command: INSTALL_COMMANDS.version
       }
     ]
   },
   {
     id: 'macos',
-    name: 'macOS',
+    name: t('install.platforms.macos.name'),
     icon: AppleIcon,
     steps: [
       {
         titleKey: 'install.platforms.macos.steps.1.title',
         descriptionKey: 'install.platforms.macos.steps.1.description',
-        command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash'
+        command: INSTALL_COMMANDS.script
       },
       {
         titleKey: 'install.platforms.macos.steps.2.title',
@@ -392,7 +399,7 @@ const platforms = [
   },
   {
     id: 'windows',
-    name: 'Windows',
+    name: t('install.platforms.windows.name'),
     icon: WindowsIcon,
     steps: [
       {
@@ -407,11 +414,33 @@ const platforms = [
       {
         titleKey: 'install.platforms.windows.steps.3.title',
         descriptionKey: 'install.platforms.windows.steps.3.description',
-        command: 'zxcv --version'
+        command: INSTALL_COMMANDS.version
+      }
+    ]
+  },
+  {
+    id: 'linux',
+    name: t('install.platforms.linux.name'),
+    icon: LinuxIcon,
+    steps: [
+      {
+        titleKey: 'install.platforms.linux.steps.1.title',
+        descriptionKey: 'install.platforms.linux.steps.1.description',
+        command: INSTALL_COMMANDS.script
+      },
+      {
+        titleKey: 'install.platforms.linux.steps.2.title',
+        descriptionKey: 'install.platforms.linux.steps.2.description',
+        command: INSTALL_COMMANDS.binaryLinux
+      },
+      {
+        titleKey: 'install.platforms.linux.steps.3.title',
+        descriptionKey: 'install.platforms.linux.steps.3.description',
+        command: INSTALL_COMMANDS.version
       }
     ]
   }
-];
+]);
 
 // Next steps
 const nextSteps = [
