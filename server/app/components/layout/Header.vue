@@ -320,6 +320,7 @@ const navigation = computed(() => {
 	const items = [
 		{ name: t("nav.home"), href: "/" },
 		{ name: t("nav.rules"), href: "/rules" },
+		{ name: t("nav.install"), href: "/install" },
 	];
 
 	// Only show organizations navigation if user is authenticated
