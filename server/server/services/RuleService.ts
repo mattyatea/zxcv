@@ -1099,7 +1099,7 @@ export class RuleService {
 			const objects = await this.r2.list({
 				prefix,
 				cursor,
-				limit: pageLimit
+				limit: pageLimit,
 			});
 
 			// 空ページでもcursorが存在する場合は継続
@@ -1119,7 +1119,7 @@ export class RuleService {
 				if (deletePromises.length >= maxConcurrent) {
 					const results = await Promise.allSettled(deletePromises.splice(0, maxConcurrent));
 					results.forEach((result, index) => {
-						if (result.status === 'fulfilled') {
+						if (result.status === "fulfilled") {
 							totalDeleted++;
 						} else {
 							totalFailed++;
@@ -1133,7 +1133,7 @@ export class RuleService {
 			if (deletePromises.length > 0) {
 				const results = await Promise.allSettled(deletePromises);
 				results.forEach((result, index) => {
-					if (result.status === 'fulfilled') {
+					if (result.status === "fulfilled") {
 						totalDeleted++;
 					} else {
 						totalFailed++;
@@ -1146,9 +1146,13 @@ export class RuleService {
 		} while (cursor);
 
 		if (totalFailed > 0) {
-			console.warn(`R2 deletion completed with failures: ${totalDeleted} succeeded, ${totalFailed} failed for rule ${ruleId}`);
+			console.warn(
+				`R2 deletion completed with failures: ${totalDeleted} succeeded, ${totalFailed} failed for rule ${ruleId}`,
+			);
 		} else {
-			console.log(`R2 deletion completed successfully: ${totalDeleted} objects deleted for rule ${ruleId}`);
+			console.log(
+				`R2 deletion completed successfully: ${totalDeleted} objects deleted for rule ${ruleId}`,
+			);
 		}
 	}
 
