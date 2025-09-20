@@ -61,7 +61,7 @@
               </Button>
             </div>
             <code class="text-green-400 font-mono text-lg">
-              curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash
+              {{ installCommand }}
             </code>
           </div>
           <p class="text-gray-600 dark:text-gray-400 text-center">
@@ -213,7 +213,7 @@
               </Button>
             </div>
             <code class="text-green-400 font-mono text-lg">
-              zxcv --version
+              {{ INSTALL_COMMANDS.version }}
             </code>
           </div>
         </div>
