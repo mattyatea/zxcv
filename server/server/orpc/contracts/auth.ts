@@ -217,6 +217,14 @@ export const authContract = {
 			}),
 		),
 
+	me: oc
+		.route({
+			method: "GET",
+			path: "/auth/me",
+			description: "Get current user information",
+		})
+		.output(AuthUserSchema),
+
 	// Device Authorization Grant (for CLI)
 	deviceAuthorize: oc
 		.route({

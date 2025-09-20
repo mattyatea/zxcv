@@ -42,7 +42,6 @@
     "dist",
     "coverage",
     ".output",
-    ".nuxt",
     "tests/",
     "nuxt.config.ts"
   ]
