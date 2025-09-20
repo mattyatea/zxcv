@@ -826,10 +826,6 @@
         "title": "インストールスクリプト",
         "description": "推奨：自動プラットフォーム検出とチェックサム検証付き"
       },
-      "npm": {
-        "title": "Bun/NPMパッケージ",
-        "description": "Node.js環境を使用している場合"
-      },
       "binary": {
         "title": "バイナリダウンロード",
         "description": "GitHub Releasesから直接ダウンロード"

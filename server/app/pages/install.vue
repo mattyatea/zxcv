@@ -303,11 +303,6 @@ const TerminalIcon = {
   </svg>`
 };
 
-const PackageIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-  </svg>`
-};
 
 const DownloadIcon = {
   template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -340,12 +335,6 @@ const installMethods = [
     titleKey: 'install.methods.script.title',
     descriptionKey: 'install.methods.script.description',
     command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash'
-  },
-  {
-    icon: PackageIcon,
-    titleKey: 'install.methods.npm.title',
-    descriptionKey: 'install.methods.npm.description',
-    command: 'bun install -g zxcv'
   },
   {
     icon: DownloadIcon,

@@ -856,10 +856,6 @@
         "title": "Install Script",
         "description": "Recommended: Auto-detects platform with checksum verification"
       },
-      "npm": {
-        "title": "Bun/NPM Package",
-        "description": "If you have a Node.js environment"
-      },
       "binary": {
         "title": "Binary Download",
         "description": "Direct download from GitHub Releases"
