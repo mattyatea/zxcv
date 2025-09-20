@@ -342,9 +342,7 @@ jobs:
           EOF
           )" \
             --base main \
-            --head ${{ steps.branch.outputs.branch_name }} \
-            --label "release" \
-            --label "${{ inputs.release_type }}")
+            --head ${{ steps.branch.outputs.branch_name }})
           
           echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
           echo "✅ Created release PR: $PR_URL"
