@@ -994,4 +994,23 @@ export const authProcedures = {
 				message: authErrors.tokenRevoked(locale),
 			};
 		}),
+
+	me: os.auth.me.use(dbProvider).handler(async ({ context }) => {
+		const { user } = context;
+
+		if (!user) {
+			throw new ORPCError("UNAUTHORIZED", {
+				message: "Authentication required",
+			});
+		}
+
+		return {
+			id: user.id,
+			email: user.email,
+			username: user.username,
+			emailVerified: user.emailVerified,
+			displayName: user.displayName,
+			avatarUrl: user.avatarUrl,
+		};
+	}),
 };

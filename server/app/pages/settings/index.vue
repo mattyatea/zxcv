@@ -65,10 +65,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ProfileEditForm from "~/components/settings/ProfileEditForm.vue";
 import { useToast } from "~/composables/useToast";
-import type { CurrentUser } from "~/types/user";
+import { useRpc } from "~/composables/useRpc";
+import type { MeResponse } from "~/types/orpc";
 
 // Meta tags
 definePageMeta({
@@ -77,14 +78,14 @@ definePageMeta({
 });
 
 // Composables
-const { $rpc } = useNuxtApp();
+const $rpc = useRpc();
 const { t } = useI18n();
 const { showToast } = useToast();
 
 // Reactive data
 const activeTab = ref("profile");
 const loading = ref(false);
-const userProfile = ref<CurrentUser | null>(null);
+const userProfile = ref<MeResponse | null>(null);
 
 // Tab configuration
 const tabs = computed(() => [
@@ -180,10 +181,13 @@ const handleAvatarUpload = async (file: File) => {
 			message: t("settings.success.avatarUploaded"),
 			type: "success",
 		});
-	} catch (error: any) {
-		
+	} catch (error: unknown) {
+
 		// Extract error message if available
-		const errorMessage = error?.message || error?.data?.message || t("settings.error.uploadAvatar");
+		const errorMessage =
+			(error && typeof error === 'object' && 'message' in error ? (error as { message: string }).message : null) ||
+			(error && typeof error === 'object' && 'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data ? (error.data as { message: string }).message : null) ||
+			t("settings.error.uploadAvatar");
 		
 		showToast({
 			message: errorMessage,

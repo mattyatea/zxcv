@@ -1088,10 +1088,72 @@ export class RuleService {
 	 */
 	private async deleteRuleContents(ruleId: string) {
 		const prefix = `rules/${ruleId}/`;
-		const objects = await this.r2.list({ prefix });
+		const maxConcurrent = 10; // 並列削除操作の最大数
+		const pageLimit = 1000; // ページごとの最大オブジェクト数
+		let cursor: string | undefined;
+		let totalDeleted = 0;
+		let totalFailed = 0;
 
-		const deletePromises = objects.objects.map((obj) => this.r2.delete(obj.key));
-		await Promise.all(deletePromises);
+		do {
+			// ページング処理でオブジェクトを取得
+			const objects = await this.r2.list({
+				prefix,
+				cursor,
+				limit: pageLimit,
+			});
+
+			// 空ページでもcursorが存在する場合は継続
+			if (objects.objects.length === 0) {
+				cursor = objects.truncated ? objects.cursor : undefined;
+				continue;
+			}
+
+			// 並列操作制限付きでバッチ削除
+			const deletePromises: Promise<void>[] = [];
+			for (let i = 0; i < objects.objects.length; i += maxConcurrent) {
+				const batch = objects.objects.slice(i, i + maxConcurrent);
+				const batchPromises = batch.map((obj: { key: string }) => this.r2.delete(obj.key));
+				deletePromises.push(...batchPromises);
+
+				// バッチごとに処理を待機（Promise.allSettledを使用してエラーを処理）
+				if (deletePromises.length >= maxConcurrent) {
+					const results = await Promise.allSettled(deletePromises.splice(0, maxConcurrent));
+					results.forEach((result, index) => {
+						if (result.status === "fulfilled") {
+							totalDeleted++;
+						} else {
+							totalFailed++;
+							console.warn(`Failed to delete object at index ${index}:`, result.reason);
+						}
+					});
+				}
+			}
+
+			// 残りの削除操作を完了
+			if (deletePromises.length > 0) {
+				const results = await Promise.allSettled(deletePromises);
+				results.forEach((result, index) => {
+					if (result.status === "fulfilled") {
+						totalDeleted++;
+					} else {
+						totalFailed++;
+						console.warn(`Failed to delete remaining object at index ${index}:`, result.reason);
+					}
+				});
+			}
+
+			cursor = objects.truncated ? objects.cursor : undefined;
+		} while (cursor);
+
+		if (totalFailed > 0) {
+			console.warn(
+				`R2 deletion completed with failures: ${totalDeleted} succeeded, ${totalFailed} failed for rule ${ruleId}`,
+			);
+		} else {
+			console.log(
+				`R2 deletion completed successfully: ${totalDeleted} objects deleted for rule ${ruleId}`,
+			);
+		}
 	}
 
 	/**

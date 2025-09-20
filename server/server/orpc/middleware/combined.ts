@@ -1,8 +1,15 @@
 import { ORPCError } from "@orpc/server";
+import type { PrismaClient } from "@prisma/client";
 import type { AuthUser } from "../../utils/auth";
-import { getLocaleFromRequest, type Locale } from "../../utils/locale";
+import { getLocaleFromRequest } from "../../utils/locale";
 import { createPrismaClient } from "../../utils/prisma";
 import { os } from "../index";
+
+// Type for global test objects
+declare global {
+	var __mockPrismaClient: PrismaClient | undefined;
+	var __testUser: AuthUser | undefined;
+}
 
 // Database provider middleware (no auth required)
 export const dbProvider = os.middleware(async ({ context, next }) => {
@@ -10,8 +17,8 @@ export const dbProvider = os.middleware(async ({ context, next }) => {
 	let db = context.db;
 
 	// For testing: check if global mock Prisma client exists
-	if (!db && (globalThis as any).__mockPrismaClient) {
-		db = (globalThis as any).__mockPrismaClient;
+	if (!db && globalThis.__mockPrismaClient) {
+		db = globalThis.__mockPrismaClient;
 	}
 
 	// Only create Prisma client if db is not already provided and env.DB exists
@@ -43,8 +50,8 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 	let db = context.db;
 
 	// For testing: check if global mock Prisma client exists
-	if (!db && (globalThis as any).__mockPrismaClient) {
-		db = (globalThis as any).__mockPrismaClient;
+	if (!db && globalThis.__mockPrismaClient) {
+		db = globalThis.__mockPrismaClient;
 	}
 
 	// Only create Prisma client if db is not already provided and env.DB exists
@@ -59,8 +66,8 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 
 	// For testing: if no user in context, check if there's a global test user
 	let user = context.user;
-	if (!user && process.env.NODE_ENV === "test" && (globalThis as any).__testUser) {
-		user = (globalThis as any).__testUser;
+	if (!user && process.env.NODE_ENV === "test" && globalThis.__testUser) {
+		user = globalThis.__testUser;
 	}
 
 	if (!user) {
