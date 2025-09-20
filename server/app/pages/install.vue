@@ -270,7 +270,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from '~/composables/useI18n';
 import { useToast } from '~/composables/useToast';
 import Button from '~/components/common/Button.vue';
