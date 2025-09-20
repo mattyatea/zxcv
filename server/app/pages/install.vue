@@ -14,6 +14,7 @@
             <Button
               @click="copyInstallCommand"
               class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg"
+              :aria-label="t('install.hero.quickInstall')"
             >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -51,6 +52,7 @@
                 size="sm"
                 variant="ghost"
                 class="text-gray-400 hover:text-white"
+                :aria-label="t('common.copy')"
               >
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -98,6 +100,7 @@
                   size="xs"
                   variant="ghost"
                   class="text-gray-400 hover:text-white"
+                  :aria-label="t('common.copy')"
                 >
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -132,6 +135,7 @@
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
               ]"
               variant="ghost"
+              :aria-label="`Select ${platform.name} platform`"
             >
               <div class="flex flex-col items-center">
                 <component :is="platform.icon" class="w-8 h-8 mb-2" :class="selectedPlatform === platform.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'" />
@@ -163,6 +167,7 @@
                         size="xs"
                         variant="ghost"
                         class="text-gray-400 hover:text-white"
+                        :aria-label="t('common.copy')"
                       >
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -199,6 +204,7 @@
                 size="sm"
                 variant="ghost"
                 class="text-gray-400 hover:text-white"
+                :aria-label="t('common.copy')"
               >
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -275,7 +281,7 @@ const { showToast } = useToast();
 const selectedPlatform = ref('auto');
 
 // Install command
-const installCommand = 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash';
+const installCommand = 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash';
 
 // Copy command function
 const copyCommand = async (command: string) => {
@@ -334,7 +340,7 @@ const installMethods = [
     icon: TerminalIcon,
     titleKey: 'install.methods.script.title',
     descriptionKey: 'install.methods.script.description',
-    command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash'
+    command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash'
   },
   {
     icon: DownloadIcon,
@@ -354,7 +360,7 @@ const platforms = [
       {
         titleKey: 'install.platforms.auto.steps.1.title',
         descriptionKey: 'install.platforms.auto.steps.1.description',
-        command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash'
+        command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash'
       },
       {
         titleKey: 'install.platforms.auto.steps.2.title',
@@ -371,7 +377,7 @@ const platforms = [
       {
         titleKey: 'install.platforms.macos.steps.1.title',
         descriptionKey: 'install.platforms.macos.steps.1.description',
-        command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/dev/install.sh | bash'
+        command: 'curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash'
       },
       {
         titleKey: 'install.platforms.macos.steps.2.title',
