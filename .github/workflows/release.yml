@@ -169,15 +169,6 @@ jobs:
           cat CHANGELOG_TEMP.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Run tests before release
-        run: |
-          echo "🧪 Running tests before creating release PR..."
-          pnpm run test:server || {
-            echo "❌ Tests failed! Cannot create release PR."
-            exit 1
-          }
-          echo "✅ All tests passed!"
-
       - name: Build and verify
         run: |
           echo "🔨 Building applications..."
@@ -262,6 +253,15 @@ jobs:
           
           echo "✅ All builds completed successfully!"
 
+      - name: Run tests after build
+        run: |
+          echo "🧪 Running tests after build..."
+          pnpm run test:server || {
+            echo "❌ Tests failed! Cannot create release PR."
+            exit 1
+          }
+          echo "✅ All tests passed!"
+
       - name: Commit version updates
         run: |
           git add -A
@@ -311,8 +311,8 @@ jobs:
           ### 📋 Release Checklist
           
           - [x] Version numbers updated in package.json files
-          - [x] Tests are passing
           - [x] Builds are successful
+          - [x] Tests are passing
           - [ ] Review and approve this PR
           - [ ] Merge to main for production deployment
           
