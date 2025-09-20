@@ -9,8 +9,8 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Get R2 binding from Nitro/Cloudflare context
-	const env = event.context.cloudflare?.env as Env | undefined;
-	const r2 = env?.R2;
+	const env = event.context.cloudflare?.env;
+	const r2 = env?.R2 as R2Bucket | undefined;
 
 	if (!r2) {
 		// In development mode without Cloudflare bindings, return placeholder
