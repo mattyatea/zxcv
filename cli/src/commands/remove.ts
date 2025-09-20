@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { ConfigManager } from "../config";
 import { FileManager } from "../utils/file";
+import { MemoryFileManager } from "../utils/memory-file";
 import { inquirer } from "../utils/prompt.js";
 import { ora } from "../utils/spinner.js";
 
@@ -15,6 +16,7 @@ export function createRemoveCommand(): Command {
 			const spinner = ora("Removing rules...").start();
 			const config = new ConfigManager();
 			const fileManager = new FileManager(config);
+			const memoryManager = new MemoryFileManager(config);
 
 			const metadata = config.loadMetadata();
 			if (!metadata || metadata.rules.length === 0) {
@@ -24,6 +26,7 @@ export function createRemoveCommand(): Command {
 
 			let removedCount = 0;
 			const notFoundPackages: string[] = [];
+			const removedRules: string[] = [];
 
 			for (const pkg of packages) {
 				// Parse package path
@@ -64,6 +67,7 @@ export function createRemoveCommand(): Command {
 
 				// Remove from metadata
 				metadata.rules.splice(ruleIndex, 1);
+				removedRules.push(fullName);
 				removedCount++;
 			}
 
@@ -82,6 +86,15 @@ export function createRemoveCommand(): Command {
 
 				if (confirm) {
 					config.saveMetadata(metadata);
+
+					// メモリファイルからも削除
+					for (const ruleName of removedRules) {
+						const updatedFiles = await memoryManager.removeRuleFromProject(ruleName);
+						if (updatedFiles.length > 0) {
+							console.log(chalk.gray(`  ${updatedFiles.join(", ")} から削除`));
+						}
+					}
+
 					console.log(
 						chalk.green(`\n✓ Removed ${removedCount} rule${removedCount > 1 ? "s" : ""}`),
 					);

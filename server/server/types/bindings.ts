@@ -1,6 +1,5 @@
-import type { Env } from "./env";
-
-export interface CloudflareBindings extends Env {}
+// Use the global Env type from worker-configuration.d.ts
+export type CloudflareBindings = Env;
 
 export interface H3EventContext {
 	cloudflare: {

@@ -258,7 +258,7 @@ describe("Auth Integration Tests", () => {
 				emailVerified: false,
 				createdAt: new Date(),
 				updatedAt: new Date(),
-				name: null,
+				displayName: null,
 				avatarUrl: null,
 				bio: null,
 				website: null,
@@ -306,7 +306,7 @@ describe("Auth Integration Tests", () => {
 				emailVerified: true,
 				createdAt: new Date(),
 				updatedAt: new Date(),
-				name: null,
+				displayName: null,
 				avatarUrl: null,
 				bio: null,
 				website: null,
@@ -341,7 +341,7 @@ describe("Auth Integration Tests", () => {
 				emailVerified: true,
 				createdAt: new Date(),
 				updatedAt: new Date(),
-				name: "Test User",
+				displayName: "Test User",
 				avatarUrl: null as any,
 				bio: null as any,
 				website: null as any,
@@ -390,7 +390,7 @@ describe("Auth Integration Tests", () => {
 				emailVerified: true,
 				createdAt: new Date(),
 				updatedAt: new Date(),
-				name: null,
+				displayName: null,
 				avatarUrl: null,
 				bio: null,
 				website: null,
@@ -421,7 +421,7 @@ describe("Auth Integration Tests", () => {
 				emailVerified: false, // Not verified
 				createdAt: new Date(),
 				updatedAt: new Date(),
-				name: null,
+				displayName: null,
 				avatarUrl: null,
 				bio: null,
 				website: null,
@@ -459,6 +459,8 @@ describe("Auth Integration Tests", () => {
 						email,
 						emailVerified: true,
 						passwordHash: "hashed_password123",
+						displayName: null,
+						avatarUrl: null,
 						createdAt: new Date().toISOString(),
 						updatedAt: new Date().toISOString(),
 					};
@@ -567,7 +569,7 @@ describe("Auth Integration Tests", () => {
 				emailVerified: true,
 				createdAt: new Date(),
 				updatedAt: new Date(),
-				name: null,
+				displayName: null,
 				avatarUrl: null,
 				bio: null,
 				website: null,
@@ -691,17 +693,41 @@ describe("Auth Integration Tests", () => {
 				passwordHash: "hashed",
 				createdAt: Math.floor(Date.now() / 1000),
 				updatedAt: Math.floor(Date.now() / 1000),
-				name: "Test User",
+				displayName: "Test User",
 				avatarUrl: "https://example.com/avatar.jpg",
 				bio: "Test bio",
 				website: "https://example.com",
 				location: "Test City",
-				company: "Test Company",
-				twitterUsername: "testuser",
-				githubUsername: "testuser",
 			};
 
-			vi.mocked(mockDb.user.findUnique).mockResolvedValue(userDetails);
+			console.log("[TEST DEBUG] Setting up mocks for users.me test");
+
+			// Clear and reset all mocks to ensure clean state
+			vi.clearAllMocks();
+
+			// Mock user.findUnique with detailed logging
+			vi.mocked(mockDb.user.findUnique).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] user.findUnique called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning userDetails:", JSON.stringify(userDetails, null, 2));
+				return userDetails;
+			});
+
+			// Explicitly mock the count queries used by users.me with detailed logging
+			vi.mocked(mockDb.rule.count).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] rule.count called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning 0");
+				return 0;
+			});
+			vi.mocked(mockDb.organizationMember.count).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] organizationMember.count called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning 0");
+				return 0;
+			});
+			vi.mocked(mockDb.ruleStar.count).mockImplementation(async (args: any) => {
+				console.log("[TEST DEBUG] ruleStar.count called with:", JSON.stringify(args, null, 2));
+				console.log("[TEST DEBUG] returning 0");
+				return 0;
+			});
 
 			// Add teams membership
 			vi.mocked(mockDb.teamMember.findMany).mockResolvedValue([
@@ -732,15 +758,21 @@ describe("Auth Integration Tests", () => {
 			});
 			const authClient = authSetup.client;
 
-			const meResult = await authClient.users.profile();
+			const meResult = await authClient.users.me();
 
 			expect(meResult).toMatchObject({
 				id: "user_123",
 				username: "testuser",
 				email: "test@example.com",
+				emailVerified: expect.any(Boolean),
 			});
-			expect(meResult.created_at).toBeDefined();
-			expect(meResult.updated_at).toBeDefined();
+			expect(meResult.createdAt).toBeDefined();
+			expect(meResult.updatedAt).toBeDefined();
+			expect(meResult.stats).toMatchObject({
+				rulesCount: expect.any(Number),
+				organizationsCount: expect.any(Number),
+				totalStars: expect.any(Number),
+			});
 		});
 
 		it("should update user profile", async () => {
@@ -752,16 +784,23 @@ describe("Auth Integration Tests", () => {
 			};
 
 			const updateData = {
-				email: "newemail@example.com",
-				username: "newusername",
+				displayName: "New Display Name",
+				bio: "Updated bio",
+				location: "New Location",
+				website: "https://example.com",
 			};
 
 			vi.mocked(mockDb.user.update).mockResolvedValue({
 				id: "user_123",
-				username: updateData.username,
-				email: updateData.email,
+				username: "testuser",
+				email: "test@example.com",
 				passwordHash: "hashed",
-				emailVerified: false, // Reset when email changes
+				emailVerified: true,
+				displayName: updateData.displayName,
+				bio: updateData.bio,
+				location: updateData.location,
+				website: updateData.website,
+				avatarUrl: null,
 				settings: "{}",
 				createdAt: 1234567890,
 				updatedAt: Date.now() / 1000,
@@ -777,19 +816,27 @@ describe("Auth Integration Tests", () => {
 			const updateResult = await authClient.users.updateProfile(updateData);
 
 			expect(updateResult.user).toMatchObject({
-				email: updateData.email,
-				username: updateData.username,
-				emailVerified: false,
+				id: "user_123",
+				username: "testuser",
+				email: "test@example.com",
+				displayName: updateData.displayName,
+				bio: updateData.bio,
+				location: updateData.location,
+				website: updateData.website,
+				avatarUrl: null,
 			});
 
 			// Verify update was called correctly
 			expect(mockDb.user.update).toHaveBeenCalledWith({
 				where: { id: "user_123" },
 				data: expect.objectContaining({
-					email: updateData.email.toLowerCase(),
-					username: updateData.username.toLowerCase(),
-					emailVerified: false,
+					displayName: updateData.displayName,
+					bio: updateData.bio,
+					location: updateData.location,
+					website: updateData.website,
+					updatedAt: expect.any(Number),
 				}),
+				select: expect.any(Object),
 			});
 		});
 	});

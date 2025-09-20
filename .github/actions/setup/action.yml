@@ -1,0 +1,76 @@
+name: 'Setup Project Dependencies'
+description: 'Setup Node.js, pnpm, dependencies and Prisma client'
+
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '24'
+  pnpm-version:
+    description: 'pnpm version to use'
+    required: false
+    default: '10.12.1'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'pnpm'
+        
+    - name: Cache dependencies and build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.pnpm-store
+          node_modules
+          server/node_modules
+          cli/node_modules
+          .prisma
+        key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Generate Prisma Client
+      shell: bash
+      run: |
+        # Set Prisma engine download timeout and retry
+        export PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
+        export PRISMA_ENGINES_MIRROR=https://binaries.prisma.sh
+        
+        # Retry mechanism for network issues
+        n=0
+        until [ "$n" -ge 3 ]
+        do
+           pnpm run prisma:generate && break
+           n=$((n+1))
+           echo "Attempt $n failed, retrying in 5 seconds..."
+           sleep 5
+        done
+        
+        if [ "$n" -ge 3 ]; then
+          echo "Failed to generate Prisma Client after 3 attempts"
+          exit 1
+        fi
+
+    - name: Generate Cloudflare types
+      shell: bash
+      run: |
+        cd server
+        if pnpm run cf-typegen; then
+          echo "✅ Cloudflare types generated successfully"
+        else
+          echo "⚠️ Cloudflare types generation failed (non-critical)"
+        fi
+      continue-on-error: true

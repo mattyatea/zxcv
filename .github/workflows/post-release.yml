@@ -1,0 +1,617 @@
+name: Post-Release Actions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'server/package.json' 
+      - 'cli/package.json'
+
+# Prevent multiple post-release actions from running simultaneously
+concurrency:
+  group: post-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-release:
+    name: Check for Release
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+      version: ${{ steps.check.outputs.version }}
+      include_cli: ${{ steps.check.outputs.include_cli }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if this is a release commit
+        id: check
+        run: |
+          echo "🔍 Checking if this is a release commit..."
+          
+          # Get commit message and PR information
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          PR_BODY=$(git log -1 --pretty=format:"%b")
+          
+          echo "Commit message: $COMMIT_MSG"
+          
+          IS_RELEASE=false
+          VERSION=""
+          INCLUDE_CLI=false
+          
+          # Method 1: Check commit message for version bump pattern (including prerelease)
+          if [[ "$COMMIT_MSG" =~ ^chore:\ bump\ version\ to\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]]; then
+            echo "✅ Release detected via commit message pattern"
+            IS_RELEASE=true
+            VERSION=$(echo "$COMMIT_MSG" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
+          fi
+          
+          # Method 2: Check for merge commit from release branch
+          if [[ "$COMMIT_MSG" =~ ^Merge\ pull\ request.*release ]]; then
+            echo "🔍 Checking merge commit from release branch"
+            # Extract PR number from merge commit
+            PR_NUMBER=$(echo "$COMMIT_MSG" | grep -o "#[0-9]\+" | head -1 | tr -d '#')
+            
+            if [ -n "$PR_NUMBER" ]; then
+              # Get PR details to check if it's a release PR
+              PR_DATA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER 2>/dev/null || echo "")
+              if [ -n "$PR_DATA" ]; then
+                PR_TITLE=$(echo "$PR_DATA" | jq -r '.title // ""')
+                PR_LABELS=$(echo "$PR_DATA" | jq -r '.labels[].name // ""' | tr '\n' ' ')
+                
+                echo "PR Title: $PR_TITLE"
+                echo "PR Labels: $PR_LABELS"
+                
+                # Check if PR has release indicators (including prerelease)
+                if [[ "$PR_TITLE" =~ ^🚀\ Release\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]] || [[ "$PR_LABELS" =~ release ]]; then
+                  echo "✅ Release detected via PR merge"
+                  IS_RELEASE=true
+                  VERSION=$(echo "$PR_TITLE" | grep -o "v[0-9]\+\.[0-9]\+\.[0-9]\+\(-[a-zA-Z0-9]\+\(\.[0-9]\+\)\?\)\?" | head -1)
+                fi
+              fi
+            fi
+          fi
+          
+          # Method 3: Check for package.json version changes
+          if [ "$IS_RELEASE" = false ]; then
+            echo "🔍 Checking package.json changes for version updates"
+            
+            # Check if any package.json files were modified
+            CHANGED_FILES=$(git diff HEAD~1..HEAD --name-only)
+            echo "Changed files: $CHANGED_FILES"
+            
+            if echo "$CHANGED_FILES" | grep -q "package\.json"; then
+              # Extract version from the updated package.json files
+              for file in package.json server/package.json cli/package.json; do
+                if [ -f "$file" ] && echo "$CHANGED_FILES" | grep -q "$file"; then
+                  CURRENT_VERSION=$(jq -r '.version // ""' "$file" 2>/dev/null)
+                  if [ -n "$CURRENT_VERSION" ] && [ "$CURRENT_VERSION" != "null" ]; then
+                    # Check if this looks like a new release version (including prerelease)
+                    if [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+                      echo "✅ Release detected via package.json version: $CURRENT_VERSION"
+                      IS_RELEASE=true
+                      VERSION="v$CURRENT_VERSION"
+                      break
+                    fi
+                  fi
+                fi
+              done
+            fi
+          fi
+          
+          # Determine CLI inclusion
+          if [ "$IS_RELEASE" = true ]; then
+            # Check if CLI package.json was updated
+            if echo "$CHANGED_FILES" | grep -q "cli/package.json"; then
+              INCLUDE_CLI=true
+              echo "✅ CLI release included"
+            else
+              echo "ℹ️ CLI release not included"
+            fi
+            
+            # Validate version format (support prerelease versions)
+            if [ -z "$VERSION" ] || [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+              echo "⚠️ Invalid version format detected: '$VERSION'"
+              echo "Supported formats: v1.2.3, v1.2.3-alpha.1, v1.2.3-beta.1, v1.2.3-rc.1"
+              IS_RELEASE=false
+            fi
+          fi
+          
+          # Set outputs
+          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "include_cli=$INCLUDE_CLI" >> $GITHUB_OUTPUT
+          
+          if [ "$IS_RELEASE" = true ]; then
+            echo "🎉 Release detected: $VERSION (CLI: $INCLUDE_CLI)"
+          else
+            echo "ℹ️ No release detected in this commit"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  finalize-release:
+    name: Finalize Release
+    runs-on: ubuntu-latest
+    needs: check-release
+    if: needs.check-release.outputs.is_release == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Wait for deployment to complete
+        run: |
+          echo "⏳ Waiting for production deployment to complete..."
+          
+          # Wait for deployment to start
+          sleep 30
+          
+          # Define health check endpoints
+          HEALTH_URLS=(
+            "https://zxcv.nanasi-apps.xyz/api/health"
+            "https://zxcv.nanasi-apps.xyz/rpc/health.check"
+          )
+          
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+          DEPLOYMENT_SUCCESS=false
+          
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            echo "Checking deployment health (attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS)..."
+            
+            # Method 1: Check GitHub deployment status
+            DEPLOYMENT_DATA=$(gh api repos/${{ github.repository }}/deployments \
+              --jq '.[] | select(.environment == "production") | select(.created_at > (now - 600)) | .[0]' 2>/dev/null || echo "")
+            
+            if [ -n "$DEPLOYMENT_DATA" ]; then
+              DEPLOYMENT_ID=$(echo "$DEPLOYMENT_DATA" | jq -r '.id // empty' 2>/dev/null || echo "")
+              
+              if [ -n "$DEPLOYMENT_ID" ]; then
+                STATUS=$(gh api repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses \
+                  --jq '.[0].state // empty' 2>/dev/null || echo "")
+                
+                echo "GitHub deployment $DEPLOYMENT_ID status: $STATUS"
+                
+                case "$STATUS" in
+                  "success")
+                    echo "✅ GitHub deployment marked as successful!"
+                    DEPLOYMENT_SUCCESS=true
+                    break
+                    ;;
+                  "failure"|"error")
+                    echo "❌ GitHub deployment marked as failed!"
+                    exit 1
+                    ;;
+                  "pending"|"in_progress")
+                    echo "⏳ GitHub deployment still in progress..."
+                    ;;
+                esac
+              fi
+            fi
+            
+            # Method 2: Health endpoint checks
+            for health_url in "${HEALTH_URLs[@]}"; do
+              echo "Checking health endpoint: $health_url"
+              
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$health_url" --connect-timeout 10 --max-time 30 || echo "000")
+              
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "✅ Health endpoint responding successfully: $health_url"
+                
+                # Additional validation: check response content
+                RESPONSE=$(curl -s "$health_url" --connect-timeout 10 --max-time 30 || echo "")
+                if [[ "$RESPONSE" =~ "ok" ]] || [[ "$RESPONSE" =~ "healthy" ]] || [[ "$RESPONSE" =~ "success" ]]; then
+                  echo "✅ Health check passed with valid response"
+                  DEPLOYMENT_SUCCESS=true
+                  break 2
+                else
+                  echo "⚠️ Health endpoint returned unexpected response: $RESPONSE"
+                fi
+              elif [ "$HTTP_CODE" = "000" ]; then
+                echo "⚠️ Health endpoint unreachable (network error)"
+              else
+                echo "⚠️ Health endpoint returned HTTP $HTTP_CODE"
+              fi
+            done
+            
+            if [ "$DEPLOYMENT_SUCCESS" = true ]; then
+              break
+            fi
+            
+            ATTEMPT=$((ATTEMPT + 1))
+            if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+              sleep 20
+            fi
+          done
+          
+          if [ "$DEPLOYMENT_SUCCESS" = false ]; then
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "⚠️ Deployment verification timed out after $((MAX_ATTEMPTS * 20)) seconds"
+            fi
+            
+            echo "🔍 Performing final manual verification..."
+            
+            # Try one more direct health check
+            for health_url in "${HEALTH_URLs[@]}"; do
+              echo "Final check: $health_url"
+              if curl -s "$health_url" --connect-timeout 5 --max-time 10 >/dev/null 2>&1; then
+                echo "✅ Final health check passed for $health_url"
+                DEPLOYMENT_SUCCESS=true
+                break
+              fi
+            done
+            
+            if [ "$DEPLOYMENT_SUCCESS" = false ]; then
+              echo "❌ Deployment verification failed"
+              echo "Please check the following manually:"
+              echo "  - Production site: https://zxcv.nanasi-apps.xyz"
+              for url in "${HEALTH_URLs[@]}"; do
+                echo "  - Health check: $url"
+              done
+              echo "If the site is working, the release will continue with a warning."
+              echo "Consider investigating deployment infrastructure if issues persist."
+            fi
+          fi
+          
+          if [ "$DEPLOYMENT_SUCCESS" = true ]; then
+            echo "🎉 Production deployment verified successfully!"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Git tag
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          VERSION="${{ needs.check-release.outputs.version }}"
+          
+          # Check if tag already exists
+          if git tag -l "$VERSION" | grep -q "$VERSION"; then
+            echo "⚠️ Tag $VERSION already exists, skipping tag creation"
+          else
+            # Create tag with error handling
+            if ! git tag -a "$VERSION" -m "Release $VERSION
+
+            🚀 Production release created automatically after successful deployment.
+
+            🤖 Generated with [Claude Code](https://claude.ai/code)
+
+            Co-Authored-By: Claude <noreply@anthropic.com>"; then
+              echo "❌ Failed to create Git tag $VERSION"
+              exit 1
+            fi
+            
+            # Push tag with error handling and retry
+            RETRY_COUNT=0
+            MAX_RETRIES=3
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push origin "$VERSION"; then
+                echo "✅ Created and pushed tag: $VERSION"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "⚠️ Failed to push tag (attempt $RETRY_COUNT/$MAX_RETRIES)"
+                
+                if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                  echo "❌ Failed to push tag after $MAX_RETRIES attempts"
+                  echo "Tag created locally but not pushed to remote"
+                  
+                  # Clean up local tag
+                  git tag -d "$VERSION" 2>/dev/null || true
+                  exit 1
+                fi
+                
+                sleep 5
+              fi
+            done
+          fi
+
+      - name: Update GitHub release from draft
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          
+          # Generate final release notes
+          LATEST_TAG=$(git describe --tags --abbrev=0 "$VERSION"^ 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log $LATEST_TAG..$VERSION --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          # Determine if this is a prerelease
+          PRERELEASE_FLAG=""
+          if [[ "$VERSION" =~ -[a-zA-Z]+ ]]; then
+            PRERELEASE_FLAG="--prerelease"
+            echo "📋 Publishing prerelease $VERSION"
+          else
+            PRERELEASE_FLAG="--latest"
+            echo "📋 Publishing stable release $VERSION"
+          fi
+          
+          # Update the draft release to published
+          gh release edit "$VERSION" \
+            --title "🚀 Release $VERSION" \
+            --notes "$(cat <<EOF
+          ## 🎉 What's New
+          
+          $CHANGELOG
+          
+          ## 🌐 Web Application
+          
+          - **Production**: https://zxcv.nanasi-apps.xyz
+          - **Staging**: https://zxcv-staging.mattyatea.me
+          
+          $(if [ "${{ needs.check-release.outputs.include_cli }}" == "true" ]; then echo "## 📦 CLI Tool"; echo ""; echo "Download the appropriate binary for your platform from the assets below."; echo ""; echo '```bash'; echo '# Install CLI (replace with actual download URL)'; echo 'curl -L https://github.com/mattyatea/zxcv/releases/download/$VERSION/zxcv-[platform] -o zxcv'; echo 'chmod +x zxcv'; echo 'sudo mv zxcv /usr/local/bin/'; echo '```'; fi)
+          
+          $(if [[ "$VERSION" =~ -[a-zA-Z]+ ]]; then echo ""; echo "⚠️ **This is a prerelease version** - Use for testing purposes only."; echo "Stable releases are available at: https://github.com/mattyatea/zxcv/releases"; fi)
+          
+          ---
+          
+          🤖 **Automated Release** - This release was created automatically after successful production deployment.
+          
+          For issues or questions, please visit our [GitHub Issues](https://github.com/mattyatea/zxcv/issues).
+          EOF
+          )" \
+            --draft=false \
+            $PRERELEASE_FLAG
+          
+          echo "✅ Published GitHub release: $VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build CLI release assets (if needed)
+        if: needs.check-release.outputs.include_cli == 'true'
+        run: |
+          echo "🔨 Building CLI release assets..."
+          
+          # Validate CLI directory exists
+          if [ ! -d "cli" ]; then
+            echo "❌ CLI directory not found!"
+            echo "Cannot proceed with CLI release build."
+            exit 1
+          fi
+          
+          cd cli
+          
+          # Setup Bun for CLI builds with comprehensive error handling
+          echo "📦 Installing Bun runtime..."
+          if ! curl -fsSL https://bun.sh/install | bash; then
+            echo "❌ Failed to install Bun runtime!"
+            echo "Network error or platform compatibility issue."
+            exit 1
+          fi
+          
+          export PATH="$HOME/.bun/bin:$PATH"
+          
+          # Verify Bun installation
+          if ! command -v bun >/dev/null 2>&1; then
+            echo "❌ Bun command not available after installation!"
+            echo "PATH: $PATH"
+            ls -la "$HOME/.bun/bin/" || echo "Bun bin directory not found"
+            exit 1
+          fi
+          
+          echo "✅ Bun $(bun --version) installed successfully"
+          
+          # Install dependencies with retry mechanism
+          echo "📦 Installing CLI dependencies..."
+          RETRY_COUNT=0
+          MAX_RETRIES=3
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if bun install; then
+              echo "✅ CLI dependencies installed successfully"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⚠️ CLI dependency installation failed (attempt $RETRY_COUNT/$MAX_RETRIES)"
+              
+              if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                echo "❌ Failed to install CLI dependencies after $MAX_RETRIES attempts"
+                echo "This may be due to:"
+                echo "  - Network connectivity issues"
+                echo "  - Package registry problems"
+                echo "  - Dependency conflicts"
+                cd ..
+                exit 1
+              fi
+              
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          
+          # Attempt cross-platform build first, fallback to single platform
+          echo "🔨 Building CLI assets..."
+          BUILD_SUCCESS=false
+          
+          if bun run build:cross 2>/dev/null; then
+            echo "✅ Cross-platform CLI build successful"
+            BUILD_SUCCESS=true
+            
+            # Verify cross-platform assets
+            if [ -d "release" ]; then
+              ASSET_COUNT=$(find release -type f -name "zxcv-*" | wc -l)
+              echo "Found $ASSET_COUNT cross-platform assets"
+              ls -la release/ || true
+            else
+              echo "⚠️ Cross-platform build claimed success but no release directory found"
+              BUILD_SUCCESS=false
+            fi
+          else
+            echo "⚠️ Cross-platform build not available or failed"
+          fi
+          
+          # Fallback to single-platform build
+          if [ "$BUILD_SUCCESS" = false ]; then
+            echo "🔨 Attempting single-platform build..."
+            
+            if bun run build; then
+              echo "✅ Single-platform CLI build successful"
+              
+              # Verify binary was created
+              if [ -f "dist/zxcv" ]; then
+                echo "✅ CLI binary created: dist/zxcv"
+                ls -la dist/zxcv
+                BUILD_SUCCESS=true
+              else
+                echo "❌ CLI binary not found after build"
+                echo "Expected: cli/dist/zxcv"
+                ls -la dist/ 2>/dev/null || echo "dist/ directory not found"
+                BUILD_SUCCESS=false
+              fi
+            else
+              echo "❌ Single-platform CLI build failed"
+              echo "Build output:"
+              bun run build 2>&1 || true
+            fi
+          fi
+          
+          cd ..
+          
+          if [ "$BUILD_SUCCESS" = false ]; then
+            echo "❌ All CLI build attempts failed"
+            echo "Release will continue without CLI assets"
+            echo "Manual CLI build may be required"
+            # Don't exit here - allow release to continue without CLI assets
+          else
+            echo "🎉 CLI build completed successfully"
+          fi
+
+      - name: Upload CLI assets to release
+        if: needs.check-release.outputs.include_cli == 'true'
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          cd cli
+          
+          # Check if release directory exists (from cross-platform builds)
+          if [ -d "release" ]; then
+            echo "📦 Uploading cross-platform CLI assets..."
+            for file in release/*; do
+              if [ -f "$file" ]; then
+                gh release upload "$VERSION" "$file" || echo "Failed to upload $file"
+              fi
+            done
+          elif [ -f "dist/zxcv" ]; then
+            echo "📦 Uploading single platform CLI asset..."
+            gh release upload "$VERSION" "dist/zxcv" || echo "Failed to upload CLI binary"
+          else
+            echo "⚠️ No CLI assets found to upload"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge back to dev
+        run: |
+          echo "🔄 Merging release changes back to dev branch..."
+          
+          # Fetch latest changes with error handling
+          if ! git fetch origin; then
+            echo "❌ Failed to fetch from origin"
+            exit 1
+          fi
+          
+          # Checkout dev branch with error handling
+          if ! git checkout dev; then
+            echo "❌ Failed to checkout dev branch"
+            exit 1
+          fi
+          
+          # Pull latest dev changes
+          if ! git pull origin dev; then
+            echo "❌ Failed to pull latest dev changes"
+            exit 1
+          fi
+          
+          # Merge main into dev to keep branches in sync
+          if ! git merge origin/main --no-ff -m "chore: merge release ${{ needs.check-release.outputs.version }} back to dev
+
+          🔄 Automatic merge after successful release.
+
+          🤖 Generated with [Claude Code](https://claude.ai/code)
+
+          Co-Authored-By: Claude <noreply@anthropic.com>"; then
+            echo "❌ Failed to merge main into dev"
+            echo "This might be due to merge conflicts."
+            echo "Manual intervention required."
+            
+            # Show conflict information
+            git status || true
+            echo "Please resolve conflicts manually and complete the merge."
+            exit 1
+          fi
+          
+          # Push merged changes with retry
+          RETRY_COUNT=0
+          MAX_RETRIES=3
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if git push origin dev; then
+              echo "✅ Merged release changes back to dev"
+              break
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "⚠️ Failed to push to dev (attempt $RETRY_COUNT/$MAX_RETRIES)"
+              
+              if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                echo "❌ Failed to push dev branch after $MAX_RETRIES attempts"
+                exit 1
+              fi
+              
+              sleep 5
+            fi
+          done
+
+      - name: Clean up release branch
+        run: |
+          VERSION="${{ needs.check-release.outputs.version }}"
+          RELEASE_BRANCH="release/$VERSION"
+          
+          # Delete remote release branch if it exists
+          if git ls-remote --heads origin "$RELEASE_BRANCH" | grep -q "$RELEASE_BRANCH"; then
+            git push origin --delete "$RELEASE_BRANCH"
+            echo "✅ Deleted remote release branch: $RELEASE_BRANCH"
+          else
+            echo "ℹ️ Release branch $RELEASE_BRANCH not found or already deleted"
+          fi
+
+      - name: Summary
+        run: |
+          echo "🎉 Release ${{ needs.check-release.outputs.version }} finalized successfully!"
+          echo ""
+          echo "📋 Summary:"
+          echo "  - ✅ Git tag created and pushed"
+          echo "  - ✅ GitHub release published"
+          echo "  - ✅ Changes merged back to dev branch"
+          echo "  - ✅ Release branch cleaned up"
+          $(if [ "${{ needs.check-release.outputs.include_cli }}" == "true" ]; then echo "  - ✅ CLI assets uploaded"; fi)
+          echo ""
+          echo "🌐 Live at: https://zxcv.nanasi-apps.xyz"
+          echo "📦 Release: https://github.com/mattyatea/zxcv/releases/tag/${{ needs.check-release.outputs.version }}"

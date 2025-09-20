@@ -90,10 +90,7 @@
 
 <script setup lang="ts">
 import { useRpc } from "~/composables/useRpc";
-import type { InferOutput } from "@orpc/contract";
-import type { contract } from "~/server/orpc/contracts";
-
-type OrganizationPublicProfile = InferOutput<typeof contract.organizations.getPublicProfile>;
+import type {OrganizationPublicProfile} from "~/types/organizations";
 
 const route = useRoute();
 const $rpc = useRpc();

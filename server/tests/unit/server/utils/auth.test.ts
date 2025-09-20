@@ -87,6 +87,8 @@ describe("auth utilities", () => {
 					email: "test@example.com",
 					username: "testuser",
 					emailVerified: true,
+					displayName: null,
+					avatarUrl: null,
 				},
 			};
 
@@ -100,6 +102,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 			expect(result.apiKeyScopes).toEqual(["read:rules", "write:rules"]);
 			expect(mockPrisma.apiKey.update).toHaveBeenCalledWith({
@@ -120,6 +124,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 
 			const result = await getAuthFromEvent(mockEvent);
@@ -129,6 +135,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 			expect(result.apiKeyScopes).toBeUndefined();
 			expect(jwtUtils.verifyJWT).toHaveBeenCalledWith(
@@ -154,6 +162,8 @@ describe("auth utilities", () => {
 					email: "test@example.com",
 					username: "testuser",
 					emailVerified: true,
+					displayName: null,
+					avatarUrl: null,
 				},
 			};
 
@@ -205,6 +215,8 @@ describe("auth utilities", () => {
 					email: "test@example.com",
 					username: "testuser",
 					emailVerified: false,
+					displayName: null,
+					avatarUrl: null,
 				},
 			};
 
@@ -231,6 +243,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 
 			const result = await requireAuth(mockEvent);
@@ -240,6 +254,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 		});
 
@@ -268,6 +284,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 
 			const result = await requireEmailVerification(mockEvent);
@@ -277,6 +295,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 		});
 
@@ -292,6 +312,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: false,
+				displayName: null,
+				avatarUrl: null,
 			});
 
 			await expect(requireEmailVerification(mockEvent)).rejects.toThrow(
@@ -325,6 +347,8 @@ describe("auth utilities", () => {
 				email: "test@example.com",
 				username: "testuser",
 				emailVerified: true,
+				displayName: null,
+				avatarUrl: null,
 			});
 
 			await expect(requireScope(mockEvent, "write:rules")).resolves.toBeUndefined();
@@ -346,6 +370,8 @@ describe("auth utilities", () => {
 					email: "test@example.com",
 					username: "testuser",
 					emailVerified: true,
+					displayName: null,
+					avatarUrl: null,
 				},
 			};
 
@@ -371,6 +397,8 @@ describe("auth utilities", () => {
 					email: "test@example.com",
 					username: "testuser",
 					emailVerified: true,
+					displayName: null,
+					avatarUrl: null,
 				},
 			};
 

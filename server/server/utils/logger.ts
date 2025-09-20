@@ -174,10 +174,27 @@ export class Logger {
 }
 
 // Create logger instance
-export function createLogger(_env?: Env): Logger {
-	// In production, you might want to set log level from environment
-	const minLevel = LogLevel.INFO; // Always use INFO level for now
-	return new Logger(minLevel);
+export function createLogger(env?: Env): Logger {
+	// Set log level based on environment
+	let minLevel = LogLevel.INFO;
+
+	// Check NODE_ENV first (most reliable in development)
+	if (process.env?.NODE_ENV !== "production") {
+		minLevel = LogLevel.DEBUG;
+	}
+
+	const logger = new Logger(minLevel);
+
+	// Log the detected environment for debugging
+	if (minLevel <= LogLevel.DEBUG) {
+		logger.debug("Logger initialized", {
+			minLevel: LogLevel[minLevel],
+			envEnvironment: env?.ENVIRONMENT,
+			nodeEnv: typeof process !== "undefined" ? process.env?.NODE_ENV : "undefined",
+		});
+	}
+
+	return logger;
 }
 
 // Request timing middleware

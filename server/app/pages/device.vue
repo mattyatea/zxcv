@@ -2,22 +2,22 @@
 	<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
 		<div class="max-w-md w-full space-y-8 p-8">
 			<div class="text-center">
-				<h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $t('device.title') }}</h1>
-				<p class="mt-2 text-gray-600 dark:text-gray-400">{{ $t('device.description') }}</p>
+				<h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ t('device.title') }}</h1>
+				<p class="mt-2 text-gray-600 dark:text-gray-400">{{ t('device.description') }}</p>
 			</div>
 
 			<Card class="mt-8">
 				<form @submit.prevent="handleSubmit" class="space-y-6">
 					<div>
 						<label for="code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-							{{ $t('device.codeLabel') }}
+							{{ t('device.codeLabel') }}
 						</label>
 						<div class="mt-1">
 							<Input
 								id="code"
 								v-model="userCode"
 								type="text"
-								:placeholder="$t('device.codePlaceholder')"
+								:placeholder="t('device.codePlaceholder')"
 								autocomplete="off"
 								autofocus
 								:error="errorMessage"
@@ -27,7 +27,7 @@
 							/>
 						</div>
 						<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-							{{ $t('device.codeHint') }}
+							{{ t('device.codeHint') }}
 						</p>
 					</div>
 
@@ -63,16 +63,16 @@
 						:disabled="!isValidCode || loading || !!successMessage"
 						class="w-full"
 					>
-						{{ $t('device.submit') }}
+						{{ t('device.submit') }}
 					</Button>
 				</form>
 			</Card>
 
 			<div class="text-center">
 				<p class="text-sm text-gray-500 dark:text-gray-400">
-					{{ $t('device.notYourDevice') }}
+					{{ t('device.notYourDevice') }}
 					<nuxt-link to="/" class="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
-						{{ $t('device.cancelLink') }}
+						{{ t('device.cancelLink') }}
 					</nuxt-link>
 				</p>
 			</div>
@@ -83,15 +83,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { useNuxtApp } from '#app';
+import { useRpc } from "~/composables/useRpc";
 import { useAuthStore } from '~/stores/auth';
 import { useI18n } from '~/composables/useI18n';
 import Card from '~/components/common/Card.vue';
 import Input from '~/components/common/Input.vue';
 import Button from '~/components/common/Button.vue';
 
-const { $rpc } = useNuxtApp();
-const { $t } = useI18n();
+const $rpc = useRpc();
+const { t } = useI18n();
 const route = useRoute();
 const authStore = useAuthStore();
 
@@ -141,7 +141,7 @@ const handleSubmit = async () => {
 		});
 
 		if (response.success) {
-			successMessage.value = response.message || $t('device.success');
+			successMessage.value = response.message || t('device.success');
 			// Navigate after showing success message (client-side only)
 			if (typeof window !== 'undefined') {
 				// Use a simple delay mechanism that doesn't rely on setTimeout
@@ -160,11 +160,11 @@ const handleSubmit = async () => {
 		console.error('Device verification error:', error);
 		const err = error as { code?: string; message?: string };
 		if (err.code === 'NOT_FOUND') {
-			errorMessage.value = $t('device.invalidCode');
+			errorMessage.value = t('device.invalidCode');
 		} else if (err.code === 'BAD_REQUEST' && err.message?.includes('期限')) {
-			errorMessage.value = $t('device.expiredCode');
+			errorMessage.value = t('device.expiredCode');
 		} else {
-			errorMessage.value = $t('device.error');
+			errorMessage.value = t('device.error');
 		}
 	} finally {
 		loading.value = false;

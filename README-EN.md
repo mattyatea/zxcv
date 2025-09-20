@@ -1,7 +1,7 @@
 [日本語版](README.md) | [English Version](README-EN.md)
 # zxcv
 
-<img src='./img.png' alt='zxcv logo' width='500' height='200' style='object-fit: cover;'/>
+<img src='./img.png' alt='zxcv logo' height='693' style='object-fit: cover;'/>
 
 # Overview
 

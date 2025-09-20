@@ -2,7 +2,13 @@ import type { Prisma, Rule, RuleVersion } from "@prisma/client";
 import { BaseRepository } from "./BaseRepository";
 
 export type RuleWithRelations = Rule & {
-	user?: { id: string; username: string; email: string } | null;
+	user?: {
+		id: string;
+		username: string;
+		email: string;
+		displayName: string | null;
+		avatarUrl: string | null;
+	} | null;
 	organization?: { id: string; name: string; displayName: string } | null;
 	versions?: RuleVersion[] | null;
 	creator?: { id: string; username: string } | null;
@@ -39,7 +45,15 @@ export class RuleRepository extends BaseRepository {
 				where: { id },
 				include: includeRelations
 					? {
-							user: { select: { id: true, username: true, email: true } },
+							user: {
+								select: {
+									id: true,
+									username: true,
+									email: true,
+									displayName: true,
+									avatarUrl: true,
+								},
+							},
 							organization: { select: { id: true, name: true, displayName: true } },
 							/* versions: {
 								orderBy: { versionNumber: "desc" },
@@ -65,7 +79,9 @@ export class RuleRepository extends BaseRepository {
 					...(orgId ? { organizationId: orgId } : {}),
 				},
 				include: {
-					user: { select: { id: true, username: true, email: true } },
+					user: {
+						select: { id: true, username: true, email: true, displayName: true, avatarUrl: true },
+					},
 					organization: { select: { id: true, name: true, displayName: true } },
 				},
 			});
@@ -86,7 +102,9 @@ export class RuleRepository extends BaseRepository {
 					userId,
 				},
 				include: {
-					user: { select: { id: true, username: true, email: true } },
+					user: {
+						select: { id: true, username: true, email: true, displayName: true, avatarUrl: true },
+					},
 					organization: { select: { id: true, name: true, displayName: true } },
 				},
 			});
@@ -122,7 +140,9 @@ export class RuleRepository extends BaseRepository {
 				this.db.rule.findMany({
 					where,
 					include: {
-						user: { select: { id: true, username: true, email: true } },
+						user: {
+							select: { id: true, username: true, email: true, displayName: true, avatarUrl: true },
+						},
 						organization: { select: { id: true, name: true, displayName: true } },
 					},
 					orderBy: { updatedAt: "desc" },

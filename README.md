@@ -2,6 +2,9 @@
 
 # zxcv
 
+<img src='./img.png' alt='zxcv logo' height='693' style='object-fit: cover;'/>
+
+
 # 概要
 zxcvは、AIを活用する際の、コーディングルールなどを一元化したいというCLIツールです。
 
@@ -66,6 +69,9 @@ MIT License
 
 大歓迎です！！
 Issueを作成して、そのIssueに紐づくPRを作成してください！
+
+### 開発ルール（フロントエンド）
+- RPC 呼び出しは必ず `useRpc()` を使用してください（`useNuxtApp().$rpc` を直接参照しない）。
 
 ## サポート
 

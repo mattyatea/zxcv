@@ -15,9 +15,8 @@ export const authProcedures = {
 	 * ユーザー登録
 	 */
 	register: os.auth.register.use(registerRateLimit).handler(async ({ input, context }) => {
-		const { db, env, cloudflare } = context;
+		const { db, env, locale } = context;
 		const authService = new AuthService(db, env);
-		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		try {
 			const result = await authService.register(input);
@@ -46,9 +45,8 @@ export const authProcedures = {
 	 * ログイン
 	 */
 	login: os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
-		const { db, env, cloudflare } = context;
+		const { db, env, locale } = context;
 		const authService = new AuthService(db, env);
-		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
 		const result = await authService.login(input.email, input.password, locale);
 		return {
@@ -64,8 +62,7 @@ export const authProcedures = {
 	 */
 	logout: os.auth.logout.use(dbProvider).handler(async ({ input, context }) => {
 		const { refreshToken } = input;
-		const { env, cloudflare } = context;
-		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		const { env, locale } = context;
 
 		try {
 			// Verify refresh token
@@ -159,8 +156,7 @@ export const authProcedures = {
 	 */
 	refresh: os.auth.refresh.use(dbProvider).handler(async ({ input, context }) => {
 		const { refreshToken } = input;
-		const { db, env, cloudflare } = context;
-		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		const { db, env, locale } = context;
 
 		// Verify refresh token
 		const { verifyRefreshToken, createRefreshToken, createJWT } = await import("../../utils/jwt");
@@ -183,6 +179,8 @@ export const authProcedures = {
 			email: user.email,
 			username: user.username,
 			emailVerified: user.emailVerified,
+			displayName: user.displayName,
+			avatarUrl: user.avatarUrl,
 		};
 
 		const accessToken = await createJWT(
@@ -191,6 +189,8 @@ export const authProcedures = {
 				email: authUser.email,
 				username: authUser.username,
 				emailVerified: authUser.emailVerified,
+				displayName: authUser.displayName,
+				avatarUrl: authUser.avatarUrl,
 			},
 			env,
 		);
@@ -624,6 +624,8 @@ export const authProcedures = {
 						username: user.username,
 						email: user.email,
 						emailVerified: user.emailVerified,
+						displayName: user.displayName,
+						avatarUrl: user.avatarUrl,
 					},
 				};
 			} catch (error) {
@@ -992,4 +994,23 @@ export const authProcedures = {
 				message: authErrors.tokenRevoked(locale),
 			};
 		}),
+
+	me: os.auth.me.use(dbProvider).handler(async ({ context }) => {
+		const { user } = context;
+
+		if (!user) {
+			throw new ORPCError("UNAUTHORIZED", {
+				message: "Authentication required",
+			});
+		}
+
+		return {
+			id: user.id,
+			email: user.email,
+			username: user.username,
+			emailVerified: user.emailVerified,
+			displayName: user.displayName,
+			avatarUrl: user.avatarUrl,
+		};
+	}),
 };

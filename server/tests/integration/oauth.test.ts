@@ -414,7 +414,8 @@ describe("OAuth Integration Tests", () => {
 					json: async () => ({
 						id: "google-123",
 						email: "newuser@example.com",
-						name: "New User",
+						displayName: "New User",
+						avatarUrl: null,
 					}),
 				});
 
@@ -472,7 +473,8 @@ describe("OAuth Integration Tests", () => {
 					json: async () => ({
 						id: "google-456",
 						email: "existing@example.com",
-						name: "Existing User",
+						displayName: "Existing User",
+						avatarUrl: null,
 					}),
 				});
 
@@ -483,6 +485,8 @@ describe("OAuth Integration Tests", () => {
 					username: "existing",
 					passwordHash: "hashed",
 					emailVerified: true,
+					displayName: "Existing User",
+					avatarUrl: null,
 					verificationToken: null,
 					createdAt: mockNow - 86400,
 					updatedAt: mockNow - 86400,
@@ -539,7 +543,8 @@ describe("OAuth Integration Tests", () => {
 						json: async () => ({
 							id: 12345,
 							login: "githubuser",
-							name: "GitHub User",
+							displayName: "GitHub User",
+							avatarUrl: null,
 						}),
 					})
 					.mockResolvedValueOnce({
@@ -599,7 +604,8 @@ describe("OAuth Integration Tests", () => {
 						json: async () => ({
 							id: 12345,
 							login: "githubuser",
-							name: "GitHub User",
+							displayName: "GitHub User",
+							avatarUrl: null,
 						}),
 					})
 					.mockResolvedValueOnce({

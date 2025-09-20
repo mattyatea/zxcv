@@ -2,7 +2,7 @@
 name = "zxcv-backend-and-frontend"
 main = "./.output/server/index.mjs"
 compatibility_date = "2025-07-15"
-compatibility_flags = ["nodejs_compat","no_nodejs_compat_v2"]
+compatibility_flags = ["nodejs_compat", "no_nodejs_compat_v2"]
 
 [observability]
 enabled = true
@@ -21,6 +21,11 @@ bucket_name = "zxcv"
 name = "EMAIL_SENDER"
 
 [vars]
+JWT_SECRET = "test-jwt-secret"
+GOOGLE_CLIENT_ID = "test-google-client-id"
+GOOGLE_CLIENT_SECRET = "test-google-client-secret"
+GH_OAUTH_CLIENT_ID = "test-gh-oauth-client-id"
+GH_OAUTH_CLIENT_SECRET = "test-gh-oauth"
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_IN = "7d"
 RATE_LIMIT_ANONYMOUS = "100"

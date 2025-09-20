@@ -1,8 +1,8 @@
-import type { InferRouterOutputs } from "@orpc/server";
-import type { router } from "~/server/orpc/router";
+import type {InferContractRouterInputs, InferContractRouterOutputs} from "@orpc/contract";
+import type { contract } from "~/server/orpc/contracts";
 
-// ルーターから型を推論
-export type RouterOutputs = InferRouterOutputs<typeof router>;
+type RouterOutputs = InferContractRouterOutputs<typeof contract>;
+type RouterInputs = InferContractRouterInputs<typeof contract>; 
 
 // Auth関連
 export type RegisterResponse = RouterOutputs["auth"]["register"];
@@ -15,6 +15,7 @@ export type SendVerificationResponse = RouterOutputs["auth"]["sendVerification"]
 export type CheckUsernameResponse = RouterOutputs["auth"]["checkUsername"];
 export type CompleteOAuthRegistrationResponse = RouterOutputs["auth"]["completeOAuthRegistration"];
 export type UserType = LoginResponse["user"];
+export type MeResponse = RouterOutputs["auth"]["me"];
 
 // Rules関連
 export type SearchRulesResponse = RouterOutputs["rules"]["search"];
@@ -52,3 +53,12 @@ export type GetUserPublicProfileResponse = RouterOutputs["users"]["getPublicProf
 
 // Health関連
 export type HealthCheckResponse = RouterOutputs["health"]["check"];
+
+// Input types from RPC contracts
+export type RegisterInput = RouterInputs["auth"]["register"];
+export type LoginInput = RouterInputs["auth"]["login"];
+export type UpdateProfileInput = RouterInputs["users"]["updateProfile"];
+export type CreateRuleInput = RouterInputs["rules"]["create"];
+export type UpdateRuleInput = RouterInputs["rules"]["update"];
+export type CreateOrganizationInput = RouterInputs["organizations"]["create"];
+export type UpdateOrganizationInput = RouterInputs["organizations"]["update"];

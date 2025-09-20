@@ -1,0 +1,196 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+jobs:
+  # Quality checks and tests
+  quality:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Type check
+        run: pnpm run typecheck:server
+
+      - name: Lint and format check
+        run: pnpm run check
+
+      - name: Build for tests
+        run: pnpm run build:server
+
+      - name: Run server tests
+        run: pnpm run test:server
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-for-ci
+          REFRESH_TOKEN_SECRET: test-refresh-token-secret-for-ci
+
+      - name: Security audit
+        run: |
+          echo "🔍 Running security audit..."
+          
+          # Run security audit and capture results
+          if pnpm audit --audit-level moderate --json > audit-results.json 2>&1; then
+            echo "✅ No security vulnerabilities found at moderate level or above"
+          else
+            echo "⚠️ Security vulnerabilities detected:"
+            cat audit-results.json | jq -r '.vulnerabilities | to_entries[] | "- \(.key): \(.value.severity) severity"' || echo "Failed to parse audit results"
+          fi
+          
+          # Count vulnerabilities
+          VULN_COUNT=$(pnpm audit --json 2>/dev/null | jq '.vulnerabilities | length' 2>/dev/null || echo "0")
+          echo "Total vulnerabilities found: $VULN_COUNT"
+          
+          # Create audit summary
+          echo "Security audit completed at $(date)" >> security-audit.log
+          echo "Vulnerabilities: $VULN_COUNT" >> security-audit.log
+        continue-on-error: true
+
+  # Build verification
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Cache Nuxt build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .nuxt
+            .output
+            server/.nuxt
+            server/.output
+            node_modules/.cache
+          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml', 'server/**/*.ts', 'server/**/*.vue') }}
+          restore-keys: |
+            ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nuxt-build-
+
+      - name: Build application
+        run: pnpm run build:server
+
+      - name: Verify build output
+        run: |
+          if [ -d "server/.output" ]; then
+            echo "✅ Build output directory exists"
+            ls -la server/.output/
+          else
+            echo "❌ Build output directory not found"
+            exit 1
+          fi
+
+  # Deploy to staging on dev branch
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [quality, build]
+    if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://zxcv-staging.mattyatea.me
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Build for staging
+        run: pnpm run build:server
+
+      - name: Run database migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply zxcv-staging --remote --env staging
+          workingDirectory: server
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env staging
+          workingDirectory: server
+          secrets: |
+            JWT_SECRET
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GH_OAUTH_CLIENT_ID
+            GH_OAUTH_CLIENT_SECRET
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+
+  # Deploy to production on main branch
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [quality, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: 
+      name: production
+      url: https://zxcv.nanasi-apps.xyz
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup project
+        uses: ./.github/actions/setup
+
+      - name: Build for production
+        run: pnpm run build:server
+
+      - name: Run database migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply zxcv-db --remote
+          workingDirectory: server
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          workingDirectory: server
+          secrets: |
+            JWT_SECRET
+            GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET
+            GH_OAUTH_CLIENT_ID
+            GH_OAUTH_CLIENT_SECRET
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}

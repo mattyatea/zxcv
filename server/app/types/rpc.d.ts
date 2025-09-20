@@ -3,15 +3,21 @@ import type { JsonifiedClient } from "@orpc/openapi-client";
 import type { contract } from "~/server/orpc/contracts";
 
 declare module "#app" {
-	interface NuxtApp {
+  interface NuxtApp {
+		/**
+		 * @deprecated Use `useRpc()` composable in frontend code instead of accessing `$rpc` directly.
+		 */
 		$rpc: JsonifiedClient<ContractRouterClient<typeof contract>>;
-	}
+  }
 }
 
 declare module "@vue/runtime-core" {
-	interface ComponentCustomProperties {
+  interface ComponentCustomProperties {
+		/**
+		 * @deprecated Use `useRpc()` composable in frontend code instead of accessing `$rpc` directly.
+		 */
 		$rpc: JsonifiedClient<ContractRouterClient<typeof contract>>;
-	}
+  }
 }
 
 declare module "nuxt/dist/app/nuxt" {

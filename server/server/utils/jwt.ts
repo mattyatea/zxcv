@@ -6,6 +6,8 @@ export interface JWTPayload {
 	email: string;
 	username: string;
 	emailVerified?: boolean;
+	displayName?: string | null;
+	avatarUrl?: string | null;
 	iat?: number;
 	exp?: number;
 }

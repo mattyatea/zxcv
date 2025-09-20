@@ -10,9 +10,13 @@
         <div class="flex items-start justify-between mb-8">
           <div>
             <div class="flex items-center gap-3 mb-2">
-              <div class="w-16 h-16 bg-primary-500 rounded-xl flex items-center justify-center text-white font-bold text-2xl">
-                {{ organization.name[0].toUpperCase() }}
-              </div>
+              <Avatar
+                :name="organization.displayName || organization.name"
+                :alt="organization.name"
+                size="xl"
+                shape="square"
+                class="bg-primary-500 text-white font-bold text-2xl"
+              />
               <div>
                 <h1 class="heading-1">{{ organization.name }}</h1>
                 <p class="text-gray-600 dark:text-gray-400">
@@ -131,9 +135,14 @@
         <div v-else-if="activeTab === 'members'" class="space-y-4">
           <div v-for="member in members" :key="member.id" class="card flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-medium">
-                {{ member.username[0].toUpperCase() }}
-              </div>
+              <Avatar
+                :src="member.avatarUrl"
+                :name="member.displayName || member.username"
+                :alt="`${member.username}'s avatar`"
+                size="md"
+                shape="circle"
+                :use-gradient="true"
+              />
               <div>
                 <p class="font-medium text-gray-900 dark:text-gray-100">{{ member.username }}</p>
                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ member.email }}</p>
@@ -191,6 +200,7 @@
 import { onMounted, ref, watch } from "vue";
 import { useRpc } from "~/composables/useRpc";
 import type { OrganizationType, RuleType, UserType, GetOrganizationResponse } from "~/types/orpc";
+import Avatar from "~/components/common/Avatar.vue";
 
 definePageMeta({
 	middleware: "auth",

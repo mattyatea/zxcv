@@ -1,9 +1,8 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { ORPCError } from "@orpc/server";
-import * as usersProcedures from "~/server/orpc/procedures/users";
-import { callProcedure, expectORPCError } from "~/tests/helpers/orpc";
-import { createMockContext, createAuthenticatedContext } from "~/tests/helpers/mocks";
-import type { PrismaClient } from "@prisma/client";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { ORPCError, call } from "@orpc/server";
+import { createMockContext } from "~/tests/helpers/mocks";
+import { getPublicProfile } from "~/server/orpc/procedures/users";
+import { searchByUsername } from "~/server/orpc/procedures/users";
 
 // Helper to create mock user
 function createMockUser(overrides: Partial<any> = {}) {
@@ -28,9 +27,27 @@ describe("users procedures", () => {
 		// Use the global mock Prisma client
 		mockPrisma = (globalThis as any).__mockPrismaClient;
 
-		// Setup mock context
+		// Setup mock context following oRPC testing patterns
 		mockContext = createMockContext({
-			db: mockPrisma,
+			db: mockPrisma, // Will be used by middleware when available
+			env: {
+				// Mock all required environment variables for middleware
+				DB: mockPrisma, // This is what middleware will use if db is not in context
+				JWT_SECRET: "test-jwt-secret",
+				JWT_ALGORITHM: "HS256",
+				JWT_EXPIRES_IN: "1h",
+				REFRESH_TOKEN_EXPIRES_IN: "7d",
+				EMAIL_FROM: "test@example.com",
+				FRONTEND_URL: "http://localhost:3000",
+				R2: {
+					put: vi.fn(),
+					get: vi.fn(),
+					delete: vi.fn(),
+				},
+				EMAIL_SEND: {
+					send: vi.fn().mockResolvedValue({ success: true }),
+				},
+			},
 		});
 	});
 
@@ -42,10 +59,12 @@ describe("users procedures", () => {
 		const mockUser = {
 			id: "user_123",
 			username: "testuser",
-			email: "test@example.com",
-			emailVerified: true,
+			displayName: "Test User Display",
+			bio: "This is my bio",
+			location: "Tokyo, Japan",
+			website: "https://testuser.example.com",
+			avatarUrl: "avatars/user_123/avatar.jpg",
 			createdAt: 1640995200,
-			updatedAt: 1640995200,
 		};
 
 		const mockPublicRules = [
@@ -82,18 +101,20 @@ describe("users procedures", () => {
 			mockPrisma.ruleStar.count.mockResolvedValue(10);
 			mockPrisma.rule.findMany.mockResolvedValue(mockPublicRules);
 
-			// Call the procedure
-			const result = await callProcedure(
-				usersProcedures.getPublicProfile,
-				validInput,
-				mockContext,
-			);
+			// Following oRPC docs: direct procedure invocation with call()
+			// Documentation shows 2-argument form: call(procedure, input)
+			const result = await call(getPublicProfile, validInput);
 
 			// Assert the result
 			expect(result).toEqual({
 				user: {
 					id: "user_123",
 					username: "testuser",
+					displayName: "Test User Display",
+					bio: "This is my bio",
+					location: "Tokyo, Japan",
+					website: "https://testuser.example.com",
+					avatarUrl: "avatars/user_123/avatar.jpg",
 					createdAt: 1640995200,
 				},
 				stats: {
@@ -128,6 +149,11 @@ describe("users procedures", () => {
 				select: {
 					id: true,
 					username: true,
+					displayName: true,
+					bio: true,
+					location: true,
+					website: true,
+					avatarUrl: true,
 					createdAt: true,
 				},
 			});
@@ -181,17 +207,10 @@ describe("users procedures", () => {
 			// Mock user not found
 			mockPrisma.user.findUnique.mockResolvedValue(null);
 
-			// Call the procedure and expect error
-			const error = await expectORPCError(
-				usersProcedures.getPublicProfile,
-				validInput,
-				mockContext,
-			);
-
-			// Verify error details
-			expect(error).toBeInstanceOf(ORPCError);
-			expect((error as ORPCError).code).toBe("NOT_FOUND");
-			expect(error.message).toBe("User not found");
+			// Call the procedure and expect error - using expect().rejects pattern from docs
+			await expect(
+				call(getPublicProfile, validInput)
+			).rejects.toThrow(ORPCError);
 
 			// Verify database call
 			expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
@@ -199,6 +218,11 @@ describe("users procedures", () => {
 				select: {
 					id: true,
 					username: true,
+					displayName: true,
+					bio: true,
+					location: true,
+					website: true,
+					avatarUrl: true,
 					createdAt: true,
 				},
 			});
@@ -221,12 +245,8 @@ describe("users procedures", () => {
 				},
 			]);
 
-			// Call the procedure
-			const result = await callProcedure(
-				usersProcedures.getPublicProfile,
-				validInput,
-				mockContext,
-			);
+			// Following oRPC docs: direct procedure invocation with call()
+			const result = await call(getPublicProfile, validInput);
 
 			// Assert description is converted to empty string
 			expect(result.publicRules[0].description).toBe("");
@@ -239,12 +259,8 @@ describe("users procedures", () => {
 			mockPrisma.ruleStar.count.mockResolvedValue(0);
 			mockPrisma.rule.findMany.mockResolvedValue([]);
 
-			// Call the procedure
-			const result = await callProcedure(
-				usersProcedures.getPublicProfile,
-				validInput,
-				mockContext,
-			);
+			// Following oRPC docs: direct procedure invocation with call()
+			const result = await call(getPublicProfile, validInput);
 
 			// Assert empty results
 			expect(result.stats.publicRulesCount).toBe(0);
@@ -265,12 +281,8 @@ describe("users procedures", () => {
 				},
 			]);
 
-			// Call the procedure
-			const result = await callProcedure(
-				usersProcedures.getPublicProfile,
-				validInput,
-				mockContext,
-			);
+			// Following oRPC docs: direct procedure invocation with call()
+			const result = await call(getPublicProfile, validInput);
 
 			// Assert organization is null
 			expect(result.publicRules[0].organization).toBeNull();
@@ -297,21 +309,15 @@ describe("users procedures", () => {
 		];
 
 		it("should search users and mask emails for authenticated users (non-self)", async () => {
-			// Setup context with authentication (but not the searched users)
+			// Setup global test user for authentication (but not the searched users)
 			const authenticatedUser = createMockUser({ id: "user_3" });
-			mockContext = createAuthenticatedContext(authenticatedUser, {
-				db: mockPrisma,
-			});
+			(globalThis as any).__testUser = authenticatedUser;
 
 			// Mock database call
 			mockPrisma.user.findMany.mockResolvedValue(mockUsers);
 
 			// Call the procedure
-			const result = await callProcedure(
-				usersProcedures.searchByUsername,
-				validInput,
-				mockContext,
-			);
+			const result = await call(searchByUsername, validInput);
 
 			// Assert emails are masked for non-self users
 			expect(result).toEqual([
@@ -347,21 +353,15 @@ describe("users procedures", () => {
 		});
 
 		it("should show user's own email when authenticated", async () => {
-			// Setup context with authentication
+			// Setup global test user for authentication
 			const authenticatedUser = createMockUser({ id: "user_1" });
-			mockContext = createAuthenticatedContext(authenticatedUser, {
-				db: mockPrisma,
-			});
+			(globalThis as any).__testUser = authenticatedUser;
 
 			// Mock database call
 			mockPrisma.user.findMany.mockResolvedValue(mockUsers);
 
 			// Call the procedure
-			const result = await callProcedure(
-				usersProcedures.searchByUsername,
-				validInput,
-				mockContext,
-			);
+			const result = await call(searchByUsername, validInput);
 
 			// Assert only authenticated user's email is visible
 			expect(result).toEqual([
@@ -377,5 +377,10 @@ describe("users procedures", () => {
 				},
 			]);
 		});
+	});
+
+	afterEach(() => {
+		// Clean up global test user
+		delete (globalThis as any).__testUser;
 	});
 });

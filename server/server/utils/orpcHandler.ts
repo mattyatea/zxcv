@@ -67,6 +67,8 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 				email: cliToken.user.email,
 				username: cliToken.user.username,
 				emailVerified: cliToken.user.emailVerified,
+				displayName: cliToken.user.displayName,
+				avatarUrl: cliToken.user.avatarUrl,
 			};
 		} catch {
 			return undefined;
@@ -84,6 +86,8 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 			email: payload.email,
 			username: payload.username,
 			emailVerified: payload.emailVerified || false,
+			displayName: payload.displayName || null,
+			avatarUrl: payload.avatarUrl || null,
 		};
 	} catch {
 		return undefined;

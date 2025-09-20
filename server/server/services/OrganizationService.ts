@@ -1,8 +1,7 @@
 import { ORPCError } from "@orpc/server";
-import type { PrismaClient } from "@prisma/client";
+import type { Organization, OrganizationMember, PrismaClient } from "@prisma/client";
 import { nanoid } from "nanoid";
-import { OrganizationRepository } from "../repositories/OrganizationRepository";
-import { UserRepository } from "../repositories/UserRepository";
+import { OrganizationRepository, UserRepository } from "../repositories";
 import type { CloudflareEnv } from "../types/env";
 import { sendEmail } from "../utils/email";
 import { generateToken, verifyToken } from "../utils/jwt";
@@ -240,7 +239,7 @@ export class OrganizationService {
 			if (isOwner) {
 				// 他のオーナーがいるかチェック
 				const org = await this.organizationRepository.findById(orgId, true);
-				const owners = org?.members?.filter((m) => m.role === "owner") || [];
+				const owners = org?.members?.filter((m: OrganizationMember) => m.role === "owner") || [];
 				if (owners.length <= 1) {
 					throw new ORPCError("BAD_REQUEST", {
 						message: "最後のオーナーは組織から退出できません",
@@ -283,7 +282,7 @@ export class OrganizationService {
 		if (requesterId === memberId && role === "member") {
 			// 他のオーナーがいるかチェック
 			const org = await this.organizationRepository.findById(orgId, true);
-			const owners = org?.members?.filter((m) => m.role === "owner") || [];
+			const owners = org?.members?.filter((m: OrganizationMember) => m.role === "owner") || [];
 			if (owners.length <= 1) {
 				throw new ORPCError("BAD_REQUEST", {
 					message: "最後のオーナーの役割は変更できません",
@@ -304,7 +303,7 @@ export class OrganizationService {
 
 		// 各組織のメンバー数とルール数を取得
 		const result = await Promise.all(
-			organizations.map(async (org) => {
+			organizations.map(async (org: Organization) => {
 				// メンバー数を取得
 				const memberCount = await this.db.organizationMember.count({
 					where: { organizationId: org.id },
