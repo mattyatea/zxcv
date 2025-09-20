@@ -20,8 +20,8 @@ The system will automatically:
 
 ✅ **Create Release Branch**: `release/v1.2.0`
 ✅ **Update Versions**: Bump package.json files
-✅ **Run Tests**: Ensure code quality
 ✅ **Build Applications**: Verify builds work
+✅ **Run Tests**: Ensure code quality
 ✅ **Generate Changelog**: Based on git commits
 ✅ **Create PR to Main**: Ready for review
 ✅ **Create Draft Release**: On GitHub
@@ -109,8 +109,8 @@ The system automatically:
 ## ⚠️ Important Notes
 
 ### Pre-Release Checks
-- All tests must pass ✅
 - Builds must succeed ✅  
+- All tests must pass ✅
 - No lint errors ❌
 
 ### Manual Steps Required
