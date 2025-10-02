@@ -21,13 +21,8 @@ bucket_name = "zxcv"
 name = "EMAIL_SENDER"
 
 [vars]
-# Default values for local development and type generation
-# In production/staging, these are overridden by GitHub Actions secrets
-JWT_SECRET = "test-jwt-secret"
-GOOGLE_CLIENT_ID = "test-google-client-id"
-GOOGLE_CLIENT_SECRET = "test-google-client-secret"
-GH_OAUTH_CLIENT_ID = "test-gh-oauth-client-id"
-GH_OAUTH_CLIENT_SECRET = "test-gh-oauth"
+# Non-secret configuration for production
+# Secrets (JWT_SECRET, GOOGLE_CLIENT_ID, etc.) are set via GitHub Actions during deployment
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_IN = "7d"
 RATE_LIMIT_ANONYMOUS = "100"
@@ -60,12 +55,8 @@ bucket_name = "zxcv-staging"
 name = "EMAIL_SENDER"
 
 [env.staging.vars]
-# Default values - overridden by GitHub Actions secrets during deployment
-JWT_SECRET = "test-jwt-secret"
-GOOGLE_CLIENT_ID = "test-google-client-id"
-GOOGLE_CLIENT_SECRET = "test-google-client-secret"
-GH_OAUTH_CLIENT_ID = "test-gh-oauth-client-id"
-GH_OAUTH_CLIENT_SECRET = "test-gh-oauth"
+# Non-secret configuration for staging
+# Secrets (JWT_SECRET, GOOGLE_CLIENT_ID, etc.) are set via GitHub Actions during deployment
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_IN = "7d"
 RATE_LIMIT_ANONYMOUS = "100"
