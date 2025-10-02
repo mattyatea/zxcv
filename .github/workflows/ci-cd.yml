@@ -140,6 +140,56 @@ jobs:
           command: d1 migrations apply zxcv-staging --remote --env staging
           workingDirectory: server
 
+      - name: Set Cloudflare secrets for staging
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: secret put JWT_SECRET --env staging
+          workingDirectory: server
+        env:
+          WRANGLER_SECRET_VALUE: ${{ secrets.JWT_SECRET }}
+
+      - name: Set Google Client ID for staging
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: secret put GOOGLE_CLIENT_ID --env staging
+          workingDirectory: server
+        env:
+          WRANGLER_SECRET_VALUE: ${{ secrets.GOOGLE_CLIENT_ID }}
+
+      - name: Set Google Client Secret for staging
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: secret put GOOGLE_CLIENT_SECRET --env staging
+          workingDirectory: server
+        env:
+          WRANGLER_SECRET_VALUE: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+
+      - name: Set GitHub OAuth Client ID for staging
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: secret put GH_OAUTH_CLIENT_ID --env staging
+          workingDirectory: server
+        env:
+          WRANGLER_SECRET_VALUE: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+
+      - name: Set GitHub OAuth Client Secret for staging
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: secret put GH_OAUTH_CLIENT_SECRET --env staging
+          workingDirectory: server
+        env:
+          WRANGLER_SECRET_VALUE: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
@@ -147,18 +197,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
           workingDirectory: server
-          secrets: |
-            JWT_SECRET
-            GOOGLE_CLIENT_ID
-            GOOGLE_CLIENT_SECRET
-            GH_OAUTH_CLIENT_ID
-            GH_OAUTH_CLIENT_SECRET
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GH_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
-          GH_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
 
   # Deploy to production on main branch
   deploy-production:
