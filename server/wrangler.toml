@@ -22,13 +22,7 @@ name = "EMAIL_SENDER"
 
 [vars]
 # Non-secret configuration for production
-# Note: Secret values below are dummy values for type generation only
-# Real secrets are provided via GitHub Actions during deployment
-JWT_SECRET = "dummy-jwt-secret"
-GOOGLE_CLIENT_ID = "dummy-google-client-id"
-GOOGLE_CLIENT_SECRET = "dummy-google-client-secret"
-GH_OAUTH_CLIENT_ID = "dummy-gh-oauth-client-id"
-GH_OAUTH_CLIENT_SECRET = "dummy-gh-oauth-client-secret"
+# Secrets (JWT_SECRET, GOOGLE_CLIENT_ID, etc.) are set via wrangler secret during deployment
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_IN = "7d"
 RATE_LIMIT_ANONYMOUS = "100"
@@ -62,13 +56,7 @@ name = "EMAIL_SENDER"
 
 [env.staging.vars]
 # Non-secret configuration for staging
-# Note: Secret values below are dummy values for type generation only
-# Real secrets are provided via GitHub Actions during deployment
-JWT_SECRET = "dummy-jwt-secret"
-GOOGLE_CLIENT_ID = "dummy-google-client-id"
-GOOGLE_CLIENT_SECRET = "dummy-google-client-secret"
-GH_OAUTH_CLIENT_ID = "dummy-gh-oauth-client-id"
-GH_OAUTH_CLIENT_SECRET = "dummy-gh-oauth-client-secret"
+# Secrets (JWT_SECRET, GOOGLE_CLIENT_ID, etc.) are set via wrangler secret during deployment
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRES_IN = "7d"
 RATE_LIMIT_ANONYMOUS = "100"
