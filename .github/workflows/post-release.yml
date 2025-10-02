@@ -248,7 +248,7 @@ jobs:
             done
           fi
 
-      - name: Update GitHub release from draft
+      - name: Create or update GitHub release
         run: |
           VERSION="${{ needs.check-release.outputs.version }}"
           
@@ -258,7 +258,7 @@ jobs:
           if [ -z "$LATEST_TAG" ]; then
             CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
           else
-            CHANGELOG=$(git log $LATEST_TAG..$VERSION --pretty=format:"- %s (%h)" --no-merges)
+            CHANGELOG=$(git log "$LATEST_TAG".."$VERSION" --pretty=format:"- %s (%h)" --no-merges)
           fi
           
           # Determine if this is a prerelease
@@ -271,10 +271,7 @@ jobs:
             echo "📋 Publishing stable release $VERSION"
           fi
           
-          # Update the draft release to published
-          gh release edit "$VERSION" \
-            --title "🚀 Release $VERSION" \
-            --notes "$(cat <<EOF
+          RELEASE_NOTES=$(cat <<EOF
           ## 🎉 What's New
           
           $CHANGELOG
@@ -294,9 +291,24 @@ jobs:
           
           For issues or questions, please visit our [GitHub Issues](https://github.com/mattyatea/zxcv/issues).
           EOF
-          )" \
-            --draft=false \
-            $PRERELEASE_FLAG
+          )
+
+          # Check if release already exists
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "✅ Release $VERSION already exists, updating it."
+            gh release edit "$VERSION" \
+              --title "🚀 Release $VERSION" \
+              --notes "$RELEASE_NOTES" \
+              --draft=false \
+              $PRERELEASE_FLAG
+          else
+            echo "✅ Release $VERSION not found, creating a new one."
+            gh release create "$VERSION" \
+              --title "🚀 Release $VERSION" \
+              --notes "$RELEASE_NOTES" \
+              --draft=false \
+              $PRERELEASE_FLAG
+          fi
           
           echo "✅ Published GitHub release: $VERSION"
         env:
