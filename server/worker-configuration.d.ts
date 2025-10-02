@@ -3,11 +3,6 @@
 // Runtime types generated with workerd@1.20250712.0 2025-07-15 no_nodejs_compat_v2,nodejs_compat
 declare namespace Cloudflare {
 	interface Env {
-		JWT_SECRET: "test-jwt-secret";
-		GOOGLE_CLIENT_ID: "test-google-client-id";
-		GOOGLE_CLIENT_SECRET: "test-google-client-secret";
-		GH_OAUTH_CLIENT_ID: "test-gh-oauth-client-id";
-		GH_OAUTH_CLIENT_SECRET: "test-gh-oauth";
 		JWT_ALGORITHM: "HS256";
 		JWT_EXPIRES_IN: "7d";
 		RATE_LIMIT_ANONYMOUS: "100";

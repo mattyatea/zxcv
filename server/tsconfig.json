@@ -35,6 +35,7 @@
     ".nuxt/imports.d.ts",
     ".nuxt/components.d.ts",
     "worker-configuration.d.ts",
+    "worker-configuration.override.d.ts",
     "nuxt.d.ts"
   ],
   "exclude": [
