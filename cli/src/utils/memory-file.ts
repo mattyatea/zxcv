@@ -1,4 +1,13 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	appendFileSync,
+	existsSync,
+	lstatSync,
+	mkdirSync,
+	readFileSync,
+	symlinkSync,
+	unlinkSync,
+	writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, relative } from "node:path";
 import type { ConfigManager } from "../config";
@@ -6,6 +15,7 @@ import type { PulledRule } from "../types";
 
 export class MemoryFileManager {
 	private readonly KNOWN_FILES = [
+		"Agents.md",
 		"CLAUDE.md",
 		"CLAUDE.local.md",
 		"COPILOT.md",
@@ -162,6 +172,7 @@ export class MemoryFileManager {
 	// ファイルヘッダーを取得
 	private getFileHeader(fileName: string): string {
 		const headers: { [key: string]: string } = {
+			"Agents.md": "# AI Agent Instructions\n\nAI coding rules for all AI coding assistants\n",
 			"CLAUDE.md": "# Claude Code Instructions\n\nAI coding rules for Claude Code\n",
 			"CLAUDE.local.md":
 				"# Claude Code Instructions (Local)\n\nProject-specific AI coding rules for Claude Code\n",
@@ -201,5 +212,32 @@ export class MemoryFileManager {
 		return {
 			name: fullName,
 		};
+	}
+
+	// Agents.mdが作成された場合、CLAUDE.mdからのシンボリックリンクを作成
+	public createAgentsSymlink(agentsFilePath: string): void {
+		const dir = dirname(agentsFilePath);
+		const claudeFilePath = join(dir, "CLAUDE.md");
+
+		try {
+			// 既存のCLAUDE.mdをチェック
+			if (existsSync(claudeFilePath)) {
+				const stats = lstatSync(claudeFilePath);
+
+				// シンボリックリンクの場合は削除して再作成
+				if (stats.isSymbolicLink()) {
+					unlinkSync(claudeFilePath);
+				} else {
+					// 実ファイルの場合は何もしない（既存ファイルを保護）
+					return;
+				}
+			}
+
+			// Agents.mdへの相対パスでシンボリックリンクを作成
+			symlinkSync("Agents.md", claudeFilePath);
+		} catch (error) {
+			// シンボリックリンク作成に失敗しても処理を続行
+			// （Windows等、シンボリックリンクが作れない環境への対応）
+		}
 	}
 }

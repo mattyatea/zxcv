@@ -33,6 +33,7 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 	// 新規作成オプション（プロジェクト）
 	choices.push(
 		new Separator(chalk.green("=== 新規作成（プロジェクト） ===")),
+		{ name: "📝 Agents.md を作成 (推奨)", value: "new:project:Agents.md" },
 		{ name: "📝 CLAUDE.md を作成", value: "new:project:CLAUDE.md" },
 		{ name: "📝 CLAUDE.local.md を作成", value: "new:project:CLAUDE.local.md" },
 		{ name: "📝 COPILOT.md を作成", value: "new:project:COPILOT.md" },
@@ -50,10 +51,11 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 	}
 
 	// 新規作成オプション（ユーザー）
-	choices.push(new Separator(chalk.gray("=== 新規作成（ユーザー） ===")), {
-		name: chalk.gray("📝 ~/CLAUDE.md を作成"),
-		value: "new:user:CLAUDE.md",
-	});
+	choices.push(
+		new Separator(chalk.gray("=== 新規作成（ユーザー） ===")),
+		{ name: chalk.gray("📝 ~/Agents.md を作成 (推奨)"), value: "new:user:Agents.md" },
+		{ name: chalk.gray("📝 ~/CLAUDE.md を作成"), value: "new:user:CLAUDE.md" },
+	);
 
 	// カスタム
 	choices.push(new Separator("━━━━━━━━━━"), { name: "✏️  カスタムパスを入力", value: "custom" });

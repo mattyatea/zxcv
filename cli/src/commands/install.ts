@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { promptGitIgnoreOnInstall } from "../utils/gitignore";
 import { MemoryFileManager } from "../utils/memory-file";
 import { promptMemoryFile } from "../utils/prompt";
 import { ora } from "../utils/spinner.js";
@@ -128,6 +129,7 @@ export function createInstallCommand(): Command {
 
 						try {
 							let targetFile: string;
+							let isFirstInstall = false;
 
 							if (options?.file) {
 								// ファイルが指定された場合
@@ -165,13 +167,29 @@ export function createInstallCommand(): Command {
 								recordingSpinner.stop();
 								targetFile = await promptMemoryFile(packageName);
 								recordingSpinner.start();
+
+								// 初回インストールかチェック（メモリファイルが存在しない場合）
+								const { existsSync } = await import("node:fs");
+								isFirstInstall = !existsSync(targetFile);
 							}
 
 							await memoryManager.addRule(targetFile, pulledRule);
 
+							// Agents.mdの場合、CLAUDE.mdへのシンボリックリンクを作成
+							const { basename } = await import("node:path");
+							if (basename(targetFile) === "Agents.md") {
+								memoryManager.createAgentsSymlink(targetFile);
+							}
+
 							// 表示用パスを取得
 							const displayPath = memoryManager.getDisplayPath(targetFile);
 							recordingSpinner.succeed(chalk.green(`✓ ${displayPath} に記録しました`));
+
+							// 初回インストールの場合、gitignore設定を促す
+							if (isFirstInstall) {
+								recordingSpinner.stop();
+								await promptGitIgnoreOnInstall(process.cwd());
+							}
 						} catch (error) {
 							recordingSpinner.fail(chalk.red("Failed to record to memory file"));
 							if (error instanceof Error) {
