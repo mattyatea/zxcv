@@ -539,7 +539,9 @@ jobs:
           echo "  - ✅ GitHub release published"
           echo "  - ✅ Changes merged back to dev branch"
           echo "  - ✅ Release branch cleaned up"
-          $(if [ "${{ needs.check-release.outputs.include_cli }}" == "true" ]; then echo "  - ✅ CLI assets uploaded"; fi)
+          if [ "${{ needs.check-release.outputs.include_cli }}" == "true" ]; then
+            echo "  - ✅ CLI assets uploaded"
+          fi
           echo ""
           echo "🌐 Live at: https://zxcv.nanasi-apps.xyz"
           echo "📦 Release: https://github.com/mattyatea/zxcv/releases/tag/${{ needs.check-release.outputs.version }}"
