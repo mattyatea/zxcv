@@ -235,6 +235,9 @@ describe("Auth Integration Tests", () => {
 	});
 
 	describe("User Registration Flow", () => {
+		// Email registration is disabled - skipping all registration tests
+		it.skip("Email registration is disabled", async () => {})
+
 		it.skip("should complete full registration flow", async () => {
 			// Step 1: Register a new user
 			const registerInput = {
@@ -297,7 +300,7 @@ describe("Auth Integration Tests", () => {
 			expect(mockDb.user.create).toHaveBeenCalled();
 		});
 
-		it("should handle duplicate registration attempts", async () => {
+		it.skip("should handle duplicate registration attempts", async () => {
 			const existingUser = {
 				id: "existing_user_id",
 				username: "existinguser",
@@ -332,7 +335,10 @@ describe("Auth Integration Tests", () => {
 	});
 
 	describe("User Login Flow", () => {
-		it("should complete full login flow with email", async () => {
+		// Email login is disabled - skipping all email login tests
+		it.skip("Email login is disabled", async () => {})
+
+		it.skip("should complete full login flow with email", async () => {
 			const existingUser = {
 				id: "user_123",
 				username: "testuser",
@@ -381,7 +387,7 @@ describe("Auth Integration Tests", () => {
 			expect(decodedToken?.sub).toBe("user_123");
 		});
 
-		it("should reject login with wrong password", async () => {
+		it.skip("should reject login with wrong password", async () => {
 			const existingUser = {
 				id: "user_123",
 				username: "testuser",
@@ -412,7 +418,7 @@ describe("Auth Integration Tests", () => {
 			).rejects.toThrow("メールアドレスまたはパスワードが正しくありません");
 		});
 
-		it("should reject login for unverified email", async () => {
+		it.skip("should reject login for unverified email", async () => {
 			const unverifiedUser = {
 				id: "user_123",
 				username: "testuser",
