@@ -9,7 +9,7 @@ import { MemoryFileManager } from "../utils/memory-file";
 import { promptMemoryFile } from "../utils/prompt";
 import { ora } from "../utils/spinner.js";
 import { hasTemplateVariables } from "../utils/template";
-import { parseTemplateOptions, processTemplateContent } from "../utils/template-prompt";
+import { processTemplateContent } from "../utils/template-prompt";
 
 export function createInstallCommand(): Command {
 	return new Command("install")
@@ -38,6 +38,27 @@ export function createInstallCommand(): Command {
 				const api = new ApiClient(config);
 				const fileManager = new FileManager(config);
 				const memoryManager = new MemoryFileManager(config);
+
+				// Parse raw arguments for template variables (Commander drops unknown options)
+				const rawArgs = process.argv.slice(2);
+				const templateOptions: Record<string, string> = {};
+
+				// Extract --key value pairs that aren't reserved options
+				const reservedOptions = ["frozen-lockfile", "force", "file", "no-warn", "no-template"];
+				for (let i = 0; i < rawArgs.length; i++) {
+					const arg = rawArgs[i];
+					if (arg.startsWith("--") && !arg.startsWith("--no-")) {
+						const key = arg.substring(2);
+						if (
+							!reservedOptions.includes(key) &&
+							i + 1 < rawArgs.length &&
+							!rawArgs[i + 1].startsWith("-")
+						) {
+							templateOptions[key] = rawArgs[i + 1];
+							i++; // Skip next arg as it's the value
+						}
+					}
+				}
 
 				// If path is provided, install single rule
 				if (path) {
@@ -111,11 +132,18 @@ export function createInstallCommand(): Command {
 						if (options?.template !== false && hasTemplateVariables(content)) {
 							spinner.stop();
 
-							// Parse template options from CLI arguments
-							const templateOptions = parseTemplateOptions(options || {});
-
-							// Process template content (prompt for missing variables)
-							content = await processTemplateContent(content, templateOptions, true);
+							try {
+								// Process template content (prompt for missing variables)
+								// Use templateOptions parsed from raw args above
+								content = await processTemplateContent(content, templateOptions, true);
+							} catch (error) {
+								// Handle user cancellation
+								if (error instanceof Error && error.message.includes("cancelled")) {
+									spinner.fail(chalk.yellow("Installation cancelled"));
+									return;
+								}
+								throw error;
+							}
 
 							spinner.start("Saving rule...");
 						} else {

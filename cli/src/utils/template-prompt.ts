@@ -24,20 +24,29 @@ export async function promptTemplateVariables(
 	const { inquirer } = await import("./prompt");
 	const values: TemplatePromptOptions = { ...providedOptions };
 
-	for (const variable of missingVars) {
-		const answer = await inquirer.prompt([
-			{
-				type: "input",
-				name: "value",
-				message: `What value for "${chalk.cyan(variable.name)}"?`,
-				default: variable.defaultValue,
-			},
-		]);
+	try {
+		for (const variable of missingVars) {
+			const answer = await inquirer.prompt([
+				{
+					type: "input",
+					name: "value",
+					message: `What value for "${chalk.cyan(variable.name)}"?`,
+					default: variable.defaultValue,
+				},
+			]);
 
-		values[variable.name] = answer.value;
+			values[variable.name] = answer.value;
+		}
+
+		return values;
+	} catch (error) {
+		// Handle user cancellation (Ctrl+C)
+		if (error instanceof Error && error.message.includes("User force closed")) {
+			console.log(chalk.yellow("\n\nTemplate input cancelled by user"));
+			throw new Error("Template input cancelled");
+		}
+		throw error;
 	}
-
-	return values;
 }
 
 /**
