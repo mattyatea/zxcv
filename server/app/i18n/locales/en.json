@@ -251,7 +251,8 @@
       "clear": "Clear All",
       "rendered": "Rendered Content",
       "original": "Original Template",
-      "applied": "Template applied successfully"
+      "applied": "Template applied successfully",
+      "applyError": "Failed to apply template"
     },
     "form": {
       "name": "Rule name",

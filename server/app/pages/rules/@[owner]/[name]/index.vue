@@ -849,9 +849,14 @@ const applyTemplate = (values: Record<string, string>) => {
 		return;
 	}
 
-	// Render template with provided values
-	renderedContent.value = renderTemplate(rule.value.content, values);
-	toastSuccess(t("rules.template.applied") || "Template applied successfully");
+	try {
+		// Render template with provided values
+		renderedContent.value = renderTemplate(rule.value.content, values);
+		toastSuccess(t("rules.template.applied"));
+	} catch (error) {
+		console.error("Failed to apply template:", error);
+		toastError(t("rules.template.applyError"));
+	}
 };
 
 const downloadRule = () => {

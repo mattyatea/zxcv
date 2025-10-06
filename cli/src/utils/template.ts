@@ -40,13 +40,28 @@ export function hasTemplateVariables(content: string): boolean {
 }
 
 /**
+ * Escape special regex characters to prevent ReDoS attacks
+ */
+function escapeRegex(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
  * Render template with provided values
  */
 export function renderTemplate(content: string, values: TemplateRenderOptions): string {
 	let rendered = content;
 
 	for (const [key, value] of Object.entries(values)) {
-		const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
+		// Validate variable name before processing
+		if (!isValidVariableName(key)) {
+			console.warn(`Invalid variable name: ${key}, skipping`);
+			continue;
+		}
+
+		// Escape special regex characters to prevent ReDoS
+		const escapedKey = escapeRegex(key);
+		const regex = new RegExp(`\\{\\{${escapedKey}\\}\\}`, "g");
 		rendered = rendered.replace(regex, value);
 	}
 
