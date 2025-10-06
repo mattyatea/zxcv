@@ -166,6 +166,15 @@
               </div>
             </div>
 
+            <!-- テンプレート変数入力 -->
+            <div v-if="templateVariables.length > 0" class="mb-8">
+              <RulesTemplateVariableInput
+                :variables="templateVariables"
+                v-model="templateValues"
+                @apply="applyTemplate"
+              />
+            </div>
+
             <!-- 説明 -->
             <div v-if="rule.description" class="card mb-8">
               <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
@@ -260,11 +269,11 @@
               <div class="relative">
                 <!-- Preview表示 -->
                 <div v-if="contentView === 'preview'" class="prose prose-gray dark:prose-invert max-w-none p-6 bg-gray-50 dark:bg-gray-800 rounded-lg max-h-[600px] overflow-y-auto">
-                  <div v-html="renderMarkdown(rule.content)"></div>
+                  <div v-html="renderMarkdown(renderedContent || rule.content)"></div>
                 </div>
-                
+
                 <!-- Raw表示 -->
-                <pre v-else class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-6 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-700 dark:border-gray-800"><code>{{ rule.content }}</code></pre>
+                <pre v-else class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-6 rounded-lg overflow-x-auto max-h-[600px] overflow-y-auto border border-gray-700 dark:border-gray-800"><code>{{ renderedContent || rule.content }}</code></pre>
                 
                 <!-- コピー完了通知 -->
                 <transition name="fade">
@@ -381,7 +390,7 @@
                   {{ t('rules.detail.cliDescription') }}
                 </p>
                 <div class="relative">
-                  <pre class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-4 rounded-lg text-sm overflow-x-auto pr-12 border border-gray-700 dark:border-gray-800"><code>zxcv install @{{ owner }}/{{ name }}</code></pre>
+                  <pre class="bg-gray-800 dark:bg-gray-950 text-gray-300 dark:text-gray-100 p-4 rounded-lg text-sm overflow-x-auto pr-12 border border-gray-700 dark:border-gray-800"><code>{{ cliCommand }}</code></pre>
                   <button
                     @click="copyCliCommand"
                     class="absolute top-2 right-2 p-2 text-gray-400 hover:text-gray-100 transition-colors"
@@ -564,6 +573,7 @@ import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 import Avatar from "~/components/common/Avatar.vue";
+import { parseTemplateVariables, renderTemplate } from "~/utils/template";
 
 const route = useRoute();
 const $rpc = useRpc();
@@ -590,6 +600,11 @@ const starLoading = ref(false);
 const viewCount = ref(0);
 const userRuleCount = ref(0);
 
+// Template variables
+const templateVariables = ref<Array<{ name: string; defaultValue?: string; description?: string }>>([]);
+const templateValues = ref<Record<string, string>>({});
+const renderedContent = ref<string>("");
+
 // Get route params from parent component or directly from route
 interface CustomRouteParams {
 	owner?: string;
@@ -598,6 +613,25 @@ interface CustomRouteParams {
 const customParams = inject<CustomRouteParams | null>("customRouteParams", null);
 const owner = computed(() => customParams?.owner || route.params.owner);
 const name = computed(() => customParams?.name || route.params.name);
+
+// Computed CLI command with template variables
+const cliCommand = computed(() => {
+	let command = `zxcv install @${owner.value}/${name.value}`;
+
+	// Add template variable options if any values are set
+	if (Object.keys(templateValues.value).length > 0) {
+		const options = Object.entries(templateValues.value)
+			.filter(([_, value]) => value && value.trim() !== '')
+			.map(([key, value]) => `--${key} "${value}"`)
+			.join(' ');
+
+		if (options) {
+			command += ` ${options}`;
+		}
+	}
+
+	return command;
+});
 
 const fetchRuleDetails = async () => {
 	loading.value = true;
@@ -635,6 +669,10 @@ const fetchRuleDetails = async () => {
 			views: data.views,
 			stars: data.stars,
 		};
+
+		// Parse template variables from content
+		templateVariables.value = parseTemplateVariables(contentData.content);
+		renderedContent.value = contentData.content;
 
 		// オーナーかどうかを判定
 		// 1. ルールの作成者の場合
@@ -775,7 +813,9 @@ const copyContent = async () => {
 	}
 
 	try {
-		await navigator.clipboard.writeText(rule.value.content);
+		// Use rendered content if template was applied, otherwise use original
+		const contentToCopy = renderedContent.value || rule.value.content;
+		await navigator.clipboard.writeText(contentToCopy);
 		contentCopied.value = true;
 		setTimeout(() => {
 			contentCopied.value = false;
@@ -792,8 +832,7 @@ const copyCliCommand = async () => {
 	}
 
 	try {
-		const command = `zxcv install @${owner.value}/${name.value}`;
-		await navigator.clipboard.writeText(command);
+		await navigator.clipboard.writeText(cliCommand.value);
 		cliCopied.value = true;
 		toastSuccess(t("rules.messages.cliCommandCopied"));
 		setTimeout(() => {
@@ -805,12 +844,24 @@ const copyCliCommand = async () => {
 	}
 };
 
+const applyTemplate = (values: Record<string, string>) => {
+	if (!rule.value) {
+		return;
+	}
+
+	// Render template with provided values
+	renderedContent.value = renderTemplate(rule.value.content, values);
+	toastSuccess(t("rules.template.applied") || "Template applied successfully");
+};
+
 const downloadRule = () => {
 	if (!rule.value) {
 		return;
 	}
 
-	const blob = new Blob([rule.value.content], { type: "text/plain" });
+	// Use rendered content if template was applied, otherwise use original
+	const contentToDownload = renderedContent.value || rule.value.content;
+	const blob = new Blob([contentToDownload], { type: "text/plain" });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;

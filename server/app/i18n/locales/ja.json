@@ -223,6 +223,16 @@
       "shareOnX": "Xでシェア",
       "copyMarkdown": "Markdownでコピー"
     },
+    "template": {
+      "title": "テンプレート変数が検出されました",
+      "description": "このルールにはテンプレート変数が含まれています。値を入力してカスタマイズできます。",
+      "placeholder": "{name} の値を入力",
+      "apply": "テンプレートを適用",
+      "clear": "すべてクリア",
+      "rendered": "レンダリング済みコンテンツ",
+      "original": "元のテンプレート",
+      "applied": "テンプレートを適用しました"
+    },
     "form": {
       "name": "ルール名",
       "namePlaceholder": "例: next-js-best-practices",

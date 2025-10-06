@@ -243,6 +243,16 @@
       "shareOnX": "Share on X",
       "copyMarkdown": "Copy as Markdown"
     },
+    "template": {
+      "title": "Template Variables Detected",
+      "description": "This rule contains template variables. Fill them in to customize the content.",
+      "placeholder": "Enter value for {name}",
+      "apply": "Apply Template",
+      "clear": "Clear All",
+      "rendered": "Rendered Content",
+      "original": "Original Template",
+      "applied": "Template applied successfully"
+    },
     "form": {
       "name": "Rule name",
       "namePlaceholder": "e.g. next-js-best-practices",
