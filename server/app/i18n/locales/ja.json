@@ -629,6 +629,11 @@
     }
   },
   "auth": {
+    "oauth": {
+      "errorTitle": "認証エラー",
+      "backToLogin": "ログインページに戻る",
+      "tryAgain": "もう一度試す"
+    },
     "login": {
       "title": "アカウントにログイン",
       "subtitle": "まだアカウントをお持ちでない方は",

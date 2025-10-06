@@ -65,6 +65,11 @@
     "guides": "Guides"
   },
   "auth": {
+    "oauth": {
+      "errorTitle": "Authentication Error",
+      "backToLogin": "Back to Login",
+      "tryAgain": "Try Again"
+    },
     "login": {
       "title": "Sign in to your account",
       "subtitle": "Don't have an account?",
