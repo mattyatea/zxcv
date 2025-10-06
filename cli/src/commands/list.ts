@@ -80,7 +80,7 @@ export function createListCommand(): Command {
 					const { join } = await import("node:path");
 					try {
 						const content = readFileSync(join(config.getRulesDir(), `${selectedRule}.md`), "utf-8");
-						console.log("\n" + chalk.gray("─".repeat(60)));
+						console.log(`\n${chalk.gray("─".repeat(60))}`);
 						console.log(content);
 						console.log(chalk.gray("─".repeat(60)));
 					} catch (error) {

@@ -1,7 +1,7 @@
-import inquirerLib from "inquirer";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import chalk from "chalk";
+import inquirerLib from "inquirer";
 import { ConfigManager } from "../config";
 import { MemoryFileManager } from "./memory-file";
 

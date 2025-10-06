@@ -86,7 +86,7 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 			const needsNewline = content.length > 0 && !content.endsWith("\n");
 			const prefix = needsNewline ? "\n" : "";
 
-			writeFileSync(targetFile, content + prefix + newEntries.join("\n") + "\n");
+			writeFileSync(targetFile, `${content + prefix + newEntries.join("\n")}\n`);
 
 			const displayPath = ignoreType === "exclude" ? ".git/info/exclude" : ".gitignore";
 			console.log(chalk.green(`Added to ${displayPath}`));
