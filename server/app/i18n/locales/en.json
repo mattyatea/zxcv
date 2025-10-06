@@ -66,9 +66,22 @@
   },
   "auth": {
     "oauth": {
+      "processing": "Processing authentication...",
+      "creatingAccount": "Creating account with {provider}...",
+      "loggingIn": "Signing in with {provider}...",
       "errorTitle": "Authentication Error",
       "backToLogin": "Back to Login",
-      "tryAgain": "Try Again"
+      "tryAgain": "Try Again",
+      "successTitle": "Authentication Successful",
+      "redirecting": "Redirecting...",
+      "cancelled": "Authentication was cancelled",
+      "missingInfo": "Missing authentication information",
+      "accountCreatedWith": "Account created with {provider}",
+      "loggedInWith": "Signed in with {provider}",
+      "accountAlreadyUsed": "This account is already associated with another user",
+      "emailVerificationRequired": "Email verification is required",
+      "processingError": "An error occurred during authentication",
+      "pageTitle": "Authentication"
     },
     "login": {
       "title": "Sign in to your account",
@@ -798,6 +811,14 @@
   "placeholders": {
     "username": "johndoe",
     "email": "john@example.com"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "results": "results",
+    "previous": "Previous",
+    "next": "Next"
   },
   "email": {
     "subjects": {

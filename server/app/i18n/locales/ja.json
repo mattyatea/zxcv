@@ -630,9 +630,22 @@
   },
   "auth": {
     "oauth": {
+      "processing": "認証処理中...",
+      "creatingAccount": "{provider}アカウントでアカウントを作成しています...",
+      "loggingIn": "{provider}アカウントでログインしています...",
       "errorTitle": "認証エラー",
       "backToLogin": "ログインページに戻る",
-      "tryAgain": "もう一度試す"
+      "tryAgain": "もう一度試す",
+      "successTitle": "認証成功",
+      "redirecting": "リダイレクトしています...",
+      "cancelled": "認証がキャンセルされました",
+      "missingInfo": "認証情報が不足しています",
+      "accountCreatedWith": "{provider}でアカウントを作成しました",
+      "loggedInWith": "{provider}でログインしました",
+      "accountAlreadyUsed": "このアカウントは既に別のユーザーに使用されています",
+      "emailVerificationRequired": "メールアドレスの確認が必要です",
+      "processingError": "認証処理中にエラーが発生しました",
+      "pageTitle": "認証"
     },
     "login": {
       "title": "アカウントにログイン",
@@ -768,6 +781,14 @@
   "placeholders": {
     "username": "johndoe",
     "email": "john@example.com"
+  },
+  "pagination": {
+    "showing": "表示中",
+    "to": "から",
+    "of": "件中",
+    "results": "件",
+    "previous": "前へ",
+    "next": "次へ"
   },
   "email": {
     "subjects": {
