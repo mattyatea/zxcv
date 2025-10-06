@@ -33,6 +33,9 @@ FRONTEND_URL = "https://zxcv.nanasi-apps.xyz"
 APP_URL = "https://zxcv.nanasi-apps.xyz"
 ENVIRONMENT = "production"
 
+[placement]
+mode = "smart"
+
 # Workers Assets configuration
 [assets]
 binding = "ASSETS"
@@ -55,7 +58,13 @@ bucket_name = "zxcv-staging"
 name = "EMAIL_SENDER"
 
 [env.staging.vars]
-# Staging environment overrides (only values that differ from production)
+# Staging environment configuration (vars are NOT inherited, must be redefined)
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRES_IN = "7d"
+RATE_LIMIT_ANONYMOUS = "100"
+RATE_LIMIT_AUTHENTICATED = "1000"
+RATE_LIMIT_API_KEY = "5000"
+EMAIL_FROM = "noreply+zxcv@prism-project.net"
 FRONTEND_URL = "https://zxcv-staging.mattyatea.me"
 APP_URL = "https://zxcv-staging.mattyatea.me"
 ENVIRONMENT = "staging"
@@ -64,3 +73,4 @@ ENVIRONMENT = "staging"
 [env.staging.assets]
 binding = "ASSETS"
 directory = ".output/public"
+
