@@ -93,9 +93,18 @@ const hasValues = computed(() => {
 	return Object.values(localValues.value).some(v => v && v.trim() !== '')
 })
 
-// Handle input changes
+// Debounce timer
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+// Handle input changes with debouncing
 const handleInput = () => {
-	emit('update:modelValue', { ...localValues.value })
+	if (debounceTimer) {
+		clearTimeout(debounceTimer)
+	}
+
+	debounceTimer = setTimeout(() => {
+		emit('update:modelValue', { ...localValues.value })
+	}, 300)
 }
 
 // Handle clear all
