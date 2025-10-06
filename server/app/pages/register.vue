@@ -21,125 +21,37 @@
 
       <!-- Register Form -->
       <CommonCard padding="lg" class="shadow-xl border-0 stagger-item stagger-4">
-        <form class="space-y-6" @submit="handleRegister">
-          <div class="space-y-4">
-            <CommonInput
-              v-model="form.username"
-              type="text"
-              :label="t('auth.register.username')"
-              :placeholder="t('placeholders.username')"
-              :hint="t('auth.register.usernameHint')"
-              required
-              pattern="[a-zA-Z0-9_-]+"
-              size="lg"
-              :error="errors.username"
-              class="stagger-item stagger-5"
-            >
-              <template #prefix>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </template>
-            </CommonInput>
-
-            <CommonInput
-              v-model="form.email"
-              type="email"
-              :label="t('auth.register.email')"
-              :placeholder="t('placeholders.email')"
-              required
-              size="lg"
-              :error="errors.email"
-              class="stagger-item stagger-6"
-            >
-              <template #prefix>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </template>
-            </CommonInput>
-
-            <CommonInput
-              v-model="form.password"
-              type="password"
-              :label="t('auth.register.password')"
-              placeholder="••••••••"
-              :hint="t('auth.register.passwordHint')"
-              required
-              size="lg"
-              :error="errors.password"
-              @input="checkPasswordStrength"
-              class="stagger-item stagger-7"
-            >
-              <template #prefix>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </template>
-            </CommonInput>
-
-            <!-- Password Strength Indicator -->
-            <div v-if="form.password" class="space-y-1 stagger-item stagger-8">
-              <div class="flex gap-1">
-                <div 
-                  v-for="i in 4" 
-                  :key="i"
-                  class="flex-1 h-1 rounded-full transition-all duration-300"
-                  :class="i <= passwordStrength ? strengthColors[passwordStrength] : 'bg-gray-200 dark:bg-gray-700'"
-                />
-              </div>
-              <p class="text-xs" :class="strengthTextColors[passwordStrength]">
-                {{ strengthTexts[passwordStrength] }}
-              </p>
+        <!-- Notice -->
+        <div class="rounded-lg bg-info/10 border border-info/20 p-4 mb-6">
+          <div class="flex items-start space-x-2">
+            <svg class="w-5 h-5 text-info flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm text-info font-medium">Sign up with Google or GitHub</p>
+              <p class="text-xs text-info/80 mt-1">Email registration is currently disabled. Please use one of the providers below to create your account.</p>
             </div>
-
-            <CommonInput
-              v-model="form.confirmPassword"
-              type="password"
-              :label="t('auth.register.confirmPassword')"
-              placeholder="••••••••"
-              required
-              size="lg"
-              :error="errors.confirmPassword"
-            >
-              <template #prefix>
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </template>
-            </CommonInput>
           </div>
+        </div>
 
-          <label class="flex items-start">
-            <input
-              v-model="form.agreeToTerms"
-              type="checkbox"
-              required
-              class="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
-            />
-            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
-              <a href="/terms" target="_blank" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">{{ t('auth.register.agreeToTerms') }}</a>
-              {{ t('auth.register.and') }}
-              <a href="/privacy" target="_blank" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">{{ t('auth.register.privacyPolicy') }}</a>
-              {{ t('auth.register.agreeToTermsText') }}
-            </span>
-          </label>
-
-          <CommonButton
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            :loading="loading"
-            :disabled="!form.agreeToTerms || loading"
-          >
-            {{ loading ? t('auth.register.registering') : t('auth.register.registerButton') }}
-          </CommonButton>
-        </form>
+        <label class="flex items-start mb-6">
+          <input
+            v-model="form.agreeToTerms"
+            type="checkbox"
+            required
+            class="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700"
+          />
+          <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">
+            <a href="/terms" target="_blank" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">{{ t('auth.register.agreeToTerms') }}</a>
+            {{ t('auth.register.and') }}
+            <a href="/privacy" target="_blank" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300">{{ t('auth.register.privacyPolicy') }}</a>
+            {{ t('auth.register.agreeToTermsText') }}
+          </span>
+        </label>
 
         <!-- Error Message -->
         <Transition name="fade">
-          <div v-if="error" class="rounded-lg bg-danger/10 border border-danger/20 p-4 mt-4">
+          <div v-if="error" class="rounded-lg bg-danger/10 border border-danger/20 p-4 mb-4">
             <div class="flex items-center space-x-2">
               <svg class="w-5 h-5 text-danger flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -149,30 +61,8 @@
           </div>
         </Transition>
 
-        <!-- Success Message -->
-        <Transition name="fade">
-          <div v-if="message" class="rounded-lg bg-success/10 border border-success/20 p-4 mt-4">
-            <div class="flex items-center space-x-2">
-              <svg class="w-5 h-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p class="text-sm text-success">{{ message }}</p>
-            </div>
-          </div>
-        </Transition>
-
-        <!-- Divider -->
-        <div class="relative mt-8">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-gray-300 dark:border-gray-700" />
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-4 bg-white dark:bg-gray-800 text-gray-500">{{ t('common.or') }}</span>
-          </div>
-        </div>
-
         <!-- Social Login -->
-        <div class="grid grid-cols-2 gap-3 mt-6">
+        <div class="grid grid-cols-2 gap-3">
           <button
             type="button"
             class="btn btn-secondary btn-md justify-center"
@@ -221,176 +111,13 @@ useHead({
 const { error: toastError, success: toastSuccess } = useToast();
 const $rpc = useRpc();
 
-// Form state
+// Form state (simplified - only for OAuth)
 const form = ref({
-	username: "",
-	email: "",
-	password: "",
-	confirmPassword: "",
 	agreeToTerms: false,
-});
-
-// Error state
-const errors = ref({
-	username: "",
-	email: "",
-	password: "",
-	confirmPassword: "",
 });
 
 const loading = ref(false);
 const error = ref("");
-const message = ref("");
-
-// Password strength
-const passwordStrength = ref(0);
-const strengthColors = ["", "bg-danger", "bg-warning", "bg-info", "bg-success"];
-const strengthTextColors = ["", "text-danger", "text-warning", "text-info", "text-success"];
-const strengthTexts = computed(() => [
-	"",
-	t("auth.register.passwordStrength.weak"),
-	t("auth.register.passwordStrength.fair"),
-	t("auth.register.passwordStrength.good"),
-	t("auth.register.passwordStrength.strong"),
-]);
-
-// Check password strength
-const checkPasswordStrength = () => {
-	const password = form.value.password;
-	let strength = 0;
-
-	if (password.length >= 8) {
-		strength++;
-	}
-	if (password.length >= 12) {
-		strength++;
-	}
-	if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
-		strength++;
-	}
-	if (/[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password)) {
-		strength++;
-	}
-
-	passwordStrength.value = strength;
-};
-
-// Clear error for specific field
-const clearError = (field: keyof typeof errors.value) => {
-	errors.value[field] = "";
-};
-
-// Watch form changes to clear errors
-watch(
-	() => form.value.username,
-	() => clearError("username"),
-);
-watch(
-	() => form.value.email,
-	() => clearError("email"),
-);
-watch(
-	() => form.value.password,
-	() => clearError("password"),
-);
-watch(
-	() => form.value.confirmPassword,
-	() => clearError("confirmPassword"),
-);
-
-// Validate form
-const validateForm = () => {
-	let isValid = true;
-	errors.value = {
-		username: "",
-		email: "",
-		password: "",
-		confirmPassword: "",
-	};
-
-	// Username validation
-	if (!form.value.username) {
-		errors.value.username = t("auth.register.validation.usernameRequired");
-		isValid = false;
-	} else if (!/^[a-zA-Z0-9_-]+$/.test(form.value.username)) {
-		errors.value.username = t("auth.register.validation.usernamePattern");
-		isValid = false;
-	} else if (form.value.username.length < 3) {
-		errors.value.username = t("auth.register.validation.usernameLength");
-		isValid = false;
-	}
-
-	// Email validation
-	if (!form.value.email) {
-		errors.value.email = t("auth.register.validation.emailRequired");
-		isValid = false;
-	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-		errors.value.email = t("auth.register.validation.emailInvalid");
-		isValid = false;
-	}
-
-	// Password validation
-	if (!form.value.password) {
-		errors.value.password = t("auth.register.validation.passwordRequired");
-		isValid = false;
-	} else if (form.value.password.length < 8) {
-		errors.value.password = t("auth.register.validation.passwordLength");
-		isValid = false;
-	}
-
-	// Confirm password validation
-	if (!form.value.confirmPassword) {
-		errors.value.confirmPassword = t("auth.register.validation.passwordRequired");
-		isValid = false;
-	} else if (form.value.password !== form.value.confirmPassword) {
-		errors.value.confirmPassword = t("auth.register.validation.passwordMismatch");
-		isValid = false;
-	}
-
-	return isValid;
-};
-
-const handleRegister = async (event: Event) => {
-	event.preventDefault();
-
-	if (!validateForm()) {
-		return;
-	}
-
-	loading.value = true;
-	error.value = "";
-	message.value = "";
-
-	try {
-		await $rpc.auth.register({
-			username: form.value.username,
-			email: form.value.email,
-			password: form.value.password,
-		});
-
-		message.value = t("auth.register.accountCreated");
-		toastSuccess(t("auth.register.accountCreatedShort"));
-
-		// Clear form
-		form.value = {
-			username: "",
-			email: "",
-			password: "",
-			confirmPassword: "",
-			agreeToTerms: false,
-		};
-
-		// Redirect to login after 3 seconds
-		setTimeout(() => {
-			navigateTo("/login");
-		}, 3000);
-	} catch (err) {
-		error.value = err.message || t("auth.register.errors.generalError");
-		toastError(err.message || t("auth.register.errors.generalError"));
-	} finally {
-		loading.value = false;
-	}
-};
 
 const handleSocialLogin = async (provider: string) => {
 	if (!form.value.agreeToTerms) {

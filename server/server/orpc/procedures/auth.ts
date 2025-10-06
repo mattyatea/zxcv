@@ -12,49 +12,61 @@ import { authRateLimit, passwordResetRateLimit, registerRateLimit } from "../mid
 
 export const authProcedures = {
 	/**
-	 * ユーザー登録
+	 * ユーザー登録（無効化）
+	 * OAuth プロバイダーによる登録のみ許可
 	 */
 	register: os.auth.register.use(registerRateLimit).handler(async ({ input, context }) => {
-		const { db, env, locale } = context;
-		const authService = new AuthService(db, env);
+		// Email registration is disabled
+		throw new ORPCError("FORBIDDEN", {
+			message: "Email registration is disabled. Please use Google or GitHub to sign up.",
+		});
 
-		try {
-			const result = await authService.register(input);
-			return {
-				success: true,
-				message: authErrors.registrationSuccess(locale),
-				user: {
-					id: result.user.id,
-					username: result.user.username,
-					email: result.user.email,
-				},
-			};
-		} catch (error) {
-			// If it's an email sending error and user was created, clean up
-			if (error instanceof EmailServiceError) {
-				// This would need to be implemented in the actual service
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: authErrors.registrationFailedEmail(locale),
-				});
-			}
-			throw error;
-		}
+		// const { db, env, locale } = context;
+		// const authService = new AuthService(db, env);
+		//
+		// try {
+		// 	const result = await authService.register(input);
+		// 	return {
+		// 		success: true,
+		// 		message: authErrors.registrationSuccess(locale),
+		// 		user: {
+		// 			id: result.user.id,
+		// 			username: result.user.username,
+		// 			email: result.user.email,
+		// 		},
+		// 	};
+		// } catch (error) {
+		// 	// If it's an email sending error and user was created, clean up
+		// 	if (error instanceof EmailServiceError) {
+		// 		// This would need to be implemented in the actual service
+		// 		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+		// 			message: authErrors.registrationFailedEmail(locale),
+		// 		});
+		// 	}
+		// 	throw error;
+		// }
 	}),
 
 	/**
-	 * ログイン
+	 * ログイン（無効化）
+	 * OAuth プロバイダーによるログインのみ許可
 	 */
 	login: os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
-		const { db, env, locale } = context;
-		const authService = new AuthService(db, env);
+		// Email login is disabled
+		throw new ORPCError("FORBIDDEN", {
+			message: "Email login is disabled. Please use Google or GitHub to sign in.",
+		});
 
-		const result = await authService.login(input.email, input.password, locale);
-		return {
-			accessToken: result.accessToken,
-			refreshToken: result.refreshToken,
-			user: result.user,
-			message: authErrors.loginSuccess(locale),
-		};
+		// const { db, env, locale } = context;
+		// const authService = new AuthService(db, env);
+		//
+		// const result = await authService.login(input.email, input.password, locale);
+		// return {
+		// 	accessToken: result.accessToken,
+		// 	refreshToken: result.refreshToken,
+		// 	user: result.user,
+		// 	message: authErrors.loginSuccess(locale),
+		// };
 	}),
 
 	/**

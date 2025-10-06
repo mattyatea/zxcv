@@ -21,6 +21,21 @@
 
       <!-- Login Form -->
       <CommonCard padding="lg" class="shadow-xl border-0 stagger-item stagger-4">
+        <!-- Notice -->
+        <div class="rounded-lg bg-info/10 border border-info/20 p-4 mb-6">
+          <div class="flex items-start space-x-2">
+            <svg class="w-5 h-5 text-info flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm text-info font-medium">Sign in with Google or GitHub</p>
+              <p class="text-xs text-info/80 mt-1">Email login is currently disabled. Please use one of the providers below to sign in.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email login form (commented out) -->
+        <!--
         <form class="space-y-6" @submit="handleLogin">
           <div class="space-y-4">
             <CommonInput
@@ -86,10 +101,11 @@
             {{ loading ? t('auth.login.loggingIn') : t('auth.login.loginButton') }}
           </CommonButton>
         </form>
+        -->
 
         <!-- Error Message -->
         <Transition name="fade">
-          <div v-if="error" class="rounded-lg bg-danger/10 border border-danger/20 p-4 mt-4">
+          <div v-if="error" class="rounded-lg bg-danger/10 border border-danger/20 p-4 mb-4">
             <div class="flex items-center space-x-2">
               <svg class="w-5 h-5 text-danger flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -98,28 +114,6 @@
             </div>
           </div>
         </Transition>
-
-        <!-- Success Message -->
-        <Transition name="fade">
-          <div v-if="message" class="rounded-lg bg-success/10 border border-success/20 p-4 mt-4">
-            <div class="flex items-center space-x-2">
-              <svg class="w-5 h-5 text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p class="text-sm text-success">{{ message }}</p>
-            </div>
-          </div>
-        </Transition>
-
-        <!-- Divider -->
-        <div class="relative mt-8">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-gray-300 dark:border-gray-700" />
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-4 bg-white dark:bg-gray-800 text-gray-500">{{ t('common.or') }}</span>
-          </div>
-        </div>
 
         <!-- Social Login -->
         <div class="grid grid-cols-2 gap-3 mt-6">
@@ -175,87 +169,87 @@ const authStore = useAuthStore();
 const { error: toastError, success: toastSuccess } = useToast();
 const $rpc = useRpc();
 
-// Form state
-const form = ref({
-	email: "",
-	password: "",
-	rememberMe: false,
-});
-
-// Error state
-const errors = ref({
-	email: "",
-	password: "",
-});
+// Form state (commented out - email login disabled)
+// const form = ref({
+// 	email: "",
+// 	password: "",
+// 	rememberMe: false,
+// });
+//
+// // Error state
+// const errors = ref({
+// 	email: "",
+// 	password: "",
+// });
 
 const loading = ref(false);
 const error = ref("");
-const message = ref("");
+// const message = ref("");
 
-// Clear error for specific field
-const clearError = (field: keyof typeof errors.value) => {
-	errors.value[field] = "";
-};
-
-// Watch form changes to clear errors
-watch(
-	() => form.value.email,
-	() => clearError("email"),
-);
-watch(
-	() => form.value.password,
-	() => clearError("password"),
-);
-
-// Validate form
-const validateForm = () => {
-	let isValid = true;
-	errors.value = { email: "", password: "" };
-
-	if (!form.value.email) {
-		errors.value.email = t("auth.login.validation.emailRequired");
-		isValid = false;
-	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
-		errors.value.email = t("auth.login.validation.emailInvalid");
-		isValid = false;
-	}
-
-	if (!form.value.password) {
-		errors.value.password = t("auth.login.validation.passwordRequired");
-		isValid = false;
-	}
-
-	return isValid;
-};
-
-const handleLogin = async (event: Event) => {
-	event.preventDefault();
-
-	if (!validateForm()) {
-		return;
-	}
-
-	loading.value = true;
-	error.value = "";
-	message.value = "";
-
-	try {
-		const response = await authStore.login(form.value);
-
-		if (response.user && !response.user.emailVerified) {
-			message.value = response.message || t("auth.login.errors.emailNotVerified");
-			return;
-		}
-
-		toastSuccess(t("auth.login.loginButton"));
-		await navigateTo("/rules");
-	} catch (err) {
-		error.value = err.message || t("auth.login.errors.invalidCredentials");
-		toastError(err.message || t("auth.login.errors.generalError"));
-	} finally {
-		loading.value = false;
-	}
-};
+// // Clear error for specific field
+// const clearError = (field: keyof typeof errors.value) => {
+// 	errors.value[field] = "";
+// };
+//
+// // Watch form changes to clear errors
+// watch(
+// 	() => form.value.email,
+// 	() => clearError("email"),
+// );
+// watch(
+// 	() => form.value.password,
+// 	() => clearError("password"),
+// );
+//
+// // Validate form
+// const validateForm = () => {
+// 	let isValid = true;
+// 	errors.value = { email: "", password: "" };
+//
+// 	if (!form.value.email) {
+// 		errors.value.email = t("auth.login.validation.emailRequired");
+// 		isValid = false;
+// 	} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
+// 		errors.value.email = t("auth.login.validation.emailInvalid");
+// 		isValid = false;
+// 	}
+//
+// 	if (!form.value.password) {
+// 		errors.value.password = t("auth.login.validation.passwordRequired");
+// 		isValid = false;
+// 	}
+//
+// 	return isValid;
+// };
+//
+// const handleLogin = async (event: Event) => {
+// 	event.preventDefault();
+//
+// 	if (!validateForm()) {
+// 		return;
+// 	}
+//
+// 	loading.value = true;
+// 	error.value = "";
+// 	message.value = "";
+//
+// 	try {
+// 		const response = await authStore.login(form.value);
+//
+// 		if (response.user && !response.user.emailVerified) {
+// 			message.value = response.message || t("auth.login.errors.emailNotVerified");
+// 			return;
+// 		}
+//
+// 		toastSuccess(t("auth.login.loginButton"));
+// 		await navigateTo("/rules");
+// 	} catch (err) {
+// 		error.value = err.message || t("auth.login.errors.invalidCredentials");
+// 		toastError(err.message || t("auth.login.errors.generalError"));
+// 	} finally {
+// 		loading.value = false;
+// 	}
+// };
 
 const handleSocialLogin = async (provider: string) => {
 	loading.value = true;
