@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { AuthService } from "../../services/AuthService";
-import { EmailServiceError } from "../../types/errors";
+// import { EmailServiceError } from "../../types/errors";
 import type { AuthUser } from "../../utils/auth";
 import { generateId } from "../../utils/crypto";
 import { authErrors, type Locale } from "../../utils/i18n";
@@ -15,7 +15,7 @@ export const authProcedures = {
 	 * ユーザー登録（無効化）
 	 * OAuth プロバイダーによる登録のみ許可
 	 */
-	register: os.auth.register.use(registerRateLimit).handler(async ({ input, context }) => {
+	register: os.auth.register.use(registerRateLimit).handler(async () => {
 		// Email registration is disabled
 		throw new ORPCError("FORBIDDEN", {
 			message: "Email registration is disabled. Please use Google or GitHub to sign up.",
@@ -51,7 +51,7 @@ export const authProcedures = {
 	 * ログイン（無効化）
 	 * OAuth プロバイダーによるログインのみ許可
 	 */
-	login: os.auth.login.use(authRateLimit).handler(async ({ input, context }) => {
+	login: os.auth.login.use(authRateLimit).handler(async () => {
 		// Email login is disabled
 		throw new ORPCError("FORBIDDEN", {
 			message: "Email login is disabled. Please use Google or GitHub to sign in.",
