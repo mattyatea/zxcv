@@ -1300,3 +1300,5 @@ curl http://localhost:3000/api/health
    - # Overview (summary section)
    - # What we want to achieve (goals section) - with checklist items
    - # Required packages if needed (packages if necessary)
+## @345e6t7yu/typescript-general
+@~/.zxcv/rules/@345e6t7yu/typescript-general.md
