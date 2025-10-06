@@ -145,7 +145,8 @@ export function createInstallCommand(): Command {
 								throw error;
 							}
 
-							spinner.start("Saving rule...");
+							spinner.text("Saving rule...");
+							spinner.start();
 						} else {
 							spinner.text("Saving rule...");
 						}
