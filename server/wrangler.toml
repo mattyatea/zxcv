@@ -1,8 +1,8 @@
 # Base configuration
 name = "zxcv-backend-and-frontend"
 main = "./.output/server/index.mjs"
-compatibility_date = "2025-07-15"
-compatibility_flags = ["nodejs_compat", "no_nodejs_compat_v2"]
+compatibility_date = "2025-09-15"
+compatibility_flags = ["nodejs_compat"]
 
 [observability]
 enabled = true
@@ -29,7 +29,7 @@ RATE_LIMIT_ANONYMOUS = "100"
 RATE_LIMIT_AUTHENTICATED = "1000"
 RATE_LIMIT_API_KEY = "5000"
 EMAIL_FROM = "noreply+zxcv@prism-project.net"
-FRONTEND_URL = "https://zxcv.nanasi-apps.xyz/"
+FRONTEND_URL = "https://zxcv.nanasi-apps.xyz"
 APP_URL = "https://zxcv.nanasi-apps.xyz"
 ENVIRONMENT = "production"
 
@@ -55,15 +55,8 @@ bucket_name = "zxcv-staging"
 name = "EMAIL_SENDER"
 
 [env.staging.vars]
-# Non-secret configuration for staging
-# Secrets (JWT_SECRET, GOOGLE_CLIENT_ID, etc.) are set via wrangler secret during deployment
-JWT_ALGORITHM = "HS256"
-JWT_EXPIRES_IN = "7d"
-RATE_LIMIT_ANONYMOUS = "100"
-RATE_LIMIT_AUTHENTICATED = "1000"
-RATE_LIMIT_API_KEY = "5000"
-EMAIL_FROM = "noreply+zxcv@prism-project.net"
-FRONTEND_URL = "https://zxcv-staging.mattyatea.me/"
+# Staging environment overrides (only values that differ from production)
+FRONTEND_URL = "https://zxcv-staging.mattyatea.me"
 APP_URL = "https://zxcv-staging.mattyatea.me"
 ENVIRONMENT = "staging"
 

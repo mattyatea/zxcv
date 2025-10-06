@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { ConfigManager } from "../config";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
+import { promptGitIgnoreOnInstall } from "../utils/gitignore";
 import { MemoryFileManager } from "../utils/memory-file";
 import { promptMemoryFile } from "../utils/prompt";
 import { ora } from "../utils/spinner.js";
@@ -128,6 +129,7 @@ export function createInstallCommand(): Command {
 
 						try {
 							let targetFile: string;
+							let isFirstInstall = false;
 
 							if (options?.file) {
 								// ファイルが指定された場合
@@ -138,9 +140,8 @@ export function createInstallCommand(): Command {
 									recordingSpinner.stop();
 									console.log(
 										chalk.yellow(
-											"⚠️  警告: プロジェクト外のファイルに記録しようとしています\n" +
-												"    推奨: プロジェクト内のCLAUDE.mdやCOPILOT.md等を使用\n" +
-												"    続行しますか？（自己責任）",
+											"Warning: Saving to a file outside the project directory\n" +
+												"Recommended: Use a file within the project",
 										),
 									);
 
@@ -149,13 +150,13 @@ export function createInstallCommand(): Command {
 										{
 											type: "confirm",
 											name: "confirm",
-											message: "続行",
+											message: "Continue?",
 											default: false,
 										},
 									]);
 
 									if (!confirm) {
-										console.log(chalk.yellow("インストールはキャンセルされました"));
+										console.log(chalk.yellow("Installation cancelled"));
 										return;
 									}
 									recordingSpinner.start();
@@ -165,13 +166,29 @@ export function createInstallCommand(): Command {
 								recordingSpinner.stop();
 								targetFile = await promptMemoryFile(packageName);
 								recordingSpinner.start();
+
+								// 初回インストールかチェック（メモリファイルが存在しない場合）
+								const { existsSync } = await import("node:fs");
+								isFirstInstall = !existsSync(targetFile);
 							}
 
 							await memoryManager.addRule(targetFile, pulledRule);
 
+							// Agents.mdの場合、CLAUDE.mdへのシンボリックリンクを作成
+							const { basename } = await import("node:path");
+							if (basename(targetFile) === "Agents.md") {
+								memoryManager.createAgentsSymlink(targetFile);
+							}
+
 							// 表示用パスを取得
 							const displayPath = memoryManager.getDisplayPath(targetFile);
-							recordingSpinner.succeed(chalk.green(`✓ ${displayPath} に記録しました`));
+							recordingSpinner.succeed(chalk.green(`Saved to ${displayPath}`));
+
+							// 初回インストールの場合、gitignore設定を促す
+							if (isFirstInstall) {
+								recordingSpinner.stop();
+								await promptGitIgnoreOnInstall(process.cwd());
+							}
 						} catch (error) {
 							recordingSpinner.fail(chalk.red("Failed to record to memory file"));
 							if (error instanceof Error) {

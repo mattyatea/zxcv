@@ -10,25 +10,54 @@ export function createRemoveCommand(): Command {
 	return new Command("remove")
 		.description("Remove rules from your project")
 		.alias("rm")
-		.argument("<packages...>", "Rule packages to remove")
+		.argument("[packages...]", "Rule packages to remove")
 		.option("-g, --global", "Remove globally")
-		.action(async (packages: string[], _options: { global?: boolean }) => {
-			const spinner = ora("Removing rules...").start();
+		.option("-i, --interactive", "Interactive mode to select rules to remove")
+		.action(async (packages: string[], options: { global?: boolean; interactive?: boolean }) => {
 			const config = new ConfigManager();
 			const fileManager = new FileManager(config);
 			const memoryManager = new MemoryFileManager(config);
 
 			const metadata = config.loadMetadata();
 			if (!metadata || metadata.rules.length === 0) {
-				spinner.fail(chalk.yellow("No rules installed"));
+				console.log(chalk.yellow("No rules installed"));
 				return;
 			}
+
+			let packagesToRemove = packages;
+
+			if (options?.interactive || packages.length === 0) {
+				// Interactive mode: select rules to remove
+				const choices = metadata.rules.map((rule) => ({
+					name: `${chalk.cyan(rule.name)} ${chalk.gray(`v${rule.version}`)}`,
+					value: rule.name,
+				}));
+
+				const { selectedRules } = await inquirer.prompt([
+					{
+						type: "checkbox",
+						name: "selectedRules",
+						message: "Select rules to remove (use space to select):",
+						choices,
+						pageSize: 15,
+					},
+				]);
+
+				if (selectedRules.length === 0) {
+					console.log(chalk.yellow("No rules selected"));
+					return;
+				}
+
+				packagesToRemove = selectedRules;
+			}
+
+			const spinner = ora("Removing rules...").start();
 
 			let removedCount = 0;
 			const notFoundPackages: string[] = [];
 			const removedRules: string[] = [];
 
-			for (const pkg of packages) {
+			for (const pkg of packagesToRemove) {
 				// Parse package path
 				const pathParts = pkg.split("/");
 				let organization: string | undefined;
@@ -91,7 +120,7 @@ export function createRemoveCommand(): Command {
 					for (const ruleName of removedRules) {
 						const updatedFiles = await memoryManager.removeRuleFromProject(ruleName);
 						if (updatedFiles.length > 0) {
-							console.log(chalk.gray(`  ${updatedFiles.join(", ")} から削除`));
+							console.log(chalk.gray(`  Removed from ${updatedFiles.join(", ")}`));
 						}
 					}
 

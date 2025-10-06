@@ -125,36 +125,39 @@ export function createAuthCommand(): Command {
 		.command("register")
 		.description("Register a new account")
 		.action(async () => {
-			const answers = await inquirer.prompt([
+			const answers = await inquirer.prompt<{
+				username: string;
+				email: string;
+				password: string;
+				confirmPassword: string;
+			}>([
 				{
 					type: "input",
 					name: "username",
 					message: "Username:",
-					validate: (input) =>
-						(typeof input === "string" && input.length >= 3) ||
-						"Username must be at least 3 characters",
+					validate: (input: string) =>
+						input.length >= 3 || "Username must be at least 3 characters",
 				},
 				{
 					type: "input",
 					name: "email",
 					message: "Email:",
-					validate: (input) =>
-						(typeof input === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input)) ||
-						"Invalid email address",
+					validate: (input: string) =>
+						/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) || "Invalid email address",
 				},
 				{
 					type: "password",
 					name: "password",
 					message: "Password:",
-					validate: (input) =>
-						(typeof input === "string" && input.length >= 8) ||
-						"Password must be at least 8 characters",
+					validate: (input: string) =>
+						input.length >= 8 || "Password must be at least 8 characters",
 				},
 				{
 					type: "password",
 					name: "confirmPassword",
 					message: "Confirm Password:",
-					validate: (input, answers) => input === answers?.password || "Passwords don't match",
+					validate: (input: string, answers?: { password: string }) =>
+						input === answers?.password || "Passwords don't match",
 				},
 			]);
 
@@ -163,11 +166,7 @@ export function createAuthCommand(): Command {
 			const api = new ApiClient(config);
 
 			try {
-				await api.register(
-					answers.username as string,
-					answers.email as string,
-					answers.password as string,
-				);
+				await api.register(answers.username, answers.email, answers.password);
 				spinner.succeed(
 					chalk.green(
 						"Account created successfully! Please check your email to verify your account.",
