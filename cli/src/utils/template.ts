@@ -23,7 +23,9 @@ export function parseTemplateVariables(content: string): TemplateVariable[] {
 	let match: RegExpExecArray | null = regex.exec(content);
 
 	while (match !== null) {
-		variables.add(match[1]);
+		if (match[1]) {
+			variables.add(match[1]);
+		}
 		match = regex.exec(content);
 	}
 
@@ -99,7 +101,9 @@ export function extractTemplateMetadata(content: string): Record<string, string>
 	let match: RegExpExecArray | null = regex.exec(content);
 
 	while (match !== null) {
-		metadata[match[1]] = match[2];
+		if (match[1] && match[2]) {
+			metadata[match[1]] = match[2];
+		}
 		match = regex.exec(content);
 	}
 
