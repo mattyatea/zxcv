@@ -23,7 +23,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "JWT_ALGORITHM" | "JWT_EXPIRES_IN" | "RATE_LIMIT_ANONYMOUS" | "RATE_LIMIT_AUTHENTICATED" | "RATE_LIMIT_API_KEY" | "EMAIL_FROM" | "FRONTEND_URL" | "APP_URL" | "ENVIRONMENT">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "JWT_ALGORITHM" | "JWT_EXPIRES_IN" | "RATE_LIMIT_ANONYMOUS" | "RATE_LIMIT_AUTHENTICATED" | "RATE_LIMIT_API_KEY" | "EMAIL_FROM" | "JWT_SECRET" | "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "GH_OAUTH_CLIENT_ID" | "GH_OAUTH_CLIENT_SECRET" | "APP_URL" | "FRONTEND_URL" | "ENVIRONMENT">> {}
 }
 
 // Begin runtime types

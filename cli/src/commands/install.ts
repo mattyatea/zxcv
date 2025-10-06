@@ -8,6 +8,8 @@ import { promptGitIgnoreOnInstall } from "../utils/gitignore";
 import { MemoryFileManager } from "../utils/memory-file";
 import { promptMemoryFile } from "../utils/prompt";
 import { ora } from "../utils/spinner.js";
+import { hasTemplateVariables } from "../utils/template";
+import { parseTemplateOptions, processTemplateContent } from "../utils/template-prompt";
 
 export function createInstallCommand(): Command {
 	return new Command("install")
@@ -18,10 +20,19 @@ export function createInstallCommand(): Command {
 		.option("-f, --force", "Force install even if rule already exists")
 		.option("--file <path>", "Specify memory file to record the rule")
 		.option("--no-warn", "Don't show warnings for non-project files")
+		.option("--no-template", "Skip template processing and keep variables as is")
+		.allowUnknownOption() // Allow dynamic template variables like --language, --format, etc.
 		.action(
 			async (
 				path?: string,
-				options?: { frozenLockfile?: boolean; force?: boolean; file?: string; noWarn?: boolean },
+				options?: {
+					frozenLockfile?: boolean;
+					force?: boolean;
+					file?: string;
+					noWarn?: boolean;
+					template?: boolean;
+					[key: string]: unknown;
+				},
 			) => {
 				const config = new ConfigManager();
 				const api = new ApiClient(config);
@@ -89,15 +100,28 @@ export function createInstallCommand(): Command {
 						// Get rule content with specific version if requested
 						const targetVersion = requestedVersion || rule.version;
 						spinner.text(`Downloading rule content (version ${targetVersion})...`);
-						const { content, version } = await api.getRuleContent(rule.id, requestedVersion);
+						let { content, version } = await api.getRuleContent(rule.id, requestedVersion);
 
 						// Update rule object with the actual version from content response
 						if (requestedVersion) {
 							rule.version = version;
 						}
 
-						// Save rule
-						spinner.text("Saving rule...");
+						// Process template variables if enabled
+						if (options?.template !== false && hasTemplateVariables(content)) {
+							spinner.stop();
+
+							// Parse template options from CLI arguments
+							const templateOptions = parseTemplateOptions(options || {});
+
+							// Process template content (prompt for missing variables)
+							content = await processTemplateContent(content, templateOptions, true);
+
+							spinner.start("Saving rule...");
+						} else {
+							spinner.text("Saving rule...");
+						}
+
 						const pulledRule = fileManager.saveRule(rule, content);
 
 						// Update metadata
