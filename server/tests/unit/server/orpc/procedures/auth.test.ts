@@ -27,43 +27,53 @@ describe("auth procedures", () => {
 	
 	// Create simplified procedure handlers that mimic the oRPC pattern
 	async function registerHandler({ input, context }: { input: any, context: any }) {
-		const { db, env, cloudflare } = context;
-		const authService = new AuthService(db, env);
-		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		// Email registration is disabled
+		throw new ORPCError("FORBIDDEN", {
+			message: "Email registration is disabled. Please use Google or GitHub to sign up.",
+		});
 
-		try {
-			const result = await authService.register(input);
-			return {
-				success: true,
-				message: authErrors.registrationSuccess(locale),
-				user: {
-					id: result.user.id,
-					username: result.user.username,
-					email: result.user.email,
-				},
-			};
-		} catch (error) {
-			if (error instanceof EmailServiceError) {
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: authErrors.registrationFailedEmail(locale),
-				});
-			}
-			throw error;
-		}
+		// const { db, env, cloudflare } = context;
+		// const authService = new AuthService(db, env);
+		// const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		//
+		// try {
+		// 	const result = await authService.register(input);
+		// 	return {
+		// 		success: true,
+		// 		message: authErrors.registrationSuccess(locale),
+		// 		user: {
+		// 			id: result.user.id,
+		// 			username: result.user.username,
+		// 			email: result.user.email,
+		// 		},
+		// 	};
+		// } catch (error) {
+		// 	if (error instanceof EmailServiceError) {
+		// 		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+		// 			message: authErrors.registrationFailedEmail(locale),
+		// 		});
+		// 	}
+		// 	throw error;
+		// }
 	}
 
 	async function loginHandler({ input, context }: { input: any, context: any }) {
-		const { db, env, cloudflare } = context;
-		const authService = new AuthService(db, env);
-		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		// Email login is disabled
+		throw new ORPCError("FORBIDDEN", {
+			message: "Email login is disabled. Please use Google or GitHub to sign in.",
+		});
 
-		const result = await authService.login(input.email, input.password, locale);
-		return {
-			accessToken: result.accessToken,
-			refreshToken: result.refreshToken,
-			user: result.user,
-			message: authErrors.loginSuccess(locale),
-		};
+		// const { db, env, cloudflare } = context;
+		// const authService = new AuthService(db, env);
+		// const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		//
+		// const result = await authService.login(input.email, input.password, locale);
+		// return {
+		// 	accessToken: result.accessToken,
+		// 	refreshToken: result.refreshToken,
+		// 	user: result.user,
+		// 	message: authErrors.loginSuccess(locale),
+		// };
 	}
 
 	async function verifyEmailHandler({ input, context }: { input: any, context: any }) {
@@ -200,159 +210,170 @@ describe("auth procedures", () => {
 			password: "password123",
 		};
 
-		it("should register a new user successfully", async () => {
-			mockPrisma.user.findUnique.mockResolvedValue(null);
-			mockPrisma.organization.findUnique.mockResolvedValue(null);
-			mockPrisma.user.create.mockResolvedValue({
-				id: "user_123",
-				username: "testuser",
-				email: "test@example.com",
-				passwordHash: "hashed_password",
-				emailVerified: false,
-			});
-
-			const mockEmailService = {
-				sendVerificationEmail: vi.fn().mockResolvedValue(true),
-			};
-			vi.mocked(EmailVerificationService).mockImplementation(() => mockEmailService as any);
-
-			// Direct call to procedure handler - following oRPC testing principles
-			const result = await registerHandler({ input: validInput, context: mockContext });
-			
-			expect(result).toEqual({
-				success: true,
-				message: "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。",
-				user: {
-					id: "user_123",
-					username: "testuser",
-					email: "test@example.com",
-				},
-			});
-
-			// Verify database interactions
-			expect(mockPrisma.user.create).toHaveBeenCalledWith({
-				data: expect.objectContaining({
-					id: expect.any(String),
-					username: "testuser",
-					email: "test@example.com",
-					passwordHash: "hashed_password",
-					emailVerified: false,
-				}),
-			});
-		});
-
-		it("should throw CONFLICT error when user already exists", async () => {
-			mockPrisma.user.findUnique.mockResolvedValue({
-				id: "existing_user",
-				email: "test@example.com",
-			});
-
-			// Using oRPC docs pattern: expect().rejects pattern
+		it("should throw FORBIDDEN error when email registration is disabled", async () => {
 			await expect(
 				registerHandler({ input: validInput, context: mockContext })
 			).rejects.toThrow(ORPCError);
-		});
-
-		it("should throw CONFLICT error when username is not available", async () => {
-			// Mock email check passes
-			mockPrisma.user.findUnique.mockImplementation(async (args: any) => {
-				if (args?.where?.email) {
-					return null; // Email not taken
-				}
-				if (args?.where?.username) {
-					return { // Username is taken
-						id: "existing_user",
-						username: "testuser"
-					};
-				}
-				return null;
-			});
 
 			await expect(
 				registerHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
+			).rejects.toThrow("Email registration is disabled");
 		});
 
-		it("should handle email service failure gracefully", async () => {
-			mockPrisma.user.findUnique.mockResolvedValue(null);
-			mockPrisma.organization.findUnique.mockResolvedValue(null);
-			mockPrisma.user.create.mockResolvedValue({
-				id: "user_123",
-				username: "testuser",
-				email: "test@example.com",
-				passwordHash: "hashed_password",
-				emailVerified: false,
-			});
-
-			// Mock AuthService to throw an email service error
-			const { AuthService } = await import("~/server/services/AuthService");
-			const { EmailServiceError } = await import("~/server/types/errors");
-			const mockRegister = vi.fn().mockRejectedValue(new EmailServiceError("Email service error"));
-			vi.spyOn(AuthService.prototype, "register").mockImplementation(mockRegister);
-
-			await expect(
-				registerHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
-			
-			// Restore original
-			vi.mocked(AuthService.prototype.register).mockRestore();
-		});
-
-		it("should validate input format", async () => {
-			const invalidInputs = [
-				{ username: "", email: "test@example.com", password: "password123" }, // Empty username
-				{ username: "test user", email: "test@example.com", password: "password123" }, // Username with space
-				{ username: "testuser", email: "invalid-email", password: "password123" }, // Invalid email
-				{ username: "testuser", email: "test@example.com", password: "short" }, // Short password
-			];
-
-			// Following oRPC docs pattern for multiple tests
-			for (const input of invalidInputs) {
-				await expect(
-					registerHandler({ input, context: mockContext })
-				).rejects.toThrow();
-			}
-		});
-
-		it("should normalize username and email to lowercase", async () => {
-			mockPrisma.user.findUnique.mockResolvedValue(null);
-			mockPrisma.organization.findUnique.mockResolvedValue(null);
-			mockPrisma.user.create.mockResolvedValue({
-				id: "user_123",
-				username: "testuser",
-				email: "test@example.com",
-				passwordHash: "hashed_password",
-				emailVerified: false,
-			});
-
-			const mockEmailService = {
-				sendVerificationEmail: vi.fn().mockResolvedValue(true),
-			};
-			vi.mocked(EmailVerificationService).mockImplementation(() => mockEmailService as any);
-
-			// Using oRPC docs pattern
-			await expect(
-				registerHandler({
-					input: {
-						username: "TestUser",
-						email: "Test@Example.com",
-						password: "password123",
-					},
-					context: mockContext
-				})
-			).resolves.toEqual({
-				success: true,
-				message: "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。",
-				user: {
-					id: "user_123",
-					username: "testuser",
-					email: "test@example.com",
-				},
-			});
-
-			// Verify the user was created
-			expect(mockPrisma.user.create).toHaveBeenCalled();
-		});
+		// All other tests are commented out because email registration is disabled
+		// it("should register a new user successfully", async () => {
+		// 	mockPrisma.user.findUnique.mockResolvedValue(null);
+		// 	mockPrisma.organization.findUnique.mockResolvedValue(null);
+		// 	mockPrisma.user.create.mockResolvedValue({
+		// 		id: "user_123",
+		// 		username: "testuser",
+		// 		email: "test@example.com",
+		// 		passwordHash: "hashed_password",
+		// 		emailVerified: false,
+		// 	});
+		//
+		// 	const mockEmailService = {
+		// 		sendVerificationEmail: vi.fn().mockResolvedValue(true),
+		// 	};
+		// 	vi.mocked(EmailVerificationService).mockImplementation(() => mockEmailService as any);
+		//
+		// 	// Direct call to procedure handler - following oRPC testing principles
+		// 	const result = await registerHandler({ input: validInput, context: mockContext });
+		//
+		// 	expect(result).toEqual({
+		// 		success: true,
+		// 		message: "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。",
+		// 		user: {
+		// 			id: "user_123",
+		// 			username: "testuser",
+		// 			email: "test@example.com",
+		// 		},
+		// 	});
+		//
+		// 	// Verify database interactions
+		// 	expect(mockPrisma.user.create).toHaveBeenCalledWith({
+		// 		data: expect.objectContaining({
+		// 			id: expect.any(String),
+		// 			username: "testuser",
+		// 			email: "test@example.com",
+		// 			passwordHash: "hashed_password",
+		// 			emailVerified: false,
+		// 		}),
+		// 	});
+		// });
+		//
+		// it("should throw CONFLICT error when user already exists", async () => {
+		// 	mockPrisma.user.findUnique.mockResolvedValue({
+		// 		id: "existing_user",
+		// 		email: "test@example.com",
+		// 	});
+		//
+		// 	// Using oRPC docs pattern: expect().rejects pattern
+		// 	await expect(
+		// 		registerHandler({ input: validInput, context: mockContext })
+		// 	).rejects.toThrow(ORPCError);
+		// });
+		//
+		// it("should throw CONFLICT error when username is not available", async () => {
+		// 	// Mock email check passes
+		// 	mockPrisma.user.findUnique.mockImplementation(async (args: any) => {
+		// 		if (args?.where?.email) {
+		// 			return null; // Email not taken
+		// 		}
+		// 		if (args?.where?.username) {
+		// 			return { // Username is taken
+		// 				id: "existing_user",
+		// 				username: "testuser"
+		// 			};
+		// 		}
+		// 		return null;
+		// 	});
+		//
+		// 	await expect(
+		// 		registerHandler({ input: validInput, context: mockContext })
+		// 	).rejects.toThrow(ORPCError);
+		// });
+		//
+		// it("should handle email service failure gracefully", async () => {
+		// 	mockPrisma.user.findUnique.mockResolvedValue(null);
+		// 	mockPrisma.organization.findUnique.mockResolvedValue(null);
+		// 	mockPrisma.user.create.mockResolvedValue({
+		// 		id: "user_123",
+		// 		username: "testuser",
+		// 		email: "test@example.com",
+		// 		passwordHash: "hashed_password",
+		// 		emailVerified: false,
+		// 	});
+		//
+		// 	// Mock AuthService to throw an email service error
+		// 	const { AuthService } = await import("~/server/services/AuthService");
+		// 	const { EmailServiceError } = await import("~/server/types/errors");
+		// 	const mockRegister = vi.fn().mockRejectedValue(new EmailServiceError("Email service error"));
+		// 	vi.spyOn(AuthService.prototype, "register").mockImplementation(mockRegister);
+		//
+		// 	await expect(
+		// 		registerHandler({ input: validInput, context: mockContext })
+		// 	).rejects.toThrow(ORPCError);
+		//
+		// 	// Restore original
+		// 	vi.mocked(AuthService.prototype.register).mockRestore();
+		// });
+		//
+		// it("should validate input format", async () => {
+		// 	const invalidInputs = [
+		// 		{ username: "", email: "test@example.com", password: "password123" }, // Empty username
+		// 		{ username: "test user", email: "test@example.com", password: "password123" }, // Username with space
+		// 		{ username: "testuser", email: "invalid-email", password: "password123" }, // Invalid email
+		// 		{ username: "testuser", email: "test@example.com", password: "short" }, // Short password
+		// 	];
+		//
+		// 	// Following oRPC docs pattern for multiple tests
+		// 	for (const input of invalidInputs) {
+		// 		await expect(
+		// 			registerHandler({ input, context: mockContext })
+		// 		).rejects.toThrow();
+		// 	}
+		// });
+		//
+		// it("should normalize username and email to lowercase", async () => {
+		// 	mockPrisma.user.findUnique.mockResolvedValue(null);
+		// 	mockPrisma.organization.findUnique.mockResolvedValue(null);
+		// 	mockPrisma.user.create.mockResolvedValue({
+		// 		id: "user_123",
+		// 		username: "testuser",
+		// 		email: "test@example.com",
+		// 		passwordHash: "hashed_password",
+		// 		emailVerified: false,
+		// 	});
+		//
+		// 	const mockEmailService = {
+		// 		sendVerificationEmail: vi.fn().mockResolvedValue(true),
+		// 	};
+		// 	vi.mocked(EmailVerificationService).mockImplementation(() => mockEmailService as any);
+		//
+		// 	// Using oRPC docs pattern
+		// 	await expect(
+		// 		registerHandler({
+		// 			input: {
+		// 				username: "TestUser",
+		// 				email: "Test@Example.com",
+		// 				password: "password123",
+		// 			},
+		// 			context: mockContext
+		// 		})
+		// 	).resolves.toEqual({
+		// 		success: true,
+		// 		message: "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。",
+		// 		user: {
+		// 			id: "user_123",
+		// 			username: "testuser",
+		// 			email: "test@example.com",
+		// 		},
+		// 	});
+		//
+		// 	// Verify the user was created
+		// 	expect(mockPrisma.user.create).toHaveBeenCalled();
+		// });
 	});
 
 	describe("login", () => {
@@ -361,52 +382,63 @@ describe("auth procedures", () => {
 			password: "password123",
 		};
 
-		it("should login user successfully", async () => {
-			const mockUser = {
-				id: "user_123",
-				username: "testuser",
-				email: "test@example.com",
-				emailVerified: true,
-			};
-
-			// Mock AuthService login to return tokens and user
-			const { AuthService } = await import("~/server/services/AuthService");
-			const mockLogin = vi.fn().mockResolvedValue({
-				accessToken: "access_token",
-				refreshToken: "refresh_token",
-				user: mockUser,
-			});
-			vi.spyOn(AuthService.prototype, "login").mockImplementation(mockLogin);
-
-			const result = await loginHandler({ input: validInput, context: mockContext });
-
-			expect(result).toEqual({
-				accessToken: "access_token",
-				refreshToken: "refresh_token",
-				user: mockUser,
-				message: "ログインに成功しました",
-			});
-
-			expect(mockLogin).toHaveBeenCalledWith("test@example.com", "password123", "ja");
-
-			// Restore original
-			vi.mocked(AuthService.prototype.login).mockRestore();
-		});
-
-		it("should throw error for invalid credentials", async () => {
-			const { AuthService } = await import("~/server/services/AuthService");
-			const mockLogin = vi.fn().mockRejectedValue(
-				new ORPCError("UNAUTHORIZED", { message: "Invalid credentials" })
-			);
-			vi.spyOn(AuthService.prototype, "login").mockImplementation(mockLogin);
-
+		it("should throw FORBIDDEN error when email login is disabled", async () => {
 			await expect(
 				loginHandler({ input: validInput, context: mockContext })
 			).rejects.toThrow(ORPCError);
 
-			// Restore original
-			vi.mocked(AuthService.prototype.login).mockRestore();
+			await expect(
+				loginHandler({ input: validInput, context: mockContext })
+			).rejects.toThrow("Email login is disabled");
 		});
+
+		// All other tests are commented out because email login is disabled
+		// it("should login user successfully", async () => {
+		// 	const mockUser = {
+		// 		id: "user_123",
+		// 		username: "testuser",
+		// 		email: "test@example.com",
+		// 		emailVerified: true,
+		// 	};
+		//
+		// 	// Mock AuthService login to return tokens and user
+		// 	const { AuthService } = await import("~/server/services/AuthService");
+		// 	const mockLogin = vi.fn().mockResolvedValue({
+		// 		accessToken: "access_token",
+		// 		refreshToken: "refresh_token",
+		// 		user: mockUser,
+		// 	});
+		// 	vi.spyOn(AuthService.prototype, "login").mockImplementation(mockLogin);
+		//
+		// 	const result = await loginHandler({ input: validInput, context: mockContext });
+		//
+		// 	expect(result).toEqual({
+		// 		accessToken: "access_token",
+		// 		refreshToken: "refresh_token",
+		// 		user: mockUser,
+		// 		message: "ログインに成功しました",
+		// 	});
+		//
+		// 	expect(mockLogin).toHaveBeenCalledWith("test@example.com", "password123", "ja");
+		//
+		// 	// Restore original
+		// 	vi.mocked(AuthService.prototype.login).mockRestore();
+		// });
+		//
+		// it("should throw error for invalid credentials", async () => {
+		// 	const { AuthService } = await import("~/server/services/AuthService");
+		// 	const mockLogin = vi.fn().mockRejectedValue(
+		// 		new ORPCError("UNAUTHORIZED", { message: "Invalid credentials" })
+		// 	);
+		// 	vi.spyOn(AuthService.prototype, "login").mockImplementation(mockLogin);
+		//
+		// 	await expect(
+		// 		loginHandler({ input: validInput, context: mockContext })
+		// 	).rejects.toThrow(ORPCError);
+		//
+		// 	// Restore original
+		// 	vi.mocked(AuthService.prototype.login).mockRestore();
+		// });
 	});
 
 	describe("verifyEmail", () => {
