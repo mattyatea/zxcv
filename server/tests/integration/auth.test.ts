@@ -474,15 +474,13 @@ describe("Auth Integration Tests", () => {
 				return null;
 			});
 
-			// Login to get tokens
-			const loginResult = await client.auth.login({
-				email,
-				password: "password123",
-			});
+			// Create a refresh token directly (since email login is disabled)
+			const { createRefreshToken } = await import("~/server/utils/jwt");
+			const refreshToken = await createRefreshToken(userId, mockEnv);
 
 			// Use the refresh token to refresh
 			const refreshResult = await client.auth.refresh({
-				refreshToken: loginResult.refreshToken,
+				refreshToken,
 			});
 
 			expect(refreshResult.accessToken).toBeDefined();
