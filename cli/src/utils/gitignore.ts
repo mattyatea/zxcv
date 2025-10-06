@@ -17,7 +17,7 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 	// gitリポジトリかチェック
 	const gitDir = join(projectRoot, ".git");
 	if (!existsSync(gitDir)) {
-		console.log(chalk.yellow("⚠️  このプロジェクトはGitリポジトリではありません"));
+		console.log(chalk.yellow("This is not a Git repository"));
 		return;
 	}
 
@@ -26,17 +26,17 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 		{
 			type: "list",
 			name: "ignoreType",
-			message: chalk.cyan("📝 ファイルをGit管理から除外しますか？"),
+			message: "Add generated files to Git ignore?",
 			choices: [
 				{
-					name: chalk.green("✓ .git/info/exclude に追加 (推奨) - このリポジトリのみで無視"),
+					name: ".git/info/exclude (recommended, local only)",
 					value: "exclude",
 				},
 				{
-					name: ".gitignore に追加 - プロジェクト全体で無視 (コミット対象)",
+					name: ".gitignore (project-wide, committed)",
 					value: "gitignore",
 				},
-				{ name: "追加しない", value: "none" },
+				{ name: "Don't add", value: "none" },
 			],
 			default: "exclude",
 		},
@@ -89,14 +89,14 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 			writeFileSync(targetFile, content + prefix + newEntries.join("\n") + "\n");
 
 			const displayPath = ignoreType === "exclude" ? ".git/info/exclude" : ".gitignore";
-			console.log(chalk.green(`✓ ${displayPath} に追加しました`));
+			console.log(chalk.green(`Added to ${displayPath}`));
 			for (const entry of filesToIgnore) {
 				if (!existingEntries.has(entry)) {
-					console.log(chalk.gray(`  - ${entry}`));
+					console.log(chalk.gray(`  ${entry}`));
 				}
 			}
 		} else {
-			console.log(chalk.gray("すべてのエントリは既に除外設定されています"));
+			console.log(chalk.gray("All entries already ignored"));
 		}
 	} catch (error) {
 		console.error(chalk.red("Failed to update ignore file"));

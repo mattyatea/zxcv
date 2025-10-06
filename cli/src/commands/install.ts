@@ -140,9 +140,8 @@ export function createInstallCommand(): Command {
 									recordingSpinner.stop();
 									console.log(
 										chalk.yellow(
-											"⚠️  警告: プロジェクト外のファイルに記録しようとしています\n" +
-												"    推奨: プロジェクト内のCLAUDE.mdやCOPILOT.md等を使用\n" +
-												"    続行しますか？（自己責任）",
+											"Warning: Saving to a file outside the project directory\n" +
+												"Recommended: Use a file within the project",
 										),
 									);
 
@@ -151,13 +150,13 @@ export function createInstallCommand(): Command {
 										{
 											type: "confirm",
 											name: "confirm",
-											message: "続行",
+											message: "Continue?",
 											default: false,
 										},
 									]);
 
 									if (!confirm) {
-										console.log(chalk.yellow("インストールはキャンセルされました"));
+										console.log(chalk.yellow("Installation cancelled"));
 										return;
 									}
 									recordingSpinner.start();
@@ -183,7 +182,7 @@ export function createInstallCommand(): Command {
 
 							// 表示用パスを取得
 							const displayPath = memoryManager.getDisplayPath(targetFile);
-							recordingSpinner.succeed(chalk.green(`✓ ${displayPath} に記録しました`));
+							recordingSpinner.succeed(chalk.green(`Saved to ${displayPath}`));
 
 							// 初回インストールの場合、gitignore設定を促す
 							if (isFirstInstall) {

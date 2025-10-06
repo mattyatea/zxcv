@@ -120,7 +120,7 @@ export function createRemoveCommand(): Command {
 					for (const ruleName of removedRules) {
 						const updatedFiles = await memoryManager.removeRuleFromProject(ruleName);
 						if (updatedFiles.length > 0) {
-							console.log(chalk.gray(`  ${updatedFiles.join(", ")} から削除`));
+							console.log(chalk.gray(`  Removed from ${updatedFiles.join(", ")}`));
 						}
 					}
 

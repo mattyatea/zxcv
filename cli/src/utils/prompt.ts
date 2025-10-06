@@ -19,12 +19,12 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 
 	const choices: Array<{ name: string; value: string } | InstanceType<typeof Separator>> = [];
 
-	// プロジェクトレベル（推奨）
+	// プロジェクトレベル
 	if (projectFiles.length > 0) {
-		choices.push(new Separator(chalk.green("=== プロジェクト（推奨） ===")));
+		choices.push(new Separator("Project files"));
 		for (const file of projectFiles) {
 			choices.push({
-				name: `📄 ${basename(file)}`,
+				name: basename(file),
 				value: file,
 			});
 		}
@@ -32,19 +32,19 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 
 	// 新規作成オプション（プロジェクト）
 	choices.push(
-		new Separator(chalk.green("=== 新規作成（プロジェクト） ===")),
-		{ name: "📝 Agents.md を作成 (推奨)", value: "new:project:Agents.md" },
-		{ name: "📝 CLAUDE.md を作成", value: "new:project:CLAUDE.md" },
-		{ name: "📝 CLAUDE.local.md を作成", value: "new:project:CLAUDE.local.md" },
-		{ name: "📝 COPILOT.md を作成", value: "new:project:COPILOT.md" },
+		new Separator("Create new (project)"),
+		{ name: "Agents.md", value: "new:project:Agents.md" },
+		{ name: "CLAUDE.md", value: "new:project:CLAUDE.md" },
+		{ name: "CLAUDE.local.md", value: "new:project:CLAUDE.local.md" },
+		{ name: "COPILOT.md", value: "new:project:COPILOT.md" },
 	);
 
 	// ユーザーレベル（オプション）
 	if (userFiles.length > 0) {
-		choices.push(new Separator(chalk.gray("=== ユーザーレベル ===")));
+		choices.push(new Separator("User files"));
 		for (const file of userFiles) {
 			choices.push({
-				name: chalk.gray(`📄 ~/${basename(file)}`),
+				name: `~/${basename(file)}`,
 				value: file,
 			});
 		}
@@ -52,19 +52,19 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 
 	// 新規作成オプション（ユーザー）
 	choices.push(
-		new Separator(chalk.gray("=== 新規作成（ユーザー） ===")),
-		{ name: chalk.gray("📝 ~/Agents.md を作成 (推奨)"), value: "new:user:Agents.md" },
-		{ name: chalk.gray("📝 ~/CLAUDE.md を作成"), value: "new:user:CLAUDE.md" },
+		new Separator("Create new (user)"),
+		{ name: "~/Agents.md", value: "new:user:Agents.md" },
+		{ name: "~/CLAUDE.md", value: "new:user:CLAUDE.md" },
 	);
 
 	// カスタム
-	choices.push(new Separator("━━━━━━━━━━"), { name: "✏️  カスタムパスを入力", value: "custom" });
+	choices.push(new Separator(), { name: "Custom path...", value: "custom" });
 
 	const { selectedFile } = await inquirer.prompt([
 		{
 			type: "list",
 			name: "selectedFile",
-			message: chalk.cyan(`📝 ${ruleName} をどこに記録しますか？`),
+			message: `Where do you want to save ${ruleName}?`,
 			choices,
 			pageSize: 15,
 		},
@@ -75,10 +75,10 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 			{
 				type: "input",
 				name: "customPath",
-				message: "ファイルパス (例: ./AI-RULES.md, ~/my-rules.md):",
+				message: "File path (e.g. ./AI-RULES.md, ~/my-rules.md):",
 				validate: (input: string) => {
 					if (!input?.trim()) {
-						return "有効なファイルパスを入力してください";
+						return "Please enter a valid file path";
 					}
 					return true;
 				},
@@ -89,13 +89,13 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 
 		// プロジェクト外の場合は確認
 		if (!resolved.startsWith(process.cwd())) {
-			console.log(chalk.yellow("\n⚠️  注意: プロジェクト外のファイルを指定しています"));
+			console.log(chalk.yellow("\nWarning: File is outside project directory"));
 
 			const { confirmCustom } = await inquirer.prompt([
 				{
 					type: "confirm",
 					name: "confirmCustom",
-					message: "続行しますか？",
+					message: "Continue?",
 					default: false,
 				},
 			]);
@@ -113,10 +113,6 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 		const [, scope, fileName] = selectedFile.split(":");
 		const dir = scope === "user" ? homedir() : process.cwd();
 		const newPath = join(dir, fileName);
-
-		if (scope === "user") {
-			console.log(chalk.yellow("\n📌 注: ユーザーレベルのファイルを作成します"));
-		}
 
 		return newPath;
 	}
