@@ -31,7 +31,8 @@ export function createInstallCommand(): Command {
 					file?: string;
 					noWarn?: boolean;
 					template?: boolean;
-					[key: string]: unknown;
+					// Template variable options (dynamic key-value pairs)
+					[key: string]: string | boolean | undefined;
 				},
 			) => {
 				const config = new ConfigManager();
