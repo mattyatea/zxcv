@@ -912,6 +912,11 @@ const showVersion = async (versionNumber: string) => {
 			updatedAt: versionData.createdAt,
 		};
 
+		// テンプレート状態をリセット
+		templateValues.value = {};
+		templateVariables.value = parseTemplateVariables(versionData.content);
+		renderedContent.value = versionData.content;
+
 		// バージョン表示中であることを示すメッセージ
 		toastSuccess(t("rules.messages.viewingVersion", { version: `v${versionNumber}` }));
 	} catch (error) {

@@ -62,7 +62,10 @@ export function renderTemplate(content: string, values: TemplateRenderOptions): 
 		// Escape special regex characters to prevent ReDoS
 		const escapedKey = escapeRegex(key);
 		const regex = new RegExp(`\\{\\{${escapedKey}\\}\\}`, "g");
-		rendered = rendered.replace(regex, value);
+
+		// Escape $ in replacement string (JavaScript replace treats $ specially)
+		const escapedValue = value.replace(/\$/g, "$$$$");
+		rendered = rendered.replace(regex, escapedValue);
 	}
 
 	return rendered;
