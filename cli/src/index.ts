@@ -13,12 +13,15 @@ import { createSearchCommand } from "./commands/search";
 import { createUpdateCommand } from "./commands/update";
 import { debugLogger } from "./utils/debug";
 
+// Version is injected at build time
+const VERSION = "1.2.3";
+
 const program = new Command();
 
 program
 	.name("zxcv")
 	.description("AI coding rules management CLI tool")
-	.version("1.1.1")
+	.version(VERSION)
 	.option("-d, --debug", "Enable debug mode to show API requests and responses")
 	.hook("preAction", (thisCommand) => {
 		const opts = thisCommand.opts();

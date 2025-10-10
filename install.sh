@@ -61,17 +61,17 @@ get_current_version() {
     if command -v "$BINARY_NAME" >/dev/null 2>&1; then
         local version_output
         version_output=$("$BINARY_NAME" --version 2>/dev/null || echo "")
-        
+
         # Extract version from output (assumes format like "0.1.0", "1.1.1", etc.)
         if [[ -n "$version_output" ]]; then
             # First try to extract semantic version number
             local version_num=$(echo "$version_output" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
             if [[ -n "$version_num" ]]; then
-                CURRENT_VERSION="cli-v${version_num}"
+                CURRENT_VERSION="${version_num}"
             fi
         fi
     fi
-    
+
     if [[ -z "$CURRENT_VERSION" ]]; then
         CURRENT_VERSION="not-installed"
     fi
@@ -79,18 +79,21 @@ get_current_version() {
 
 # Get latest release version from GitHub API
 get_latest_version() {
+    local tag_name
     if command -v curl >/dev/null 2>&1; then
-        VERSION=$(curl -s "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        tag_name=$(curl -s "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     elif command -v wget >/dev/null 2>&1; then
-        VERSION=$(wget -qO- "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        tag_name=$(wget -qO- "https://api.github.com/repos/${GITHUB_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     else
         echo -e "${RED}Error: curl or wget is required${NC}"
         exit 1
     fi
-    
-    if [[ -z "$VERSION" ]]; then
-        echo -e "${YELLOW}Warning: Could not fetch latest version, using cli-v1.1.1${NC}"
-        VERSION="cli-v1.1.1"
+
+    if [[ -z "$tag_name" ]]; then
+        echo -e "${YELLOW}Warning: Could not fetch latest version, using v1.1.1${NC}"
+        VERSION="v1.1.1"
+    else
+        VERSION="$tag_name"
     fi
 }
 
@@ -98,25 +101,36 @@ get_latest_version() {
 compare_versions() {
     local current="$1"
     local latest="$2"
-    
+
     if [[ "$current" == "not-installed" ]]; then
         return 1  # Not installed, needs installation
     fi
-    
-    if [[ "$current" == "$latest" ]]; then
+
+    # Normalize version strings (remove any prefix like v, cli-v, etc.)
+    local current_num=$(echo "$current" | sed -E 's/^(cli-)?v?//')
+    local latest_num=$(echo "$latest" | sed -E 's/^(cli-)?v?//')
+
+    if [[ "$current_num" == "$latest_num" ]]; then
         return 0  # Same version
     fi
-    
-    # Extract version numbers (remove cli-v prefix)
-    local current_num=$(echo "$current" | sed 's/cli-v//')
-    local latest_num=$(echo "$latest" | sed 's/cli-v//')
-    
-    # Simple version comparison (assumes semantic versioning)
-    if [[ "$current_num" < "$latest_num" ]]; then
-        return 1  # Current is older
-    else
-        return 2  # Current is newer (shouldn't happen normally)
-    fi
+
+    # Split versions into components
+    IFS='.' read -ra current_parts <<< "$current_num"
+    IFS='.' read -ra latest_parts <<< "$latest_num"
+
+    # Compare each component
+    for i in 0 1 2; do
+        local curr="${current_parts[$i]:-0}"
+        local lat="${latest_parts[$i]:-0}"
+
+        if [[ $curr -lt $lat ]]; then
+            return 1  # Current is older
+        elif [[ $curr -gt $lat ]]; then
+            return 2  # Current is newer
+        fi
+    done
+
+    return 0  # Same version
 }
 
 # Construct download URL and filename
@@ -136,13 +150,23 @@ construct_download_info() {
 download_file() {
     local url="$1"
     local output="$2"
-    
+
     echo -e "${BLUE}Downloading ${url}...${NC}"
-    
+
     if command -v curl >/dev/null 2>&1; then
-        curl -fsSL "$url" -o "$output"
+        if curl -fsSL "$url" -o "$output"; then
+            echo -e "${GREEN}✓ Downloaded successfully${NC}"
+        else
+            echo -e "${RED}✗ Download failed${NC}"
+            return 1
+        fi
     elif command -v wget >/dev/null 2>&1; then
-        wget -q "$url" -O "$output"
+        if wget -q "$url" -O "$output"; then
+            echo -e "${GREEN}✓ Downloaded successfully${NC}"
+        else
+            echo -e "${RED}✗ Download failed${NC}"
+            return 1
+        fi
     else
         echo -e "${RED}Error: curl or wget is required${NC}"
         exit 1
@@ -304,9 +328,11 @@ main() {
         get_latest_version
         echo -e "${BLUE}Latest version: ${VERSION}${NC}"
         
-        # Compare versions
+        # Compare versions (disable set -e temporarily to capture return code)
+        set +e
         compare_versions "$CURRENT_VERSION" "$VERSION"
         local compare_result=$?
+        set -e
         
         case $compare_result in
             0)
