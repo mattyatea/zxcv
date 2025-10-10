@@ -89,12 +89,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            .nuxt
-            .output
-            server/.nuxt
-            server/.output
+            webserver/.nuxt
+            webserver/.output
             node_modules/.cache
-          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml', 'server/**/*.ts', 'server/**/*.vue') }}
+          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml', 'webserver/**/*.ts', 'webserver/**/*.vue') }}
           restore-keys: |
             ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
             ${{ runner.os }}-nuxt-build-
@@ -104,9 +102,9 @@ jobs:
 
       - name: Verify build output
         run: |
-          if [ -d "server/.output" ]; then
+          if [ -d "webserver/.output" ]; then
             echo "✅ Build output directory exists"
-            ls -la server/.output/
+            ls -la webserver/.output/
           else
             echo "❌ Build output directory not found"
             exit 1
@@ -130,7 +128,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build for staging
-        run: pnpm run build:server
+        run: pnpm --filter webserver run build:staging
 
       - name: Run database migrations
         uses: cloudflare/wrangler-action@v3
@@ -138,7 +136,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply zxcv-staging --remote --env staging
-          workingDirectory: server
+          workingDirectory: webserver
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
@@ -146,7 +144,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
-          workingDirectory: server
+          workingDirectory: webserver
           secrets: |
             JWT_SECRET
             GOOGLE_CLIENT_ID
@@ -178,7 +176,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build for production
-        run: pnpm run build:server
+        run: pnpm --filter webserver run build
 
       - name: Run database migrations
         uses: cloudflare/wrangler-action@v3
@@ -186,7 +184,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply zxcv-db --remote
-          workingDirectory: server
+          workingDirectory: webserver
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
@@ -194,7 +192,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-          workingDirectory: server
+          workingDirectory: webserver
           secrets: |
             JWT_SECRET
             GOOGLE_CLIENT_ID
