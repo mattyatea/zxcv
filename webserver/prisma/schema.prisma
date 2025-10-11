@@ -16,10 +16,17 @@ enum RuleType {
   ccsubagents
 }
 
+enum UserRole {
+  user
+  moderator
+  admin
+}
+
 model User {
   id           String   @id
   email        String   @unique
   username     String   @unique
+  role         UserRole @default(user) @map("role")
   passwordHash String?  @map("password_hash") // Nullable for OAuth users
   emailVerified Boolean  @default(false) @map("email_verified")
   settings     String   @default("{}") // JSON string for user settings
@@ -336,4 +343,3 @@ model CliToken {
   @@index([expiresAt])
   @@map("cli_tokens")
 }
-

@@ -1,0 +1,1 @@
+Formatting/linting handled by Biome (`biome.json` + `biome` commands). TypeScript projects use ESM modules, strict typing via `tsc`/`vue-tsc`. Tests use Vitest for the web app and Bun test runner for CLI. Prefer pnpm workspace scripts; avoid mixing npm/yarn. 

@@ -14,6 +14,7 @@ export interface AuthUser {
 	id: string;
 	email: string;
 	username: string;
+	role: string;
 	emailVerified: boolean;
 	displayName: string | null;
 	avatarUrl: string | null;
@@ -30,6 +31,7 @@ async function createJWT(user: AuthUser, env: Env): Promise<string> {
 			sub: user.id,
 			email: user.email,
 			username: user.username,
+			role: user.role,
 			emailVerified: user.emailVerified,
 		},
 		env,
@@ -46,6 +48,7 @@ async function verifyJWT(token: string, env: Env): Promise<AuthUser | null> {
 		id: payload.sub,
 		email: payload.email,
 		username: payload.username,
+		role: payload.role ?? "user",
 		emailVerified: payload.emailVerified || false,
 		displayName: payload.displayName || null,
 		avatarUrl: payload.avatarUrl || null,
@@ -85,6 +88,7 @@ async function verifyApiKey(
 					id: storedApiKey.user.id,
 					email: storedApiKey.user.email,
 					username: storedApiKey.user.username,
+					role: storedApiKey.user.role,
 					emailVerified: storedApiKey.user.emailVerified,
 					displayName: storedApiKey.user.displayName,
 					avatarUrl: storedApiKey.user.avatarUrl,

@@ -996,5 +996,66 @@
     "error": {
       "copyFailed": "Failed to copy to clipboard"
     }
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "description": "Manage moderators and administrative access across the platform.",
+    "moderators": {
+      "title": "Moderator Management",
+      "list": "Moderator List",
+      "assign": "Assign Moderator",
+      "remove": "Remove Moderator",
+      "noModerators": "No moderators available",
+      "role": "Role",
+      "searchLabel": "Filter members",
+      "searchPlaceholder": "Search by username, email, or role",
+      "total": "{count} of {total} users shown",
+      "emptyHint": "Assign moderator permissions to a user to see them here."
+    },
+    "fields": {
+      "username": "Username",
+      "email": "Email",
+      "roleLabel": "Role: {role}",
+      "createdAt": "Created: {date}",
+      "noEmail": "Email hidden"
+    },
+    "actions": {
+      "assign": "Assign",
+      "remove": "Remove"
+    },
+    "messages": {
+      "assignSuccess": "Moderator assigned successfully",
+      "removeSuccess": "Moderator permissions removed",
+      "assignError": "Failed to assign moderator",
+      "removeError": "Failed to remove moderator",
+      "confirmRemove": "Are you sure you want to remove this user's moderator permissions?",
+      "fetchError": "Failed to load moderators.",
+      "accessDenied": "Administrator access is required.",
+      "searchError": "Failed to search users.",
+      "selectUser": "Select a user before assigning a moderator role.",
+      "userNotFound": "The selected user could not be found.",
+      "assignValidation": "This user cannot be promoted to moderator.",
+      "notModerator": "The user is not a moderator."
+    },
+    "modal": {
+      "assign": {
+        "title": "Assign Moderator",
+        "description": "Search for an account to grant moderator permissions.",
+        "searchLabel": "User",
+        "searchPlaceholder": "Search by username",
+        "submit": "Assign moderator"
+      },
+      "remove": {
+        "title": "Remove Moderator",
+        "description": "Remove moderator access from {username}? They will become a regular user.",
+        "cancel": "Cancel",
+        "confirm": "Remove moderator"
+      }
+    },
+    "roles": {
+      "admin": "Admin",
+      "moderator": "Moderator",
+      "user": "User"
+    }
   }
 }

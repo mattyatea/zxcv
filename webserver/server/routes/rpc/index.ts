@@ -42,6 +42,7 @@ async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
 			id: payload.sub,
 			email: payload.email,
 			username: payload.username,
+			role: payload.role ?? "user",
 			emailVerified: payload.emailVerified || false,
 			displayName: payload.displayName || null,
 			avatarUrl: payload.avatarUrl || null,

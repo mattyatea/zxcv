@@ -966,5 +966,66 @@
     "error": {
       "copyFailed": "クリップボードへのコピーに失敗しました"
     }
+  },
+  "admin": {
+    "title": "管理者ダッシュボード",
+    "description": "プラットフォーム全体のモデレーターと管理権限を管理します。",
+    "moderators": {
+      "title": "モデレーター管理",
+      "list": "モデレーター一覧",
+      "assign": "モデレーターを割り当て",
+      "remove": "モデレーターを削除",
+      "noModerators": "モデレーターはいません",
+      "role": "ロール",
+      "searchLabel": "メンバーを検索",
+      "searchPlaceholder": "ユーザー名・メール・ロールで検索",
+      "total": "{total}件中{count}件を表示",
+      "emptyHint": "モデレーター権限を割り当てるとここに表示されます。"
+    },
+    "fields": {
+      "username": "ユーザー名",
+      "email": "メールアドレス",
+      "roleLabel": "ロール: {role}",
+      "createdAt": "作成日: {date}",
+      "noEmail": "メールは非公開"
+    },
+    "actions": {
+      "assign": "割り当て",
+      "remove": "削除"
+    },
+    "messages": {
+      "assignSuccess": "モデレーターを割り当てました",
+      "removeSuccess": "モデレーターの権限を削除しました",
+      "assignError": "モデレーターの割り当てに失敗しました",
+      "removeError": "モデレーターの削除に失敗しました",
+      "confirmRemove": "このユーザーのモデレーター権限を削除してもよろしいですか？",
+      "fetchError": "モデレーターの取得に失敗しました。",
+      "accessDenied": "管理者権限が必要です。",
+      "searchError": "ユーザーの検索に失敗しました。",
+      "selectUser": "割り当てるユーザーを選択してください。",
+      "userNotFound": "ユーザーが見つかりませんでした。",
+      "assignValidation": "このユーザーにはモデレーター権限を付与できません。",
+      "notModerator": "このユーザーはモデレーターではありません。"
+    },
+    "modal": {
+      "assign": {
+        "title": "モデレーターを割り当て",
+        "description": "モデレーター権限を付与するユーザーを検索してください。",
+        "searchLabel": "ユーザー",
+        "searchPlaceholder": "ユーザー名で検索",
+        "submit": "割り当てる"
+      },
+      "remove": {
+        "title": "モデレーターを削除",
+        "description": "{username} のモデレーター権限を削除しますか？削除すると一般ユーザーになります。",
+        "cancel": "キャンセル",
+        "confirm": "削除する"
+      }
+    },
+    "roles": {
+      "admin": "管理者",
+      "moderator": "モデレーター",
+      "user": "ユーザー"
+    }
   }
 }

@@ -5,6 +5,7 @@ export interface JWTPayload {
 	sub: string;
 	email: string;
 	username: string;
+	role?: string;
 	emailVerified?: boolean;
 	displayName?: string | null;
 	avatarUrl?: string | null;
@@ -40,7 +41,10 @@ export async function verifyJWT(token: string, env: Env): Promise<JWTPayload | n
 				sub: payload.sub,
 				email: payload.email,
 				username: payload.username,
+				role: typeof payload.role === "string" ? payload.role : undefined,
 				emailVerified: payload.emailVerified as boolean,
+				displayName: payload.displayName as string | null | undefined,
+				avatarUrl: payload.avatarUrl as string | null | undefined,
 				iat: payload.iat,
 				exp: payload.exp,
 			};

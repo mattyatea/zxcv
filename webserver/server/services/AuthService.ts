@@ -129,6 +129,7 @@ export class AuthService {
 				sub: user.id,
 				email: user.email,
 				username: user.username,
+				role: user.role,
 				emailVerified: user.emailVerified,
 				displayName: user.displayName,
 				avatarUrl: user.avatarUrl,
@@ -146,6 +147,7 @@ export class AuthService {
 				id: user.id,
 				username: user.username,
 				email: user.email,
+				role: user.role,
 				emailVerified: user.emailVerified,
 				displayName: user.displayName,
 				avatarUrl: user.avatarUrl,
@@ -352,6 +354,7 @@ export class AuthService {
 				sub: user.id,
 				email: user.email,
 				username: user.username,
+				role: user.role,
 				emailVerified: user.emailVerified,
 				displayName: user.displayName,
 				avatarUrl: user.avatarUrl,
@@ -394,6 +397,7 @@ export class AuthService {
 					id: string;
 					username: string;
 					email: string;
+					role: string;
 					emailVerified: boolean;
 					displayName: string | null;
 					avatarUrl: string | null;
@@ -485,6 +489,7 @@ export class AuthService {
 				sub: user.id,
 				email: user.email,
 				username: user.username,
+				role: user.role,
 				emailVerified: user.emailVerified,
 				displayName: user.displayName,
 				avatarUrl: user.avatarUrl,
@@ -500,6 +505,7 @@ export class AuthService {
 				id: user.id,
 				username: user.username,
 				email: user.email,
+				role: user.role,
 				emailVerified: user.emailVerified,
 				displayName: user.displayName,
 				avatarUrl: user.avatarUrl,

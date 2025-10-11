@@ -88,6 +88,54 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 	});
 });
 
+// Combined middleware that provides db, ensures auth, and restricts to admins
+export const dbWithAdminAuth = os.middleware(async ({ context, next }) => {
+	// Use existing db if provided (for testing), otherwise create new one
+	let db = context.db;
+
+	// For testing: check if global mock Prisma client exists
+	if (!db && globalThis.__mockPrismaClient) {
+		db = globalThis.__mockPrismaClient;
+	}
+
+	// Only create Prisma client if db is not already provided and env.DB exists
+	if (!db && context.env?.DB) {
+		db = createPrismaClient(context.env.DB);
+	}
+
+	// If still no db, throw a descriptive error
+	if (!db) {
+		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+	}
+
+	// For testing: if no user in context, check if there's a global test user
+	let user = context.user;
+	if (!user && process.env.NODE_ENV === "test" && globalThis.__testUser) {
+		user = globalThis.__testUser;
+	}
+
+	if (!user) {
+		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
+	}
+
+	if (user.role !== "admin") {
+		throw new ORPCError("FORBIDDEN", { message: "Admin access required" });
+	}
+
+	// Auto-detect locale from request headers
+	const request = context.cloudflare?.request;
+	const locale = getLocaleFromRequest(request);
+
+	return next({
+		context: {
+			...context,
+			db,
+			user: user as AuthUser, // Type assertion since we checked it exists
+			locale,
+		},
+	});
+});
+
 // Combined middleware that provides db and optionally has auth
 export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
 	// Use existing db if provided (for testing), otherwise create new one
