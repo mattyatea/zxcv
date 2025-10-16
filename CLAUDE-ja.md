@@ -333,7 +333,7 @@ pnpm install some-package@github:user/repo#branch
     AuthService.ts    # 認証サービス
     OrganizationService.ts # 組織管理サービス
     RuleService.ts    # ルール管理サービス
-    emailVerification.ts # メール認証サービス
+    EmailVerificationService.ts # メール認証サービス
   
   /repositories/      # データアクセス層
     index.ts          # リポジトリのエクスポート
@@ -918,7 +918,7 @@ Feat: チーム機能を実装
   - `AuthService.ts`: 認証サービス
   - `OrganizationService.ts`: 組織管理サービス
   - `RuleService.ts`: ルール管理サービス
-  - `emailVerification.ts`: メール検証サービス
+  - `EmailVerificationService.ts`: メール検証サービス
 - **`/server/repositories`**: データアクセス層（リポジトリパターン）
   - `BaseRepository.ts`: ベースリポジトリ
   - `UserRepository.ts`, `RuleRepository.ts`, `OrganizationRepository.ts`: 各エンティティリポジトリ

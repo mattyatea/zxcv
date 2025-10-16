@@ -333,7 +333,7 @@ pnpm install some-package@github:user/repo#branch
     AuthService.ts    # Authentication service
     OrganizationService.ts # Organization management service
     RuleService.ts    # Rule management service
-    emailVerification.ts # Email verification service
+    EmailVerificationService.ts # Email verification service
   
   /repositories/      # Data access layer
     index.ts          # Repository exports
@@ -918,7 +918,7 @@ Feat: Implement team functionality
   - `AuthService.ts`: Authentication service
   - `OrganizationService.ts`: Organization management service
   - `RuleService.ts`: Rule management service
-  - `emailVerification.ts`: Email verification service
+  - `EmailVerificationService.ts`: Email verification service
 - **`/server/repositories`**: Data access layer (repository pattern)
   - `BaseRepository.ts`: Base repository
   - `UserRepository.ts`, `RuleRepository.ts`, `OrganizationRepository.ts`: Entity repositories
