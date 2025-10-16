@@ -1,5 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { UserPackingService } from "../../services/packing/UserPackingService";
+import { UserService } from "../../services/UserService";
 import { hashPassword, verifyPassword } from "../../utils/crypto";
 import { authErrors } from "../../utils/i18n";
 import type { Locale } from "../../utils/locale";
@@ -14,20 +15,11 @@ export const searchByUsername = os.users.searchByUsername
 	.handler(async ({ input, context }) => {
 		const { username, limit } = input;
 		const { db, user } = context;
+		const userService = new UserService(db);
 		const userPackingService = new UserPackingService();
 
-		// Search for users by username (case-insensitive partial match)
-		const users = await db.user.findMany({
-			where: {
-				username: {
-					contains: username.toLowerCase(),
-				},
-			},
-			take: limit,
-			orderBy: {
-				username: "asc",
-			},
-		});
+		// Search for users by username
+		const users = await userService.searchUsersByUsername(username, limit);
 
 		// Use UserPackingService to pack search results
 		return userPackingService.packSearchUsers(users, user.id);
@@ -39,12 +31,11 @@ export const getProfile = os.users.getProfile
 	.handler(async ({ input, context }) => {
 		const { username } = input;
 		const { db, user } = context;
+		const userService = new UserService(db);
 		const userPackingService = new UserPackingService();
 
 		// Get user profile
-		const targetUser = await db.user.findUnique({
-			where: { username: username.toLowerCase() },
-		});
+		const targetUser = await userService.getUserByUsername(username);
 
 		if (!targetUser) {
 			const locale: Locale = "ja"; // Default to Japanese
@@ -76,18 +67,8 @@ export const getProfile = os.users.getProfile
 			take: 5,
 		});
 
-		// Fetch stats directly in procedure
-		const [rulesCount, organizationsCount] = await Promise.all([
-			db.rule.count({
-				where: {
-					userId: targetUser.id,
-					visibility: "public",
-				},
-			}),
-			db.organizationMember.count({
-				where: { userId: targetUser.id },
-			}),
-		]);
+		// Fetch stats using UserService
+		const stats = await userService.getUserStats(targetUser.id, { publicOnly: true });
 
 		// Use UserPackingService to pack user profile
 		const userProfile = userPackingService.packUserProfile(targetUser, {
@@ -96,10 +77,7 @@ export const getProfile = os.users.getProfile
 
 		return {
 			user: userProfile,
-			stats: {
-				rulesCount,
-				organizationsCount,
-			},
+			stats,
 			recentRules: recentRules.map((rule) => ({
 				...rule,
 				description: rule.description || "",
@@ -110,6 +88,7 @@ export const getProfile = os.users.getProfile
 export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 	try {
 		const { db, user } = context;
+		const userService = new UserService(db);
 		const userPackingService = new UserPackingService();
 
 		console.log("[DEBUG] users.me called for user:", user?.id);
@@ -126,10 +105,8 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 		}
 
 		// Get detailed user profile from database
-		console.log("[DEBUG] About to call db.user.findUnique");
-		const userProfile = await db.user.findUnique({
-			where: { id: user.id },
-		});
+		console.log("[DEBUG] About to call getUserById");
+		const userProfile = await userService.getUserById(user.id);
 
 		console.log("[DEBUG] userProfile from DB:", userProfile);
 
@@ -137,27 +114,11 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 			throw new ORPCError("NOT_FOUND", { message: "User not found" });
 		}
 
-		// Fetch stats directly in procedure
-		const [rulesCount, organizationsCount, totalStars] = await Promise.all([
-			db.rule.count({
-				where: { userId: user.id },
-			}),
-			db.organizationMember.count({
-				where: { userId: user.id },
-			}),
-			db.ruleStar.count({
-				where: {
-					rule: { userId: user.id },
-				},
-			}),
-		]);
+		// Fetch stats using UserService
+		const stats = await userService.getUserStats(user.id, { includeTotalStars: true });
 
 		// Use UserPackingService to pack user with stats
-		const result = userPackingService.packUserWithStats(userProfile, {
-			rulesCount,
-			organizationsCount,
-			totalStars,
-		});
+		const result = userPackingService.packUserWithStats(userProfile, stats);
 
 		console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
 
@@ -476,34 +437,21 @@ export const getPublicProfile = os.users.getPublicProfile
 	.handler(async ({ input, context }) => {
 		const { username } = input;
 		const { db } = context;
+		const userService = new UserService(db);
 		const userPackingService = new UserPackingService();
 
 		// Get user profile
-		const user = await db.user.findUnique({
-			where: { username: username.toLowerCase() },
-		});
+		const user = await userService.getUserByUsername(username);
 
 		if (!user) {
 			throw new ORPCError("NOT_FOUND", { message: "User not found" });
 		}
 
-		// Get public rules count and total stars
-		const [publicRulesCount, totalStars] = await Promise.all([
-			db.rule.count({
-				where: {
-					userId: user.id,
-					visibility: "public",
-				},
-			}),
-			db.ruleStar.count({
-				where: {
-					rule: {
-						userId: user.id,
-						visibility: "public",
-					},
-				},
-			}),
-		]);
+		// Get public stats using UserService
+		const stats = await userService.getUserStats(user.id, {
+			publicOnly: true,
+			includeTotalStars: true,
+		});
 
 		// Get public rules with star count
 		const publicRules = await db.rule.findMany({
@@ -537,8 +485,8 @@ export const getPublicProfile = os.users.getPublicProfile
 		return {
 			user: userPackingService.packPublicProfile(user),
 			stats: {
-				publicRulesCount,
-				totalStars,
+				publicRulesCount: stats.rulesCount,
+				totalStars: stats.totalStars || 0,
 			},
 			publicRules: publicRules.map((rule) => ({
 				id: rule.id,
