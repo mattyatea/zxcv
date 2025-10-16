@@ -41,7 +41,8 @@ export const usersContract = {
 				user: z.object({
 					id: z.string(),
 					username: z.string(),
-					email: z.string().nullable(),
+					email: z.string().optional(),
+					role: z.string().optional(),
 					emailVerified: z.boolean(),
 					displayName: z.string().nullable(),
 					bio: z.string().nullable(),

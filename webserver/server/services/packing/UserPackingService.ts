@@ -21,42 +21,42 @@ export interface AuthUser {
 	emailVerified: boolean;
 	displayName: string | null;
 	avatarUrl: string | null;
+	bio?: string | null;
+	location?: string | null;
+	website?: string | null;
+}
+
+/**
+ * ユーザープロフィールの基本情報（共通部分）
+ */
+interface BaseUserProfile {
+	id: string;
+	username: string;
+	emailVerified: boolean;
+	displayName: string | null;
+	bio: string | null;
+	location: string | null;
+	website: string | null;
+	avatarUrl: string | null;
+	createdAt: number;
+	updatedAt: number;
 }
 
 /**
  * 完全なユーザープロフィール情報（自分のプロフィール向け）
+ * センシティブな情報（email, role）を含む
  */
-export interface FullUserProfile {
-	id: string;
-	username: string;
+export interface FullUserProfile extends BaseUserProfile {
 	email: string;
 	role: string;
-	emailVerified: boolean;
-	displayName: string | null;
-	bio: string | null;
-	location: string | null;
-	website: string | null;
-	avatarUrl: string | null;
-	createdAt: number;
-	updatedAt: number;
 }
 
 /**
  * 他人のユーザープロフィール情報（メール・roleなし）
+ * センシティブな情報を除外した公開用プロフィール
  */
-export interface OtherUserProfile {
-	id: string;
-	username: string;
-	email: null;
-	role: null;
-	emailVerified: boolean;
-	displayName: string | null;
-	bio: string | null;
-	location: string | null;
-	website: string | null;
-	avatarUrl: string | null;
-	createdAt: number;
-	updatedAt: number;
+export interface OtherUserProfile extends BaseUserProfile {
+	// センシティブな情報は含まない（省略）
 }
 
 /**
@@ -132,6 +132,9 @@ export class UserPackingService {
 			emailVerified: user.emailVerified,
 			displayName: user.displayName,
 			avatarUrl: user.avatarUrl,
+			bio: user.bio,
+			location: user.location,
+			website: user.website,
 		};
 	}
 
@@ -157,13 +160,12 @@ export class UserPackingService {
 
 	/**
 	 * 他人のユーザープロフィール情報を作成（メール・roleなし）
+	 * センシティブな情報を除外して返す
 	 */
 	packOtherUserProfile(user: User): OtherUserProfile {
 		return {
 			id: user.id,
 			username: user.username,
-			email: null,
-			role: null,
 			emailVerified: user.emailVerified,
 			displayName: user.displayName,
 			bio: user.bio,

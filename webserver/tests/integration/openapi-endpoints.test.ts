@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { onError } from "@orpc/server";
 import { CORSPlugin } from "@orpc/server/plugins";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { router } from "~/server/orpc/router";
 import { createMockPrismaClient } from "~/tests/helpers/test-db";
 
@@ -247,9 +247,10 @@ describe("OpenAPI Endpoints via REST", () => {
 				username: "testuser",
 				emailVerified: true,
 				passwordHash: "hash",
+				role: "user",
 				displayName: "Test User",
 				bio: "Test bio",
-				location: "Test City", 
+				location: "Test City",
 				website: "https://example.com",
 				avatarUrl: "https://example.com/avatar.jpg",
 				createdAt: mockNow,
@@ -258,8 +259,14 @@ describe("OpenAPI Endpoints via REST", () => {
 
 			// Mock the database response for profile endpoint with logging
 			mockDb.user.findUnique.mockImplementation(async (args: any) => {
-				console.log("[OPENAPI TEST DEBUG] user.findUnique called with:", JSON.stringify(args, null, 2));
-				console.log("[OPENAPI TEST DEBUG] returning userDetails:", JSON.stringify(userDetails, null, 2));
+				console.log(
+					"[OPENAPI TEST DEBUG] user.findUnique called with:",
+					JSON.stringify(args, null, 2),
+				);
+				console.log(
+					"[OPENAPI TEST DEBUG] returning userDetails:",
+					JSON.stringify(userDetails, null, 2),
+				);
 				return userDetails;
 			});
 
@@ -270,12 +277,18 @@ describe("OpenAPI Endpoints via REST", () => {
 				return 0;
 			});
 			mockDb.organizationMember.count.mockImplementation(async (args: any) => {
-				console.log("[OPENAPI TEST DEBUG] organizationMember.count called with:", JSON.stringify(args, null, 2));
+				console.log(
+					"[OPENAPI TEST DEBUG] organizationMember.count called with:",
+					JSON.stringify(args, null, 2),
+				);
 				console.log("[OPENAPI TEST DEBUG] returning 0");
 				return 0;
 			});
 			mockDb.ruleStar.count.mockImplementation(async (args: any) => {
-				console.log("[OPENAPI TEST DEBUG] ruleStar.count called with:", JSON.stringify(args, null, 2));
+				console.log(
+					"[OPENAPI TEST DEBUG] ruleStar.count called with:",
+					JSON.stringify(args, null, 2),
+				);
 				console.log("[OPENAPI TEST DEBUG] returning 0");
 				return 0;
 			});
@@ -307,18 +320,18 @@ describe("OpenAPI Endpoints via REST", () => {
 			// Debug response
 			console.log("[OPENAPI TEST DEBUG] Response status:", response.response.status);
 			console.log("[OPENAPI TEST DEBUG] Response matched:", response.matched);
-			
+
 			if (!response.matched) {
 				console.log("[OPENAPI TEST DEBUG] Response not matched for /api/users/me");
 			}
-			
+
 			if (response.response.status !== 200) {
 				// Clone the response to avoid consuming it
 				const responseClone = response.response.clone();
 				const body = await responseClone.text();
 				console.log("[OPENAPI TEST DEBUG] Non-200 response, body:", body);
 			}
-			
+
 			expect(response.matched).toBe(true);
 			expect(response.response.status).toBe(200);
 
@@ -618,7 +631,7 @@ describe("OpenAPI Endpoints via REST", () => {
 		it("should handle input parameters in POST requests", async () => {
 			// Mock organization membership query
 			mockDb.organizationMember.findMany.mockResolvedValue([]);
-			
+
 			// Mock rule queries
 			mockDb.rule.findMany.mockResolvedValue([]);
 			mockDb.rule.count.mockResolvedValue(0);
@@ -684,17 +697,17 @@ describe("OpenAPI Endpoints via REST", () => {
 			// Mock namespace availability check
 			mockDb.user.findUnique.mockResolvedValue(null);
 			mockDb.organization.findUnique.mockResolvedValue(null);
-			
+
 			// Mock organization name check
 			mockDb.organization.findFirst.mockResolvedValue(null);
-			
+
 			const orgId = "org_123";
-			
+
 			// transaction をモック
 			mockDb.$transaction.mockImplementation(async (callback) => {
 				return callback(mockDb);
 			});
-			
+
 			mockDb.organization.create.mockResolvedValue({
 				id: orgId,
 				name: "test-org",
@@ -807,7 +820,7 @@ describe("OpenAPI Endpoints via REST", () => {
 			// Step 1: Register via REST API
 			mockDb.user.findUnique.mockResolvedValue(null);
 			mockDb.organization.findUnique.mockResolvedValue(null);
-			
+
 			const userId = "new_user_123";
 			mockDb.user.create.mockResolvedValue({
 				id: userId,
@@ -1085,9 +1098,11 @@ describe("OpenAPI Endpoints via REST", () => {
 			// Step 2: Reset password with token
 			mockDb.passwordReset.findFirst.mockImplementation(async (args) => {
 				// Check if the token matches and other conditions
-				if (args?.where?.token === "reset_token" && 
+				if (
+					args?.where?.token === "reset_token" &&
 					args?.where?.usedAt === null &&
-					args?.where?.expiresAt?.gt) {
+					args?.where?.expiresAt?.gt
+				) {
 					return {
 						id: "reset_123",
 						userId,
@@ -1143,8 +1158,7 @@ describe("OpenAPI Endpoints via REST", () => {
 			});
 
 			expect(completeResetResponse.matched).toBe(true);
-			
-			
+
 			expect(completeResetResponse.response.status).toBe(200);
 
 			const completeData = await completeResetResponse.response.json();
@@ -1185,10 +1199,11 @@ describe("OpenAPI Endpoints via REST", () => {
 			});
 
 			expect(response.matched).toBe(true);
-			expect(response.response.status).toBe(429);
+			// Email login is disabled, so expect 403 FORBIDDEN instead of 429
+			expect(response.response.status).toBe(403);
 
 			const data = await response.response.json();
-			expect(data.code).toBe("TOO_MANY_REQUESTS");
+			expect(data.code).toBe("FORBIDDEN");
 		});
 	});
 
@@ -1248,13 +1263,15 @@ describe("OpenAPI Endpoints via REST", () => {
 				user: expect.objectContaining({
 					id: "user_123",
 					username: "testuser",
-					email: null, // Email should be hidden for other users
 				}),
 				stats: {
 					rulesCount: 5,
 					organizationsCount: 1,
 				},
 			});
+			// Email and role should not be present for other users
+			expect(data.user).not.toHaveProperty("email");
+			expect(data.user).not.toHaveProperty("role");
 		});
 
 		it("POST /api/users/updateProfile - should update user profile for owner", async () => {
@@ -1275,9 +1292,11 @@ describe("OpenAPI Endpoints via REST", () => {
 			mockDb.user.findUnique.mockResolvedValue(mockUser);
 			mockDb.user.update.mockResolvedValue({
 				...mockUser,
+				passwordHash: "hashed_password",
+				role: "user",
 				displayName: "Updated Name",
 				bio: "Updated bio",
-				location: "New Location", 
+				location: "New Location",
 				website: "https://example.com",
 				updatedAt: mockNow,
 			});
@@ -1290,7 +1309,7 @@ describe("OpenAPI Endpoints via REST", () => {
 				},
 				body: JSON.stringify({
 					displayName: "Updated Name",
-					bio: "Updated bio", 
+					bio: "Updated bio",
 					location: "New Location",
 					website: "https://example.com",
 				}),

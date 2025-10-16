@@ -467,8 +467,12 @@ describe("Auth Integration Tests", () => {
 						passwordHash: "hashed_password123",
 						displayName: null,
 						avatarUrl: null,
-						createdAt: new Date().toISOString(),
-						updatedAt: new Date().toISOString(),
+						bio: null,
+						location: null,
+						website: null,
+						role: "user",
+						createdAt: Math.floor(Date.now() / 1000),
+						updatedAt: Math.floor(Date.now() / 1000),
 					};
 				}
 				return null;
@@ -605,7 +609,6 @@ describe("Auth Integration Tests", () => {
 		});
 
 		it.skip("should reset password with valid token", async () => {
-			const userId = "user_123";
 			const token = "valid_reset_token";
 			const newPassword = "newpassword123";
 
@@ -695,6 +698,7 @@ describe("Auth Integration Tests", () => {
 			const userDetails = {
 				...currentUser,
 				passwordHash: "hashed",
+				role: "user",
 				createdAt: Math.floor(Date.now() / 1000),
 				updatedAt: Math.floor(Date.now() / 1000),
 				displayName: "Test User",
@@ -800,6 +804,7 @@ describe("Auth Integration Tests", () => {
 				email: "test@example.com",
 				passwordHash: "hashed",
 				emailVerified: true,
+				role: "user",
 				displayName: updateData.displayName,
 				bio: updateData.bio,
 				location: updateData.location,
@@ -807,7 +812,7 @@ describe("Auth Integration Tests", () => {
 				avatarUrl: null,
 				settings: "{}",
 				createdAt: 1234567890,
-				updatedAt: Date.now() / 1000,
+				updatedAt: Math.floor(Date.now() / 1000),
 			});
 
 			// Create authenticated client
@@ -840,7 +845,6 @@ describe("Auth Integration Tests", () => {
 					website: updateData.website,
 					updatedAt: expect.any(Number),
 				}),
-				select: expect.any(Object),
 			});
 		});
 	});

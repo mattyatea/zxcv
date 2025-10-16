@@ -13,12 +13,12 @@ vi.mock("~/server/utils/jwt", () => ({
 	createJWT: vi.fn(),
 	createRefreshToken: vi.fn(),
 }));
-import { EmailVerificationService } from "~/server/services/emailVerification";
+import { EmailVerificationService } from "~/server/services/EmailVerificationService";
 
 // Mock dependencies
 vi.mock("~/server/utils/crypto");
 vi.mock("~/server/utils/jwt");
-vi.mock("~/server/services/emailVerification", () => ({
+vi.mock("~/server/services/EmailVerificationService", () => ({
 	EmailVerificationService: vi.fn(),
 }));
 

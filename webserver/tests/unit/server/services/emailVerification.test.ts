@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { EmailVerificationService } from "~/server/services/emailVerification";
+import { EmailVerificationService } from "~/server/services/EmailVerificationService";
 import { EmailService } from "~/server/utils/email";
 import * as cryptoUtils from "~/server/utils/crypto";
 import type { PrismaClient } from "@prisma/client";
