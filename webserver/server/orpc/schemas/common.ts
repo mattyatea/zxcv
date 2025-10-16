@@ -13,22 +13,68 @@ export const UserSchema = z.object({
 	emailVerified: z.boolean(),
 });
 
-export const UserProfileSchema = UserSchema.extend({
+// 完全なユーザープロフィールスキーマ（自分のプロフィール用）
+export const FullUserProfileSchema = z.object({
+	id: z.string(),
+	email: z.string(),
+	username: z.string(),
+	role: z.string(),
+	emailVerified: z.boolean(),
 	displayName: z.string().nullable(),
 	bio: z.string().nullable(),
 	location: z.string().nullable(),
-	website: z.string().url().nullable().or(z.literal("")),
+	website: z.string().nullable(),
 	avatarUrl: z.string().nullable(),
 	createdAt: z.number(),
 	updatedAt: z.number(),
 });
 
-export const AuthUserSchema = UserSchema.pick({
-	id: true,
-	email: true,
-	username: true,
-	emailVerified: true,
-}).extend({
+// 他人のユーザープロフィールスキーマ（メール・roleなし）
+export const OtherUserProfileSchema = z.object({
+	id: z.string(),
+	username: z.string(),
+	email: z.null(),
+	role: z.null(),
+	emailVerified: z.boolean(),
+	displayName: z.string().nullable(),
+	bio: z.string().nullable(),
+	location: z.string().nullable(),
+	website: z.string().nullable(),
+	avatarUrl: z.string().nullable(),
+	createdAt: z.number(),
+	updatedAt: z.number(),
+});
+
+// 統合型（後方互換性のため）
+export const UserProfileSchema = FullUserProfileSchema;
+
+// 統計情報付きユーザー情報スキーマ（自分用）
+export const UserWithStatsSchema = z.object({
+	id: z.string(),
+	email: z.string(),
+	username: z.string(),
+	role: z.string(),
+	emailVerified: z.boolean(),
+	displayName: z.string().nullable(),
+	bio: z.string().nullable(),
+	location: z.string().nullable(),
+	website: z.string().nullable(),
+	avatarUrl: z.string().nullable(),
+	createdAt: z.number(),
+	updatedAt: z.number(),
+	stats: z.object({
+		rulesCount: z.number(),
+		organizationsCount: z.number(),
+		totalStars: z.number().optional(),
+	}),
+});
+
+export const AuthUserSchema = z.object({
+	id: z.string(),
+	email: z.string(),
+	username: z.string(),
+	role: z.string(),
+	emailVerified: z.boolean(),
 	displayName: z.string().nullable(),
 	avatarUrl: z.string().nullable(),
 	bio: z.string().nullable().optional(),

@@ -1,6 +1,11 @@
 import { oc } from "@orpc/contract";
 import * as z from "zod";
-import { PasswordSchema, SuccessResponseSchema, UserProfileSchema } from "../schemas/common";
+import {
+	FullUserProfileSchema,
+	PasswordSchema,
+	SuccessResponseSchema,
+	UserWithStatsSchema,
+} from "../schemas/common";
 
 export const usersContract = {
 	searchByUsername: oc
@@ -119,26 +124,7 @@ export const usersContract = {
 			path: "/users/me",
 			description: "Get current user information",
 		})
-		.output(
-			z.object({
-				id: z.string(),
-				email: z.string(),
-				username: z.string(),
-				emailVerified: z.boolean(),
-				displayName: z.string().nullable(),
-				bio: z.string().nullable(),
-				location: z.string().nullable(),
-				website: z.string().nullable(),
-				avatarUrl: z.string().nullable(),
-				createdAt: z.number(),
-				updatedAt: z.number(),
-				stats: z.object({
-					rulesCount: z.number(),
-					organizationsCount: z.number(),
-					totalStars: z.number(),
-				}),
-			}),
-		),
+		.output(UserWithStatsSchema),
 
 	updateProfile: oc
 		.route({
@@ -156,7 +142,7 @@ export const usersContract = {
 		)
 		.output(
 			z.object({
-				user: UserProfileSchema,
+				user: FullUserProfileSchema,
 			}),
 		),
 

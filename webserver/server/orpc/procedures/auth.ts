@@ -1,5 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { AuthService } from "../../services/AuthService";
+import { UserPackingService } from "../../services/UserPackingService";
 // import { EmailServiceError } from "../../types/errors";
 import type { AuthUser } from "../../utils/auth";
 import { generateId } from "../../utils/crypto";
@@ -170,6 +171,7 @@ export const authProcedures = {
 	refresh: os.auth.refresh.use(dbProvider).handler(async ({ input, context }) => {
 		const { refreshToken } = input;
 		const { db, env, locale } = context;
+		const userPackingService = new UserPackingService(db);
 
 		// Verify refresh token
 		const { verifyRefreshToken, createRefreshToken, createJWT } = await import("../../utils/jwt");
@@ -187,15 +189,7 @@ export const authProcedures = {
 			throw new ORPCError("UNAUTHORIZED", { message: "User not found" });
 		}
 
-		const authUser = {
-			id: user.id,
-			email: user.email,
-			username: user.username,
-			role: user.role,
-			emailVerified: user.emailVerified,
-			displayName: user.displayName,
-			avatarUrl: user.avatarUrl,
-		};
+		const authUser = userPackingService.packAuthUser(user);
 
 		const accessToken = await createJWT(
 			{
@@ -557,6 +551,7 @@ export const authProcedures = {
 			const { db, env, cloudflare } = context;
 			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 			const logger = createLogger(env);
+			const userPackingService = new UserPackingService(db);
 
 			try {
 				// Get temp registration
@@ -634,15 +629,7 @@ export const authProcedures = {
 				return {
 					accessToken: tokens.accessToken,
 					refreshToken: tokens.refreshToken,
-					user: {
-						id: user.id,
-						username: user.username,
-						email: user.email,
-						role: user.role,
-						emailVerified: user.emailVerified,
-						displayName: user.displayName,
-						avatarUrl: user.avatarUrl,
-					},
+					user: userPackingService.packAuthUser(user),
 				};
 			} catch (error) {
 				logger.error("Complete OAuth registration error", error as Error);
@@ -1012,7 +999,7 @@ export const authProcedures = {
 		}),
 
 	me: os.auth.me.use(dbProvider).handler(async ({ context }) => {
-		const { user } = context;
+		const { db, user } = context;
 
 		if (!user) {
 			throw new ORPCError("UNAUTHORIZED", {
@@ -1020,13 +1007,20 @@ export const authProcedures = {
 			});
 		}
 
-		return {
-			id: user.id,
-			email: user.email,
-			username: user.username,
-			emailVerified: user.emailVerified,
-			displayName: user.displayName,
-			avatarUrl: user.avatarUrl,
-		};
+		// Get full user data from database
+		const fullUser = await db.user.findUnique({
+			where: { id: user.id },
+		});
+
+		if (!fullUser) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "User not found",
+			});
+		}
+
+		const userPackingService = new UserPackingService(db);
+		const authUser = userPackingService.packAuthUser(fullUser);
+
+		return authUser;
 	}),
 };

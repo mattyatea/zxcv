@@ -133,7 +133,10 @@ describe("auth procedures", () => {
 			id: user.id,
 			email: user.email,
 			username: user.username,
+			role: user.role,
 			emailVerified: user.emailVerified,
+			displayName: user.displayName,
+			avatarUrl: user.avatarUrl,
 		};
 
 		const accessToken = await createJWT(
@@ -141,7 +144,10 @@ describe("auth procedures", () => {
 				sub: authUser.id,
 				email: authUser.email,
 				username: authUser.username,
+				role: authUser.role,
 				emailVerified: authUser.emailVerified,
+				displayName: authUser.displayName,
+				avatarUrl: authUser.avatarUrl,
 			},
 			env,
 		);
@@ -518,6 +524,14 @@ describe("auth procedures", () => {
 			username: "testuser",
 			email: "test@example.com",
 			emailVerified: true,
+			role: "user",
+			displayName: null,
+			avatarUrl: null,
+			bio: null,
+			location: null,
+			website: null,
+			createdAt: 1640995200,
+			updatedAt: 1640995200,
 		};
 
 		it("should refresh tokens successfully", async () => {
@@ -535,7 +549,10 @@ describe("auth procedures", () => {
 					id: "user_123",
 					email: "test@example.com",
 					username: "testuser",
+					role: "user",
 					emailVerified: true,
+					displayName: null,
+					avatarUrl: null,
 				},
 			});
 

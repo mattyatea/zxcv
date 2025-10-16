@@ -143,19 +143,9 @@ describe("users procedures", () => {
 				],
 			});
 
-			// Verify database calls
+			// Verify database calls (select clause removed as UserPackingService doesn't use it)
 			expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
 				where: { username: "testuser" },
-				select: {
-					id: true,
-					username: true,
-					displayName: true,
-					bio: true,
-					location: true,
-					website: true,
-					avatarUrl: true,
-					createdAt: true,
-				},
 			});
 
 			expect(mockPrisma.rule.count).toHaveBeenCalledWith({
@@ -212,19 +202,9 @@ describe("users procedures", () => {
 				call(getPublicProfile, validInput)
 			).rejects.toThrow(ORPCError);
 
-			// Verify database call
+			// Verify database call (select clause removed as UserPackingService doesn't use it)
 			expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
 				where: { username: "testuser" },
-				select: {
-					id: true,
-					username: true,
-					displayName: true,
-					bio: true,
-					location: true,
-					website: true,
-					avatarUrl: true,
-					createdAt: true,
-				},
 			});
 
 			// Ensure no other database calls were made
@@ -333,17 +313,12 @@ describe("users procedures", () => {
 				},
 			]);
 
-			// Verify database call
+			// Verify database call (select clause removed as UserPackingService doesn't use it)
 			expect(mockPrisma.user.findMany).toHaveBeenCalledWith({
 				where: {
 					username: {
 						contains: "test",
 					},
-				},
-				select: {
-					id: true,
-					username: true,
-					email: true,
 				},
 				take: 5,
 				orderBy: {

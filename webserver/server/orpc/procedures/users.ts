@@ -1,4 +1,5 @@
 import { ORPCError } from "@orpc/server";
+import { UserPackingService } from "../../services/UserPackingService";
 import { hashPassword, verifyPassword } from "../../utils/crypto";
 import { authErrors } from "../../utils/i18n";
 import type { Locale } from "../../utils/locale";
@@ -12,7 +13,8 @@ export const searchByUsername = os.users.searchByUsername
 	.use(dbWithAuth)
 	.handler(async ({ input, context }) => {
 		const { username, limit } = input;
-		const { db } = context;
+		const { db, user } = context;
+		const userPackingService = new UserPackingService(db);
 
 		// Search for users by username (case-insensitive partial match)
 		const users = await db.user.findMany({
@@ -21,22 +23,14 @@ export const searchByUsername = os.users.searchByUsername
 					contains: username.toLowerCase(),
 				},
 			},
-			select: {
-				id: true,
-				username: true,
-				email: true,
-			},
 			take: limit,
 			orderBy: {
 				username: "asc",
 			},
 		});
 
-		// Mask email addresses for other users
-		return users.map((u) => ({
-			...u,
-			email: u.id === context.user.id ? u.email : null,
-		}));
+		// Use UserPackingService to pack search results
+		return userPackingService.packSearchUsers(users, user.id);
 	});
 
 // Get user profile by username
@@ -44,50 +38,23 @@ export const getProfile = os.users.getProfile
 	.use(dbWithAuth)
 	.handler(async ({ input, context }) => {
 		const { username } = input;
-		const { db } = context;
+		const { db, user } = context;
+		const userPackingService = new UserPackingService(db);
 
 		// Get user profile
-		const user = await db.user.findUnique({
+		const targetUser = await db.user.findUnique({
 			where: { username: username.toLowerCase() },
-			select: {
-				id: true,
-				email: true,
-				username: true,
-				emailVerified: true,
-				displayName: true,
-				bio: true,
-				location: true,
-				website: true,
-				avatarUrl: true,
-				createdAt: true,
-				updatedAt: true,
-			},
 		});
 
-		if (!user) {
+		if (!targetUser) {
 			const locale: Locale = "ja"; // Default to Japanese
 			throw new ORPCError("NOT_FOUND", { message: authErrors.userNotFound(locale) });
 		}
 
-		// Get user statistics
-		const [rulesCount, organizationsCount] = await Promise.all([
-			db.rule.count({
-				where: {
-					userId: user.id,
-					visibility: "public", // Only count public rules
-				},
-			}),
-			db.organizationMember.count({
-				where: {
-					userId: user.id,
-				},
-			}),
-		]);
-
 		// Get recent public rules
 		const recentRules = await db.rule.findMany({
 			where: {
-				userId: user.id,
+				userId: targetUser.id,
 				visibility: "public",
 			},
 			select: {
@@ -109,27 +76,15 @@ export const getProfile = os.users.getProfile
 			take: 5,
 		});
 
-		// Check if the requesting user is viewing their own profile
-		const isOwnProfile = context.user?.id === user.id;
+		// Use UserPackingService to pack user profile with stats
+		const userProfile = userPackingService.packUserProfile(targetUser, {
+			currentUserId: user.id,
+		});
+		const stats = await userPackingService.getUserStats(targetUser.id, { publicOnly: true });
 
 		return {
-			user: {
-				id: user.id,
-				username: user.username,
-				email: isOwnProfile ? user.email : null,
-				emailVerified: user.emailVerified,
-				displayName: user.displayName,
-				bio: user.bio,
-				location: user.location,
-				website: user.website,
-				avatarUrl: user.avatarUrl,
-				createdAt: user.createdAt,
-				updatedAt: user.updatedAt,
-			},
-			stats: {
-				rulesCount,
-				organizationsCount,
-			},
+			user: userProfile,
+			stats,
 			recentRules: recentRules.map((rule) => ({
 				...rule,
 				description: rule.description || "",
@@ -140,6 +95,7 @@ export const getProfile = os.users.getProfile
 export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 	try {
 		const { db, user } = context;
+		const userPackingService = new UserPackingService(db);
 
 		console.log("[DEBUG] users.me called for user:", user?.id);
 		console.log("[DEBUG] context available:", { hasDb: !!db, hasUser: !!user });
@@ -158,19 +114,6 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 		console.log("[DEBUG] About to call db.user.findUnique");
 		const userProfile = await db.user.findUnique({
 			where: { id: user.id },
-			select: {
-				id: true,
-				email: true,
-				username: true,
-				emailVerified: true,
-				displayName: true,
-				bio: true,
-				location: true,
-				website: true,
-				avatarUrl: true,
-				createdAt: true,
-				updatedAt: true,
-			},
 		});
 
 		console.log("[DEBUG] userProfile from DB:", userProfile);
@@ -179,64 +122,11 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 			throw new ORPCError("NOT_FOUND", { message: "User not found" });
 		}
 
-		// Get user statistics with robust error handling
-		let rulesCount = 0;
-		let organizationsCount = 0;
-		let totalStars = 0;
-
-		try {
-			const stats = await Promise.all([
-				db.rule.count({
-					where: {
-						userId: user.id,
-					},
-				}),
-				db.organizationMember.count({
-					where: {
-						userId: user.id,
-					},
-				}),
-				db.ruleStar.count({
-					where: {
-						rule: {
-							userId: user.id,
-						},
-					},
-				}),
-			]);
-
-			// Ensure we always get numbers, even if the database returns unexpected values
-			rulesCount = typeof stats[0] === "number" ? stats[0] : 0;
-			organizationsCount = typeof stats[1] === "number" ? stats[1] : 0;
-			totalStars = typeof stats[2] === "number" ? stats[2] : 0;
-
-			console.log("[DEBUG] stats from DB:", { rulesCount, organizationsCount, totalStars });
-		} catch (error) {
-			console.log("[DEBUG] Error getting stats, using defaults:", error);
-			// Use defaults if there's any error
-			rulesCount = 0;
-			organizationsCount = 0;
-			totalStars = 0;
-		}
-
-		const result = {
-			id: userProfile.id,
-			email: userProfile.email,
-			username: userProfile.username,
-			emailVerified: userProfile.emailVerified,
-			displayName: userProfile.displayName ?? null,
-			bio: userProfile.bio ?? null,
-			location: userProfile.location ?? null,
-			website: userProfile.website ?? null,
-			avatarUrl: userProfile.avatarUrl ?? null,
-			createdAt: userProfile.createdAt,
-			updatedAt: userProfile.updatedAt,
-			stats: {
-				rulesCount,
-				organizationsCount,
-				totalStars,
-			},
-		};
+		// Use UserPackingService to pack user with stats
+		const result = await userPackingService.packUserWithStats(userProfile, {
+			currentUserId: user.id,
+			includeStats: true,
+		});
 
 		console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
 
@@ -258,6 +148,7 @@ export const updateProfile = os.users.updateProfile
 	.handler(async ({ input, context }) => {
 		const { displayName, bio, location, website } = input;
 		const { db, user } = context;
+		const userPackingService = new UserPackingService(db);
 
 		// Validate website URL if provided
 		if (website && website !== "") {
@@ -278,23 +169,10 @@ export const updateProfile = os.users.updateProfile
 				...(website !== undefined && { website: website || null }),
 				updatedAt: Math.floor(Date.now() / 1000),
 			},
-			select: {
-				id: true,
-				email: true,
-				username: true,
-				emailVerified: true,
-				displayName: true,
-				bio: true,
-				location: true,
-				website: true,
-				avatarUrl: true,
-				createdAt: true,
-				updatedAt: true,
-			},
 		});
 
 		return {
-			user: updatedUser,
+			user: userPackingService.packFullUserProfile(updatedUser),
 		};
 	});
 
@@ -567,20 +445,11 @@ export const getPublicProfile = os.users.getPublicProfile
 	.handler(async ({ input, context }) => {
 		const { username } = input;
 		const { db } = context;
+		const userPackingService = new UserPackingService(db);
 
 		// Get user profile
 		const user = await db.user.findUnique({
 			where: { username: username.toLowerCase() },
-			select: {
-				id: true,
-				username: true,
-				displayName: true,
-				bio: true,
-				location: true,
-				website: true,
-				avatarUrl: true,
-				createdAt: true,
-			},
 		});
 
 		if (!user) {
@@ -635,16 +504,7 @@ export const getPublicProfile = os.users.getPublicProfile
 		});
 
 		return {
-			user: {
-				id: user.id,
-				username: user.username,
-				displayName: user.displayName,
-				bio: user.bio,
-				location: user.location,
-				website: user.website,
-				avatarUrl: user.avatarUrl,
-				createdAt: user.createdAt,
-			},
+			user: userPackingService.packPublicProfile(user),
 			stats: {
 				publicRulesCount,
 				totalStars,
