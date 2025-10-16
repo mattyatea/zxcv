@@ -1,6 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { AuthService } from "../../services/AuthService";
-import { UserPackingService } from "../../services/UserPackingService";
+import { UserPackingService } from "../../services/packing/UserPackingService";
 // import { EmailServiceError } from "../../types/errors";
 import type { AuthUser } from "../../utils/auth";
 import { generateId } from "../../utils/crypto";
@@ -171,7 +171,7 @@ export const authProcedures = {
 	refresh: os.auth.refresh.use(dbProvider).handler(async ({ input, context }) => {
 		const { refreshToken } = input;
 		const { db, env, locale } = context;
-		const userPackingService = new UserPackingService(db);
+		const userPackingService = new UserPackingService();
 
 		// Verify refresh token
 		const { verifyRefreshToken, createRefreshToken, createJWT } = await import("../../utils/jwt");
@@ -551,7 +551,7 @@ export const authProcedures = {
 			const { db, env, cloudflare } = context;
 			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 			const logger = createLogger(env);
-			const userPackingService = new UserPackingService(db);
+			const userPackingService = new UserPackingService();
 
 			try {
 				// Get temp registration
@@ -1018,7 +1018,7 @@ export const authProcedures = {
 			});
 		}
 
-		const userPackingService = new UserPackingService(db);
+		const userPackingService = new UserPackingService();
 		const authUser = userPackingService.packAuthUser(fullUser);
 
 		return authUser;

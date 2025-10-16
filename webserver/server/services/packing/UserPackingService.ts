@@ -1,13 +1,9 @@
-import type { PrismaClient, User } from "@prisma/client";
+import type { User } from "@prisma/client";
 
 /**
  * ユーザー情報のパッキングオプション
  */
 export interface UserPackingOptions {
-	/** 統計情報を含めるか */
-	includeStats?: boolean;
-	/** 公開プロフィールのみか */
-	publicOnly?: boolean;
 	/** 現在のユーザーID（自分のプロフィールかどうかの判定に使用） */
 	currentUserId?: string;
 	/** メールアドレスを含めるか */
@@ -69,6 +65,15 @@ export interface OtherUserProfile {
 export type UserProfile = FullUserProfile | OtherUserProfile;
 
 /**
+ * ユーザー統計情報
+ */
+export interface UserStats {
+	rulesCount: number;
+	organizationsCount: number;
+	totalStars?: number;
+}
+
+/**
  * 統計情報付きユーザー情報（自分用）
  */
 export interface UserWithStats {
@@ -84,11 +89,7 @@ export interface UserWithStats {
 	avatarUrl: string | null;
 	createdAt: number;
 	updatedAt: number;
-	stats: {
-		rulesCount: number;
-		organizationsCount: number;
-		totalStars?: number;
-	};
+	stats: UserStats;
 }
 
 /**
@@ -115,11 +116,10 @@ export interface SearchUser {
 }
 
 /**
- * ユーザー情報を統一的にパッキングするサービス
+ * ユーザー情報を統一的にパッキングするユーティリティ
+ * データベースアクセスは行わず、与えられた値のみをフォーマットする
  */
 export class UserPackingService {
-	constructor(private db: PrismaClient) {}
-
 	/**
 	 * 認証用ユーザー情報を作成
 	 */
@@ -190,9 +190,7 @@ export class UserPackingService {
 	/**
 	 * 統計情報付きユーザー情報を作成（自分用）
 	 */
-	async packUserWithStats(user: User, options: UserPackingOptions = {}): Promise<UserWithStats> {
-		const stats = await this.getUserStats(user.id, options);
-
+	packUserWithStats(user: User, stats: UserStats): UserWithStats {
 		return {
 			id: user.id,
 			email: user.email,
@@ -235,65 +233,6 @@ export class UserPackingService {
 			username: user.username,
 			email: user.id === currentUserId ? user.email : null,
 		};
-	}
-
-	/**
-	 * ユーザー統計情報を取得
-	 */
-	async getUserStats(
-		userId: string,
-		options: UserPackingOptions = {},
-	): Promise<{
-		rulesCount: number;
-		organizationsCount: number;
-		totalStars?: number;
-	}> {
-		try {
-			const [rulesCount, organizationsCount, totalStars] = await Promise.all([
-				this.db.rule.count({
-					where: {
-						userId,
-						...(options.publicOnly && { visibility: "public" }),
-					},
-				}),
-				this.db.organizationMember.count({
-					where: { userId },
-				}),
-				options.includeStats
-					? this.db.ruleStar.count({
-							where: {
-								rule: {
-									userId,
-									...(options.publicOnly && { visibility: "public" }),
-								},
-							},
-						})
-					: Promise.resolve(0),
-			]);
-
-			const stats: {
-				rulesCount: number;
-				organizationsCount: number;
-				totalStars?: number;
-			} = {
-				rulesCount: typeof rulesCount === "number" ? rulesCount : 0,
-				organizationsCount: typeof organizationsCount === "number" ? organizationsCount : 0,
-			};
-
-			if (options.includeStats) {
-				stats.totalStars = typeof totalStars === "number" ? totalStars : 0;
-			}
-
-			return stats;
-		} catch (error) {
-			// エラーが発生した場合はデフォルト値を返す
-			console.error("Error getting user stats:", error);
-			return {
-				rulesCount: 0,
-				organizationsCount: 0,
-				...(options.includeStats && { totalStars: 0 }),
-			};
-		}
 	}
 
 	/**

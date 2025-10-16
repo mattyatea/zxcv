@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import { UserPackingService } from "../../services/UserPackingService";
+import { UserPackingService } from "../../services/packing/UserPackingService";
 import { hashPassword, verifyPassword } from "../../utils/crypto";
 import { authErrors } from "../../utils/i18n";
 import type { Locale } from "../../utils/locale";
@@ -14,7 +14,7 @@ export const searchByUsername = os.users.searchByUsername
 	.handler(async ({ input, context }) => {
 		const { username, limit } = input;
 		const { db, user } = context;
-		const userPackingService = new UserPackingService(db);
+		const userPackingService = new UserPackingService();
 
 		// Search for users by username (case-insensitive partial match)
 		const users = await db.user.findMany({
@@ -39,7 +39,7 @@ export const getProfile = os.users.getProfile
 	.handler(async ({ input, context }) => {
 		const { username } = input;
 		const { db, user } = context;
-		const userPackingService = new UserPackingService(db);
+		const userPackingService = new UserPackingService();
 
 		// Get user profile
 		const targetUser = await db.user.findUnique({
@@ -76,15 +76,30 @@ export const getProfile = os.users.getProfile
 			take: 5,
 		});
 
-		// Use UserPackingService to pack user profile with stats
+		// Fetch stats directly in procedure
+		const [rulesCount, organizationsCount] = await Promise.all([
+			db.rule.count({
+				where: {
+					userId: targetUser.id,
+					visibility: "public",
+				},
+			}),
+			db.organizationMember.count({
+				where: { userId: targetUser.id },
+			}),
+		]);
+
+		// Use UserPackingService to pack user profile
 		const userProfile = userPackingService.packUserProfile(targetUser, {
 			currentUserId: user.id,
 		});
-		const stats = await userPackingService.getUserStats(targetUser.id, { publicOnly: true });
 
 		return {
 			user: userProfile,
-			stats,
+			stats: {
+				rulesCount,
+				organizationsCount,
+			},
 			recentRules: recentRules.map((rule) => ({
 				...rule,
 				description: rule.description || "",
@@ -95,7 +110,7 @@ export const getProfile = os.users.getProfile
 export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 	try {
 		const { db, user } = context;
-		const userPackingService = new UserPackingService(db);
+		const userPackingService = new UserPackingService();
 
 		console.log("[DEBUG] users.me called for user:", user?.id);
 		console.log("[DEBUG] context available:", { hasDb: !!db, hasUser: !!user });
@@ -122,10 +137,26 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 			throw new ORPCError("NOT_FOUND", { message: "User not found" });
 		}
 
+		// Fetch stats directly in procedure
+		const [rulesCount, organizationsCount, totalStars] = await Promise.all([
+			db.rule.count({
+				where: { userId: user.id },
+			}),
+			db.organizationMember.count({
+				where: { userId: user.id },
+			}),
+			db.ruleStar.count({
+				where: {
+					rule: { userId: user.id },
+				},
+			}),
+		]);
+
 		// Use UserPackingService to pack user with stats
-		const result = await userPackingService.packUserWithStats(userProfile, {
-			currentUserId: user.id,
-			includeStats: true,
+		const result = userPackingService.packUserWithStats(userProfile, {
+			rulesCount,
+			organizationsCount,
+			totalStars,
 		});
 
 		console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
@@ -148,7 +179,7 @@ export const updateProfile = os.users.updateProfile
 	.handler(async ({ input, context }) => {
 		const { displayName, bio, location, website } = input;
 		const { db, user } = context;
-		const userPackingService = new UserPackingService(db);
+		const userPackingService = new UserPackingService();
 
 		// Validate website URL if provided
 		if (website && website !== "") {
@@ -445,7 +476,7 @@ export const getPublicProfile = os.users.getPublicProfile
 	.handler(async ({ input, context }) => {
 		const { username } = input;
 		const { db } = context;
-		const userPackingService = new UserPackingService(db);
+		const userPackingService = new UserPackingService();
 
 		// Get user profile
 		const user = await db.user.findUnique({
