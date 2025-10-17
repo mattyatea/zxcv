@@ -35,7 +35,7 @@ export const rulesProcedures = {
 			const { owner, ruleName } = parsed;
 
 			const result = await ruleService.getRule(ruleName, owner, user?.id);
-			const { rule, version, content } = result;
+			const { rule, version } = result;
 
 			// Ensure we have the proper author object
 			const author = rule.user || {
