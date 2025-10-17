@@ -1,6 +1,5 @@
 import { ORPCError } from "@orpc/server";
 import type { RuleVersion } from "@prisma/client";
-import { nanoid } from "nanoid";
 import { RuleService } from "../../services";
 import { createLogger } from "../../utils/logger";
 import { parseRulePath } from "../../utils/namespace";
@@ -145,52 +144,10 @@ export const rulesProcedures = {
 		.use(dbProvider)
 		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
-			const { db, user } = context;
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-			// ルールが存在するか確認
-			const rule = await db.rule.findUnique({
-				where: { id: input.ruleId },
-			});
-
-			if (!rule) {
-				throw new ORPCError("NOT_FOUND", {
-					message: "Rule not found",
-				});
-			}
-
-			// 既にLikeしているか確認
-			const existingLike = await db.ruleStar.findUnique({
-				where: {
-					ruleId_userId: {
-						ruleId: input.ruleId,
-						userId: user.id,
-					},
-				},
-			});
-
-			if (existingLike) {
-				throw new ORPCError("CONFLICT", {
-					message: "Already liked this rule",
-				});
-			}
-
-			// Likeを追加
-			await db.ruleStar.create({
-				data: {
-					id: nanoid(),
-					ruleId: input.ruleId,
-					userId: user.id,
-					createdAt: Math.floor(Date.now() / 1000),
-				},
-			});
-
-			// スター数を増やす
-			await db.rule.update({
-				where: { id: input.ruleId },
-				data: { stars: { increment: 1 } },
-			});
-
-			return { success: true, message: "Rule liked successfully" };
+			return await ruleService.starRule(input.ruleId, user.id);
 		}),
 
 	/**
@@ -200,41 +157,10 @@ export const rulesProcedures = {
 		.use(dbProvider)
 		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
-			const { db, user } = context;
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-			// Likeが存在するか確認
-			const existingLike = await db.ruleStar.findUnique({
-				where: {
-					ruleId_userId: {
-						ruleId: input.ruleId,
-						userId: user.id,
-					},
-				},
-			});
-
-			if (!existingLike) {
-				throw new ORPCError("NOT_FOUND", {
-					message: "Like not found",
-				});
-			}
-
-			// Likeを削除
-			await db.ruleStar.delete({
-				where: {
-					ruleId_userId: {
-						ruleId: input.ruleId,
-						userId: user.id,
-					},
-				},
-			});
-
-			// スター数を減らす
-			await db.rule.update({
-				where: { id: input.ruleId },
-				data: { stars: { decrement: 1 } },
-			});
-
-			return { success: true, message: "Rule unliked successfully" };
+			return await ruleService.unstarRule(input.ruleId, user.id);
 		}),
 
 	/**
@@ -399,53 +325,10 @@ export const rulesProcedures = {
 		.use(dbProvider)
 		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
-			// Re-implement star logic instead of calling like handler
-			const { db, user } = context;
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-			// ルールが存在するか確認
-			const rule = await db.rule.findUnique({
-				where: { id: input.ruleId },
-			});
-
-			if (!rule) {
-				throw new ORPCError("NOT_FOUND", {
-					message: "Rule not found",
-				});
-			}
-
-			// 既にLikeしているか確認
-			const existingLike = await db.ruleStar.findUnique({
-				where: {
-					ruleId_userId: {
-						ruleId: input.ruleId,
-						userId: user.id,
-					},
-				},
-			});
-
-			if (existingLike) {
-				throw new ORPCError("CONFLICT", {
-					message: "Already liked this rule",
-				});
-			}
-
-			// Likeを追加
-			await db.ruleStar.create({
-				data: {
-					id: nanoid(),
-					ruleId: input.ruleId,
-					userId: user.id,
-					createdAt: Math.floor(Date.now() / 1000),
-				},
-			});
-
-			// スター数を増やす
-			await db.rule.update({
-				where: { id: input.ruleId },
-				data: { stars: { increment: 1 } },
-			});
-
-			return { success: true, message: "Rule starred successfully" };
+			return await ruleService.starRule(input.ruleId, user.id);
 		}),
 
 	/**
@@ -455,42 +338,10 @@ export const rulesProcedures = {
 		.use(dbProvider)
 		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
-			// Re-implement unstar logic instead of calling unlike handler
-			const { db, user } = context;
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-			// Likeが存在するか確認
-			const existingLike = await db.ruleStar.findUnique({
-				where: {
-					ruleId_userId: {
-						ruleId: input.ruleId,
-						userId: user.id,
-					},
-				},
-			});
-
-			if (!existingLike) {
-				throw new ORPCError("NOT_FOUND", {
-					message: "Like not found",
-				});
-			}
-
-			// Likeを削除
-			await db.ruleStar.delete({
-				where: {
-					ruleId_userId: {
-						ruleId: input.ruleId,
-						userId: user.id,
-					},
-				},
-			});
-
-			// スター数を減らす
-			await db.rule.update({
-				where: { id: input.ruleId },
-				data: { stars: { decrement: 1 } },
-			});
-
-			return { success: true, message: "Rule unstarred successfully" };
+			return await ruleService.unstarRule(input.ruleId, user.id);
 		}),
 
 	/**

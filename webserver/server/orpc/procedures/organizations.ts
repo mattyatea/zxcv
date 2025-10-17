@@ -44,10 +44,8 @@ export const organizationsProcedures = {
 			where: { organizationId: result.id },
 		});
 
-		// Get rule count
-		const ruleCount = await db.rule.count({
-			where: { organizationId: result.id },
-		});
+		// Get rule count using OrganizationService
+		const ruleCount = await organizationService.countOrganizationRules(result.id);
 
 		// Get current user's role if authenticated
 		let role: "owner" | "member" = "member";
@@ -145,10 +143,8 @@ export const organizationsProcedures = {
 				where: { organizationId: result.id },
 			});
 
-			// Get rule count
-			const ruleCount = await db.rule.count({
-				where: { organizationId: result.id },
-			});
+			// Get rule count using OrganizationService
+			const ruleCount = await organizationService.countOrganizationRules(result.id);
 
 			return {
 				success: true,
@@ -270,7 +266,8 @@ export const organizationsProcedures = {
 		.use(dbProvider)
 		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
-			const { db, user } = context;
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
 			// メンバーかどうかチェック
 			const isMember = await db.organizationMember.findFirst({
@@ -286,49 +283,11 @@ export const organizationsProcedures = {
 				});
 			}
 
-			// ページネーション計算
-			const skip = (input.page - 1) * input.pageSize;
-
-			// ルール一覧を取得
-			const [rules, total] = await Promise.all([
-				db.rule.findMany({
-					where: { organizationId: input.orgId },
-					include: {
-						user: {
-							select: {
-								id: true,
-								username: true,
-							},
-						},
-					},
-					orderBy: { updatedAt: "desc" },
-					skip,
-					take: input.pageSize,
-				}),
-				db.rule.count({
-					where: { organizationId: input.orgId },
-				}),
-			]);
-
-			return {
-				rules: rules.map((r) => ({
-					id: r.id,
-					name: r.name,
-					description: r.description,
-					visibility: r.visibility as "public" | "private" | "team",
-					isPublished: r.publishedAt !== null,
-					downloadCount: r.views,
-					starCount: r.stars,
-					createdAt: r.createdAt,
-					updatedAt: r.updatedAt,
-					user: r.user,
-					latestVersion: r.version || "1.0.0",
-				})),
-				total,
+			// OrganizationService を使用してルール一覧を取得
+			return await organizationService.listOrganizationRules(input.orgId, {
 				page: input.page,
 				pageSize: input.pageSize,
-				totalPages: Math.ceil(total / input.pageSize),
-			};
+			});
 		}),
 
 	/**
@@ -384,7 +343,8 @@ export const organizationsProcedures = {
 		.use(dbProvider)
 		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
-			const { db, user } = context;
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
 			// メンバーかどうかチェック
 			const isMember = await db.organizationMember.findFirst({
@@ -400,30 +360,14 @@ export const organizationsProcedures = {
 				});
 			}
 
-			// ルールサマリーを取得
-			const rules = await db.rule.findMany({
-				where: { organizationId: input.organizationId },
-				select: {
-					id: true,
-					name: true,
-					description: true,
-					version: true,
-					updatedAt: true,
-					user: {
-						select: {
-							id: true,
-							username: true,
-						},
-					},
-				},
-				orderBy: { updatedAt: "desc" },
-			});
+			// OrganizationService を使用してルール一覧を取得
+			const result = await organizationService.listOrganizationRules(input.organizationId);
 
-			return rules.map((r) => ({
+			return result.rules.map((r) => ({
 				id: r.id,
 				name: r.name,
 				description: r.description,
-				version: r.version || "1.0.0",
+				version: r.latestVersion,
 				updatedAt: r.updatedAt,
 				author: r.user,
 			}));
@@ -449,7 +393,8 @@ export const organizationsProcedures = {
 		.use(dbProvider)
 		.handler(async ({ input, context }) => {
 			const { name } = input;
-			const { db } = context;
+			const { db, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
 			// Get organization
 			const organization = await db.organization.findUnique({
@@ -467,53 +412,10 @@ export const organizationsProcedures = {
 				throw new ORPCError("NOT_FOUND", { message: "Organization not found" });
 			}
 
-			// Get public rules count and total stars
-			const [publicRulesCount, totalStars] = await Promise.all([
-				db.rule.count({
-					where: {
-						organizationId: organization.id,
-						visibility: "public",
-					},
-				}),
-				db.ruleStar.count({
-					where: {
-						rule: {
-							organizationId: organization.id,
-							visibility: "public",
-						},
-					},
-				}),
-			]);
-
-			// Get public rules with star count
-			const publicRules = await db.rule.findMany({
-				where: {
-					organizationId: organization.id,
-					visibility: "public",
-				},
-				select: {
-					id: true,
-					name: true,
-					description: true,
-					createdAt: true,
-					updatedAt: true,
-					user: {
-						select: {
-							id: true,
-							username: true,
-						},
-					},
-					starredBy: {
-						select: {
-							id: true,
-						},
-					},
-				},
-				orderBy: {
-					updatedAt: "desc",
-				},
-				take: 20,
-			});
+			// OrganizationService を使用して公開統計情報を取得
+			const { stats, publicRules } = await organizationService.getOrganizationPublicStats(
+				organization.id,
+			);
 
 			return {
 				organization: {
@@ -523,19 +425,8 @@ export const organizationsProcedures = {
 					description: organization.description,
 					createdAt: organization.createdAt,
 				},
-				stats: {
-					publicRulesCount,
-					totalStars,
-				},
-				publicRules: publicRules.map((rule) => ({
-					id: rule.id,
-					name: rule.name,
-					description: rule.description || "",
-					stars: rule.starredBy.length,
-					createdAt: rule.createdAt,
-					updatedAt: rule.updatedAt,
-					user: rule.user,
-				})),
+				stats,
+				publicRules,
 			};
 		}),
 };

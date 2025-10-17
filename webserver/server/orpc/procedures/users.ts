@@ -45,6 +45,8 @@ export const getProfile = os.users.getProfile
 			});
 		}
 
+		// Get recent public rules directly from DB
+		// Note: We need organization info which RuleService doesn't provide in the required format
 		const recentRules = await db.rule.findMany({
 			where: {
 				userId: targetUser.id,
@@ -432,7 +434,7 @@ export const getPublicProfile = os.users.getPublicProfile
 	.use(dbProvider)
 	.handler(async ({ input, context }) => {
 		const { username } = input;
-		const { db } = context;
+		const { db, env } = context;
 		const userService = new UserService(db);
 		const userPackingService = new UserPackingService();
 
@@ -449,7 +451,8 @@ export const getPublicProfile = os.users.getPublicProfile
 			includeTotalStars: true,
 		});
 
-		// Get public rules with star count
+		// Get public rules with star count directly from DB
+		// Note: We need star count and organization info which RuleService doesn't provide
 		const publicRules = await db.rule.findMany({
 			where: {
 				userId: user.id,

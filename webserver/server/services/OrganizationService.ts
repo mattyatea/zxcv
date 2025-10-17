@@ -431,4 +431,160 @@ export class OrganizationService {
 		// Email で招待を送る
 		return await this.inviteMember(organizationId, inviterId, user.email, "ja");
 	}
+
+	/**
+	 * 組織のルール数をカウント
+	 */
+	async countOrganizationRules(
+		organizationId: string,
+		options?: { visibility?: "public" | "private" | "team" },
+	) {
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic Prisma where clause construction requires flexible typing
+		const where: any = { organizationId };
+
+		if (options?.visibility) {
+			where.visibility = options.visibility;
+		}
+
+		return await this.db.rule.count({ where });
+	}
+
+	/**
+	 * 組織のルール一覧を取得
+	 */
+	async listOrganizationRules(
+		organizationId: string,
+		options?: {
+			page?: number;
+			pageSize?: number;
+			visibility?: "public" | "private" | "team";
+			includeStarCount?: boolean;
+		},
+	) {
+		const page = options?.page || 1;
+		const pageSize = options?.pageSize || 20;
+		const skip = (page - 1) * pageSize;
+
+		// biome-ignore lint/suspicious/noExplicitAny: Dynamic Prisma where clause construction requires flexible typing
+		const where: any = { organizationId };
+
+		if (options?.visibility) {
+			where.visibility = options.visibility;
+		}
+
+		const [rules, total] = await Promise.all([
+			this.db.rule.findMany({
+				where,
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
+					},
+					...(options?.includeStarCount
+						? {
+								starredBy: {
+									select: { id: true },
+								},
+							}
+						: {}),
+				},
+				orderBy: { updatedAt: "desc" },
+				skip,
+				take: pageSize,
+			}),
+			this.db.rule.count({ where }),
+		]);
+
+		return {
+			rules: rules.map((r) => ({
+				id: r.id,
+				name: r.name,
+				description: r.description,
+				visibility: r.visibility as "public" | "private" | "team",
+				isPublished: r.publishedAt !== null,
+				downloadCount: r.views,
+				starCount: options?.includeStarCount ? r.starredBy?.length || r.stars : r.stars,
+				createdAt: r.createdAt,
+				updatedAt: r.updatedAt,
+				user: r.user,
+				latestVersion: r.version || "1.0.0",
+			})),
+			total,
+			page,
+			pageSize,
+			totalPages: Math.ceil(total / pageSize),
+		};
+	}
+
+	/**
+	 * 組織の公開プロフィール情報を取得
+	 */
+	async getOrganizationPublicStats(organizationId: string) {
+		// 公開ルール数と総スター数を取得
+		const [publicRulesCount, totalStars] = await Promise.all([
+			this.db.rule.count({
+				where: {
+					organizationId,
+					visibility: "public",
+				},
+			}),
+			this.db.ruleStar.count({
+				where: {
+					rule: {
+						organizationId,
+						visibility: "public",
+					},
+				},
+			}),
+		]);
+
+		// 公開ルール一覧（スター数付き）
+		const publicRules = await this.db.rule.findMany({
+			where: {
+				organizationId,
+				visibility: "public",
+			},
+			select: {
+				id: true,
+				name: true,
+				description: true,
+				createdAt: true,
+				updatedAt: true,
+				user: {
+					select: {
+						id: true,
+						username: true,
+					},
+				},
+				starredBy: {
+					select: {
+						id: true,
+					},
+				},
+			},
+			orderBy: {
+				updatedAt: "desc",
+			},
+			take: 20,
+		});
+
+		return {
+			stats: {
+				publicRulesCount,
+				totalStars,
+			},
+			publicRules: publicRules.map((rule) => ({
+				id: rule.id,
+				name: rule.name,
+				description: rule.description || "",
+				stars: rule.starredBy.length,
+				createdAt: rule.createdAt,
+				updatedAt: rule.updatedAt,
+				user: rule.user,
+			})),
+		};
+	}
 }

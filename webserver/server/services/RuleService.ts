@@ -667,6 +667,90 @@ export class RuleService {
 	}
 
 	/**
+	 * ルールにスターを付ける
+	 */
+	async starRule(ruleId: string, userId: string) {
+		// ルールが存在するか確認
+		const rule = await this.ruleRepository.findById(ruleId);
+		if (!rule) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Rule not found",
+			});
+		}
+
+		// 既にスターしているか確認
+		const existingStar = await this.db.ruleStar.findUnique({
+			where: {
+				ruleId_userId: {
+					ruleId,
+					userId,
+				},
+			},
+		});
+
+		if (existingStar) {
+			throw new ORPCError("CONFLICT", {
+				message: "Already starred this rule",
+			});
+		}
+
+		// スターを追加
+		await this.db.ruleStar.create({
+			data: {
+				id: nanoid(),
+				ruleId,
+				userId,
+				createdAt: this.getCurrentTimestamp(),
+			},
+		});
+
+		// スター数を増やす
+		await this.ruleRepository.update(ruleId, {
+			stars: { increment: 1 },
+		});
+
+		return { success: true, message: "Rule starred successfully" };
+	}
+
+	/**
+	 * ルールのスターを解除
+	 */
+	async unstarRule(ruleId: string, userId: string) {
+		// スターが存在するか確認
+		const existingStar = await this.db.ruleStar.findUnique({
+			where: {
+				ruleId_userId: {
+					ruleId,
+					userId,
+				},
+			},
+		});
+
+		if (!existingStar) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "Star not found",
+			});
+		}
+
+		// スターを削除
+		await this.db.ruleStar.delete({
+			where: {
+				ruleId_userId: {
+					ruleId,
+					userId,
+				},
+			},
+		});
+
+		// スター数を減らす
+		await this.ruleRepository.update(ruleId, {
+			stars: { decrement: 1 },
+		});
+
+		return { success: true, message: "Rule unstarred successfully" };
+	}
+
+	/**
 	 * ルール一覧を取得
 	 */
 	async listRules(params: {
@@ -748,6 +832,7 @@ export class RuleService {
 			type: rule.type || "rule",
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
 			version: rule.version || "1.0.0",
+			created_at: rule.createdAt,
 			updated_at: rule.updatedAt,
 		}));
 

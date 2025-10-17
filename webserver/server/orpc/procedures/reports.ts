@@ -1,6 +1,6 @@
 import { ReportService } from "../../services";
 import { os } from "../index";
-import { authRequiredMiddleware } from "../middleware/auth";
+import { adminAuthRequiredMiddleware, authRequiredMiddleware } from "../middleware/auth";
 import { dbProvider } from "../middleware/db";
 import { reportRateLimit } from "../middleware/rateLimit";
 
@@ -33,7 +33,7 @@ export const reportsProcedures = {
 	 */
 	list: os.reports.list
 		.use(dbProvider)
-		.use(authRequiredMiddleware)
+		.use(adminAuthRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const reportService = new ReportService(db, env);
@@ -65,7 +65,7 @@ export const reportsProcedures = {
 	 */
 	get: os.reports.get
 		.use(dbProvider)
-		.use(authRequiredMiddleware)
+		.use(adminAuthRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const reportService = new ReportService(db, env);
@@ -86,7 +86,7 @@ export const reportsProcedures = {
 	 */
 	updateStatus: os.reports.updateStatus
 		.use(dbProvider)
-		.use(authRequiredMiddleware)
+		.use(adminAuthRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const reportService = new ReportService(db, env);
@@ -104,7 +104,7 @@ export const reportsProcedures = {
 	 */
 	stats: os.reports.stats
 		.use(dbProvider)
-		.use(authRequiredMiddleware)
+		.use(adminAuthRequiredMiddleware)
 		.handler(async ({ context }) => {
 			const { db, user, env } = context;
 			const reportService = new ReportService(db, env);
