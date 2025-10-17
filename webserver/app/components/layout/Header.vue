@@ -300,7 +300,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
-import Avatar from "~/components/common/Avatar.vue";
 import { useAuthStore } from "~/stores/auth";
 import { useThemeStore } from "~/stores/theme";
 

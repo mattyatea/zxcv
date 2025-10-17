@@ -74,11 +74,7 @@ const inputClasses = computed(() => {
 		disabled: "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-950",
 	};
 
-	return [
-		base,
-		props.error ? states.error : states.normal,
-		props.disabled && states.disabled,
-	]
+	return [base, props.error ? states.error : states.normal, props.disabled && states.disabled]
 		.filter(Boolean)
 		.join(" ");
 });

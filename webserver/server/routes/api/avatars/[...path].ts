@@ -16,8 +16,7 @@ export default defineEventHandler(async (event) => {
 		// In development mode without Cloudflare bindings, return placeholder
 		throw createError({
 			statusCode: 404,
-			statusMessage:
-				"Avatar not found - use 'pnpm preview' to test with R2 storage",
+			statusMessage: "Avatar not found - use 'pnpm preview' to test with R2 storage",
 		});
 	}
 

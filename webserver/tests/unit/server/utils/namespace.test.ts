@@ -1,11 +1,10 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ORPCError } from "@orpc/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	checkNamespaceAvailable,
 	parseRulePath,
 	validateRuleOwnership,
-	checkNamespaceAvailable,
 } from "~/server/utils/namespace";
-import type { PrismaClient } from "@prisma/client";
 
 describe("namespace utilities", () => {
 	let mockPrisma: {
@@ -94,9 +93,9 @@ describe("namespace utilities", () => {
 			mockPrisma.user.findUnique.mockResolvedValue(null);
 			mockPrisma.organization.findUnique.mockResolvedValue(null);
 
-			await expect(
-				validateRuleOwnership(mockPrisma as any, "nonexistent"),
-			).rejects.toThrow(ORPCError);
+			await expect(validateRuleOwnership(mockPrisma as any, "nonexistent")).rejects.toThrow(
+				ORPCError,
+			);
 
 			try {
 				await validateRuleOwnership(mockPrisma as any, "nonexistent");

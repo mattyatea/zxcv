@@ -195,10 +195,7 @@ const handleSubmit = async () => {
 		console.error("Failed to invite member:", err);
 		if (err instanceof Error && err.message?.includes("already a member")) {
 			error.value = t("organizations.inviteMember.alreadyMember");
-		} else if (
-			err instanceof Error &&
-			err.message?.includes("invitation has already been sent")
-		) {
+		} else if (err instanceof Error && err.message?.includes("invitation has already been sent")) {
 			error.value = t("organizations.inviteMember.alreadyInvited");
 		} else {
 			error.value = t("organizations.inviteMember.error");

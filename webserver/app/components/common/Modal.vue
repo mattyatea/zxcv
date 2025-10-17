@@ -172,7 +172,9 @@ const handleTouchStart = (e: TouchEvent) => {
 	}
 
 	const touch = e.touches[0];
-	if (!touch) return;
+	if (!touch) {
+		return;
+	}
 
 	startDragging(touch.clientX, touch.clientY);
 
@@ -181,7 +183,9 @@ const handleTouchStart = (e: TouchEvent) => {
 			return;
 		}
 		const touch = e.touches[0];
-		if (!touch) return;
+		if (!touch) {
+			return;
+		}
 
 		position.value = {
 			x: touch.clientX - dragStart.value.x,

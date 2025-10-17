@@ -1,4 +1,3 @@
-import type { RouterClient } from "@orpc/server";
 import { implement } from "@orpc/server";
 import { contract } from "./contracts";
 import { adminProcedures } from "./procedures/admin";
@@ -22,5 +21,3 @@ export const router = os.router({
 	users: usersProcedures,
 	health: healthProcedures,
 });
-
-export type Router = RouterClient<typeof router>;

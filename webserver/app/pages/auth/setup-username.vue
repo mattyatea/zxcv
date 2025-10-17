@@ -128,12 +128,7 @@ const errors = ref<{ username?: string }>({});
 
 // Computed
 const isValid = computed(() => {
-	return (
-		username.value &&
-		!errors.value.username &&
-		isAvailable.value &&
-		!isChecking.value
-	);
+	return username.value && !errors.value.username && isAvailable.value && !isChecking.value;
 });
 
 // Username validation regex

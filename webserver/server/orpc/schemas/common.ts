@@ -163,10 +163,7 @@ export const UsernameSchema = z
 
 export const EmailSchema = z.string().email().describe("Email address");
 
-export const PasswordSchema = z
-	.string()
-	.min(8)
-	.describe("Password (minimum 8 characters)");
+export const PasswordSchema = z.string().min(8).describe("Password (minimum 8 characters)");
 
 export const RuleNameSchema = z
 	.string()

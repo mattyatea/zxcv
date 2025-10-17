@@ -7,12 +7,7 @@ import { EmailServiceError } from "../types/errors";
 import { hashPassword, verifyPassword } from "../utils/crypto";
 import { sendEmail } from "../utils/email";
 import { authErrors } from "../utils/i18n";
-import {
-	createJWT,
-	createRefreshToken,
-	generateToken,
-	verifyToken,
-} from "../utils/jwt";
+import { createJWT, createRefreshToken, generateToken, verifyToken } from "../utils/jwt";
 import type { Locale } from "../utils/locale";
 
 export class AuthService {
@@ -28,12 +23,7 @@ export class AuthService {
 	/**
 	 * ユーザー登録
 	 */
-	async register(data: {
-		username: string;
-		email: string;
-		password: string;
-		locale?: string;
-	}) {
+	async register(data: { username: string; email: string; password: string; locale?: string }) {
 		// 既存ユーザーチェック
 		const existingUser = await this.userRepository.findByEmail(data.email);
 		if (existingUser) {
@@ -43,9 +33,7 @@ export class AuthService {
 			});
 		}
 
-		const existingUsername = await this.userRepository.findByUsername(
-			data.username,
-		);
+		const existingUsername = await this.userRepository.findByUsername(data.username);
 		if (existingUsername) {
 			const locale = (data.locale as Locale) || "ja";
 			throw new ORPCError("CONFLICT", {
@@ -75,11 +63,7 @@ export class AuthService {
 
 		// 確認メール送信（失敗した場合はユーザーを削除）
 		try {
-			await this.sendVerificationEmail(
-				user.email,
-				verificationToken,
-				data.locale || "ja",
-			);
+			await this.sendVerificationEmail(user.email, verificationToken, data.locale || "ja");
 		} catch (error) {
 			// メール送信に失敗した場合、作成したユーザーを削除（ロールバック）
 			try {
@@ -97,8 +81,7 @@ export class AuthService {
 
 		return {
 			success: true,
-			message:
-				"Registration successful. Please check your email to verify your account.",
+			message: "Registration successful. Please check your email to verify your account.",
 			user: {
 				id: user.id,
 				username: user.username,
@@ -286,11 +269,7 @@ export class AuthService {
 	/**
 	 * 確認メールを送信
 	 */
-	private async sendVerificationEmail(
-		email: string,
-		token: string,
-		locale: string,
-	) {
+	private async sendVerificationEmail(email: string, token: string, locale: string) {
 		const verifyUrl = `${this.env.FRONTEND_URL}/verify-email?token=${token}`;
 
 		const templates = {
@@ -318,8 +297,7 @@ export class AuthService {
 			},
 		};
 
-		const template =
-			templates[locale as keyof typeof templates] || templates.ja;
+		const template = templates[locale as keyof typeof templates] || templates.ja;
 
 		await sendEmail(this.env, email, template.subject, template.body);
 	}
@@ -327,11 +305,7 @@ export class AuthService {
 	/**
 	 * パスワードリセットメールを送信
 	 */
-	private async sendPasswordResetEmail(
-		email: string,
-		token: string,
-		locale: string,
-	) {
+	private async sendPasswordResetEmail(email: string, token: string, locale: string) {
 		const resetUrl = `${this.env.FRONTEND_URL}/reset-password?token=${token}`;
 
 		const templates = {
@@ -359,8 +333,7 @@ export class AuthService {
 			},
 		};
 
-		const template =
-			templates[locale as keyof typeof templates] || templates.ja;
+		const template = templates[locale as keyof typeof templates] || templates.ja;
 
 		await sendEmail(this.env, email, template.subject, template.body);
 	}
@@ -454,9 +427,7 @@ export class AuthService {
 			user = existingOAuth.user;
 		} else {
 			// メールアドレスで既存ユーザーをチェック
-			const existingUser = await this.userRepository.findByEmail(
-				userInfo.email,
-			);
+			const existingUser = await this.userRepository.findByEmail(userInfo.email);
 
 			if (existingUser) {
 				// 既存ユーザーにOAuthアカウントをリンク
@@ -480,8 +451,7 @@ export class AuthService {
 			// ログインアクションの場合はエラー
 			if (action === "login") {
 				throw new ORPCError("NOT_FOUND", {
-					message:
-						"このアカウントは登録されていません。新規登録画面から登録してください。",
+					message: "このアカウントは登録されていません。新規登録画面から登録してください。",
 				});
 			}
 

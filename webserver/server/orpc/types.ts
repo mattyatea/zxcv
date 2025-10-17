@@ -11,16 +11,5 @@ export interface Context {
 		context: ExecutionContext;
 	};
 	db?: PrismaClient;
-}
-
-export interface AuthenticatedContext extends Context {
-	user: AuthUser;
-}
-
-export interface DatabaseContext extends Context {
-	db: PrismaClient;
-}
-
-export interface AuthenticatedDatabaseContext extends DatabaseContext {
-	user: AuthUser;
+	locale: string;
 }

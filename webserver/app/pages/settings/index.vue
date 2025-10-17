@@ -66,7 +66,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import ProfileEditForm from "~/components/settings/ProfileEditForm.vue";
 import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import type { MeResponse } from "~/types/orpc";
@@ -121,10 +120,7 @@ const handleProfileUpdate = async (profileData: {
 		loading.value = true;
 		// Filter out null values and convert to undefined
 		const filteredData = Object.fromEntries(
-			Object.entries(profileData).map(([key, value]) => [
-				key,
-				value === null ? undefined : value,
-			]),
+			Object.entries(profileData).map(([key, value]) => [key, value === null ? undefined : value]),
 		) as {
 			displayName?: string;
 			bio?: string;

@@ -1,10 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import type {
-	PrismaClient,
-	Report,
-	ReportReason,
-	ReportStatus,
-} from "@prisma/client";
+import type { Report, ReportReason, ReportStatus } from "@prisma/client";
 import { BaseRepository } from "./BaseRepository";
 
 export interface CreateReportInput {
@@ -28,10 +23,6 @@ export interface ListReportsFilter {
 }
 
 export class ReportRepository extends BaseRepository {
-	constructor(db: PrismaClient) {
-		super(db);
-	}
-
 	/**
 	 * Create a new report
 	 */
@@ -190,10 +181,7 @@ export class ReportRepository extends BaseRepository {
 	/**
 	 * Update report status
 	 */
-	async updateStatus(
-		id: string,
-		data: UpdateReportStatusInput,
-	): Promise<Report> {
+	async updateStatus(id: string, data: UpdateReportStatusInput): Promise<Report> {
 		try {
 			const report = await this.db.report.update({
 				where: { id },
@@ -220,15 +208,13 @@ export class ReportRepository extends BaseRepository {
 	 */
 	async getStats() {
 		try {
-			const [total, pending, reviewing, resolved, rejected] = await Promise.all(
-				[
-					this.db.report.count(),
-					this.db.report.count({ where: { status: "pending" } }),
-					this.db.report.count({ where: { status: "reviewing" } }),
-					this.db.report.count({ where: { status: "resolved" } }),
-					this.db.report.count({ where: { status: "rejected" } }),
-				],
-			);
+			const [total, pending, reviewing, resolved, rejected] = await Promise.all([
+				this.db.report.count(),
+				this.db.report.count({ where: { status: "pending" } }),
+				this.db.report.count({ where: { status: "reviewing" } }),
+				this.db.report.count({ where: { status: "resolved" } }),
+				this.db.report.count({ where: { status: "rejected" } }),
+			]);
 
 			return {
 				total,

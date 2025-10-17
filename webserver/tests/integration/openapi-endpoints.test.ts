@@ -29,7 +29,7 @@ vi.mock("~/server/utils/jwt", () => ({
 		}
 		return null;
 	}),
-	verifyToken: vi.fn().mockImplementation(async (token: string, secret?: string) => {
+	verifyToken: vi.fn().mockImplementation(async (token: string, _secret?: string) => {
 		if (token === "reset_token") {
 			return { userId: "user_123" };
 		}
@@ -46,7 +46,6 @@ vi.mock("~/server/utils/crypto", () => ({
 
 vi.mock("~/server/services/emailVerification", () => ({
 	EmailVerificationService: class MockEmailVerificationService {
-		constructor(db: any, env: any) {}
 		sendVerificationEmail = vi.fn().mockResolvedValue(true);
 		verifyEmail = vi.fn().mockResolvedValue({ success: true });
 		resendVerificationEmail = vi.fn().mockResolvedValue(true);
@@ -55,7 +54,6 @@ vi.mock("~/server/services/emailVerification", () => ({
 
 vi.mock("~/server/services/AuthService", () => ({
 	AuthService: class MockAuthService {
-		constructor(db: any, env: any) {}
 		resetPassword = vi.fn().mockResolvedValue({ message: "Password reset successfully" });
 		verifyEmail = vi.fn().mockResolvedValue({ message: "Email verified successfully" });
 		requestPasswordReset = vi.fn().mockResolvedValue(true);
@@ -98,7 +96,6 @@ vi.mock("~/server/services/AuthService", () => ({
 
 vi.mock("~/server/utils/email", () => ({
 	EmailService: class MockEmailService {
-		constructor(env: any) {}
 		generatePasswordResetEmail = vi.fn().mockReturnValue({
 			to: "test@example.com",
 			from: "noreply@example.com",
@@ -108,7 +105,7 @@ vi.mock("~/server/utils/email", () => ({
 		});
 		sendEmail = vi.fn().mockResolvedValue(true);
 	},
-	sendEmail: vi.fn().mockImplementation((env: any, emailData: any) => {
+	sendEmail: vi.fn().mockImplementation((_env: any, emailData: any) => {
 		console.log("[TEST] Email would be sent to:", emailData.to);
 		console.log("[TEST] Subject:", emailData.subject);
 		console.log("[DEV] Text content:", emailData.text);

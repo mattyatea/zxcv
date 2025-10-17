@@ -60,9 +60,7 @@ const currentLocaleName = computed(() => {
 	if (!availableLocales.value || !Array.isArray(availableLocales.value)) {
 		return locale.value || "ja";
 	}
-	const current = availableLocales.value.find(
-		(loc) => loc.code === locale.value,
-	);
+	const current = availableLocales.value.find((loc) => loc.code === locale.value);
 	return current?.name || locale.value;
 });
 

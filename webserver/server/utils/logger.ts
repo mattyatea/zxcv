@@ -99,11 +99,7 @@ export class Logger {
 		this.log(LogLevel.WARN, message, context);
 	}
 
-	error(
-		message: string,
-		error?: Error,
-		context?: Record<string, unknown>,
-	): void {
+	error(message: string, error?: Error, context?: Record<string, unknown>): void {
 		this.log(LogLevel.ERROR, message, context, error);
 	}
 
@@ -151,11 +147,7 @@ export class Logger {
 	}
 
 	// Log database query
-	logDatabaseQuery(
-		query: string,
-		duration: number,
-		recordCount?: number,
-	): void {
+	logDatabaseQuery(query: string, duration: number, recordCount?: number): void {
 		this.debug("Database query executed", {
 			query,
 			duration,
@@ -164,11 +156,7 @@ export class Logger {
 	}
 
 	// Log authentication events
-	logAuthEvent(
-		event: string,
-		userId?: string,
-		context?: Record<string, unknown>,
-	): void {
+	logAuthEvent(event: string, userId?: string, context?: Record<string, unknown>): void {
 		this.info(`Auth event: ${event}`, {
 			userId,
 			...context,
@@ -176,12 +164,7 @@ export class Logger {
 	}
 
 	// Log rate limiting events
-	logRateLimit(
-		event: string,
-		identifier: string,
-		limit: number,
-		current: number,
-	): void {
+	logRateLimit(event: string, identifier: string, limit: number, current: number): void {
 		this.warn(`Rate limit ${event}`, {
 			identifier,
 			limit,
@@ -207,8 +190,7 @@ export function createLogger(env?: Env): Logger {
 		logger.debug("Logger initialized", {
 			minLevel: LogLevel[minLevel],
 			envEnvironment: env?.ENVIRONMENT,
-			nodeEnv:
-				typeof process !== "undefined" ? process.env?.NODE_ENV : "undefined",
+			nodeEnv: typeof process !== "undefined" ? process.env?.NODE_ENV : "undefined",
 		});
 	}
 

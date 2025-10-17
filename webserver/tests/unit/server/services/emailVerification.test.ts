@@ -1,9 +1,8 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EmailVerificationService } from "~/server/services/EmailVerificationService";
-import { EmailService } from "~/server/utils/email";
-import * as cryptoUtils from "~/server/utils/crypto";
-import type { PrismaClient } from "@prisma/client";
 import type { Env } from "~/server/types/env";
+import * as cryptoUtils from "~/server/utils/crypto";
+import { EmailService } from "~/server/utils/email";
 
 // Mock dependencies
 vi.mock("~/server/utils/email", () => ({
@@ -80,8 +79,8 @@ describe("EmailVerificationService", () => {
 	describe("createVerificationToken", () => {
 		it("should create and return verification token", async () => {
 			const userId = "user_123";
-			const expectedToken = "id_1";  // This will be the token
-			const expectedId = "id_2";      // This will be the ID
+			const expectedToken = "id_1"; // This will be the token
+			const expectedId = "id_2"; // This will be the ID
 
 			const result = await service.createVerificationToken(userId);
 

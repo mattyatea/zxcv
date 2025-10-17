@@ -170,10 +170,14 @@ const ringClass = computed(() => {
 
 // アバター画像のURL処理
 const processedSrc = computed(() => {
-	if (!props.src) return null;
+	if (!props.src) {
+		return null;
+	}
 
 	// 既にフルURLの場合はそのまま返す
-	if (props.src.startsWith("http")) return props.src;
+	if (props.src.startsWith("http")) {
+		return props.src;
+	}
 
 	// avatars/ プレフィックスを削除してAPIのURLを構築
 	const avatarPath = props.src.replace(/^avatars\//, "");
@@ -182,7 +186,9 @@ const processedSrc = computed(() => {
 
 // イニシャル生成
 const initials = computed(() => {
-	if (!props.name) return "?";
+	if (!props.name) {
+		return "?";
+	}
 
 	const words = props.name.split(" ").filter(Boolean);
 	if (words.length >= 2 && words[0] && words[1]) {

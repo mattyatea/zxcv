@@ -5,13 +5,14 @@ import { hashPassword, verifyPassword } from "../../utils/crypto";
 import { authErrors } from "../../utils/i18n";
 import type { Locale } from "../../utils/locale";
 import { os } from "../index";
-import { dbWithAuth } from "../middleware/combined";
+import { authRequiredMiddleware } from "../middleware/auth";
 import { dbProvider } from "../middleware/db";
 import { avatarUploadRateLimit } from "../middleware/rateLimit";
 
 // Search users by username (for organization invitations)
 export const searchByUsername = os.users.searchByUsername
-	.use(dbWithAuth)
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { username, limit } = input;
 		const { db, user } = context;
@@ -27,7 +28,8 @@ export const searchByUsername = os.users.searchByUsername
 
 // Get user profile by username
 export const getProfile = os.users.getProfile
-	.use(dbWithAuth)
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { username } = input;
 		const { db, user } = context;
@@ -89,72 +91,73 @@ export const getProfile = os.users.getProfile
 		};
 	});
 
-export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
-	try {
-		const { db, user } = context;
-		const userService = new UserService(db);
-		const userPackingService = new UserPackingService();
+export const me = os.users.me
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
+	.handler(async ({ context }) => {
+		try {
+			const { db, user } = context;
+			const userService = new UserService(db);
+			const userPackingService = new UserPackingService();
 
-		console.log("[DEBUG] users.me called for user:", user?.id);
-		console.log("[DEBUG] context available:", { hasDb: !!db, hasUser: !!user });
+			console.log("[DEBUG] users.me called for user:", user?.id);
+			console.log("[DEBUG] context available:", {
+				hasDb: !!db,
+				hasUser: !!user,
+			});
 
-		if (!db) {
-			console.log("[DEBUG] Database not available in context");
+			if (!db) {
+				console.log("[DEBUG] Database not available in context");
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Database not available",
+				});
+			}
+
+			if (!user || !user.id) {
+				console.log("[DEBUG] User not available in context");
+				throw new ORPCError("UNAUTHORIZED", {
+					message: "User not authenticated",
+				});
+			}
+
+			// Get detailed user profile from database
+			console.log("[DEBUG] About to call getUserById");
+			const userProfile = await userService.getUserById(user.id);
+
+			console.log("[DEBUG] userProfile from DB:", userProfile);
+
+			if (!userProfile) {
+				throw new ORPCError("NOT_FOUND", { message: "User not found" });
+			}
+
+			// Fetch stats using UserService
+			const stats = await userService.getUserStats(user.id, {
+				includeTotalStars: true,
+			});
+
+			// Use UserPackingService to pack user with stats
+			const result = userPackingService.packUserWithStats(userProfile, stats);
+
+			console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
+
+			return result;
+		} catch (error) {
+			console.log("[DEBUG] Error in users.me procedure:", error);
+			console.log("[DEBUG] Error stack:", error instanceof Error ? error.stack : "No stack trace");
+			// Re-throw ORPC errors as-is
+			if (error instanceof ORPCError) {
+				throw error;
+			}
+			// Wrap other errors
 			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Database not available",
+				message: "Internal server error in users.me",
 			});
 		}
-
-		if (!user || !user.id) {
-			console.log("[DEBUG] User not available in context");
-			throw new ORPCError("UNAUTHORIZED", {
-				message: "User not authenticated",
-			});
-		}
-
-		// Get detailed user profile from database
-		console.log("[DEBUG] About to call getUserById");
-		const userProfile = await userService.getUserById(user.id);
-
-		console.log("[DEBUG] userProfile from DB:", userProfile);
-
-		if (!userProfile) {
-			throw new ORPCError("NOT_FOUND", { message: "User not found" });
-		}
-
-		// Fetch stats using UserService
-		const stats = await userService.getUserStats(user.id, {
-			includeTotalStars: true,
-		});
-
-		// Use UserPackingService to pack user with stats
-		const result = userPackingService.packUserWithStats(userProfile, stats);
-
-		console.log(
-			"[DEBUG] users.me result before validation:",
-			JSON.stringify(result, null, 2),
-		);
-
-		return result;
-	} catch (error) {
-		console.log("[DEBUG] Error in users.me procedure:", error);
-		console.log(
-			"[DEBUG] Error stack:",
-			error instanceof Error ? error.stack : "No stack trace",
-		);
-		// Re-throw ORPC errors as-is
-		if (error instanceof ORPCError) {
-			throw error;
-		}
-		// Wrap other errors
-		throw new ORPCError("INTERNAL_SERVER_ERROR", {
-			message: "Internal server error in users.me",
-		});
-	}
-});
+	});
 
 export const updateProfile = os.users.updateProfile
-	.use(dbWithAuth)
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { displayName, bio, location, website } = input;
 		const { db, user } = context;
@@ -187,7 +190,8 @@ export const updateProfile = os.users.updateProfile
 	});
 
 export const changePassword = os.users.changePassword
-	.use(dbWithAuth)
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { currentPassword, newPassword } = input;
 		const { db, user } = context;
@@ -229,7 +233,8 @@ export const changePassword = os.users.changePassword
 	});
 
 export const settings = os.users.settings
-	.use(dbWithAuth)
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
 	.handler(async ({ context }) => {
 		const { db, user } = context;
 
@@ -261,7 +266,8 @@ export const settings = os.users.settings
 	});
 
 export const updateSettings = os.users.updateSettings
-	.use(dbWithAuth)
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { currentPassword, newPassword } = input;
 		const { db, user } = context;
@@ -395,7 +401,8 @@ export const uploadAvatar = os.users.uploadAvatar
 	});
 
 export const deleteAccount = os.users.deleteAccount
-	.use(dbWithAuth)
+	.use(dbProvider)
+	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { password, confirmation } = input;
 		const { db, user } = context;

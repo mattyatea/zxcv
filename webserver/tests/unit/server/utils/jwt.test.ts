@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { jwtVerify, SignJWT } from "jose";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Env } from "~/server/types/env";
 import {
 	createJWT,
-	verifyJWT,
 	createRefreshToken,
-	verifyRefreshToken,
 	generateToken,
+	verifyJWT,
+	verifyRefreshToken,
 } from "~/server/utils/jwt";
-import type { Env } from "~/server/types/env";
 
 // Mock jose
 vi.mock("jose", () => ({
@@ -57,9 +57,7 @@ describe("JWT utilities", () => {
 			expect(mockSignJWT.setProtectedHeader).toHaveBeenCalledWith({ alg: "HS256" });
 			expect(mockSignJWT.setIssuedAt).toHaveBeenCalled();
 			expect(mockSignJWT.setExpirationTime).toHaveBeenCalledWith("1h");
-			expect(mockSignJWT.sign).toHaveBeenCalledWith(
-				new TextEncoder().encode("test-secret"),
-			);
+			expect(mockSignJWT.sign).toHaveBeenCalledWith(new TextEncoder().encode("test-secret"));
 		});
 
 		it("should handle payload without emailVerified", async () => {
@@ -226,9 +224,7 @@ describe("JWT utilities", () => {
 			expect(mockSignJWT.setProtectedHeader).toHaveBeenCalledWith({ alg: "HS256" });
 			expect(mockSignJWT.setIssuedAt).toHaveBeenCalled();
 			expect(mockSignJWT.setExpirationTime).toHaveBeenCalledWith("7d");
-			expect(mockSignJWT.sign).toHaveBeenCalledWith(
-				new TextEncoder().encode("custom-secret"),
-			);
+			expect(mockSignJWT.sign).toHaveBeenCalledWith(new TextEncoder().encode("custom-secret"));
 		});
 	});
 });

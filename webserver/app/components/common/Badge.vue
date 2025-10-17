@@ -45,8 +45,7 @@ defineEmits<{
 }>();
 
 const badgeClasses = computed(() => {
-	const base =
-		"badge inline-flex items-center font-medium transition-all duration-200";
+	const base = "badge inline-flex items-center font-medium transition-all duration-200";
 
 	const variants = {
 		primary: "badge-primary",
@@ -70,12 +69,7 @@ const badgeClasses = computed(() => {
 		full: "rounded-full",
 	};
 
-	return [
-		base,
-		variants[props.variant],
-		sizes[props.size],
-		roundedStyles[props.rounded],
-	].join(" ");
+	return [base, variants[props.variant], sizes[props.size], roundedStyles[props.rounded]].join(" ");
 });
 </script>
 

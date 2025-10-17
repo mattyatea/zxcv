@@ -101,11 +101,7 @@ export class EmailService {
 			// Dynamic import for Cloudflare Workers environment
 			// In Cloudflare Workers environment
 			const { EmailMessage } = await import("cloudflare:email");
-			const emailMessage = new EmailMessage(
-				this.fromEmail,
-				template.to,
-				msg.asRaw(),
-			);
+			const emailMessage = new EmailMessage(this.fromEmail, template.to, msg.asRaw());
 			await this.env.EMAIL_SENDER.send(emailMessage);
 
 			return true;
@@ -147,10 +143,7 @@ export class EmailService {
 		const fullVerificationUrl = `${this.baseUrl}/verifyemail?token=${verificationToken}`;
 
 		// Generate content based on locale
-		const content = this.getEmailVerificationContent(
-			userLocale,
-			fullVerificationUrl,
-		);
+		const content = this.getEmailVerificationContent(userLocale, fullVerificationUrl);
 
 		return {
 			to: email,
@@ -160,16 +153,8 @@ export class EmailService {
 		};
 	}
 
-	generateOrganizationInvitationEmail(
-		data: OrganizationInvitationData,
-	): EmailTemplate {
-		const {
-			email,
-			organizationName,
-			inviterName,
-			invitationToken,
-			userLocale = "ja",
-		} = data;
+	generateOrganizationInvitationEmail(data: OrganizationInvitationData): EmailTemplate {
+		const { email, organizationName, inviterName, invitationToken, userLocale = "ja" } = data;
 		const invitationUrl = `${this.baseUrl}/organizations/join?token=${invitationToken}`;
 
 		// Generate content based on locale

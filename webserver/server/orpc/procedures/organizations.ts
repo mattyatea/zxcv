@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { OrganizationService } from "../../services/OrganizationService";
 import { os } from "../index";
-import { dbWithAuth, dbWithOptionalAuth } from "../middleware/combined";
+import { authRequiredMiddleware } from "../middleware/auth";
 import { dbProvider } from "../middleware/db";
 
 export const organizationsProcedures = {
@@ -9,7 +9,8 @@ export const organizationsProcedures = {
 	 * 組織を作成
 	 */
 	create: os.organizations.create
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
@@ -25,73 +26,65 @@ export const organizationsProcedures = {
 	/**
 	 * 組織情報を取得
 	 */
-	get: os.organizations.get
-		.use(dbWithOptionalAuth)
-		.handler(async ({ input, context }) => {
-			const { db, user, env } = context;
-			const organizationService = new OrganizationService(db, env);
+	get: os.organizations.get.use(dbProvider).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const organizationService = new OrganizationService(db, env);
 
-			// The contract expects 'id' but we need to handle nameOrId
-			const result = await organizationService.getOrganization(
-				input.id,
-				user?.id,
-			);
+		// The contract expects 'id' but we need to handle nameOrId
+		const result = await organizationService.getOrganization(input.id, user?.id);
 
-			// Get owner info
-			const owner = await db.user.findUnique({
-				where: { id: result.ownerId },
-				select: { id: true, username: true, email: true },
+		// Get owner info
+		const owner = await db.user.findUnique({
+			where: { id: result.ownerId },
+			select: { id: true, username: true, email: true },
+		});
+
+		// Get member count
+		const memberCount = await db.organizationMember.count({
+			where: { organizationId: result.id },
+		});
+
+		// Get rule count
+		const ruleCount = await db.rule.count({
+			where: { organizationId: result.id },
+		});
+
+		// Get current user's role if authenticated
+		let role: "owner" | "member" = "member";
+		if (user?.id) {
+			const membership = await db.organizationMember.findFirst({
+				where: { organizationId: result.id, userId: user.id },
 			});
-
-			// Get member count
-			const memberCount = await db.organizationMember.count({
-				where: { organizationId: result.id },
-			});
-
-			// Get rule count
-			const ruleCount = await db.rule.count({
-				where: { organizationId: result.id },
-			});
-
-			// Get current user's role if authenticated
-			let role: "owner" | "member" = "member";
-			if (user?.id) {
-				const membership = await db.organizationMember.findFirst({
-					where: { organizationId: result.id, userId: user.id },
-				});
-				if (membership) {
-					role = membership.role as "owner" | "member";
-				}
+			if (membership) {
+				role = membership.role as "owner" | "member";
 			}
+		}
 
-			return {
-				id: result.id,
-				name: result.name,
-				displayName: result.displayName || result.name,
-				description: result.description,
-				owner: owner || { id: "", username: "Unknown", email: "" },
-				role,
-				memberCount,
-				ruleCount,
-				createdAt: result.createdAt,
-			};
-		}),
+		return {
+			id: result.id,
+			name: result.name,
+			displayName: result.displayName || result.name,
+			description: result.description,
+			owner: owner || { id: "", username: "Unknown", email: "" },
+			role,
+			memberCount,
+			ruleCount,
+			createdAt: result.createdAt,
+		};
+	}),
 
 	/**
 	 * 組織を更新
 	 */
 	update: os.organizations.update
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
 
 			const { id, ...updateData } = input;
-			const result = await organizationService.updateOrganization(
-				id,
-				user.id,
-				updateData,
-			);
+			const result = await organizationService.updateOrganization(id, user.id, updateData);
 			return {
 				success: true,
 				message: "Organization updated successfully",
@@ -103,15 +96,13 @@ export const organizationsProcedures = {
 	 * 組織を削除
 	 */
 	delete: os.organizations.delete
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
 
-			const result = await organizationService.deleteOrganization(
-				input.id,
-				user.id,
-			);
+			const result = await organizationService.deleteOrganization(input.id, user.id);
 			return {
 				success: true,
 				message: result.message || "Organization deleted successfully",
@@ -122,7 +113,8 @@ export const organizationsProcedures = {
 	 * メンバーを招待
 	 */
 	inviteMember: os.organizations.inviteMember
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
@@ -140,15 +132,13 @@ export const organizationsProcedures = {
 	 * 招待を受け入れる
 	 */
 	acceptInvitation: os.organizations.acceptInvitation
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
 
-			const result = await organizationService.acceptInvitation(
-				input.token,
-				user.id,
-			);
+			const result = await organizationService.acceptInvitation(input.token, user.id);
 
 			// Get member count
 			const memberCount = await db.organizationMember.count({
@@ -175,7 +165,8 @@ export const organizationsProcedures = {
 	 * メンバーを削除
 	 */
 	removeMember: os.organizations.removeMember
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
@@ -192,7 +183,8 @@ export const organizationsProcedures = {
 	 * メンバーの役割を更新
 	 */
 	updateMemberRole: os.organizations.updateMemberRole
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
@@ -209,18 +201,22 @@ export const organizationsProcedures = {
 	/**
 	 * ユーザーが所属する組織を取得
 	 */
-	list: os.organizations.list.use(dbWithAuth).handler(async ({ context }) => {
-		const { db, user, env } = context;
-		const organizationService = new OrganizationService(db, env);
+	list: os.organizations.list
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
+		.handler(async ({ context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
-		return await organizationService.getUserOrganizations(user.id);
-	}),
+			return await organizationService.getUserOrganizations(user.id);
+		}),
 
 	/**
 	 * 組織のメンバーを取得
 	 */
 	listMembers: os.organizations.listMembers
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -271,7 +267,8 @@ export const organizationsProcedures = {
 	 * 組織のルールを取得
 	 */
 	listRules: os.organizations.listRules
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -338,7 +335,8 @@ export const organizationsProcedures = {
 	 * 組織のメンバーサマリーを取得
 	 */
 	members: os.organizations.members
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -383,7 +381,8 @@ export const organizationsProcedures = {
 	 * 組織のルールサマリーを取得
 	 */
 	rules: os.organizations.rules
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user } = context;
 
@@ -434,15 +433,13 @@ export const organizationsProcedures = {
 	 * 組織から離脱
 	 */
 	leave: os.organizations.leave
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
 
-			return await organizationService.leaveOrganization(
-				input.organizationId,
-				user.id,
-			);
+			return await organizationService.leaveOrganization(input.organizationId, user.id);
 		}),
 
 	/**

@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { setActivePinia, createPinia } from "pinia";
+import { createPinia, setActivePinia } from "pinia";
+import { beforeEach, describe, expect, it } from "vitest";
 import { useToast } from "~/composables/useToast";
 import { useToastStore } from "~/stores/toast";
 

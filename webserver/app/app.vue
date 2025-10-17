@@ -24,8 +24,7 @@ onMounted(() => {
 	settingsStore.initializeSettings();
 
 	// Apply saved language preference
-	const savedLanguage =
-		settingsStore.language || localStorage.getItem("zxcv-language");
+	const savedLanguage = settingsStore.language || localStorage.getItem("zxcv-language");
 	if (savedLanguage && savedLanguage !== locale) {
 		setLocale(savedLanguage);
 	}

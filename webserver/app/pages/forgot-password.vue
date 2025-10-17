@@ -82,8 +82,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import Button from "~/components/common/Button.vue";
-import Card from "~/components/common/Card.vue";
 
 definePageMeta({
 	layout: "auth",

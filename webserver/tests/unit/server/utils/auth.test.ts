@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import type { H3Event } from "h3";
 import { createError } from "h3";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	getAuthFromEvent,
 	requireAuth,
@@ -9,8 +10,6 @@ import {
 import * as cryptoUtils from "~/server/utils/crypto";
 import * as jwtUtils from "~/server/utils/jwt";
 import * as prismaUtils from "~/server/utils/prisma";
-import type { H3Event } from "h3";
-import type { PrismaClient } from "@prisma/client";
 
 // Mock dependencies
 vi.mock("~/server/utils/crypto");
@@ -74,7 +73,9 @@ describe("auth utilities", () => {
 		it("should authenticate with API key", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "x-api-key") return "test-api-key";
+				if (header === "x-api-key") {
+					return "test-api-key";
+				}
 				return undefined;
 			});
 
@@ -115,7 +116,9 @@ describe("auth utilities", () => {
 		it("should authenticate with JWT token", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "authorization") return "Bearer test-jwt-token";
+				if (header === "authorization") {
+					return "Bearer test-jwt-token";
+				}
 				return undefined;
 			});
 
@@ -150,8 +153,12 @@ describe("auth utilities", () => {
 		it("should prioritize API key over JWT when both are provided", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "x-api-key") return "test-api-key";
-				if (header === "authorization") return "Bearer test-jwt-token";
+				if (header === "x-api-key") {
+					return "test-api-key";
+				}
+				if (header === "authorization") {
+					return "Bearer test-jwt-token";
+				}
 				return undefined;
 			});
 
@@ -182,7 +189,9 @@ describe("auth utilities", () => {
 		it("should handle expired API keys", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "x-api-key") return "test-api-key";
+				if (header === "x-api-key") {
+					return "test-api-key";
+				}
 				return undefined;
 			});
 
@@ -204,7 +213,9 @@ describe("auth utilities", () => {
 		it("should handle API key with null scopes", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "x-api-key") return "test-api-key";
+				if (header === "x-api-key") {
+					return "test-api-key";
+				}
 				return undefined;
 			});
 
@@ -236,7 +247,9 @@ describe("auth utilities", () => {
 		it("should return user when authenticated", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "authorization") return "Bearer test-jwt-token";
+				if (header === "authorization") {
+					return "Bearer test-jwt-token";
+				}
 				return undefined;
 			});
 
@@ -279,7 +292,9 @@ describe("auth utilities", () => {
 		it("should return user when email is verified", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "authorization") return "Bearer test-jwt-token";
+				if (header === "authorization") {
+					return "Bearer test-jwt-token";
+				}
 				return undefined;
 			});
 
@@ -309,7 +324,9 @@ describe("auth utilities", () => {
 		it("should throw 403 error when email is not verified", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "authorization") return "Bearer test-jwt-token";
+				if (header === "authorization") {
+					return "Bearer test-jwt-token";
+				}
 				return undefined;
 			});
 
@@ -344,7 +361,9 @@ describe("auth utilities", () => {
 		it("should allow access with JWT authentication (full access)", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "authorization") return "Bearer test-jwt-token";
+				if (header === "authorization") {
+					return "Bearer test-jwt-token";
+				}
 				return undefined;
 			});
 
@@ -363,7 +382,9 @@ describe("auth utilities", () => {
 		it("should allow access with API key having required scope", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "x-api-key") return "test-api-key";
+				if (header === "x-api-key") {
+					return "test-api-key";
+				}
 				return undefined;
 			});
 
@@ -390,7 +411,9 @@ describe("auth utilities", () => {
 		it("should throw 403 error when API key lacks required scope", async () => {
 			const { getHeader } = await import("h3");
 			vi.mocked(getHeader).mockImplementation((_, header) => {
-				if (header === "x-api-key") return "test-api-key";
+				if (header === "x-api-key") {
+					return "test-api-key";
+				}
 				return undefined;
 			});
 

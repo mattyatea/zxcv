@@ -168,7 +168,6 @@
 
 <script setup lang="ts">
 import type { InferContractRouterOutputs } from "@orpc/contract";
-import Avatar from "~/components/common/Avatar.vue";
 import type { contract } from "~/server/orpc/contracts";
 
 type Outputs = InferContractRouterOutputs<typeof contract>; // FIXME: そのうちちゃんと定義する場所を統一して、いい感じに使うようにする
@@ -220,10 +219,7 @@ function formatDate(timestamp: number) {
 function formatWebsiteUrl(url: string) {
 	try {
 		const parsedUrl = new URL(url);
-		return (
-			parsedUrl.hostname +
-			(parsedUrl.pathname !== "/" ? parsedUrl.pathname : "")
-		);
+		return parsedUrl.hostname + (parsedUrl.pathname !== "/" ? parsedUrl.pathname : "");
 	} catch {
 		return url;
 	}

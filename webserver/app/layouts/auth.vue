@@ -63,10 +63,7 @@ import { useRoute } from "vue-router";
 const route = useRoute();
 const isLoginTab = computed(() => {
 	// Check if we're on auth page with login tab or old login page
-	return (
-		route.path === "/login" ||
-		(route.path === "/auth" && route.query.tab !== "register")
-	);
+	return route.path === "/login" || (route.path === "/auth" && route.query.tab !== "register");
 });
 </script>
 

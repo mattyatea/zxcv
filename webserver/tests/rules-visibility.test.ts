@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { ORPCError } from "@orpc/server";
 
 describe("Rules visibility permissions", () => {
 	describe("get endpoint", () => {
@@ -24,7 +23,7 @@ describe("Rules visibility permissions", () => {
 				userId: "owner-123",
 			};
 			const nonOwnerUser = { id: "other-user-456" };
-			
+
 			// Should throw FORBIDDEN error for non-owners
 			try {
 				// Attempt to access private rule as non-owner
@@ -42,7 +41,7 @@ describe("Rules visibility permissions", () => {
 				userId: "owner-123",
 			};
 			const ownerUser = { id: "owner-123" };
-			
+
 			// Should not throw an error for the owner
 			expect(() => {
 				// Check passes for owner
@@ -57,7 +56,7 @@ describe("Rules visibility permissions", () => {
 				teamId: "team-456",
 				userId: "owner-123",
 			};
-			
+
 			// Should throw UNAUTHORIZED error when not authenticated
 			try {
 				// Attempt to access team rule without authentication
@@ -80,7 +79,7 @@ describe("Rules visibility permissions", () => {
 				teamId: "team-456",
 				userId: "member-789",
 			};
-			
+
 			// Should not throw an error for team members
 			expect(() => {
 				// Check passes for team members
@@ -96,7 +95,7 @@ describe("Rules visibility permissions", () => {
 				userId: "owner-123",
 			};
 			const ownerUser = { id: "owner-123" };
-			
+
 			// Should not throw an error for the owner
 			expect(() => {
 				// Check passes for owner
@@ -112,7 +111,7 @@ describe("Rules visibility permissions", () => {
 				userId: "owner-123",
 			};
 			const nonMemberUser = { id: "non-member-999" };
-			
+
 			// Should throw FORBIDDEN error for non-members
 			try {
 				// Attempt to access team rule as non-member

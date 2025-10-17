@@ -56,8 +56,12 @@ const positionClasses = computed(() => {
 });
 
 const widthClasses = computed(() => {
-	if (props.width === "full") return "w-full";
-	if (props.width === "auto") return "w-48";
+	if (props.width === "full") {
+		return "w-full";
+	}
+	if (props.width === "auto") {
+		return "w-48";
+	}
 	return props.width;
 });
 

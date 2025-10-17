@@ -246,12 +246,12 @@ mockPrismaClient.user.create.mockImplementation(async (args) => {
 	return result;
 });
 
-mockPrismaClient.user.findUnique.mockImplementation(async (args) => {
+mockPrismaClient.user.findUnique.mockImplementation(async (_args) => {
 	// Return null by default (user not found)
 	return null;
 });
 
-mockPrismaClient.user.findFirst.mockImplementation(async (args) => {
+mockPrismaClient.user.findFirst.mockImplementation(async (_args) => {
 	// Return null by default (user not found)
 	return null;
 });
@@ -296,7 +296,7 @@ console.log("[SETUP] Global mock Prisma client created");
 
 // Mock the createPrismaClient function globally
 vi.mock("~/server/utils/prisma", () => ({
-	createPrismaClient: vi.fn((db: any) => {
+	createPrismaClient: vi.fn((_db: any) => {
 		console.log("[MOCK] createPrismaClient called, returning mock");
 		const mockClient = (globalThis as any).__mockPrismaClient;
 		console.log("[MOCK] Mock client user.create exists:", !!mockClient?.user?.create);
@@ -310,14 +310,14 @@ vi.mock("~/server/utils/prisma", () => ({
 vi.mock("~/server/utils/crypto", () => ({
 	generateId: vi.fn(() => `id_${Date.now()}`),
 	hashPassword: vi.fn(async (password: string) => `hashed_${password}`),
-	verifyPassword: vi.fn(async (password: string, hash: string) => true),
+	verifyPassword: vi.fn(async (_password: string, _hash: string) => true),
 }));
 
 // Mock OAuth security utilities globally
 vi.mock("~/server/utils/oauthSecurity", () => ({
 	validateRedirectUrl: vi.fn((url) => {
 		// Allow relative URLs that start with /
-		if (url && url.startsWith("/") && !url.startsWith("//")) {
+		if (url?.startsWith("/") && !url.startsWith("//")) {
 			return true;
 		}
 		// For tests, allow all localhost URLs

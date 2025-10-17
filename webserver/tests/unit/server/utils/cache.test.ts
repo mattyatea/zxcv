@@ -1,7 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { Cache, createCache } from "~/server/utils/cache";
-import type { KVNamespace } from "@cloudflare/workers-types";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Env } from "~/server/types/env";
+import { Cache, createCache } from "~/server/utils/cache";
 
 describe("Cache", () => {
 	let mockKV: {
@@ -26,8 +25,8 @@ describe("Cache", () => {
 	describe("constructor", () => {
 		it("should use default options", () => {
 			const c = new Cache(mockKV as any);
-			expect(c["defaultTTL"]).toBe(300);
-			expect(c["namespace"]).toBe("zxcv");
+			expect(c.defaultTTL).toBe(300);
+			expect(c.namespace).toBe("zxcv");
 		});
 
 		it("should accept custom options", () => {
@@ -35,19 +34,19 @@ describe("Cache", () => {
 				ttl: 600,
 				namespace: "custom",
 			});
-			expect(c["defaultTTL"]).toBe(600);
-			expect(c["namespace"]).toBe("custom");
+			expect(c.defaultTTL).toBe(600);
+			expect(c.namespace).toBe("custom");
 		});
 	});
 
 	describe("buildKey", () => {
 		it("should build namespaced key", () => {
-			expect(cache["buildKey"]("test")).toBe("zxcv:test");
+			expect(cache.buildKey("test")).toBe("zxcv:test");
 		});
 
 		it("should use custom namespace", () => {
 			const customCache = new Cache(mockKV as any, { namespace: "custom" });
-			expect(customCache["buildKey"]("test")).toBe("custom:test");
+			expect(customCache.buildKey("test")).toBe("custom:test");
 		});
 	});
 
@@ -85,11 +84,9 @@ describe("Cache", () => {
 
 			await cache.set("test-key", testData);
 
-			expect(mockKV.put).toHaveBeenCalledWith(
-				"zxcv:test-key",
-				JSON.stringify(testData),
-				{ expirationTtl: 300 },
-			);
+			expect(mockKV.put).toHaveBeenCalledWith("zxcv:test-key", JSON.stringify(testData), {
+				expirationTtl: 300,
+			});
 		});
 
 		it("should set value with custom TTL", async () => {
@@ -97,11 +94,9 @@ describe("Cache", () => {
 
 			await cache.set("test-key", testData, 600);
 
-			expect(mockKV.put).toHaveBeenCalledWith(
-				"zxcv:test-key",
-				JSON.stringify(testData),
-				{ expirationTtl: 600 },
-			);
+			expect(mockKV.put).toHaveBeenCalledWith("zxcv:test-key", JSON.stringify(testData), {
+				expirationTtl: 600,
+			});
 		});
 
 		it("should handle errors silently", async () => {
@@ -148,11 +143,9 @@ describe("Cache", () => {
 
 			expect(result).toEqual(freshData);
 			expect(fetchFn).toHaveBeenCalled();
-			expect(mockKV.put).toHaveBeenCalledWith(
-				"zxcv:test-key",
-				JSON.stringify(freshData),
-				{ expirationTtl: 300 },
-			);
+			expect(mockKV.put).toHaveBeenCalledWith("zxcv:test-key", JSON.stringify(freshData), {
+				expirationTtl: 300,
+			});
 		});
 
 		it("should use custom TTL when fetching", async () => {
@@ -162,11 +155,9 @@ describe("Cache", () => {
 
 			await cache.getOrSet("test-key", fetchFn, 900);
 
-			expect(mockKV.put).toHaveBeenCalledWith(
-				"zxcv:test-key",
-				JSON.stringify(freshData),
-				{ expirationTtl: 900 },
-			);
+			expect(mockKV.put).toHaveBeenCalledWith("zxcv:test-key", JSON.stringify(freshData), {
+				expirationTtl: 900,
+			});
 		});
 	});
 
@@ -263,7 +254,7 @@ describe("createCache", () => {
 		const cache = createCache(mockEnv);
 
 		expect(cache).toBeInstanceOf(Cache);
-		expect(cache["defaultTTL"]).toBe(300);
-		expect(cache["namespace"]).toBe("zxcv");
+		expect(cache.defaultTTL).toBe(300);
+		expect(cache.namespace).toBe("zxcv");
 	});
 });

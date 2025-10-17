@@ -111,7 +111,9 @@ export class MemoryFileManager {
 
 	// ルールをメモリファイルから削除
 	public async removeRule(filePath: string, ruleName: string): Promise<void> {
-		if (!existsSync(filePath)) return;
+		if (!existsSync(filePath)) {
+			return;
+		}
 
 		const content = readFileSync(filePath, "utf-8");
 
@@ -144,15 +146,11 @@ export class MemoryFileManager {
 
 		if (ruleFound) {
 			// 末尾の空行を整理
-			while (
-				updatedLines.length > 0 &&
-				updatedLines[updatedLines.length - 1] === ""
-			) {
+			while (updatedLines.length > 0 && updatedLines[updatedLines.length - 1] === "") {
 				updatedLines.pop();
 			}
 
-			const updatedContent =
-				updatedLines.join("\n") + (updatedLines.length > 0 ? "\n" : "");
+			const updatedContent = updatedLines.join("\n") + (updatedLines.length > 0 ? "\n" : "");
 			writeFileSync(filePath, updatedContent);
 		}
 	}
@@ -176,22 +174,17 @@ export class MemoryFileManager {
 	// ファイルヘッダーを取得
 	private getFileHeader(fileName: string): string {
 		const headers: { [key: string]: string } = {
-			"Agents.md":
-				"# AI Agent Instructions\n\nAI coding rules for all AI coding assistants\n",
-			"CLAUDE.md":
-				"# Claude Code Instructions\n\nAI coding rules for Claude Code\n",
+			"Agents.md": "# AI Agent Instructions\n\nAI coding rules for all AI coding assistants\n",
+			"CLAUDE.md": "# Claude Code Instructions\n\nAI coding rules for Claude Code\n",
 			"CLAUDE.local.md":
 				"# Claude Code Instructions (Local)\n\nProject-specific AI coding rules for Claude Code\n",
-			"COPILOT.md":
-				"# GitHub Copilot Instructions\n\nAI coding rules for GitHub Copilot\n",
+			"COPILOT.md": "# GitHub Copilot Instructions\n\nAI coding rules for GitHub Copilot\n",
 			"CURSOR.md": "# Cursor Instructions\n\nAI coding rules for Cursor\n",
 			".cursorrules": "# Cursor Rules\n\n",
 			"CODEIUM.md": "# Codeium Instructions\n\nAI coding rules for Codeium\n",
 		};
 
-		return (
-			headers[fileName] || `# ${fileName}\n\nAI coding rules managed by zxcv\n`
-		);
+		return headers[fileName] || `# ${fileName}\n\nAI coding rules managed by zxcv\n`;
 	}
 
 	// ルールファイルのパスを取得

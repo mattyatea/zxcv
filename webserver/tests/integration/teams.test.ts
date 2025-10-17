@@ -1,9 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { PrismaClient } from "@prisma/client";
-// Skip teams tests since the procedures file might not exist
-// import { teamsProcedures } from "~/server/orpc/procedures/teams";
-import { createMockContext } from "~/tests/helpers/mocks";
-import { generateId } from "~/server/utils/crypto";
+import { describe } from "vitest";
 
 // TODO: Uncomment and fix when teams procedures are implemented
 describe.skip("Teams Integration Tests", () => {

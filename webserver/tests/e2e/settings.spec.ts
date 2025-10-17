@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { login, testUsers } from "./helpers/auth";
-import { waitForToast, generateUniqueId } from "./helpers/test-utils";
+import { generateUniqueId, waitForToast } from "./helpers/test-utils";
 
 // Profile settings E2E tests
 
@@ -24,7 +24,10 @@ test.describe("Settings Page", () => {
 			await page.goto("/settings");
 
 			// Check if profile tab is active
-			await expect(page.locator('[data-testid="profile-tab"]')).toHaveAttribute("aria-selected", "true");
+			await expect(page.locator('[data-testid="profile-tab"]')).toHaveAttribute(
+				"aria-selected",
+				"true",
+			);
 			await expect(page.locator('[data-testid="profile-panel"]')).toBeVisible();
 		});
 
@@ -63,7 +66,7 @@ test.describe("Settings Page", () => {
 				displayName: `Updated Name ${uniqueId}`,
 				bio: `Updated bio description ${uniqueId}`,
 				location: `Tokyo, Japan ${uniqueId}`,
-				website: "https://example.com"
+				website: "https://example.com",
 			};
 
 			// Fill in the form
@@ -79,7 +82,9 @@ test.describe("Settings Page", () => {
 			await waitForToast(page, "Profile updated successfully", "success");
 
 			// Verify form still contains the updated data
-			await expect(page.locator('input[name="displayName"]')).toHaveValue(updatedProfile.displayName);
+			await expect(page.locator('input[name="displayName"]')).toHaveValue(
+				updatedProfile.displayName,
+			);
 			await expect(page.locator('textarea[name="bio"]')).toHaveValue(updatedProfile.bio);
 			await expect(page.locator('input[name="location"]')).toHaveValue(updatedProfile.location);
 			await expect(page.locator('input[name="website"]')).toHaveValue(updatedProfile.website);
@@ -164,7 +169,7 @@ test.describe("Settings Page", () => {
 			await page.goto("/settings");
 
 			const avatarImage = page.locator('[data-testid="current-avatar"]');
-			
+
 			// Avatar may or may not exist, so check if it's present
 			if (await avatarImage.isVisible()) {
 				await expect(avatarImage).toHaveAttribute("src");
@@ -176,7 +181,7 @@ test.describe("Settings Page", () => {
 
 			// Create a mock image file
 			const fileInput = page.locator('input[type="file"][accept="image/*"]');
-			
+
 			// Note: In a real test, you would use page.setInputFiles() with an actual image file
 			// For this test, we're just checking the file input is accessible
 			await expect(fileInput).toBeVisible();
@@ -237,7 +242,10 @@ test.describe("Settings Page", () => {
 			await page.goto("/settings");
 
 			// Initially on profile tab
-			await expect(page.locator('[data-testid="profile-tab"]')).toHaveAttribute("aria-selected", "true");
+			await expect(page.locator('[data-testid="profile-tab"]')).toHaveAttribute(
+				"aria-selected",
+				"true",
+			);
 			await expect(page.locator('[data-testid="profile-panel"]')).toBeVisible();
 
 			// Note: If there are other tabs like Account, Security, etc., test them here
@@ -254,7 +262,7 @@ test.describe("Settings Page", () => {
 				route.fulfill({
 					status: 500,
 					contentType: "application/json",
-					body: JSON.stringify({ error: { message: "Server error" } })
+					body: JSON.stringify({ error: { message: "Server error" } }),
 				});
 			});
 

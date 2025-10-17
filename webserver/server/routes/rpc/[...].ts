@@ -3,6 +3,7 @@ import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { defineEventHandler, setResponseStatus } from "h3";
 import { router } from "../../orpc/router";
 import type { H3EventContext } from "../../types/bindings";
+import { getLocaleFromRequest } from "../../utils/locale";
 import {
 	createRequestFromEvent,
 	ensureCloudflareContext,
@@ -25,12 +26,10 @@ export default defineEventHandler(async (event: H3Event) => {
 	ensureCloudflareContext(event);
 
 	try {
-		const user = await getAuthUser(event);
 		const request = await createRequestFromEvent(event);
 
-		console.log("Request URL:", request.url);
-		console.log("Request method:", request.method);
-		console.log("User authenticated:", !!user);
+		const user = await getAuthUser(event);
+		const locale = getLocaleFromRequest(request);
 
 		let response: Awaited<ReturnType<typeof handler.handle>>;
 		try {
@@ -40,6 +39,7 @@ export default defineEventHandler(async (event: H3Event) => {
 					user,
 					env: context.cloudflare.env,
 					cloudflare: context.cloudflare,
+					locale,
 				},
 			});
 		} catch (handlerError) {
@@ -51,9 +51,6 @@ export default defineEventHandler(async (event: H3Event) => {
 			});
 			throw handlerError;
 		}
-
-		console.log("Response matched:", response.matched);
-		console.log("Response status:", response.response?.status);
 
 		if (!response.matched) {
 			setResponseStatus(event, 404, "Not Found");

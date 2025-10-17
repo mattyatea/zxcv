@@ -162,7 +162,7 @@ describe("Error Handling", () => {
 						description: "Bad Request - Validation Error",
 						content: {
 							"application/json": {
-								schema: { "$ref": "#/components/schemas/ValidationError" },
+								schema: { $ref: "#/components/schemas/ValidationError" },
 							},
 						},
 					},
@@ -170,7 +170,7 @@ describe("Error Handling", () => {
 						description: "Unauthorized - Authentication required",
 						content: {
 							"application/json": {
-								schema: { "$ref": "#/components/schemas/ErrorResponse" },
+								schema: { $ref: "#/components/schemas/ErrorResponse" },
 							},
 						},
 					},
@@ -178,7 +178,7 @@ describe("Error Handling", () => {
 						description: "Internal Server Error",
 						content: {
 							"application/json": {
-								schema: { "$ref": "#/components/schemas/ErrorResponse" },
+								schema: { $ref: "#/components/schemas/ErrorResponse" },
 							},
 						},
 					},
