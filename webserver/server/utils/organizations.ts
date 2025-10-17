@@ -15,7 +15,6 @@ export async function checkOrganizationMembership(
 ): Promise<OrganizationMember | null> {
 	const member = await prisma.organizationMember.findUnique({
 		where: {
-			// biome-ignore lint/style/useNamingConvention: Prisma generated composite key
 			organizationId_userId: {
 				organizationId,
 				userId,

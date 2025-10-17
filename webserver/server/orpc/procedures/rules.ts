@@ -161,7 +161,6 @@ export const rulesProcedures = {
 			// 既にLikeしているか確認
 			const existingLike = await db.ruleStar.findUnique({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					ruleId_userId: {
 						ruleId: input.ruleId,
 						userId: user.id,
@@ -206,7 +205,6 @@ export const rulesProcedures = {
 			// Likeが存在するか確認
 			const existingLike = await db.ruleStar.findUnique({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					ruleId_userId: {
 						ruleId: input.ruleId,
 						userId: user.id,
@@ -223,7 +221,6 @@ export const rulesProcedures = {
 			// Likeを削除
 			await db.ruleStar.delete({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					ruleId_userId: {
 						ruleId: input.ruleId,
 						userId: user.id,
@@ -419,7 +416,6 @@ export const rulesProcedures = {
 			// 既にLikeしているか確認
 			const existingLike = await db.ruleStar.findUnique({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					ruleId_userId: {
 						ruleId: input.ruleId,
 						userId: user.id,
@@ -465,7 +461,6 @@ export const rulesProcedures = {
 			// Likeが存在するか確認
 			const existingLike = await db.ruleStar.findUnique({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					ruleId_userId: {
 						ruleId: input.ruleId,
 						userId: user.id,
@@ -482,7 +477,6 @@ export const rulesProcedures = {
 			// Likeを削除
 			await db.ruleStar.delete({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					ruleId_userId: {
 						ruleId: input.ruleId,
 						userId: user.id,
