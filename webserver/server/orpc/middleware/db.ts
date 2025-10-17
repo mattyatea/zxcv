@@ -8,7 +8,9 @@ declare global {
 }
 
 export const dbProvider = os.$context().middleware(async ({ context, next }) => {
-	const db = createPrismaClient(context.env.DB);
+	// In test environment, use provided db directly if available
+	// Otherwise create from env.DB
+	const db: PrismaClient = context.db || createPrismaClient(context.env?.DB);
 
 	// If still no db, throw a descriptive error
 	if (!db) {
@@ -19,8 +21,6 @@ export const dbProvider = os.$context().middleware(async ({ context, next }) => 
 		context: {
 			...context,
 			db,
-			env: context.env,
-			user: context.user || undefined,
 		},
 	});
 });

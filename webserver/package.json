@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "pnpm cf-typegen && pnpm typecheck && nuxt build",
+		"build": "pnpm typegen && pnpm typecheck && nuxt build",
 		"build:staging": "pnpm cf-typegen && CLOUDFLARE_ENV=staging nuxt build",
 		"dev:migrate": "pnpm migrate:local && nuxt dev",
 		"dev": "pnpm cf-typegen && nuxt dev",

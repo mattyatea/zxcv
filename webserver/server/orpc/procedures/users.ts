@@ -32,7 +32,7 @@ export const getProfile = os.users.getProfile
 	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { username } = input;
-		const { db, user } = context;
+		const { db, user, locale } = context;
 		const userService = new UserService(db);
 		const userPackingService = new UserPackingService();
 
@@ -40,13 +40,11 @@ export const getProfile = os.users.getProfile
 		const targetUser = await userService.getUserByUsername(username);
 
 		if (!targetUser) {
-			const locale: Locale = "ja"; // Default to Japanese
 			throw new ORPCError("NOT_FOUND", {
-				message: authErrors.userNotFound(locale),
+				message: authErrors.userNotFound(locale as Locale),
 			});
 		}
 
-		// Get recent public rules
 		const recentRules = await db.rule.findMany({
 			where: {
 				userId: targetUser.id,
@@ -95,64 +93,24 @@ export const me = os.users.me
 	.use(dbProvider)
 	.use(authRequiredMiddleware)
 	.handler(async ({ context }) => {
-		try {
-			const { db, user } = context;
-			const userService = new UserService(db);
-			const userPackingService = new UserPackingService();
+		const { db, user } = context;
+		const userService = new UserService(db);
+		const userPackingService = new UserPackingService();
 
-			console.log("[DEBUG] users.me called for user:", user?.id);
-			console.log("[DEBUG] context available:", {
-				hasDb: !!db,
-				hasUser: !!user,
-			});
+		// Get detailed user profile from database
+		const userProfile = await userService.getUserById(user.id);
 
-			if (!db) {
-				console.log("[DEBUG] Database not available in context");
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: "Database not available",
-				});
-			}
-
-			if (!user || !user.id) {
-				console.log("[DEBUG] User not available in context");
-				throw new ORPCError("UNAUTHORIZED", {
-					message: "User not authenticated",
-				});
-			}
-
-			// Get detailed user profile from database
-			console.log("[DEBUG] About to call getUserById");
-			const userProfile = await userService.getUserById(user.id);
-
-			console.log("[DEBUG] userProfile from DB:", userProfile);
-
-			if (!userProfile) {
-				throw new ORPCError("NOT_FOUND", { message: "User not found" });
-			}
-
-			// Fetch stats using UserService
-			const stats = await userService.getUserStats(user.id, {
-				includeTotalStars: true,
-			});
-
-			// Use UserPackingService to pack user with stats
-			const result = userPackingService.packUserWithStats(userProfile, stats);
-
-			console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
-
-			return result;
-		} catch (error) {
-			console.log("[DEBUG] Error in users.me procedure:", error);
-			console.log("[DEBUG] Error stack:", error instanceof Error ? error.stack : "No stack trace");
-			// Re-throw ORPC errors as-is
-			if (error instanceof ORPCError) {
-				throw error;
-			}
-			// Wrap other errors
-			throw new ORPCError("INTERNAL_SERVER_ERROR", {
-				message: "Internal server error in users.me",
-			});
+		if (!userProfile) {
+			throw new ORPCError("NOT_FOUND", { message: "User not found" });
 		}
+
+		// Fetch stats using UserService
+		const stats = await userService.getUserStats(user.id, {
+			includeTotalStars: true,
+		});
+
+		// Use UserPackingService to pack user with stats
+		return userPackingService.packUserWithStats(userProfile, stats);
 	});
 
 export const updateProfile = os.users.updateProfile
@@ -194,7 +152,7 @@ export const changePassword = os.users.changePassword
 	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { currentPassword, newPassword } = input;
-		const { db, user } = context;
+		const { db, user, locale } = context;
 
 		// Get user with password hash
 		const dbUser = await db.user.findUnique({
@@ -203,19 +161,16 @@ export const changePassword = os.users.changePassword
 		});
 
 		if (!dbUser || !dbUser.passwordHash) {
-			const locale: Locale = "ja"; // Default to Japanese
 			throw new ORPCError("BAD_REQUEST", {
-				message: authErrors.passwordChangeNotAvailable(locale),
+				message: authErrors.passwordChangeNotAvailable(locale as Locale),
 			});
 		}
 
 		// Verify current password
-		const { verifyPassword, hashPassword } = await import("../../utils/crypto");
 		const isValid = await verifyPassword(currentPassword, dbUser.passwordHash);
 		if (!isValid) {
-			const locale: Locale = "ja"; // Default to Japanese
 			throw new ORPCError("UNAUTHORIZED", {
-				message: authErrors.invalidCurrentPassword(locale),
+				message: authErrors.invalidCurrentPassword(locale as Locale),
 			});
 		}
 
@@ -270,7 +225,7 @@ export const updateSettings = os.users.updateSettings
 	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { currentPassword, newPassword } = input;
-		const { db, user } = context;
+		const { db, user, locale } = context;
 
 		// If changing password, verify current password
 		if (newPassword) {
@@ -286,9 +241,8 @@ export const updateSettings = os.users.updateSettings
 			});
 
 			if (!userWithPassword) {
-				const locale: Locale = "ja"; // Default to Japanese
 				throw new ORPCError("NOT_FOUND", {
-					message: authErrors.userNotFound(locale),
+					message: authErrors.userNotFound(locale as Locale),
 				});
 			}
 
@@ -405,7 +359,7 @@ export const deleteAccount = os.users.deleteAccount
 	.use(authRequiredMiddleware)
 	.handler(async ({ input, context }) => {
 		const { password, confirmation } = input;
-		const { db, user } = context;
+		const { db, user, locale } = context;
 
 		// Verify confirmation text
 		if (confirmation !== "DELETE") {
@@ -425,9 +379,8 @@ export const deleteAccount = os.users.deleteAccount
 		});
 
 		if (!dbUser) {
-			const locale: Locale = "ja"; // Default to Japanese
 			throw new ORPCError("NOT_FOUND", {
-				message: authErrors.userNotFound(locale),
+				message: authErrors.userNotFound(locale as Locale),
 			});
 		}
 

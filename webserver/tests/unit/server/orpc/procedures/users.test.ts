@@ -100,9 +100,8 @@ describe("users procedures", () => {
 			mockPrisma.ruleStar.count.mockResolvedValue(10);
 			mockPrisma.rule.findMany.mockResolvedValue(mockPublicRules);
 
-			// Following oRPC docs: direct procedure invocation with call()
-			// Documentation shows 2-argument form: call(procedure, input)
-			const result = await call(getPublicProfile, validInput);
+			// Use call() with procedure and context option
+			const result = await call(getPublicProfile, validInput, { context: mockContext });
 
 			// Assert the result
 			expect(result).toEqual({
@@ -196,8 +195,10 @@ describe("users procedures", () => {
 			// Mock user not found
 			mockPrisma.user.findUnique.mockResolvedValue(null);
 
-			// Call the procedure and expect error - using expect().rejects pattern from docs
-			await expect(call(getPublicProfile, validInput)).rejects.toThrow(ORPCError);
+			// Use call() with procedure and context option
+			await expect(call(getPublicProfile, validInput, { context: mockContext })).rejects.toThrow(
+				ORPCError,
+			);
 
 			// Verify database call (select clause removed as UserPackingService doesn't use it)
 			expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
@@ -222,8 +223,8 @@ describe("users procedures", () => {
 				},
 			]);
 
-			// Following oRPC docs: direct procedure invocation with call()
-			const result = await call(getPublicProfile, validInput);
+			// Use call() with procedure and context option
+			const result = await call(getPublicProfile, validInput, { context: mockContext });
 
 			// Assert description is converted to empty string
 			expect(result.publicRules[0].description).toBe("");
@@ -236,8 +237,8 @@ describe("users procedures", () => {
 			mockPrisma.ruleStar.count.mockResolvedValue(0);
 			mockPrisma.rule.findMany.mockResolvedValue([]);
 
-			// Following oRPC docs: direct procedure invocation with call()
-			const result = await call(getPublicProfile, validInput);
+			// Use call() with procedure and context option
+			const result = await call(getPublicProfile, validInput, { context: mockContext });
 
 			// Assert empty results
 			expect(result.stats.publicRulesCount).toBe(0);
@@ -258,8 +259,8 @@ describe("users procedures", () => {
 				},
 			]);
 
-			// Following oRPC docs: direct procedure invocation with call()
-			const result = await call(getPublicProfile, validInput);
+			// Use call() with procedure and context option
+			const result = await call(getPublicProfile, validInput, { context: mockContext });
 
 			// Assert organization is null
 			expect(result.publicRules[0].organization).toBeNull();
@@ -293,8 +294,11 @@ describe("users procedures", () => {
 			// Mock database call
 			mockPrisma.user.findMany.mockResolvedValue(mockUsers);
 
-			// Call the procedure
-			const result = await call(searchByUsername, validInput);
+			// Setup authenticated context
+			const authContext = { ...mockContext, user: authenticatedUser };
+
+			// Use call() with procedure and context option
+			const result = await call(searchByUsername, validInput, { context: authContext });
 
 			// Assert emails are masked for non-self users
 			expect(result).toEqual([
@@ -332,8 +336,11 @@ describe("users procedures", () => {
 			// Mock database call
 			mockPrisma.user.findMany.mockResolvedValue(mockUsers);
 
-			// Call the procedure
-			const result = await call(searchByUsername, validInput);
+			// Setup authenticated context
+			const authContext = { ...mockContext, user: authenticatedUser };
+
+			// Use call() with procedure and context option
+			const result = await call(searchByUsername, validInput, { context: authContext });
 
 			// Assert only authenticated user's email is visible
 			expect(result).toEqual([
