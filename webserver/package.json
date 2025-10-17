@@ -33,13 +33,13 @@
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
-    "lint": "biome lint .",
-    "lint:fix": "biome lint --write .",
-    "format": "biome format --write .",
-    "format:check": "biome format .",
-    "check": "biome check .",
-    "check:fix": "biome check --write .",
-    "check:fix:hard": "biome check --write --unsafe .",
+    "lint": "biome lint ./app ./server --diagnostic-level=warn",
+    "lint:fix": "biome lint --write ./app ./server --diagnostic-level=warn",
+    "format": "biome format --write ./app ./server",
+    "format:check": "biome format ./app ./server",
+    "check": "biome check ./app ./server",
+    "check:fix": "biome check --write ./app ./server",
+    "check:fix:hard": "biome check --write --unsafe ./app ./server",
     "typecheck": "vue-tsc --noEmit && tsc --noEmit",
     "prepare": "husky"
   },
@@ -70,7 +70,6 @@
     "zod": "4.0.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.1.2",
     "@cloudflare/vitest-pool-workers": "0.8.44",
     "@nuxt/test-utils": "^3.19.2",
     "@nuxtjs/icon": "2.6.0",
