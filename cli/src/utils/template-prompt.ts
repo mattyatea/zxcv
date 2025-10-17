@@ -1,6 +1,10 @@
 import chalk from "chalk";
 import type { TemplateVariable } from "./template";
-import { getMissingVariables, parseTemplateVariables, renderTemplate } from "./template";
+import {
+	getMissingVariables,
+	parseTemplateVariables,
+	renderTemplate,
+} from "./template";
 
 export interface TemplatePromptOptions {
 	[key: string]: string;
@@ -19,7 +23,11 @@ export async function promptTemplateVariables(
 		return providedOptions;
 	}
 
-	console.log(chalk.blue("\n📝 This rule contains template variables that need to be filled in:"));
+	console.log(
+		chalk.blue(
+			"\n📝 This rule contains template variables that need to be filled in:",
+		),
+	);
 
 	const { inquirer } = await import("./prompt");
 	const values: TemplatePromptOptions = { ...providedOptions };
@@ -94,7 +102,9 @@ export async function processTemplateContent(
  * Extracts all string options as potential template variables
  * Reserved options (like 'file', 'force', etc.) are excluded
  */
-export function parseTemplateOptions(args: Record<string, unknown>): TemplatePromptOptions {
+export function parseTemplateOptions(
+	args: Record<string, unknown>,
+): TemplatePromptOptions {
 	const options: TemplatePromptOptions = {};
 
 	// Reserved CLI options that should not be treated as template variables

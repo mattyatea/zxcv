@@ -26,27 +26,34 @@ export function createAuthCommand(): Command {
 						name: "username",
 						message: "Username:",
 						validate: (input) =>
-							(typeof input === "string" && input.length > 0) || "Username is required",
+							(typeof input === "string" && input.length > 0) ||
+							"Username is required",
 					},
 					{
 						type: "password",
 						name: "password",
 						message: "Password:",
 						validate: (input) =>
-							(typeof input === "string" && input.length > 0) || "Password is required",
+							(typeof input === "string" && input.length > 0) ||
+							"Password is required",
 					},
 				]);
 
 				const spinner = ora("Logging in...").start();
 
 				try {
-					const { token } = await api.login(answers.username as string, answers.password as string);
+					const { token } = await api.login(
+						answers.username as string,
+						answers.password as string,
+					);
 					config.setAuthToken(token);
 					spinner.succeed(chalk.green("Successfully logged in!"));
 				} catch (error) {
 					spinner.fail(chalk.red("Login failed"));
 					if (axios.isAxiosError(error)) {
-						console.error(chalk.red(error.response?.data?.message || error.message));
+						console.error(
+							chalk.red(error.response?.data?.message || error.message),
+						);
 					} else {
 						console.error(chalk.red("An unexpected error occurred"));
 					}
@@ -78,7 +85,9 @@ export function createAuthCommand(): Command {
 					]);
 
 					if (openBrowser) {
-						await open(authData.verificationUriComplete || authData.verificationUri);
+						await open(
+							authData.verificationUriComplete || authData.verificationUri,
+						);
 					}
 
 					// Start polling
@@ -103,7 +112,9 @@ export function createAuthCommand(): Command {
 				} catch (error) {
 					spinner.fail(chalk.red("Failed to initialize authentication"));
 					if (axios.isAxiosError(error)) {
-						console.error(chalk.red(error.response?.data?.message || error.message));
+						console.error(
+							chalk.red(error.response?.data?.message || error.message),
+						);
 					} else {
 						console.error(chalk.red("An unexpected error occurred"));
 					}
@@ -175,7 +186,9 @@ export function createAuthCommand(): Command {
 			} catch (error) {
 				spinner.fail(chalk.red("Registration failed"));
 				if (axios.isAxiosError(error)) {
-					console.error(chalk.red(error.response?.data?.message || error.message));
+					console.error(
+						chalk.red(error.response?.data?.message || error.message),
+					);
 				} else {
 					console.error(chalk.red("An unexpected error occurred"));
 				}

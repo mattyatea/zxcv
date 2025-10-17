@@ -137,7 +137,10 @@ export class FileManager {
 			this.createSymlink(pulledRule);
 		} catch (error) {
 			if (process.env.CI || process.env.GITHUB_ACTIONS) {
-				console.warn("Symlink creation failed in CI, continuing without symlink:", error);
+				console.warn(
+					"Symlink creation failed in CI, continuing without symlink:",
+					error,
+				);
 			} else {
 				throw error;
 			}

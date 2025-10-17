@@ -70,7 +70,10 @@ export class DebugLogger {
 
 		if (response.data) {
 			console.log(chalk.cyan("Response Body:"));
-			const dataCopy = typeof response.data === "object" ? { ...response.data } : response.data;
+			const dataCopy =
+				typeof response.data === "object"
+					? { ...response.data }
+					: response.data;
 			if (dataCopy.token) {
 				dataCopy.token = "***";
 			}
@@ -88,7 +91,12 @@ export class DebugLogger {
 		console.log(chalk.gray("-".repeat(60)));
 
 		// Type guard for axios error
-		if (error && typeof error === "object" && "response" in error && error.response) {
+		if (
+			error &&
+			typeof error === "object" &&
+			"response" in error &&
+			error.response
+		) {
 			const axiosError = error as {
 				response: { status: number; statusText: string; data: unknown };
 			};
@@ -99,7 +107,12 @@ export class DebugLogger {
 			);
 			console.log(chalk.cyan("Error Response:"));
 			console.log(JSON.stringify(axiosError.response.data, null, 2));
-		} else if (error && typeof error === "object" && "request" in error && error.request) {
+		} else if (
+			error &&
+			typeof error === "object" &&
+			"request" in error &&
+			error.request
+		) {
 			const axiosError = error as { request: unknown };
 			console.log(chalk.red("No response received from server"));
 			console.log(chalk.cyan("Request:"), axiosError.request);

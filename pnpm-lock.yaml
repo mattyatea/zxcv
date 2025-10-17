@@ -124,9 +124,6 @@ importers:
         specifier: 4.0.5
         version: 4.0.5
     devDependencies:
-      '@biomejs/biome':
-        specifier: ^2.1.2
-        version: 2.1.2
       '@cloudflare/vitest-pool-workers':
         specifier: 0.8.44
         version: 0.8.44(@cloudflare/workers-types@4.20251008.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/node@24.0.14)(happy-dom@18.0.1)(jiti@2.6.1)(terser@5.44.0)(tsx@4.20.6)(yaml@2.8.0))

@@ -15,7 +15,9 @@ export class Spinner {
 
 		process.stdout.write("\x1B[?25l"); // Hide cursor
 		this.interval = setInterval(() => {
-			process.stdout.write(`\r${chalk.blue(this.spinnerChars[this.currentIndex])} ${this.message}`);
+			process.stdout.write(
+				`\r${chalk.blue(this.spinnerChars[this.currentIndex])} ${this.message}`,
+			);
 			this.currentIndex = (this.currentIndex + 1) % this.spinnerChars.length;
 		}, 80);
 

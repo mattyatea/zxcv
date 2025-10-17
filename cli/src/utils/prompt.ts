@@ -17,7 +17,9 @@ export async function promptMemoryFile(ruleName: string): Promise<string> {
 	const projectFiles = memoryManager.findMemoryFiles("project");
 	const userFiles = memoryManager.findMemoryFiles("user");
 
-	const choices: Array<{ name: string; value: string } | InstanceType<typeof Separator>> = [];
+	const choices: Array<
+		{ name: string; value: string } | InstanceType<typeof Separator>
+	> = [];
 
 	// プロジェクトレベル
 	if (projectFiles.length > 0) {

@@ -76,11 +76,15 @@ for (const platform of platforms) {
 
 		// Calculate SHA256 hash
 		const fileData = await Bun.file(outputPath).arrayBuffer();
-		const hash = createHash("sha256").update(new Uint8Array(fileData)).digest("hex");
+		const hash = createHash("sha256")
+			.update(new Uint8Array(fileData))
+			.digest("hex");
 
 		console.log(`✅ Successfully built: ${platform.output}`);
 		console.log(`   SHA256: ${hash}`);
-		successfulBuilds.push(`${platform.os}: ${platform.output} (SHA256: ${hash.slice(0, 8)}...)`);
+		successfulBuilds.push(
+			`${platform.os}: ${platform.output} (SHA256: ${hash.slice(0, 8)}...)`,
+		);
 	} catch (error) {
 		console.error(`❌ Failed to build for ${platform.os}:`, error);
 		failedBuilds.push(`${platform.os}: ${error}`);
@@ -120,7 +124,9 @@ if (failedBuilds.length === 0) {
 		const filePath = resolve(releaseDir, platform.output);
 		if (existsSync(filePath)) {
 			const fileData = await Bun.file(filePath).arrayBuffer();
-			const hash = createHash("sha256").update(new Uint8Array(fileData)).digest("hex");
+			const hash = createHash("sha256")
+				.update(new Uint8Array(fileData))
+				.digest("hex");
 			checksumContent += `${hash}  ${platform.output}\n`;
 		}
 	}

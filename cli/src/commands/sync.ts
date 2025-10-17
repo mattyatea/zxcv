@@ -79,7 +79,9 @@ export function createSyncCommand(): Command {
 			} catch (error) {
 				spinner.fail(chalk.red("Failed to sync rules"));
 				if (axios.isAxiosError(error)) {
-					console.error(chalk.red(error.response?.data?.message || error.message));
+					console.error(
+						chalk.red(error.response?.data?.message || error.message),
+					);
 				} else {
 					console.error(chalk.red("An unexpected error occurred"));
 				}

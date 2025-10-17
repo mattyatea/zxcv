@@ -47,7 +47,9 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 	}
 
 	const targetFile =
-		ignoreType === "exclude" ? join(gitDir, "info", "exclude") : join(projectRoot, ".gitignore");
+		ignoreType === "exclude"
+			? join(gitDir, "info", "exclude")
+			: join(projectRoot, ".gitignore");
 
 	try {
 		// ファイルの存在確認と読み込み
@@ -86,9 +88,13 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 			const needsNewline = content.length > 0 && !content.endsWith("\n");
 			const prefix = needsNewline ? "\n" : "";
 
-			writeFileSync(targetFile, `${content + prefix + newEntries.join("\n")}\n`);
+			writeFileSync(
+				targetFile,
+				`${content + prefix + newEntries.join("\n")}\n`,
+			);
 
-			const displayPath = ignoreType === "exclude" ? ".git/info/exclude" : ".gitignore";
+			const displayPath =
+				ignoreType === "exclude" ? ".git/info/exclude" : ".gitignore";
 			console.log(chalk.green(`Added to ${displayPath}`));
 			for (const entry of filesToIgnore) {
 				if (!existingEntries.has(entry)) {
@@ -109,7 +115,9 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 /**
  * インストール時のgitignore設定を促す
  */
-export async function promptGitIgnoreOnInstall(projectRoot: string): Promise<void> {
+export async function promptGitIgnoreOnInstall(
+	projectRoot: string,
+): Promise<void> {
 	const filesToIgnore = [
 		"rules/", // ルールディレクトリ
 		"Agents.md", // Agents.md

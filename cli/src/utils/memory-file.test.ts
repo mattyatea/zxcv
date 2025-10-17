@@ -15,7 +15,9 @@ const testFile = join(testDir, "CLAUDE.md");
 
 // Helper to access private methods for testing
 const getPrivateMethods = (manager: MemoryFileManager) =>
-	manager as unknown as { parseRuleName: (name: string) => { name: string; owner?: string } };
+	manager as unknown as {
+		parseRuleName: (name: string) => { name: string; owner?: string };
+	};
 
 describe("MemoryFileManager", () => {
 	let memoryManager: MemoryFileManager;
@@ -57,7 +59,8 @@ describe("MemoryFileManager", () => {
 
 	describe("parseRuleName", () => {
 		it("should parse @owner/rulename format", () => {
-			const result = getPrivateMethods(memoryManager).parseRuleName("@owner/test-rule");
+			const result =
+				getPrivateMethods(memoryManager).parseRuleName("@owner/test-rule");
 			expect(result).toEqual({
 				owner: "owner",
 				name: "test-rule",
@@ -65,7 +68,8 @@ describe("MemoryFileManager", () => {
 		});
 
 		it("should handle simple rule name format", () => {
-			const result = getPrivateMethods(memoryManager).parseRuleName("simple-rule");
+			const result =
+				getPrivateMethods(memoryManager).parseRuleName("simple-rule");
 			expect(result).toEqual({
 				name: "simple-rule",
 			});
@@ -101,7 +105,10 @@ describe("MemoryFileManager", () => {
 			};
 
 			// 既存ファイルを作成
-			writeFileSync(testFile, "# Claude Code Instructions\n\n## @owner/test-rule\n@path\n");
+			writeFileSync(
+				testFile,
+				"# Claude Code Instructions\n\n## @owner/test-rule\n@path\n",
+			);
 
 			await memoryManager.addRule(testFile, rule);
 

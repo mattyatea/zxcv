@@ -16,11 +16,17 @@ export function createInstallCommand(): Command {
 		.description("Install rules from remote server")
 		.alias("i")
 		.argument("[path]", "Rule path to install (@owner/rulename)")
-		.option("--frozen-lockfile", "Don't update metadata, install exactly what's specified")
+		.option(
+			"--frozen-lockfile",
+			"Don't update metadata, install exactly what's specified",
+		)
 		.option("-f, --force", "Force install even if rule already exists")
 		.option("--file <path>", "Specify memory file to record the rule")
 		.option("--no-warn", "Don't show warnings for non-project files")
-		.option("--no-template", "Skip template processing and keep variables as is")
+		.option(
+			"--no-template",
+			"Skip template processing and keep variables as is",
+		)
 		.allowUnknownOption() // Allow dynamic template variables like --language, --format, etc.
 		.action(
 			async (
@@ -45,7 +51,13 @@ export function createInstallCommand(): Command {
 				const templateOptions: Record<string, string> = {};
 
 				// Extract --key value pairs that aren't reserved options
-				const reservedOptions = ["frozen-lockfile", "force", "file", "no-warn", "no-template"];
+				const reservedOptions = [
+					"frozen-lockfile",
+					"force",
+					"file",
+					"no-warn",
+					"no-template",
+				];
 				for (let i = 0; i < rawArgs.length; i++) {
 					const arg = rawArgs[i];
 					if (arg.startsWith("--") && !arg.startsWith("--no-")) {
@@ -108,7 +120,9 @@ export function createInstallCommand(): Command {
 
 						// フルパス形式で比較
 						const fullName = `@${owner}/${ruleName}`;
-						const existingRule = metadata.rules.find((r) => r.name === fullName);
+						const existingRule = metadata.rules.find(
+							(r) => r.name === fullName,
+						);
 
 						if (existingRule && !options?.force) {
 							spinner.fail(
@@ -121,8 +135,13 @@ export function createInstallCommand(): Command {
 
 						// Get rule content with specific version if requested
 						const targetVersion = requestedVersion || rule.version;
-						spinner.text(`Downloading rule content (version ${targetVersion})...`);
-						let { content, version } = await api.getRuleContent(rule.id, requestedVersion);
+						spinner.text(
+							`Downloading rule content (version ${targetVersion})...`,
+						);
+						let { content, version } = await api.getRuleContent(
+							rule.id,
+							requestedVersion,
+						);
 
 						// Update rule object with the actual version from content response
 						if (requestedVersion) {
@@ -136,10 +155,17 @@ export function createInstallCommand(): Command {
 							try {
 								// Process template content (prompt for missing variables)
 								// Use templateOptions parsed from raw args above
-								content = await processTemplateContent(content, templateOptions, true);
+								content = await processTemplateContent(
+									content,
+									templateOptions,
+									true,
+								);
 							} catch (error) {
 								// Handle user cancellation
-								if (error instanceof Error && error.message.includes("cancelled")) {
+								if (
+									error instanceof Error &&
+									error.message.includes("cancelled")
+								) {
 									spinner.fail(chalk.yellow("Installation cancelled"));
 									return;
 								}
@@ -156,7 +182,9 @@ export function createInstallCommand(): Command {
 
 						// Update metadata
 						if (existingRule) {
-							const index = metadata.rules.findIndex((r) => r.name === fullName);
+							const index = metadata.rules.findIndex(
+								(r) => r.name === fullName,
+							);
 							metadata.rules[index] = pulledRule;
 							if (existingRule.version !== pulledRule.version) {
 								console.log(
@@ -173,9 +201,15 @@ export function createInstallCommand(): Command {
 						config.saveMetadata(metadata);
 
 						spinner.succeed(
-							chalk.green(`Successfully installed ${packageName} (version ${pulledRule.version})`),
+							chalk.green(
+								`Successfully installed ${packageName} (version ${pulledRule.version})`,
+							),
 						);
-						console.log(chalk.gray(`Rule saved to: ${config.getSymlinkDir()}/${packageName}.md`));
+						console.log(
+							chalk.gray(
+								`Rule saved to: ${config.getSymlinkDir()}/${packageName}.md`,
+							),
+						);
 
 						// メモリファイルに記録
 						spinner.stop();
@@ -244,7 +278,9 @@ export function createInstallCommand(): Command {
 								await promptGitIgnoreOnInstall(process.cwd());
 							}
 						} catch (error) {
-							recordingSpinner.fail(chalk.red("Failed to record to memory file"));
+							recordingSpinner.fail(
+								chalk.red("Failed to record to memory file"),
+							);
 							if (error instanceof Error) {
 								console.error(chalk.red(error.message));
 							}
@@ -253,24 +289,33 @@ export function createInstallCommand(): Command {
 						spinner.fail(chalk.red("Failed to install rule"));
 						if (axios.isAxiosError(error)) {
 							if (error.response?.status === 404) {
-								const errorMessage = error.response?.data?.message || "Rule not found";
+								const errorMessage =
+									error.response?.data?.message || "Rule not found";
 								if (
 									errorMessage.includes("バージョンが見つかりません") ||
 									errorMessage.includes("version")
 								) {
 									console.error(
-										chalk.red(`Rule exists but no version information found for ${path}`),
+										chalk.red(
+											`Rule exists but no version information found for ${path}`,
+										),
 									);
 									console.error(
-										chalk.yellow("This may be a legacy rule without proper versioning."),
+										chalk.yellow(
+											"This may be a legacy rule without proper versioning.",
+										),
 									);
 								} else {
 									console.error(chalk.red(`Rule not found: ${path}`));
 								}
 							} else if (error.response?.status === 401) {
-								console.error(chalk.red("Authentication required. Please login first."));
+								console.error(
+									chalk.red("Authentication required. Please login first."),
+								);
 							} else {
-								console.error(chalk.red(error.response?.data?.message || error.message));
+								console.error(
+									chalk.red(error.response?.data?.message || error.message),
+								);
 							}
 						} else if (error instanceof Error) {
 							console.error(chalk.red(error.message));
@@ -345,13 +390,17 @@ export function createInstallCommand(): Command {
 
 					if (installedCount > 0) {
 						console.log(
-							chalk.green(`\n✓ Installed ${installedCount} rule${installedCount > 1 ? "s" : ""}`),
+							chalk.green(
+								`\n✓ Installed ${installedCount} rule${installedCount > 1 ? "s" : ""}`,
+							),
 						);
 					}
 
 					if (errorCount > 0) {
 						console.log(
-							chalk.red(`\n✗ Failed to install ${errorCount} rule${errorCount > 1 ? "s" : ""}`),
+							chalk.red(
+								`\n✗ Failed to install ${errorCount} rule${errorCount > 1 ? "s" : ""}`,
+							),
 						);
 						process.exit(1);
 					}
