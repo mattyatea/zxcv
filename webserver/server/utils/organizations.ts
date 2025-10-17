@@ -41,7 +41,11 @@ export async function canViewOrganizationRule(
 	userId: string,
 	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkOrganizationMembership(prisma, userId, organizationId);
+	const member = await checkOrganizationMembership(
+		prisma,
+		userId,
+		organizationId,
+	);
 	return member !== null;
 }
 
@@ -50,7 +54,11 @@ export async function canEditOrganizationRule(
 	userId: string,
 	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkOrganizationMembership(prisma, userId, organizationId);
+	const member = await checkOrganizationMembership(
+		prisma,
+		userId,
+		organizationId,
+	);
 	return member !== null && ["owner", "admin", "member"].includes(member.role);
 }
 
@@ -59,7 +67,11 @@ export async function canDeleteOrganizationRule(
 	userId: string,
 	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkOrganizationMembership(prisma, userId, organizationId);
+	const member = await checkOrganizationMembership(
+		prisma,
+		userId,
+		organizationId,
+	);
 	return member !== null && ["owner", "admin"].includes(member.role);
 }
 
@@ -68,6 +80,10 @@ export async function isOrganizationOwner(
 	userId: string,
 	organizationId: string,
 ): Promise<boolean> {
-	const member = await checkOrganizationMembership(prisma, userId, organizationId);
+	const member = await checkOrganizationMembership(
+		prisma,
+		userId,
+		organizationId,
+	);
 	return member !== null && member.role === "owner";
 }

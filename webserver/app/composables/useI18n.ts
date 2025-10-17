@@ -62,9 +62,14 @@ export function useI18n() {
 	};
 
 	// Plural support for future use
-	const tp = (key: string, count: number, params?: Record<string, string | number>): string => {
+	const tp = (
+		key: string,
+		count: number,
+		params?: Record<string, string | number>,
+	): string => {
 		// Basic plural logic - can be extended with proper plural rules
-		const pluralKey = count === 0 ? `${key}.zero` : count === 1 ? `${key}.one` : `${key}.other`;
+		const pluralKey =
+			count === 0 ? `${key}.zero` : count === 1 ? `${key}.one` : `${key}.other`;
 
 		// Try plural form first, fallback to base key
 		let translation = store.t(pluralKey, { count, ...params });
@@ -83,9 +88,15 @@ export function useI18n() {
 	};
 
 	// Format date based on locale
-	const formatDate = (date: Date | string | number, format: "short" | "long" = "short"): string => {
+	const formatDate = (
+		date: Date | string | number,
+		format: "short" | "long" = "short",
+	): string => {
 		const locale = store.locale === "ja" ? "ja-JP" : "en-US";
-		const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
+		const d =
+			typeof date === "string" || typeof date === "number"
+				? new Date(date)
+				: date;
 
 		const options: Intl.DateTimeFormatOptions =
 			format === "short"

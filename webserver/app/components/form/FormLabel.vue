@@ -14,16 +14,16 @@
 
 <script setup lang="ts">
 interface Props {
-  htmlFor?: string;
-  required?: boolean;
-  error?: boolean;
-  class?: string;
+	htmlFor?: string;
+	required?: boolean;
+	error?: boolean;
+	class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  required: false,
-  error: false,
-  class: ''
+	required: false,
+	error: false,
+	class: "",
 });
 
 const className = computed(() => props.class);

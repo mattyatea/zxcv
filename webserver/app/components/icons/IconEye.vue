@@ -23,11 +23,11 @@
 
 <script setup lang="ts">
 interface Props {
-  class?: string;
+	class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  class: 'w-6 h-6'
+	class: "w-6 h-6",
 });
 
 const classes = computed(() => props.class);

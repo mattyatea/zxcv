@@ -131,13 +131,22 @@ export const useAnimation = () => {
 			return;
 		}
 
-		const { threshold = 0.1, rootMargin = "0px", once = true, ...animationOptions } = options;
+		const {
+			threshold = 0.1,
+			rootMargin = "0px",
+			once = true,
+			...animationOptions
+		} = options;
 
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
 					if (entry.isIntersecting) {
-						animate(entry.target as HTMLElement, animationClass, animationOptions);
+						animate(
+							entry.target as HTMLElement,
+							animationClass,
+							animationOptions,
+						);
 						if (once) {
 							observer.unobserve(entry.target);
 						}
@@ -168,7 +177,11 @@ export const useAnimation = () => {
 			options: AnimationOptions;
 		}> = [];
 
-		const add = (element: HTMLElement, animation: string, options: AnimationOptions = {}) => {
+		const add = (
+			element: HTMLElement,
+			animation: string,
+			options: AnimationOptions = {},
+		) => {
 			timeline.push({ element, animation, options });
 			return { add, play };
 		};
@@ -218,7 +231,9 @@ export const useAnimation = () => {
 			if (property === "translateX" || property === "translateY") {
 				element.style.transform = `${property}(${value}px)`;
 			} else {
-				(element.style as CSSStyleDeclaration & Record<string, string>)[property] = `${value}px`;
+				(element.style as CSSStyleDeclaration & Record<string, string>)[
+					property
+				] = `${value}px`;
 			}
 
 			// Continue animation if not settled
@@ -372,7 +387,10 @@ export const usePageTransition = () => {
 	const transitionName = ref("page");
 	const transitionMode = ref<"in-out" | "out-in">("out-in");
 
-	const setTransition = (name: string, mode: "in-out" | "out-in" = "out-in") => {
+	const setTransition = (
+		name: string,
+		mode: "in-out" | "out-in" = "out-in",
+	) => {
 		transitionName.value = name;
 		transitionMode.value = mode;
 	};
@@ -392,7 +410,8 @@ export const useViewTransition = () => {
 
 	// Check support only on client side
 	onMounted(() => {
-		isSupported.value = typeof document !== "undefined" && "startViewTransition" in document;
+		isSupported.value =
+			typeof document !== "undefined" && "startViewTransition" in document;
 	});
 
 	const startTransition = async (callback: () => void | Promise<void>) => {
@@ -401,7 +420,9 @@ export const useViewTransition = () => {
 			!isSupported.value ||
 			!(
 				document as Document & {
-					startViewTransition?: (callback: () => void | Promise<void>) => unknown;
+					startViewTransition?: (
+						callback: () => void | Promise<void>,
+					) => unknown;
 				}
 			).startViewTransition
 		) {

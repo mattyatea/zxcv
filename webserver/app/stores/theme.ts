@@ -10,7 +10,8 @@ export const useThemeStore = defineStore("theme", () => {
 			const savedTheme = localStorage.getItem("theme");
 			if (
 				savedTheme === "dark" ||
-				(!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+				(!savedTheme &&
+					window.matchMedia("(prefers-color-scheme: dark)").matches)
 			) {
 				isDark.value = true;
 				document.documentElement.classList.add("dark");

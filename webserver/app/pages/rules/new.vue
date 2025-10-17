@@ -228,8 +228,8 @@
 
 <script setup>
 import { onMounted, ref } from "vue";
-import { useAuthStore } from "~/stores/auth";
 import { useRpc } from "~/composables/useRpc";
+import { useAuthStore } from "~/stores/auth";
 
 definePageMeta({
 	middleware: "auth",
@@ -286,7 +286,9 @@ const removeTag = (index) => {
 };
 
 const updateOrganization = () => {
-	const selected = organizations.value.find((org) => org.id === selectedOrganizationId.value);
+	const selected = organizations.value.find(
+		(org) => org.id === selectedOrganizationId.value,
+	);
 	if (selected) {
 		form.value.org = selected.name;
 		form.value.organizationId = selected.id;
@@ -311,7 +313,9 @@ const handleSubmit = async () => {
 			// Get the current user's username from auth store
 			const authStore = useAuthStore();
 			if (authStore.user?.username) {
-				await navigateTo(`/rules/@${authStore.user.username}/${form.value.name}`);
+				await navigateTo(
+					`/rules/@${authStore.user.username}/${form.value.name}`,
+				);
 			} else {
 				// Fallback: If username is not available, show error
 				error.value = t("rules.messages.createError");
@@ -333,10 +337,9 @@ const fetchOrganizations = async () => {
 	}
 };
 
-
 const applyTemplate = () => {
 	if (!selectedTemplate.value) return;
-	
+
 	// Subagentテンプレートを適用
 	const templates = {
 		codeReviewer: `# Code Review Expert
@@ -374,7 +377,7 @@ This agent specializes in code review and quality assessment.
 3. Verify error handling and edge cases
 4. Assess code readability and maintainability
 5. Provide constructive feedback with examples`,
-		
+
 		testGenerator: `# Test Suite Generator
 
 Generates comprehensive test suites for your codebase
@@ -403,7 +406,7 @@ This agent specializes in generating comprehensive test suites.
 3. Design edge case scenarios
 4. Generate test data and fixtures
 5. Ensure adequate test coverage`,
-		
+
 		docWriter: `# Documentation Specialist
 
 Creates and maintains high-quality technical documentation
@@ -432,7 +435,7 @@ This agent specializes in creating and maintaining documentation.
 3. Write code comments and docstrings
 4. Maintain README files
 5. Create architectural documentation`,
-		
+
 		generalHelper: `# Development Assistant
 
 A versatile assistant for various development tasks
@@ -458,9 +461,9 @@ This is a general-purpose agent for various development tasks.
 2. Debug and troubleshoot issues
 3. Refactor and optimize code
 4. Answer technical questions
-5. Provide development guidance`
+5. Provide development guidance`,
 	};
-	
+
 	if (templates[selectedTemplate.value]) {
 		form.value.content = templates[selectedTemplate.value];
 	}

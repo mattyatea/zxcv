@@ -1,5 +1,7 @@
 export const isDebugMode = () => {
-	return process.env.NODE_ENV === "development" && process.env.DEBUG_MODE === "true";
+	return (
+		process.env.NODE_ENV === "development" && process.env.DEBUG_MODE === "true"
+	);
 };
 
 export const debugLog = (label: string, data: unknown) => {
@@ -40,14 +42,21 @@ export const debugRequest = (method: string, path: string, data?: unknown) => {
 	console.groupEnd();
 };
 
-export const debugResponse = (method: string, path: string, status: number, data?: unknown) => {
+export const debugResponse = (
+	method: string,
+	path: string,
+	status: number,
+	data?: unknown,
+) => {
 	if (!isDebugMode()) {
 		return;
 	}
 
 	const timestamp = new Date().toISOString();
 	const statusEmoji = status >= 200 && status < 300 ? "✅" : "⚠️";
-	console.group(`${statusEmoji} [DEBUG RESPONSE ${timestamp}] ${method} ${path} - ${status}`);
+	console.group(
+		`${statusEmoji} [DEBUG RESPONSE ${timestamp}] ${method} ${path} - ${status}`,
+	);
 	if (data) {
 		console.log("Response data:", JSON.stringify(data, null, 2));
 	}

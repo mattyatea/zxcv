@@ -22,17 +22,17 @@
 
 <script setup lang="ts">
 interface Props {
-  as?: string | object;
-  variant?: 'default' | 'danger';
-  disabled?: boolean;
-  class?: string;
+	as?: string | object;
+	variant?: "default" | "danger";
+	disabled?: boolean;
+	class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  as: 'button',
-  variant: 'default',
-  disabled: false,
-  class: ''
+	as: "button",
+	variant: "default",
+	disabled: false,
+	class: "",
 });
 
 const className = computed(() => props.class);

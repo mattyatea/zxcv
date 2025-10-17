@@ -36,7 +36,11 @@ export default defineEventHandler(async (event: H3Event) => {
 			});
 		} catch (handlerError) {
 			// エラー時のみ簡潔にログ出力
-			console.error("[API Error]", event.path, (handlerError as { message?: string })?.message);
+			console.error(
+				"[API Error]",
+				event.path,
+				(handlerError as { message?: string })?.message,
+			);
 			throw handlerError;
 		}
 

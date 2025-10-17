@@ -33,7 +33,10 @@ export class OrganizationRepository extends BaseRepository {
 	/**
 	 * 組織をIDで取得
 	 */
-	async findById(id: string, includeMembers = false): Promise<OrganizationWithMembers | null> {
+	async findById(
+		id: string,
+		includeMembers = false,
+	): Promise<OrganizationWithMembers | null> {
 		try {
 			return await this.db.organization.findUnique({
 				where: { id },
@@ -60,7 +63,9 @@ export class OrganizationRepository extends BaseRepository {
 	/**
 	 * ユーザーが所属する組織を取得
 	 */
-	async findByUserId(userId: string): Promise<Array<Organization & { role: string }>> {
+	async findByUserId(
+		userId: string,
+	): Promise<Array<Organization & { role: string }>> {
 		try {
 			const memberships = await this.db.organizationMember.findMany({
 				where: { userId },
@@ -150,7 +155,10 @@ export class OrganizationRepository extends BaseRepository {
 	/**
 	 * 組織を更新
 	 */
-	async update(id: string, data: Prisma.OrganizationUpdateInput): Promise<Organization> {
+	async update(
+		id: string,
+		data: Prisma.OrganizationUpdateInput,
+	): Promise<Organization> {
 		try {
 			return await this.db.organization.update({
 				where: { id },
@@ -206,7 +214,10 @@ export class OrganizationRepository extends BaseRepository {
 	/**
 	 * Find a specific member
 	 */
-	async findMember(orgId: string, userId: string): Promise<OrganizationMember | null> {
+	async findMember(
+		orgId: string,
+		userId: string,
+	): Promise<OrganizationMember | null> {
 		try {
 			return await this.db.organizationMember.findUnique({
 				where: {

@@ -114,7 +114,8 @@ const handleMouseLeave = () => {
 };
 
 const cardClasses = computed(() => {
-	const base = "card relative block w-full transition-all duration-300 group transform-gpu";
+	const base =
+		"card relative block w-full transition-all duration-300 group transform-gpu";
 
 	const variants = {
 		default:

@@ -2,7 +2,11 @@
 import { ORPCError } from "@orpc/server";
 import type { $Enums, PrismaClient } from "@prisma/client";
 import { nanoid } from "nanoid";
-import { OrganizationRepository, RuleRepository, type RuleWithRelations } from "../repositories";
+import {
+	OrganizationRepository,
+	RuleRepository,
+	type RuleWithRelations,
+} from "../repositories";
 import type { CloudflareEnv } from "../types/env";
 import { createLogger } from "../utils/logger";
 
@@ -57,7 +61,10 @@ export class RuleService {
 
 		// 組織チェック
 		if (data.organizationId) {
-			const isMember = await this.organizationRepository.isMember(data.organizationId, userId);
+			const isMember = await this.organizationRepository.isMember(
+				data.organizationId,
+				userId,
+			);
 			if (!isMember) {
 				throw new ORPCError("FORBIDDEN", {
 					message: "この組織にルールを作成する権限がありません",
@@ -66,7 +73,10 @@ export class RuleService {
 		}
 
 		// 名前の重複チェック
-		const existingRule = await this.ruleRepository.findByName(data.name, data.organizationId);
+		const existingRule = await this.ruleRepository.findByName(
+			data.name,
+			data.organizationId,
+		);
 		if (existingRule) {
 			throw new ORPCError("CONFLICT", {
 				message: "このルール名は既に使用されています",
@@ -76,8 +86,12 @@ export class RuleService {
 		// ルール作成（エラー時のクリーンアップを考慮）
 		const ruleId = nanoid();
 		const versionId = nanoid();
-		let rule: Awaited<ReturnType<typeof this.ruleRepository.create>> | undefined;
-		let version: Awaited<ReturnType<typeof this.ruleRepository.createVersion>> | undefined;
+		let rule:
+			| Awaited<ReturnType<typeof this.ruleRepository.create>>
+			| undefined;
+		let version:
+			| Awaited<ReturnType<typeof this.ruleRepository.createVersion>>
+			| undefined;
 
 		try {
 			// バージョンIDを最初から設定してルールを作成
@@ -199,9 +213,12 @@ export class RuleService {
 
 		if (!latestVersion) {
 			// バージョンが存在しない場合は、R2から利用可能なバージョンをスキャン
-			this.logger.warn("No version found in database, scanning R2 for available versions", {
-				ruleId: rule.id,
-			});
+			this.logger.warn(
+				"No version found in database, scanning R2 for available versions",
+				{
+					ruleId: rule.id,
+				},
+			);
 
 			const availableVersions = await this.scanR2ForVersions(rule.id);
 
@@ -233,7 +250,10 @@ export class RuleService {
 		}
 
 		// コンテンツを取得
-		const content = await this.getContentFromR2(rule.id, latestVersion.versionNumber);
+		const content = await this.getContentFromR2(
+			rule.id,
+			latestVersion.versionNumber,
+		);
 
 		return {
 			rule,
@@ -395,7 +415,10 @@ export class RuleService {
 			});
 		}
 
-		const content = await this.getContentFromR2(ruleId, latestVersion.versionNumber);
+		const content = await this.getContentFromR2(
+			ruleId,
+			latestVersion.versionNumber,
+		);
 
 		return {
 			name: rule.name,
@@ -411,8 +434,16 @@ export class RuleService {
 	/**
 	 * 公開ルールを検索
 	 */
-	async searchPublicRules(params: { query?: string; page?: number; pageSize?: number }) {
-		return await this.ruleRepository.findPublicRules(params.page, params.pageSize, params.query);
+	async searchPublicRules(params: {
+		query?: string;
+		page?: number;
+		pageSize?: number;
+	}) {
+		return await this.ruleRepository.findPublicRules(
+			params.page,
+			params.pageSize,
+			params.query,
+		);
 	}
 
 	/**
@@ -613,7 +644,11 @@ export class RuleService {
 					}
 				: null,
 			visibility: r.visibility as "public" | "private" | "organization",
-			tags: r.tags ? (typeof r.tags === "string" ? JSON.parse(r.tags) : r.tags) : [],
+			tags: r.tags
+				? typeof r.tags === "string"
+					? JSON.parse(r.tags)
+					: r.tags
+				: [],
 			version: r.version || "1.0.0",
 			updated_at: r.updatedAt,
 		}));
@@ -746,7 +781,11 @@ export class RuleService {
 			},
 			visibility: rule.visibility as "public" | "private" | "organization",
 			type: rule.type || "rule",
-			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
+			tags: rule.tags
+				? typeof rule.tags === "string"
+					? JSON.parse(rule.tags)
+					: rule.tags
+				: [],
 			version: rule.version || "1.0.0",
 			updated_at: rule.updatedAt,
 		}));
@@ -799,7 +838,10 @@ export class RuleService {
 			where.AND = [
 				...(where.AND || []),
 				{
-					OR: [{ name: { contains: params.query } }, { description: { contains: params.query } }],
+					OR: [
+						{ name: { contains: params.query } },
+						{ description: { contains: params.query } },
+					],
 				},
 			];
 		}
@@ -851,7 +893,10 @@ export class RuleService {
 		const skip = (params.page - 1) * params.limit;
 
 		this.logger.debug("searchRules where clause:", { where });
-		this.logger.debug("searchRules skip and limit:", { skip, limit: params.limit });
+		this.logger.debug("searchRules skip and limit:", {
+			skip,
+			limit: params.limit,
+		});
 		this.logger.debug("searchRules orderBy:", { orderBy });
 
 		// ルールを検索
@@ -883,7 +928,10 @@ export class RuleService {
 			this.db.rule.count({ where }),
 		]);
 
-		this.logger.debug("searchRules found rules:", { count: rules.length, total });
+		this.logger.debug("searchRules found rules:", {
+			count: rules.length,
+			total,
+		});
 
 		// フォーマット
 		const formattedRules = rules.map((rule) => {
@@ -901,7 +949,11 @@ export class RuleService {
 				type: rule.type,
 				visibility: rule.visibility as "public" | "private" | "organization",
 				description: rule.description,
-				tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
+				tags: rule.tags
+					? typeof rule.tags === "string"
+						? JSON.parse(rule.tags)
+						: rule.tags
+					: [],
 				createdAt: rule.createdAt,
 				updatedAt: rule.updatedAt,
 				publishedAt: rule.publishedAt,
@@ -957,7 +1009,10 @@ export class RuleService {
 
 		// チームルールは組織メンバーのみ
 		if (rule.visibility === "team" && rule.organizationId) {
-			const isMember = await this.organizationRepository.isMember(rule.organizationId, userId);
+			const isMember = await this.organizationRepository.isMember(
+				rule.organizationId,
+				userId,
+			);
 			if (!isMember) {
 				throw new ORPCError("FORBIDDEN", {
 					message: "このルールにアクセスする権限がありません",
@@ -978,7 +1033,10 @@ export class RuleService {
 
 		// 組織オーナーも削除可能
 		if (rule.organizationId) {
-			return await this.organizationRepository.isOwner(rule.organizationId, userId);
+			return await this.organizationRepository.isOwner(
+				rule.organizationId,
+				userId,
+			);
 		}
 
 		return false;
@@ -998,7 +1056,11 @@ export class RuleService {
 	/**
 	 * R2にコンテンツを保存
 	 */
-	private async saveContentToR2(ruleId: string, version: string, content: string) {
+	private async saveContentToR2(
+		ruleId: string,
+		version: string,
+		content: string,
+	) {
 		const key = `rules/${ruleId}/versions/${version}/content.md`;
 		await this.r2.put(key, content);
 	}
@@ -1075,7 +1137,10 @@ export class RuleService {
 	/**
 	 * R2からコンテンツを取得
 	 */
-	private async getContentFromR2(ruleId: string, version: string): Promise<string> {
+	private async getContentFromR2(
+		ruleId: string,
+		version: string,
+	): Promise<string> {
 		// バージョンが指定されている場合は通常のパス
 		if (version) {
 			const key = `rules/${ruleId}/versions/${version}/content.md`;
@@ -1134,18 +1199,25 @@ export class RuleService {
 			const deletePromises: Promise<void>[] = [];
 			for (let i = 0; i < objects.objects.length; i += maxConcurrent) {
 				const batch = objects.objects.slice(i, i + maxConcurrent);
-				const batchPromises = batch.map((obj: { key: string }) => this.r2.delete(obj.key));
+				const batchPromises = batch.map((obj: { key: string }) =>
+					this.r2.delete(obj.key),
+				);
 				deletePromises.push(...batchPromises);
 
 				// バッチごとに処理を待機（Promise.allSettledを使用してエラーを処理）
 				if (deletePromises.length >= maxConcurrent) {
-					const results = await Promise.allSettled(deletePromises.splice(0, maxConcurrent));
+					const results = await Promise.allSettled(
+						deletePromises.splice(0, maxConcurrent),
+					);
 					results.forEach((result, index) => {
 						if (result.status === "fulfilled") {
 							totalDeleted++;
 						} else {
 							totalFailed++;
-							console.warn(`Failed to delete object at index ${index}:`, result.reason);
+							console.warn(
+								`Failed to delete object at index ${index}:`,
+								result.reason,
+							);
 						}
 					});
 				}
@@ -1159,7 +1231,10 @@ export class RuleService {
 						totalDeleted++;
 					} else {
 						totalFailed++;
-						console.warn(`Failed to delete remaining object at index ${index}:`, result.reason);
+						console.warn(
+							`Failed to delete remaining object at index ${index}:`,
+							result.reason,
+						);
 					}
 				});
 			}

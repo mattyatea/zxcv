@@ -137,10 +137,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import Avatar from "~/components/common/Avatar.vue";
 import Button from "~/components/common/Button.vue";
 import Input from "~/components/common/Input.vue";
 import Textarea from "~/components/common/Textarea.vue";
-import Avatar from "~/components/common/Avatar.vue";
 import type { MeResponse } from "~/types/orpc";
 
 // Props
@@ -190,7 +190,6 @@ const originalForm = ref({
 	location: "",
 	website: "",
 });
-
 
 // Form validation
 const isFormValid = computed(() => {
@@ -267,12 +266,17 @@ const handleAvatarChange = (event: Event) => {
 	if (!file) return;
 
 	// Define allowed MIME types for images
-	const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+	const allowedMimeTypes = [
+		"image/jpeg",
+		"image/png",
+		"image/gif",
+		"image/webp",
+	];
 
 	// Validate file type with specific MIME types
 	if (!allowedMimeTypes.includes(file.type)) {
 		showToast({
-			message: t('settings.profile.errors.invalidFileType'),
+			message: t("settings.profile.errors.invalidFileType"),
 			type: "error",
 		});
 		return;
@@ -281,7 +285,7 @@ const handleAvatarChange = (event: Event) => {
 	// Validate file size (5MB max)
 	if (file.size > 5 * 1024 * 1024) {
 		showToast({
-			message: t('settings.profile.errors.fileTooLarge'),
+			message: t("settings.profile.errors.fileTooLarge"),
 			type: "error",
 		});
 		return;

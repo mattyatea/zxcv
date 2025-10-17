@@ -1,5 +1,9 @@
 import { ORPCError } from "@orpc/server";
-import type { Organization, OrganizationMember, PrismaClient } from "@prisma/client";
+import type {
+	Organization,
+	OrganizationMember,
+	PrismaClient,
+} from "@prisma/client";
 import { nanoid } from "nanoid";
 import { OrganizationRepository, UserRepository } from "../repositories";
 import type { CloudflareEnv } from "../types/env";
@@ -50,7 +54,11 @@ export class OrganizationService {
 		});
 
 		// 作成者をオーナーとして追加
-		await this.organizationRepository.addMember(organization.id, userId, "owner");
+		await this.organizationRepository.addMember(
+			organization.id,
+			userId,
+			"owner",
+		);
 
 		return organization;
 	}
@@ -59,12 +67,18 @@ export class OrganizationService {
 	 * 組織情報を取得
 	 */
 	async getOrganization(nameOrId: string, userId?: string) {
-		let organization = await this.organizationRepository.findById(nameOrId, true);
+		let organization = await this.organizationRepository.findById(
+			nameOrId,
+			true,
+		);
 
 		if (!organization) {
 			organization = await this.organizationRepository.findByName(nameOrId);
 			if (organization) {
-				organization = await this.organizationRepository.findById(organization.id, true);
+				organization = await this.organizationRepository.findById(
+					organization.id,
+					true,
+				);
 			}
 		}
 
@@ -76,7 +90,10 @@ export class OrganizationService {
 
 		// メンバー情報を含める場合は、メンバーかどうかチェック
 		if (organization.members && userId) {
-			const isMember = await this.organizationRepository.isMember(organization.id, userId);
+			const isMember = await this.organizationRepository.isMember(
+				organization.id,
+				userId,
+			);
 			if (!isMember) {
 				// メンバーでない場合はメンバー情報を除外
 				delete organization.members;
@@ -128,7 +145,12 @@ export class OrganizationService {
 	/**
 	 * メンバーを招待
 	 */
-	async inviteMember(orgId: string, inviterId: string, email: string, locale = "ja") {
+	async inviteMember(
+		orgId: string,
+		inviterId: string,
+		email: string,
+		locale = "ja",
+	) {
 		// 権限チェック（オーナーのみ招待可能）
 		const isOwner = await this.organizationRepository.isOwner(orgId, inviterId);
 		if (!isOwner) {
@@ -146,7 +168,10 @@ export class OrganizationService {
 		}
 
 		// 既にメンバーかチェック
-		const isMember = await this.organizationRepository.isMember(orgId, invitedUser.id);
+		const isMember = await this.organizationRepository.isMember(
+			orgId,
+			invitedUser.id,
+		);
 		if (isMember) {
 			throw new ORPCError("CONFLICT", {
 				message: "このユーザーは既にメンバーです",
@@ -172,7 +197,12 @@ export class OrganizationService {
 			});
 		}
 
-		await this.sendInvitationEmail(email, organization.displayName, inviteToken, locale);
+		await this.sendInvitationEmail(
+			email,
+			organization.displayName,
+			inviteToken,
+			locale,
+		);
 
 		return { message: "招待メールを送信しました" };
 	}
@@ -195,10 +225,16 @@ export class OrganizationService {
 			}
 
 			// メンバーとして追加
-			await this.organizationRepository.addMember(payload.orgId, userId, "member");
+			await this.organizationRepository.addMember(
+				payload.orgId,
+				userId,
+				"member",
+			);
 
 			// 組織の情報を取得して返す
-			const organization = await this.organizationRepository.findById(payload.orgId);
+			const organization = await this.organizationRepository.findById(
+				payload.orgId,
+			);
 			if (!organization) {
 				throw new ORPCError("NOT_FOUND", {
 					message: "組織が見つかりません",
@@ -235,11 +271,16 @@ export class OrganizationService {
 		// 自分自身を削除する場合
 		if (requesterId === memberId) {
 			// オーナーが自分を削除しようとしている場合
-			const isOwner = await this.organizationRepository.isOwner(orgId, requesterId);
+			const isOwner = await this.organizationRepository.isOwner(
+				orgId,
+				requesterId,
+			);
 			if (isOwner) {
 				// 他のオーナーがいるかチェック
 				const org = await this.organizationRepository.findById(orgId, true);
-				const owners = org?.members?.filter((m: OrganizationMember) => m.role === "owner") || [];
+				const owners =
+					org?.members?.filter((m: OrganizationMember) => m.role === "owner") ||
+					[];
 				if (owners.length <= 1) {
 					throw new ORPCError("BAD_REQUEST", {
 						message: "最後のオーナーは組織から退出できません",
@@ -248,7 +289,10 @@ export class OrganizationService {
 			}
 		} else {
 			// 他のメンバーを削除する場合はオーナー権限が必要
-			const isOwner = await this.organizationRepository.isOwner(orgId, requesterId);
+			const isOwner = await this.organizationRepository.isOwner(
+				orgId,
+				requesterId,
+			);
 			if (!isOwner) {
 				throw new ORPCError("FORBIDDEN", {
 					message: "メンバーを削除する権限がありません",
@@ -271,7 +315,10 @@ export class OrganizationService {
 		role: "owner" | "member",
 	) {
 		// オーナー権限チェック
-		const isOwner = await this.organizationRepository.isOwner(orgId, requesterId);
+		const isOwner = await this.organizationRepository.isOwner(
+			orgId,
+			requesterId,
+		);
 		if (!isOwner) {
 			throw new ORPCError("FORBIDDEN", {
 				message: "メンバーの役割を変更する権限がありません",
@@ -282,7 +329,9 @@ export class OrganizationService {
 		if (requesterId === memberId && role === "member") {
 			// 他のオーナーがいるかチェック
 			const org = await this.organizationRepository.findById(orgId, true);
-			const owners = org?.members?.filter((m: OrganizationMember) => m.role === "owner") || [];
+			const owners =
+				org?.members?.filter((m: OrganizationMember) => m.role === "owner") ||
+				[];
 			if (owners.length <= 1) {
 				throw new ORPCError("BAD_REQUEST", {
 					message: "最後のオーナーの役割は変更できません",
@@ -299,7 +348,8 @@ export class OrganizationService {
 	 * ユーザーが所属する組織を取得
 	 */
 	async getUserOrganizations(userId: string) {
-		const organizations = await this.organizationRepository.findByUserId(userId);
+		const organizations =
+			await this.organizationRepository.findByUserId(userId);
 
 		// 各組織のメンバー数とルール数を取得
 		const result = await Promise.all(
@@ -343,7 +393,12 @@ export class OrganizationService {
 	/**
 	 * 招待メールを送信
 	 */
-	private async sendInvitationEmail(email: string, orgName: string, token: string, locale: string) {
+	private async sendInvitationEmail(
+		email: string,
+		orgName: string,
+		token: string,
+		locale: string,
+	) {
 		const acceptUrl = `${this.env.FRONTEND_URL}/organizations/accept-invite?token=${token}`;
 
 		const templates = {
@@ -371,7 +426,8 @@ export class OrganizationService {
 			},
 		};
 
-		const template = templates[locale as keyof typeof templates] || templates.ja;
+		const template =
+			templates[locale as keyof typeof templates] || templates.ja;
 
 		await sendEmail(this.env, email, template.subject, template.body);
 	}
@@ -380,7 +436,10 @@ export class OrganizationService {
 	 * 組織から離脱
 	 */
 	async leaveOrganization(organizationId: string, userId: string) {
-		const member = await this.organizationRepository.findMember(organizationId, userId);
+		const member = await this.organizationRepository.findMember(
+			organizationId,
+			userId,
+		);
 		if (!member) {
 			throw new ORPCError("NOT_FOUND", {
 				message: "You are not a member of this organization",
@@ -403,9 +462,16 @@ export class OrganizationService {
 	/**
 	 * ユーザー名でメンバーを招待
 	 */
-	async inviteMemberByUsername(organizationId: string, inviterId: string, username: string) {
+	async inviteMemberByUsername(
+		organizationId: string,
+		inviterId: string,
+		username: string,
+	) {
 		// オーナー権限チェック
-		const isOwner = await this.organizationRepository.isOwner(organizationId, inviterId);
+		const isOwner = await this.organizationRepository.isOwner(
+			organizationId,
+			inviterId,
+		);
 		if (!isOwner) {
 			throw new ORPCError("FORBIDDEN", {
 				message: "Only organization owners can invite members",
@@ -421,7 +487,10 @@ export class OrganizationService {
 		}
 
 		// 既にメンバーかチェック
-		const existingMember = await this.organizationRepository.findMember(organizationId, user.id);
+		const existingMember = await this.organizationRepository.findMember(
+			organizationId,
+			user.id,
+		);
 		if (existingMember) {
 			throw new ORPCError("CONFLICT", {
 				message: "User is already a member of this organization",

@@ -701,7 +701,11 @@ const activeFilters = computed(() => {
 		});
 	}
 	if (selectedTags.value.length > 0) {
-		filters_.push({ type: "tags", label: "タグ", value: selectedTags.value.join(", ") });
+		filters_.push({
+			type: "tags",
+			label: "タグ",
+			value: selectedTags.value.join(", "),
+		});
 	}
 
 	return filters_;
@@ -718,7 +722,10 @@ const fetchRules = async () => {
 			limit,
 			page: currentPage.value,
 			sortBy: filters.value.sort,
-			visibility: filters.value.visibility === "all" ? undefined : filters.value.visibility,
+			visibility:
+				filters.value.visibility === "all"
+					? undefined
+					: filters.value.visibility,
 			type: filters.value.type === "rule" ? undefined : filters.value.type,
 			query: searchQuery.value || undefined,
 			tags: selectedTags.value.length > 0 ? selectedTags.value : undefined,
@@ -793,7 +800,11 @@ const toggleStar = async (rule: ExtendedRuleType) => {
 		}
 	} catch (error) {
 		console.error("Failed to toggle star:", error);
-		toastError(rule.isStarred ? t("rules.detail.unstarError") : t("rules.detail.starError"));
+		toastError(
+			rule.isStarred
+				? t("rules.detail.unstarError")
+				: t("rules.detail.starError"),
+		);
 	}
 };
 
@@ -905,7 +916,9 @@ onMounted(() => {
 		// Cmd/Ctrl + K で検索にフォーカス
 		if ((e.metaKey || e.ctrlKey) && e.key === "k") {
 			e.preventDefault();
-			const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+			const searchInput = document.querySelector(
+				'input[type="text"]',
+			) as HTMLInputElement;
 			searchInput?.focus();
 		}
 		// Escape でフィルターリセット

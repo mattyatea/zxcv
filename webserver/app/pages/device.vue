@@ -81,31 +81,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import Button from "~/components/common/Button.vue";
+import Card from "~/components/common/Card.vue";
+import Input from "~/components/common/Input.vue";
+import { useI18n } from "~/composables/useI18n";
 import { useRpc } from "~/composables/useRpc";
-import { useAuthStore } from '~/stores/auth';
-import { useI18n } from '~/composables/useI18n';
-import Card from '~/components/common/Card.vue';
-import Input from '~/components/common/Input.vue';
-import Button from '~/components/common/Button.vue';
+import { useAuthStore } from "~/stores/auth";
 
 const $rpc = useRpc();
 const { t } = useI18n();
 const route = useRoute();
 const authStore = useAuthStore();
 
-const userCode = ref('');
+const userCode = ref("");
 const loading = ref(false);
-const errorMessage = ref('');
-const successMessage = ref('');
+const errorMessage = ref("");
+const successMessage = ref("");
 
 // Check if user is authenticated
 onMounted(() => {
 	if (!authStore.isAuthenticated) {
-		navigateTo('/login?redirect=/device');
+		navigateTo("/login?redirect=/device");
 	}
-	
+
 	// Pre-fill code from URL if provided
 	const code = route.query.code as string;
 	if (code) {
@@ -115,16 +115,16 @@ onMounted(() => {
 
 // Format code with dash
 const formatCode = () => {
-	let value = userCode.value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+	let value = userCode.value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
 	if (value.length > 4) {
-		value = value.slice(0, 4) + '-' + value.slice(4, 8);
+		value = value.slice(0, 4) + "-" + value.slice(4, 8);
 	}
 	userCode.value = value;
 };
 
 // Validate code format
 const isValidCode = computed(() => {
-	const code = userCode.value.replace(/-/g, '');
+	const code = userCode.value.replace(/-/g, "");
 	return code.length === 8 && /^[A-Z0-9]+$/.test(code);
 });
 
@@ -132,8 +132,8 @@ const handleSubmit = async () => {
 	if (!isValidCode.value || loading.value || !authStore.isAuthenticated) return;
 
 	loading.value = true;
-	errorMessage.value = '';
-	successMessage.value = '';
+	errorMessage.value = "";
+	successMessage.value = "";
 
 	try {
 		const response = await $rpc.auth.deviceVerify({
@@ -141,14 +141,14 @@ const handleSubmit = async () => {
 		});
 
 		if (response.success) {
-			successMessage.value = response.message || t('device.success');
+			successMessage.value = response.message || t("device.success");
 			// Navigate after showing success message (client-side only)
-			if (typeof window !== 'undefined') {
+			if (typeof window !== "undefined") {
 				// Use a simple delay mechanism that doesn't rely on setTimeout
 				const startTime = Date.now();
 				const checkTime = () => {
 					if (Date.now() - startTime >= 3000) {
-						navigateTo('/');
+						navigateTo("/");
 					} else {
 						requestAnimationFrame(checkTime);
 					}
@@ -157,14 +157,14 @@ const handleSubmit = async () => {
 			}
 		}
 	} catch (error: unknown) {
-		console.error('Device verification error:', error);
+		console.error("Device verification error:", error);
 		const err = error as { code?: string; message?: string };
-		if (err.code === 'NOT_FOUND') {
-			errorMessage.value = t('device.invalidCode');
-		} else if (err.code === 'BAD_REQUEST' && err.message?.includes('期限')) {
-			errorMessage.value = t('device.expiredCode');
+		if (err.code === "NOT_FOUND") {
+			errorMessage.value = t("device.invalidCode");
+		} else if (err.code === "BAD_REQUEST" && err.message?.includes("期限")) {
+			errorMessage.value = t("device.expiredCode");
 		} else {
-			errorMessage.value = t('device.error');
+			errorMessage.value = t("device.error");
 		}
 	} finally {
 		loading.value = false;

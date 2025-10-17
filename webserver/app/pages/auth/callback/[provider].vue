@@ -56,10 +56,10 @@
 </template>
 
 <script setup lang="ts">
-import { useToast } from "~/composables/useToast";
-import { useAuthStore } from "~/stores/auth";
 import { useI18n } from "~/composables/useI18n";
 import { useRpc } from "~/composables/useRpc";
+import { useToast } from "~/composables/useToast";
+import { useAuthStore } from "~/stores/auth";
 
 // Props and route
 const route = useRoute();
@@ -100,11 +100,11 @@ const processOAuthCallback = async () => {
 
 		// エラーチェック
 		if (oauthError) {
-			throw new Error(t('auth.oauth.cancelled'));
+			throw new Error(t("auth.oauth.cancelled"));
 		}
 
 		if (!code || !state) {
-			throw new Error(t('auth.oauth.missingInfo'));
+			throw new Error(t("auth.oauth.missingInfo"));
 		}
 
 		// stateから情報を取得（registering フラグなど）
@@ -152,8 +152,8 @@ const processOAuthCallback = async () => {
 			success.value = true;
 			toastSuccess(
 				isRegistering.value
-					? t('auth.oauth.accountCreatedWith', { provider: providerName.value })
-					: t('auth.oauth.loggedInWith', { provider: providerName.value }),
+					? t("auth.oauth.accountCreatedWith", { provider: providerName.value })
+					: t("auth.oauth.loggedInWith", { provider: providerName.value }),
 			);
 
 			// リダイレクト
@@ -165,18 +165,19 @@ const processOAuthCallback = async () => {
 		console.error("OAuth callback error:", err);
 
 		// エラーメッセージの設定
-		const errorMessage = err && typeof err === 'object' && 'message' in err
-			? (err as { message?: string }).message
-			: undefined;
+		const errorMessage =
+			err && typeof err === "object" && "message" in err
+				? (err as { message?: string }).message
+				: undefined;
 
 		if (errorMessage?.includes("already exists")) {
-			error.value = t('auth.oauth.accountAlreadyUsed');
+			error.value = t("auth.oauth.accountAlreadyUsed");
 		} else if (errorMessage?.includes("email not verified")) {
-			error.value = t('auth.oauth.emailVerificationRequired');
+			error.value = t("auth.oauth.emailVerificationRequired");
 		} else if (errorMessage?.includes("cancelled")) {
-			error.value = t('auth.oauth.cancelled');
+			error.value = t("auth.oauth.cancelled");
 		} else {
-			error.value = errorMessage || t('auth.oauth.processingError');
+			error.value = errorMessage || t("auth.oauth.processingError");
 		}
 
 		toastError(error.value);
@@ -197,7 +198,7 @@ onMounted(() => {
 
 // SEO
 useHead({
-	title: `${providerName.value} ${t('auth.oauth.pageTitle')} - ZXCV`,
+	title: `${providerName.value} ${t("auth.oauth.pageTitle")} - ZXCV`,
 	meta: [{ name: "robots", content: "noindex,nofollow" }],
 });
 </script>

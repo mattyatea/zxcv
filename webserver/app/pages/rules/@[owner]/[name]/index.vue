@@ -568,11 +568,15 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
-import type { GetRuleContentResponse, GetByPathResponse, RuleVersionType } from "~/types/orpc";
+import Avatar from "~/components/common/Avatar.vue";
 import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import Avatar from "~/components/common/Avatar.vue";
+import type {
+	GetByPathResponse,
+	GetRuleContentResponse,
+	RuleVersionType,
+} from "~/types/orpc";
 import { parseTemplateVariables, renderTemplate } from "~/utils/template";
 
 // Type definitions
@@ -650,7 +654,9 @@ const viewCount = ref(0);
 const userRuleCount = ref(0);
 
 // Template variables
-const templateVariables = ref<Array<{ name: string; defaultValue?: string; description?: string }>>([]);
+const templateVariables = ref<
+	Array<{ name: string; defaultValue?: string; description?: string }>
+>([]);
 const templateValues = ref<Record<string, string>>({});
 const renderedContent = ref<string>("");
 
@@ -659,7 +665,10 @@ interface CustomRouteParams {
 	owner?: string;
 	name?: string;
 }
-const customParams = inject<CustomRouteParams | null>("customRouteParams", null);
+const customParams = inject<CustomRouteParams | null>(
+	"customRouteParams",
+	null,
+);
 const owner = computed(() => customParams?.owner || route.params.owner);
 const name = computed(() => customParams?.name || route.params.name);
 
@@ -670,9 +679,9 @@ const cliCommand = computed(() => {
 	// Add template variable options if any values are set
 	if (Object.keys(templateValues.value).length > 0) {
 		const options = Object.entries(templateValues.value)
-			.filter(([_, value]) => value && value.trim() !== '')
+			.filter(([_, value]) => value && value.trim() !== "")
 			.map(([key, value]) => `--${key} "${value}"`)
-			.join(' ');
+			.join(" ");
 
 		if (options) {
 			command += ` ${options}`;
@@ -736,7 +745,8 @@ const fetchRuleDetails = async () => {
 			try {
 				const organizations = await $rpc.organizations.list();
 				const isOrgOwner = organizations.some(
-					(org) => org.id === data.organization?.id && org.owner.id === user.value?.id,
+					(org) =>
+						org.id === data.organization?.id && org.owner.id === user.value?.id,
 				);
 				isOwner.value = isOrgOwner;
 			} catch (error) {
@@ -761,7 +771,7 @@ const fetchRuleDetails = async () => {
 		// Fetch related rules
 		try {
 			const relatedData = await $rpc.rules.related({ id: data.id, limit: 10 });
-			relatedRules.value = relatedData.map(r => ({
+			relatedRules.value = relatedData.map((r) => ({
 				...r,
 				content: "",
 			}));
@@ -932,7 +942,11 @@ const downloadRule = () => {
 	URL.revokeObjectURL(url);
 };
 
-const getRuleUrl = (rule: { name: string; author: Author; organization?: Organization | null }) => {
+const getRuleUrl = (rule: {
+	name: string;
+	author: Author;
+	organization?: Organization | null;
+}) => {
 	if (rule.organization) {
 		return `/rules/@${rule.organization.name}/${rule.name}`;
 	}
@@ -951,7 +965,10 @@ const showVersion = async (versionNumber: string) => {
 		const id = ruleData.id;
 
 		// 特定のバージョンを取得
-		const versionData = await $rpc.rules.getVersion({ id, version: versionNumber });
+		const versionData = await $rpc.rules.getVersion({
+			id,
+			version: versionNumber,
+		});
 
 		// 特定バージョンの内容を表示
 		const versionRuleData: Rule = {
@@ -978,7 +995,9 @@ const showVersion = async (versionNumber: string) => {
 		renderedContent.value = versionData.content;
 
 		// バージョン表示中であることを示すメッセージ
-		toastSuccess(t("rules.messages.viewingVersion", { version: `v${versionNumber}` }));
+		toastSuccess(
+			t("rules.messages.viewingVersion", { version: `v${versionNumber}` }),
+		);
 	} catch (error) {
 		console.error("Failed to fetch version:", error);
 		toastError(t("rules.messages.versionFetchError"));
@@ -1034,7 +1053,11 @@ const toggleStar = async () => {
 		}
 	} catch (error) {
 		console.error("Failed to toggle star:", error);
-		toastError(isStarred.value ? t("rules.detail.unstarError") : t("rules.detail.starError"));
+		toastError(
+			isStarred.value
+				? t("rules.detail.unstarError")
+				: t("rules.detail.starError"),
+		);
 	} finally {
 		starLoading.value = false;
 	}
@@ -1072,7 +1095,9 @@ onMounted(() => {
 		}
 		// v でバージョン履歴にフォーカス
 		if (e.key === "v" && !e.ctrlKey && !e.metaKey) {
-			const versionSection = document.querySelector('[data-section="versions"]');
+			const versionSection = document.querySelector(
+				'[data-section="versions"]',
+			);
 			versionSection?.scrollIntoView({ behavior: "smooth" });
 		}
 	};

@@ -150,7 +150,9 @@ export async function requireAuth(event: H3Event): Promise<AuthUser> {
 	return auth.user;
 }
 
-export async function requireEmailVerification(event: H3Event): Promise<AuthUser> {
+export async function requireEmailVerification(
+	event: H3Event,
+): Promise<AuthUser> {
 	const user = await requireAuth(event);
 
 	if (!user.emailVerified) {
@@ -164,7 +166,10 @@ export async function requireEmailVerification(event: H3Event): Promise<AuthUser
 	return user;
 }
 
-export async function requireScope(event: H3Event, requiredScope: string): Promise<void> {
+export async function requireScope(
+	event: H3Event,
+	requiredScope: string,
+): Promise<void> {
 	const auth = await getAuthFromEvent(event);
 
 	if (!auth.user) {

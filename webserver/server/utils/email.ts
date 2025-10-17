@@ -101,7 +101,11 @@ export class EmailService {
 			// Dynamic import for Cloudflare Workers environment
 			// In Cloudflare Workers environment
 			const { EmailMessage } = await import("cloudflare:email");
-			const emailMessage = new EmailMessage(this.fromEmail, template.to, msg.asRaw());
+			const emailMessage = new EmailMessage(
+				this.fromEmail,
+				template.to,
+				msg.asRaw(),
+			);
 			await this.env.EMAIL_SENDER.send(emailMessage);
 
 			return true;
@@ -143,7 +147,10 @@ export class EmailService {
 		const fullVerificationUrl = `${this.baseUrl}/verifyemail?token=${verificationToken}`;
 
 		// Generate content based on locale
-		const content = this.getEmailVerificationContent(userLocale, fullVerificationUrl);
+		const content = this.getEmailVerificationContent(
+			userLocale,
+			fullVerificationUrl,
+		);
 
 		return {
 			to: email,
@@ -153,8 +160,16 @@ export class EmailService {
 		};
 	}
 
-	generateOrganizationInvitationEmail(data: OrganizationInvitationData): EmailTemplate {
-		const { email, organizationName, inviterName, invitationToken, userLocale = "ja" } = data;
+	generateOrganizationInvitationEmail(
+		data: OrganizationInvitationData,
+	): EmailTemplate {
+		const {
+			email,
+			organizationName,
+			inviterName,
+			invitationToken,
+			userLocale = "ja",
+		} = data;
 		const invitationUrl = `${this.baseUrl}/organizations/join?token=${invitationToken}`;
 
 		// Generate content based on locale
@@ -421,7 +436,9 @@ If you didn't create this account, please ignore this email.
 
 		if (isJapanese) {
 			return {
-				subject: t("email.subjects.organizationInvite", "ja", { organizationName }),
+				subject: t("email.subjects.organizationInvite", "ja", {
+					organizationName,
+				}),
 				html: `
 					<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 						<div style="text-align: center; margin-bottom: 30px;">
@@ -479,7 +496,9 @@ ${invitationUrl}
 
 		// English version
 		return {
-			subject: t("email.subjects.organizationInvite", "en", { organizationName }),
+			subject: t("email.subjects.organizationInvite", "en", {
+				organizationName,
+			}),
 			html: `
 				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; line-height: 1.6;">
 					<div style="text-align: center; margin-bottom: 30px;">

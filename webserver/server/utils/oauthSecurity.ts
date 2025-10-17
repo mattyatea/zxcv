@@ -18,7 +18,10 @@ export const OAUTH_CONFIG = {
 /**
  * Validate OAuth redirect URL to prevent open redirect vulnerabilities
  */
-export function validateRedirectUrl(url: string, allowedDomains: string[]): boolean {
+export function validateRedirectUrl(
+	url: string,
+	allowedDomains: string[],
+): boolean {
 	try {
 		const parsedUrl = new URL(url);
 
@@ -32,7 +35,10 @@ export function validateRedirectUrl(url: string, allowedDomains: string[]): bool
 			if (domain.startsWith("*.")) {
 				// Wildcard subdomain matching
 				const baseDomain = domain.slice(2);
-				return parsedUrl.hostname === baseDomain || parsedUrl.hostname.endsWith(`.${baseDomain}`);
+				return (
+					parsedUrl.hostname === baseDomain ||
+					parsedUrl.hostname.endsWith(`.${baseDomain}`)
+				);
 			}
 			return parsedUrl.hostname === domain;
 		});
@@ -75,7 +81,9 @@ export async function performOAuthSecurityChecks(
 export function generateNonce(): string {
 	const array = new Uint8Array(16);
 	crypto.getRandomValues(array);
-	return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+	return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+		"",
+	);
 }
 
 /**

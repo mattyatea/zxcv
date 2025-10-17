@@ -29,70 +29,70 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 interface Props {
-  position?: 'left' | 'right';
-  width?: 'auto' | 'full' | string;
-  closeOnClick?: boolean;
+	position?: "left" | "right";
+	width?: "auto" | "full" | string;
+	closeOnClick?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  position: 'right',
-  width: 'auto',
-  closeOnClick: true
+	position: "right",
+	width: "auto",
+	closeOnClick: true,
 });
 
 const emit = defineEmits<{
-  open: [];
-  close: [];
+	open: [];
+	close: [];
 }>();
 
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement>();
 
 const positionClasses = computed(() => {
-  return props.position === 'left' ? 'left-0' : 'right-0';
+	return props.position === "left" ? "left-0" : "right-0";
 });
 
 const widthClasses = computed(() => {
-  if (props.width === 'full') return 'w-full';
-  if (props.width === 'auto') return 'w-48';
-  return props.width;
+	if (props.width === "full") return "w-full";
+	if (props.width === "auto") return "w-48";
+	return props.width;
 });
 
 const toggle = () => {
-  isOpen.value ? close() : open();
+	isOpen.value ? close() : open();
 };
 
 const open = () => {
-  isOpen.value = true;
-  emit('open');
+	isOpen.value = true;
+	emit("open");
 };
 
 const close = () => {
-  isOpen.value = false;
-  emit('close');
+	isOpen.value = false;
+	emit("close");
 };
 
 const handleClickOutside = (event: MouseEvent) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
-    close();
-  }
+	if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+		close();
+	}
 };
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside);
+	document.addEventListener("click", handleClickOutside);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
+	document.removeEventListener("click", handleClickOutside);
 });
 
 defineExpose({
-  close,
-  open,
-  toggle,
-  isOpen
+	close,
+	open,
+	toggle,
+	isOpen,
 });
 </script>

@@ -1,6 +1,10 @@
 import { oc } from "@orpc/contract";
 import * as z from "zod";
-import { RuleNameSchema, RuleVersionSchema, SuccessResponseSchema } from "../schemas/common";
+import {
+	RuleNameSchema,
+	RuleVersionSchema,
+	SuccessResponseSchema,
+} from "../schemas/common";
 import { RuleSummarySchema, RuleWithRelationsSchema } from "../schemas/rule";
 
 export const rulesContract = {
@@ -249,7 +253,10 @@ export const rulesContract = {
 		})
 		.input(
 			z.object({
-				visibility: z.enum(["public", "private", "all"]).optional().default("public"),
+				visibility: z
+					.enum(["public", "private", "all"])
+					.optional()
+					.default("public"),
 				type: z.enum(["rule", "ccsubagents"]).optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),

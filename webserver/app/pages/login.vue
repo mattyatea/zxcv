@@ -151,9 +151,9 @@
 </template>
 
 <script setup lang="ts">
+import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/composables/useRpc";
 
 definePageMeta({
 	layout: "default",
@@ -264,10 +264,12 @@ const handleSocialLogin = async (provider: string) => {
 
 		window.location.href = response.authorizationUrl;
 	} catch (err) {
-		const errorMessage = err && typeof err === 'object' && 'message' in err
-			? (err as { message?: string }).message
-			: undefined;
-		error.value = errorMessage || t("auth.login.errors.generalError", { provider });
+		const errorMessage =
+			err && typeof err === "object" && "message" in err
+				? (err as { message?: string }).message
+				: undefined;
+		error.value =
+			errorMessage || t("auth.login.errors.generalError", { provider });
 		loading.value = false;
 	}
 };

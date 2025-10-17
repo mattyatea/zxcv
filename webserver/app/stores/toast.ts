@@ -50,19 +50,35 @@ export const useToastStore = defineStore("toast", () => {
 
 	// Helper methods for different types
 	const success = (message: string, duration?: number) => {
-		return showToast({ message, type: "success", ...(duration !== undefined && { duration }) });
+		return showToast({
+			message,
+			type: "success",
+			...(duration !== undefined && { duration }),
+		});
 	};
 
 	const error = (message: string, duration?: number) => {
-		return showToast({ message, type: "error", ...(duration !== undefined && { duration }) });
+		return showToast({
+			message,
+			type: "error",
+			...(duration !== undefined && { duration }),
+		});
 	};
 
 	const warning = (message: string, duration?: number) => {
-		return showToast({ message, type: "warning", ...(duration !== undefined && { duration }) });
+		return showToast({
+			message,
+			type: "warning",
+			...(duration !== undefined && { duration }),
+		});
 	};
 
 	const info = (message: string, duration?: number) => {
-		return showToast({ message, type: "info", ...(duration !== undefined && { duration }) });
+		return showToast({
+			message,
+			type: "info",
+			...(duration !== undefined && { duration }),
+		});
 	};
 
 	return {

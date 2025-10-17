@@ -1,81 +1,89 @@
 <template>
-	<div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-		<Transition name="slide-down" appear>
-			<div class="sm:mx-auto sm:w-full sm:max-w-md">
-				<NuxtLink to="/" class="flex justify-center">
-					<div class="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center logo-animation shadow-2xl">
-						<span class="text-2xl font-bold text-white">Z</span>
-					</div>
-				</NuxtLink>
-			<h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-				{{ t('auth.forgotPassword.title') }}
-			</h2>
-			<p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-				{{ t('common.or') }}
-				<NuxtLink to="/auth" class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover-underline">
-					{{ t('auth.forgotPassword.backToLogin') }}
-				</NuxtLink>
-			</p>
-			</div>
-		</Transition>
+  <div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <Transition name="slide-down" appear>
+      <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <NuxtLink to="/" class="flex justify-center">
+          <div class="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center logo-animation shadow-2xl">
+            <span class="text-2xl font-bold text-white">Z</span>
+          </div>
+        </NuxtLink>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          {{ t('auth.forgotPassword.title') }}
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          {{ t('common.or') }}
+          <NuxtLink to="/login"
+                    class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 hover-underline">
+            {{ t('auth.forgotPassword.backToLogin') }}
+          </NuxtLink>
+        </p>
+      </div>
+    </Transition>
 
-		<div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-			<Card padding="lg" class="shadow-xl border-0 card-entrance">
-				<form class="space-y-6" @submit.prevent="handleSubmit">
-					<Transition name="fade-scale" mode="out-in">
-						<div v-if="!submitted" key="form">
-							<div>
-								<label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-									{{ t('auth.forgotPassword.email') }}
-								</label>
-								<div class="mt-1">
-									<input
-										id="email"
-										v-model="email"
-										name="email"
-										type="email"
-										autocomplete="email"
-										required
-										class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm placeholder-gray-400 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm input-focus-transition"
-										placeholder="example@example.com"
-									/>
-								</div>
-							</div>
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <Card padding="lg" class="shadow-xl border-0 card-entrance">
+        <form class="space-y-6" @submit.prevent="handleSubmit">
+          <Transition name="fade-scale" mode="out-in">
+            <div v-if="!submitted" key="form">
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {{ t('auth.forgotPassword.email') }}
+                </label>
+                <div class="mt-1">
+                  <input
+                      id="email"
+                      v-model="email"
+                      name="email"
+                      type="email"
+                      autocomplete="email"
+                      required
+                      class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm placeholder-gray-400 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm input-focus-transition"
+                      placeholder="example@example.com"
+                  />
+                </div>
+              </div>
 
-							<div class="mt-6">
-								<Button type="submit" variant="primary" size="lg" full-width :loading="loading">
-									{{ t('auth.forgotPassword.sendButton') }}
-								</Button>
-							</div>
-						</div>
+              <div class="mt-6">
+                <Button type="submit" variant="primary" size="lg" full-width :loading="loading">
+                  {{ t('auth.forgotPassword.sendButton') }}
+                </Button>
+              </div>
+            </div>
 
-						<div v-else key="success" class="text-center py-8">
-							<div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 success-bounce">
-								<svg class="h-6 w-6 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" class="checkmark-draw" />
-								</svg>
-							</div>
-						<h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">{{ t('auth.forgotPassword.emailSent') }}</h3>
-						<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-							{{ t('auth.forgotPassword.emailSentMessage') }}
-						</p>
-						<div class="mt-6">
-							<NuxtLink to="/auth">
-								<Button variant="secondary" size="md">
-									{{ t('auth.forgotPassword.backToLogin') }}
-								</Button>
-							</NuxtLink>
-						</div>
-						</div>
-					</Transition>
-				</form>
-			</Card>
-		</div>
-	</div>
+            <div v-else key="success" class="text-center py-8">
+              <div
+                  class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 success-bounce">
+                <svg class="h-6 w-6 text-green-600 dark:text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"
+                        class="checkmark-draw"/>
+                </svg>
+              </div>
+              <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">{{
+                  t('auth.forgotPassword.emailSent')
+                }}</h3>
+              <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ t('auth.forgotPassword.emailSentMessage') }}
+              </p>
+              <div class="mt-6">
+                <NuxtLink to="/auth">
+                  <Button variant="secondary" size="md">
+                    {{ t('auth.forgotPassword.backToLogin') }}
+                  </Button>
+                </NuxtLink>
+              </div>
+            </div>
+          </Transition>
+        </form>
+      </Card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
+import Button from "~/components/common/Button.vue";
+import Card from "~/components/common/Card.vue";
 
 definePageMeta({
 	layout: "auth",

@@ -59,69 +59,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from "vue";
 
 interface TemplateVariable {
-	name: string
-	defaultValue?: string
-	description?: string
+	name: string;
+	defaultValue?: string;
+	description?: string;
 }
 
 interface Props {
-	variables: TemplateVariable[]
-	modelValue?: Record<string, string>
+	variables: TemplateVariable[];
+	modelValue?: Record<string, string>;
 }
 
 interface Emits {
-	(e: 'update:modelValue', value: Record<string, string>): void
-	(e: 'apply', value: Record<string, string>): void
+	(e: "update:modelValue", value: Record<string, string>): void;
+	(e: "apply", value: Record<string, string>): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
 	modelValue: () => ({}),
-})
+});
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<Emits>();
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 // Local state for input values
-const localValues = ref<Record<string, string>>({ ...props.modelValue })
+const localValues = ref<Record<string, string>>({ ...props.modelValue });
 
 // Check if any values are filled
 const hasValues = computed(() => {
-	return Object.values(localValues.value).some(v => v && v.trim() !== '')
-})
+	return Object.values(localValues.value).some((v) => v && v.trim() !== "");
+});
 
 // Debounce timer
-let debounceTimer: ReturnType<typeof setTimeout> | null = null
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Handle input changes with debouncing
 const handleInput = () => {
 	if (debounceTimer) {
-		clearTimeout(debounceTimer)
+		clearTimeout(debounceTimer);
 	}
 
 	debounceTimer = setTimeout(() => {
-		emit('update:modelValue', { ...localValues.value })
-	}, 300)
-}
+		emit("update:modelValue", { ...localValues.value });
+	}, 300);
+};
 
 // Handle clear all
 const handleClear = () => {
-	localValues.value = {}
-	emit('update:modelValue', {})
-}
+	localValues.value = {};
+	emit("update:modelValue", {});
+};
 
 // Handle apply
 const handleApply = () => {
-	emit('apply', { ...localValues.value })
-}
+	emit("apply", { ...localValues.value });
+};
 
 // Watch for external changes
-watch(() => props.modelValue, (newValue) => {
-	localValues.value = { ...newValue }
-}, { deep: true })
+watch(
+	() => props.modelValue,
+	(newValue) => {
+		localValues.value = { ...newValue };
+	},
+	{ deep: true },
+);
 </script>
 
 <style scoped>

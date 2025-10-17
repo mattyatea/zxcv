@@ -16,7 +16,9 @@ declare global {
 	var JWT_SECRET: string | undefined;
 }
 
-export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined> {
+export async function getAuthUser(
+	event: H3Event,
+): Promise<AuthUser | undefined> {
 	const authorization = getHeader(event, "authorization");
 	if (!authorization?.startsWith("Bearer ")) {
 		return undefined;
@@ -52,7 +54,10 @@ export async function getAuthUser(event: H3Event): Promise<AuthUser | undefined>
 			}
 
 			// Check if token is expired
-			if (cliToken.expiresAt && cliToken.expiresAt < Math.floor(Date.now() / 1000)) {
+			if (
+				cliToken.expiresAt &&
+				cliToken.expiresAt < Math.floor(Date.now() / 1000)
+			) {
 				return undefined;
 			}
 
@@ -163,7 +168,10 @@ export async function createRequestFromEvent(event: H3Event): Promise<Request> {
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: Return type varies based on response content type
-export async function sendResponse(event: H3Event, response: Response): Promise<any> {
+export async function sendResponse(
+	event: H3Event,
+	response: Response,
+): Promise<any> {
 	// Send the fetch Response back through H3
 	setResponseStatus(event, response.status);
 
@@ -181,7 +189,10 @@ export async function sendResponse(event: H3Event, response: Response): Promise<
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: Error response format varies and needs to be flexible
-export async function handleError(event: H3Event, error: unknown): Promise<any> {
+export async function handleError(
+	event: H3Event,
+	error: unknown,
+): Promise<any> {
 	// エラー時のみ簡潔にログ出力
 	if (error instanceof Error) {
 		console.error("[Handler Error]", error.message);
@@ -202,7 +213,10 @@ export async function handleError(event: H3Event, error: unknown): Promise<any> 
 	// Handle ORPCError specifically to preserve status codes
 	if (
 		error instanceof ORPCError ||
-		(error && typeof error === "object" && "code" in error && "__isORPCError" in error)
+		(error &&
+			typeof error === "object" &&
+			"code" in error &&
+			"__isORPCError" in error)
 	) {
 		const orpcError = error as ORPCError<ORPCErrorCode, unknown>;
 		// ORPCErrorログは上で出力済み

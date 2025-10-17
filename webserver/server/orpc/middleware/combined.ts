@@ -28,7 +28,9 @@ export const dbProvider = os.middleware(async ({ context, next }) => {
 
 	// If still no db, throw a descriptive error
 	if (!db) {
-		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+		throw new Error(
+			"Database not available: neither context.db nor context.env.DB is provided",
+		);
 	}
 
 	// Auto-detect locale from request headers
@@ -61,7 +63,9 @@ export const dbWithAuth = os.middleware(async ({ context, next }) => {
 
 	// If still no db, throw a descriptive error
 	if (!db) {
-		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+		throw new Error(
+			"Database not available: neither context.db nor context.env.DB is provided",
+		);
 	}
 
 	// For testing: if no user in context, check if there's a global test user
@@ -105,7 +109,9 @@ export const dbWithAdminAuth = os.middleware(async ({ context, next }) => {
 
 	// If still no db, throw a descriptive error
 	if (!db) {
-		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+		throw new Error(
+			"Database not available: neither context.db nor context.env.DB is provided",
+		);
 	}
 
 	// For testing: if no user in context, check if there's a global test user
@@ -148,7 +154,9 @@ export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
 
 	// If still no db, throw a descriptive error
 	if (!db) {
-		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+		throw new Error(
+			"Database not available: neither context.db nor context.env.DB is provided",
+		);
 	}
 
 	// Auto-detect locale from request headers
@@ -166,39 +174,45 @@ export const dbWithOptionalAuth = os.middleware(async ({ context, next }) => {
 });
 
 // Combined middleware that provides db and ensures email verification
-export const dbWithEmailVerification = os.middleware(async ({ context, next }) => {
-	// Use existing db if provided (for testing), otherwise create new one
-	let db = context.db;
+export const dbWithEmailVerification = os.middleware(
+	async ({ context, next }) => {
+		// Use existing db if provided (for testing), otherwise create new one
+		let db = context.db;
 
-	// Only create Prisma client if db is not already provided and env.DB exists
-	if (!db && context.env?.DB) {
-		db = createPrismaClient(context.env.DB);
-	}
+		// Only create Prisma client if db is not already provided and env.DB exists
+		if (!db && context.env?.DB) {
+			db = createPrismaClient(context.env.DB);
+		}
 
-	// If still no db, throw a descriptive error
-	if (!db) {
-		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
-	}
+		// If still no db, throw a descriptive error
+		if (!db) {
+			throw new Error(
+				"Database not available: neither context.db nor context.env.DB is provided",
+			);
+		}
 
-	if (!context.user) {
-		throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
-	}
+		if (!context.user) {
+			throw new ORPCError("UNAUTHORIZED", {
+				message: "Authentication required",
+			});
+		}
 
-	// TODO: 開発環境では一時的にemailVerificationチェックをスキップ
-	// if (!context.user.emailVerified) {
-	// 	throw new ORPCError("FORBIDDEN", { message: "Email verification required" });
-	// }
+		// TODO: 開発環境では一時的にemailVerificationチェックをスキップ
+		// if (!context.user.emailVerified) {
+		// 	throw new ORPCError("FORBIDDEN", { message: "Email verification required" });
+		// }
 
-	// Auto-detect locale from request headers
-	const request = context.cloudflare?.request;
-	const locale = getLocaleFromRequest(request);
+		// Auto-detect locale from request headers
+		const request = context.cloudflare?.request;
+		const locale = getLocaleFromRequest(request);
 
-	return next({
-		context: {
-			...context,
-			db,
-			user: context.user as AuthUser, // Type assertion since we checked it exists
-			locale,
-		},
-	});
-});
+		return next({
+			context: {
+				...context,
+				db,
+				user: context.user as AuthUser, // Type assertion since we checked it exists
+				locale,
+			},
+		});
+	},
+);

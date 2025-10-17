@@ -67,8 +67,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import ProfileEditForm from "~/components/settings/ProfileEditForm.vue";
-import { useToast } from "~/composables/useToast";
 import { useRpc } from "~/composables/useRpc";
+import { useToast } from "~/composables/useToast";
 import type { MeResponse } from "~/types/orpc";
 
 // Meta tags
@@ -121,7 +121,10 @@ const handleProfileUpdate = async (profileData: {
 		loading.value = true;
 		// Filter out null values and convert to undefined
 		const filteredData = Object.fromEntries(
-			Object.entries(profileData).map(([key, value]) => [key, value === null ? undefined : value])
+			Object.entries(profileData).map(([key, value]) => [
+				key,
+				value === null ? undefined : value,
+			]),
 		) as {
 			displayName?: string;
 			bio?: string;
@@ -130,13 +133,13 @@ const handleProfileUpdate = async (profileData: {
 		};
 		const response = await $rpc.users.updateProfile(filteredData);
 		userProfile.value = response.user;
-		
+
 		// Update auth store user info as well
 		const authStore = useAuthStore();
 		authStore.updateUser({
 			displayName: response.user.displayName,
 		});
-		
+
 		showToast({
 			message: t("settings.success.profileUpdated"),
 			type: "success",
@@ -155,7 +158,6 @@ const handleProfileUpdate = async (profileData: {
 const handleAvatarUpload = async (file: File) => {
 	try {
 		loading.value = true;
-		
 
 		// Convert file to base64
 		const base64 = await new Promise<string>((resolve, reject) => {
@@ -185,7 +187,7 @@ const handleAvatarUpload = async (file: File) => {
 		if (userProfile.value) {
 			userProfile.value.avatarUrl = response.avatarUrl;
 		}
-		
+
 		// Update auth store user info as well
 		const authStore = useAuthStore();
 		authStore.updateUser({ avatarUrl: response.avatarUrl });
@@ -195,13 +197,21 @@ const handleAvatarUpload = async (file: File) => {
 			type: "success",
 		});
 	} catch (error: unknown) {
-
 		// Extract error message if available
 		const errorMessage =
-			(error && typeof error === 'object' && 'message' in error ? (error as { message: string }).message : null) ||
-			(error && typeof error === 'object' && 'data' in error && error.data && typeof error.data === 'object' && 'message' in error.data ? (error.data as { message: string }).message : null) ||
+			(error && typeof error === "object" && "message" in error
+				? (error as { message: string }).message
+				: null) ||
+			(error &&
+			typeof error === "object" &&
+			"data" in error &&
+			error.data &&
+			typeof error.data === "object" &&
+			"message" in error.data
+				? (error.data as { message: string }).message
+				: null) ||
 			t("settings.error.uploadAvatar");
-		
+
 		showToast({
 			message: errorMessage,
 			type: "error",

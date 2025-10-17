@@ -61,69 +61,69 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from "vue";
 
 interface Props {
-  currentPage: number;
-  totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
+	currentPage: number;
+	totalPages: number;
+	totalItems: number;
+	itemsPerPage: number;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
-  'update:currentPage': [page: number];
+	"update:currentPage": [page: number];
 }>();
 
 const { t } = useI18n();
 
 const startItem = computed(() => {
-  return (props.currentPage - 1) * props.itemsPerPage + 1;
+	return (props.currentPage - 1) * props.itemsPerPage + 1;
 });
 
 const endItem = computed(() => {
-  return Math.min(props.currentPage * props.itemsPerPage, props.totalItems);
+	return Math.min(props.currentPage * props.itemsPerPage, props.totalItems);
 });
 
 const visiblePages = computed(() => {
-  const pages: (number | string)[] = [];
-  const maxVisible = 7;
-  
-  if (props.totalPages <= maxVisible) {
-    // Show all pages
-    for (let i = 1; i <= props.totalPages; i++) {
-      pages.push(i);
-    }
-  } else {
-    // Show first page
-    pages.push(1);
-    
-    if (props.currentPage > 3) {
-      pages.push('...');
-    }
-    
-    // Show pages around current page
-    const start = Math.max(2, props.currentPage - 1);
-    const end = Math.min(props.totalPages - 1, props.currentPage + 1);
-    
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    
-    if (props.currentPage < props.totalPages - 2) {
-      pages.push('...');
-    }
-    
-    // Show last page
-    pages.push(props.totalPages);
-  }
-  
-  return pages;
+	const pages: (number | string)[] = [];
+	const maxVisible = 7;
+
+	if (props.totalPages <= maxVisible) {
+		// Show all pages
+		for (let i = 1; i <= props.totalPages; i++) {
+			pages.push(i);
+		}
+	} else {
+		// Show first page
+		pages.push(1);
+
+		if (props.currentPage > 3) {
+			pages.push("...");
+		}
+
+		// Show pages around current page
+		const start = Math.max(2, props.currentPage - 1);
+		const end = Math.min(props.totalPages - 1, props.currentPage + 1);
+
+		for (let i = start; i <= end; i++) {
+			pages.push(i);
+		}
+
+		if (props.currentPage < props.totalPages - 2) {
+			pages.push("...");
+		}
+
+		// Show last page
+		pages.push(props.totalPages);
+	}
+
+	return pages;
 });
 
 const goToPage = (page: number) => {
-  if (page >= 1 && page <= props.totalPages) {
-    emit('update:currentPage', page);
-  }
+	if (page >= 1 && page <= props.totalPages) {
+		emit("update:currentPage", page);
+	}
 };
 </script>

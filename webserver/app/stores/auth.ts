@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import {useRpc} from "~/composables/useRpc";
+import { useRpc } from "~/composables/useRpc";
 
 interface AuthUser {
 	id: string;
@@ -228,19 +228,25 @@ export const useAuthStore = defineStore("auth", () => {
 			return true;
 		} catch (error) {
 			console.log("Token validation failed:", error);
-			
+
 			// エラーの種類をチェックして認証エラーの場合はトークンをクリア
-			const isAuthError = 
-				(error && typeof error === "object" && "status" in error && error.status === 401) ||
-				(error && typeof error === "object" && "message" in error && 
-				 typeof error.message === "string" && 
-				 (error.message.includes("UNAUTHORIZED") || error.message.includes("User not found")));
-			
+			const isAuthError =
+				(error &&
+					typeof error === "object" &&
+					"status" in error &&
+					error.status === 401) ||
+				(error &&
+					typeof error === "object" &&
+					"message" in error &&
+					typeof error.message === "string" &&
+					(error.message.includes("UNAUTHORIZED") ||
+						error.message.includes("User not found")));
+
 			if (isAuthError) {
 				await logout();
 				return false;
 			}
-			
+
 			// その他のエラー（ネットワークエラーなど）の場合は現在の状態を維持
 			return true;
 		}

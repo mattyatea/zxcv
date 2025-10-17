@@ -95,8 +95,8 @@
 </template>
 
 <script setup lang="ts">
-import { useToast } from "~/composables/useToast";
 import { useRpc } from "~/composables/useRpc";
+import { useToast } from "~/composables/useToast";
 
 definePageMeta({
 	layout: "default",
@@ -137,10 +137,12 @@ const handleSocialLogin = async (provider: string) => {
 
 		window.location.href = response.authorizationUrl;
 	} catch (err) {
-		const errorMessage = err && typeof err === 'object' && 'message' in err
-			? (err as { message?: string }).message
-			: undefined;
-		error.value = errorMessage || t("errors.oauth.registrationFailed", { provider });
+		const errorMessage =
+			err && typeof err === "object" && "message" in err
+				? (err as { message?: string }).message
+				: undefined;
+		error.value =
+			errorMessage || t("errors.oauth.registrationFailed", { provider });
 		loading.value = false;
 	}
 };

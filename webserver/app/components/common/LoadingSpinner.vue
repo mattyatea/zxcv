@@ -86,6 +86,9 @@ const textClasses = computed(() => {
 		xl: "text-xl",
 	};
 
-	return [sizes[props.size], "text-gray-600 dark:text-gray-400 font-medium"].join(" ");
+	return [
+		sizes[props.size],
+		"text-gray-600 dark:text-gray-400 font-medium",
+	].join(" ");
 });
 </script>

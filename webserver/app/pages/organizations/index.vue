@@ -89,9 +89,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/composables/useRpc";
 import type { OrganizationType } from "~/types/orpc";
 
 definePageMeta({

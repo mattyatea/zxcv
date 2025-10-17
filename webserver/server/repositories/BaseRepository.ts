@@ -20,7 +20,10 @@ export abstract class BaseRepository {
 
 		// Prismaのエラー処理
 		if (this.isPrismaError(error)) {
-			const prismaError = error as { code: string; meta?: { target?: string[] } };
+			const prismaError = error as {
+				code: string;
+				meta?: { target?: string[] };
+			};
 			if (prismaError.code === "P2002") {
 				throw new ORPCError("CONFLICT", {
 					message: "一意制約違反が発生しました",
@@ -55,7 +58,9 @@ export abstract class BaseRepository {
 	 * 重複エラーかどうかをチェック
 	 */
 	protected isDuplicateError(error: unknown): boolean {
-		return this.isPrismaError(error) && (error as { code: string }).code === "P2002";
+		return (
+			this.isPrismaError(error) && (error as { code: string }).code === "P2002"
+		);
 	}
 
 	/**

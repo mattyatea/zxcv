@@ -143,7 +143,8 @@ const verifyEmail = async () => {
 			success.value = true;
 		} else {
 			error.value = true;
-			errorMessage.value = response.message || t("auth.verifyEmail.errorMessage");
+			errorMessage.value =
+				response.message || t("auth.verifyEmail.errorMessage");
 		}
 	} catch (err) {
 		error.value = true;

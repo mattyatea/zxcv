@@ -101,7 +101,9 @@ const emit = defineEmits<Emits>();
 const attrs = useAttrs();
 const slots = useSlots();
 const inputId = computed(
-	() => (attrs.id as string) || `input-${Math.random().toString(36).substring(2, 11)}`,
+	() =>
+		(attrs.id as string) ||
+		`input-${Math.random().toString(36).substring(2, 11)}`,
 );
 const showPassword = ref(false);
 

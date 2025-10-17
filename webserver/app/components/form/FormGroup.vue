@@ -18,18 +18,18 @@
 
 <script setup lang="ts">
 interface Props {
-  label?: string;
-  htmlFor?: string;
-  required?: boolean;
-  error?: string;
-  class?: string;
+	label?: string;
+	htmlFor?: string;
+	required?: boolean;
+	error?: string;
+	class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  label: '',
-  required: false,
-  error: '',
-  class: ''
+	label: "",
+	required: false,
+	error: "",
+	class: "",
 });
 
 const className = computed(() => props.class);

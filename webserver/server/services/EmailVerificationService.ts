@@ -47,7 +47,8 @@ export class EmailVerificationService {
 				userLocale,
 			};
 
-			const emailTemplate = this.emailService.generateEmailVerificationEmail(emailData);
+			const emailTemplate =
+				this.emailService.generateEmailVerificationEmail(emailData);
 
 			// Send email
 			return await this.emailService.sendEmail(emailTemplate);
@@ -80,7 +81,10 @@ export class EmailVerificationService {
 
 			// Check if token is already used
 			if (verification.usedAt) {
-				return { success: false, message: "Verification token has already been used" };
+				return {
+					success: false,
+					message: "Verification token has already been used",
+				};
 			}
 
 			// Mark token as used and update user email verification status
@@ -101,7 +105,10 @@ export class EmailVerificationService {
 		}
 	}
 
-	async resendVerificationEmail(email: string, userLocale?: string): Promise<boolean> {
+	async resendVerificationEmail(
+		email: string,
+		userLocale?: string,
+	): Promise<boolean> {
 		try {
 			// Find user by email
 			const user = await this.prisma.user.findUnique({

@@ -90,10 +90,10 @@
 </template>
 
 <script setup lang="ts">
+import type { InferRouterOutputs } from "@orpc/server";
 import { debounce } from "lodash-es";
 import { ref, watch } from "vue";
 import { useRpc } from "~/composables/useRpc";
-import type { InferRouterOutputs } from "@orpc/server";
 import type { router } from "~/server/orpc/router";
 
 // ルーターから型を推論
@@ -141,10 +141,10 @@ const searchUsers = async (query: string) => {
 	error.value = "";
 
 	try {
-    searchResults.value = await $rpc.users.searchByUsername({
-      username: query,
-      limit: 10,
-    });
+		searchResults.value = await $rpc.users.searchByUsername({
+			username: query,
+			limit: 10,
+		});
 		showSuggestions.value = true;
 	} catch (err) {
 		console.error("Failed to search users:", err);
@@ -186,14 +186,19 @@ const handleSubmit = async () => {
 		// 成功メッセージを表示
 		const { showToast } = useToast();
 		showToast({
-			message: t("organizations.inviteMember.success", { username: selectedUser.value.username }),
+			message: t("organizations.inviteMember.success", {
+				username: selectedUser.value.username,
+			}),
 			type: "success",
 		});
 	} catch (err) {
 		console.error("Failed to invite member:", err);
 		if (err instanceof Error && err.message?.includes("already a member")) {
 			error.value = t("organizations.inviteMember.alreadyMember");
-		} else if (err instanceof Error && err.message?.includes("invitation has already been sent")) {
+		} else if (
+			err instanceof Error &&
+			err.message?.includes("invitation has already been sent")
+		) {
 			error.value = t("organizations.inviteMember.alreadyInvited");
 		} else {
 			error.value = t("organizations.inviteMember.error");

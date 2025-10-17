@@ -4,7 +4,8 @@ export const useDebug = () => {
 
 	onMounted(() => {
 		// 開発環境でのみデバッグモードを有効化
-		isDebugMode.value = process.dev && localStorage.getItem("debugMode") === "true";
+		isDebugMode.value =
+			process.dev && localStorage.getItem("debugMode") === "true";
 	});
 
 	const toggleDebugMode = () => {
@@ -50,14 +51,21 @@ export const useDebug = () => {
 		console.groupEnd();
 	};
 
-	const debugResponse = (method: string, path: string, status: number, data?: unknown) => {
+	const debugResponse = (
+		method: string,
+		path: string,
+		status: number,
+		data?: unknown,
+	) => {
 		if (!isDebugMode.value) {
 			return;
 		}
 
 		const timestamp = new Date().toISOString();
 		const statusEmoji = status >= 200 && status < 300 ? "✅" : "⚠️";
-		console.group(`${statusEmoji} [DEBUG RESPONSE ${timestamp}] ${method} ${path} - ${status}`);
+		console.group(
+			`${statusEmoji} [DEBUG RESPONSE ${timestamp}] ${method} ${path} - ${status}`,
+		);
 		if (data) {
 			console.log("Response data:", data);
 		}

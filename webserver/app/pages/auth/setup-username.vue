@@ -95,10 +95,10 @@
 </template>
 
 <script setup lang="ts">
+import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
 import { debounce } from "~/utils/debounce";
-import { useRpc } from "~/composables/useRpc";
 
 // Props and route
 const route = useRoute();
@@ -128,7 +128,12 @@ const errors = ref<{ username?: string }>({});
 
 // Computed
 const isValid = computed(() => {
-	return username.value && !errors.value.username && isAvailable.value && !isChecking.value;
+	return (
+		username.value &&
+		!errors.value.username &&
+		isAvailable.value &&
+		!isChecking.value
+	);
 });
 
 // Username validation regex

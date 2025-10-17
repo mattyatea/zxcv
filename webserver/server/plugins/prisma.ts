@@ -9,7 +9,9 @@ export default defineNitroPlugin((nitroApp) => {
 		// Cloudflare環境でPrismaクライアントを初期化
 		if (context.cloudflare?.env?.DB) {
 			// Envにprismaプロパティはないがランタイムでプロパティとして追加
-			context.cloudflare.env.prisma = createPrismaClient(context.cloudflare.env.DB);
+			context.cloudflare.env.prisma = createPrismaClient(
+				context.cloudflare.env.DB,
+			);
 		}
 	});
 });

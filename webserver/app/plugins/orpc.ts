@@ -1,8 +1,8 @@
-import type { ContractRouterClient } from "@orpc/contract";
 import { createORPCClient } from "@orpc/client";
+import type { ContractRouterClient } from "@orpc/contract";
+import type { JsonifiedClient } from "@orpc/openapi-client";
 import { OpenAPILink } from "@orpc/openapi-client/fetch";
 import { contract } from "../../server/orpc/contracts";
-import type { JsonifiedClient } from "@orpc/openapi-client";
 
 export default defineNuxtPlugin((_nuxtApp) => {
 	const requestURL = useRequestURL();
@@ -16,7 +16,9 @@ export default defineNuxtPlugin((_nuxtApp) => {
 	const openAPILink = new OpenAPILink(contract, {
 		url: `${baseURL}/api`,
 		headers: () => {
-			const token = import.meta.client ? localStorage.getItem("access_token") : null;
+			const token = import.meta.client
+				? localStorage.getItem("access_token")
+				: null;
 			return token ? { Authorization: `Bearer ${token}` } : {};
 		},
 		fetch: async (request, init) => {
@@ -57,7 +59,8 @@ export default defineNuxtPlugin((_nuxtApp) => {
 		},
 	});
 
-	const rpcClient: JsonifiedClient<ContractRouterClient<typeof contract>> = createORPCClient(openAPILink);
+	const rpcClient: JsonifiedClient<ContractRouterClient<typeof contract>> =
+		createORPCClient(openAPILink);
 
 	return {
 		provide: {

@@ -39,7 +39,9 @@ export const getProfile = os.users.getProfile
 
 		if (!targetUser) {
 			const locale: Locale = "ja"; // Default to Japanese
-			throw new ORPCError("NOT_FOUND", { message: authErrors.userNotFound(locale) });
+			throw new ORPCError("NOT_FOUND", {
+				message: authErrors.userNotFound(locale),
+			});
 		}
 
 		// Get recent public rules
@@ -68,7 +70,9 @@ export const getProfile = os.users.getProfile
 		});
 
 		// Fetch stats using UserService
-		const stats = await userService.getUserStats(targetUser.id, { publicOnly: true });
+		const stats = await userService.getUserStats(targetUser.id, {
+			publicOnly: true,
+		});
 
 		// Use UserPackingService to pack user profile
 		const userProfile = userPackingService.packUserProfile(targetUser, {
@@ -96,12 +100,16 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 
 		if (!db) {
 			console.log("[DEBUG] Database not available in context");
-			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Database not available" });
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: "Database not available",
+			});
 		}
 
 		if (!user || !user.id) {
 			console.log("[DEBUG] User not available in context");
-			throw new ORPCError("UNAUTHORIZED", { message: "User not authenticated" });
+			throw new ORPCError("UNAUTHORIZED", {
+				message: "User not authenticated",
+			});
 		}
 
 		// Get detailed user profile from database
@@ -115,23 +123,33 @@ export const me = os.users.me.use(dbWithAuth).handler(async ({ context }) => {
 		}
 
 		// Fetch stats using UserService
-		const stats = await userService.getUserStats(user.id, { includeTotalStars: true });
+		const stats = await userService.getUserStats(user.id, {
+			includeTotalStars: true,
+		});
 
 		// Use UserPackingService to pack user with stats
 		const result = userPackingService.packUserWithStats(userProfile, stats);
 
-		console.log("[DEBUG] users.me result before validation:", JSON.stringify(result, null, 2));
+		console.log(
+			"[DEBUG] users.me result before validation:",
+			JSON.stringify(result, null, 2),
+		);
 
 		return result;
 	} catch (error) {
 		console.log("[DEBUG] Error in users.me procedure:", error);
-		console.log("[DEBUG] Error stack:", error instanceof Error ? error.stack : "No stack trace");
+		console.log(
+			"[DEBUG] Error stack:",
+			error instanceof Error ? error.stack : "No stack trace",
+		);
 		// Re-throw ORPC errors as-is
 		if (error instanceof ORPCError) {
 			throw error;
 		}
 		// Wrap other errors
-		throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Internal server error in users.me" });
+		throw new ORPCError("INTERNAL_SERVER_ERROR", {
+			message: "Internal server error in users.me",
+		});
 	}
 });
 
@@ -210,35 +228,37 @@ export const changePassword = os.users.changePassword
 		return { success: true };
 	});
 
-export const settings = os.users.settings.use(dbWithAuth).handler(async ({ context }) => {
-	const { db, user } = context;
+export const settings = os.users.settings
+	.use(dbWithAuth)
+	.handler(async ({ context }) => {
+		const { db, user } = context;
 
-	// Get user settings from database
-	const userSettings = await db.user.findUnique({
-		where: { id: user.id },
-		select: {
-			id: true,
-			email: true,
-			username: true,
-			emailVerified: true,
-			createdAt: true,
-			updatedAt: true,
-		},
+		// Get user settings from database
+		const userSettings = await db.user.findUnique({
+			where: { id: user.id },
+			select: {
+				id: true,
+				email: true,
+				username: true,
+				emailVerified: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		if (!userSettings) {
+			throw new ORPCError("NOT_FOUND", { message: "User not found" });
+		}
+
+		return {
+			id: userSettings.id,
+			email: userSettings.email,
+			username: userSettings.username,
+			email_verified: userSettings.emailVerified,
+			created_at: userSettings.createdAt,
+			updated_at: userSettings.updatedAt,
+		};
 	});
-
-	if (!userSettings) {
-		throw new ORPCError("NOT_FOUND", { message: "User not found" });
-	}
-
-	return {
-		id: userSettings.id,
-		email: userSettings.email,
-		username: userSettings.username,
-		email_verified: userSettings.emailVerified,
-		created_at: userSettings.createdAt,
-		updated_at: userSettings.updatedAt,
-	};
-});
 
 export const updateSettings = os.users.updateSettings
 	.use(dbWithAuth)
@@ -249,7 +269,9 @@ export const updateSettings = os.users.updateSettings
 		// If changing password, verify current password
 		if (newPassword) {
 			if (!currentPassword) {
-				throw new ORPCError("BAD_REQUEST", { message: "Current password is required" });
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Current password is required",
+				});
 			}
 
 			const userWithPassword = await db.user.findUnique({
@@ -259,7 +281,9 @@ export const updateSettings = os.users.updateSettings
 
 			if (!userWithPassword) {
 				const locale: Locale = "ja"; // Default to Japanese
-				throw new ORPCError("NOT_FOUND", { message: authErrors.userNotFound(locale) });
+				throw new ORPCError("NOT_FOUND", {
+					message: authErrors.userNotFound(locale),
+				});
 			}
 
 			const isValidPassword = await verifyPassword(
@@ -267,7 +291,9 @@ export const updateSettings = os.users.updateSettings
 				userWithPassword.passwordHash || "",
 			);
 			if (!isValidPassword) {
-				throw new ORPCError("UNAUTHORIZED", { message: "Invalid current password" });
+				throw new ORPCError("UNAUTHORIZED", {
+					message: "Invalid current password",
+				});
 			}
 
 			// Hash new password
@@ -297,7 +323,9 @@ export const uploadAvatar = os.users.uploadAvatar
 
 		// Ensure user is authenticated
 		if (!context.user) {
-			throw new ORPCError("UNAUTHORIZED", { message: "Authentication required" });
+			throw new ORPCError("UNAUTHORIZED", {
+				message: "Authentication required",
+			});
 		}
 		const user = context.user;
 
@@ -311,7 +339,9 @@ export const uploadAvatar = os.users.uploadAvatar
 
 			// Validate image size (max 5MB)
 			if (imageData.length > 5 * 1024 * 1024) {
-				throw new ORPCError("BAD_REQUEST", { message: "Image size must be less than 5MB" });
+				throw new ORPCError("BAD_REQUEST", {
+					message: "Image size must be less than 5MB",
+				});
 			}
 
 			// Validate image format (simple check by filename extension)
@@ -328,7 +358,9 @@ export const uploadAvatar = os.users.uploadAvatar
 
 			// Upload to R2
 			if (!env.R2) {
-				throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Storage not available" });
+				throw new ORPCError("INTERNAL_SERVER_ERROR", {
+					message: "Storage not available",
+				});
 			}
 
 			await env.R2.put(avatarKey, imageData, {
@@ -356,7 +388,9 @@ export const uploadAvatar = os.users.uploadAvatar
 			if (error instanceof ORPCError) {
 				throw error;
 			}
-			throw new ORPCError("INTERNAL_SERVER_ERROR", { message: "Failed to upload avatar" });
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: "Failed to upload avatar",
+			});
 		}
 	});
 
@@ -385,7 +419,9 @@ export const deleteAccount = os.users.deleteAccount
 
 		if (!dbUser) {
 			const locale: Locale = "ja"; // Default to Japanese
-			throw new ORPCError("NOT_FOUND", { message: authErrors.userNotFound(locale) });
+			throw new ORPCError("NOT_FOUND", {
+				message: authErrors.userNotFound(locale),
+			});
 		}
 
 		// Verify password

@@ -39,7 +39,10 @@ export class RuleRepository extends BaseRepository {
 	/**
 	 * ルールをIDで取得
 	 */
-	async findById(id: string, includeRelations = false): Promise<RuleWithRelations | null> {
+	async findById(
+		id: string,
+		includeRelations = false,
+	): Promise<RuleWithRelations | null> {
 		try {
 			return await this.db.rule.findUnique({
 				where: { id },
@@ -54,7 +57,9 @@ export class RuleRepository extends BaseRepository {
 									avatarUrl: true,
 								},
 							},
-							organization: { select: { id: true, name: true, displayName: true } },
+							organization: {
+								select: { id: true, name: true, displayName: true },
+							},
 							/* versions: {
 								orderBy: { versionNumber: "desc" },
 								take: 1,
@@ -70,7 +75,10 @@ export class RuleRepository extends BaseRepository {
 	/**
 	 * ルールを名前で検索
 	 */
-	async findByName(name: string, orgId?: string): Promise<RuleWithRelations | null> {
+	async findByName(
+		name: string,
+		orgId?: string,
+	): Promise<RuleWithRelations | null> {
 		try {
 			// @ts-ignore - Prisma type incompatibility with nullable relations
 			return await this.db.rule.findFirst({
@@ -80,7 +88,13 @@ export class RuleRepository extends BaseRepository {
 				},
 				include: {
 					user: {
-						select: { id: true, username: true, email: true, displayName: true, avatarUrl: true },
+						select: {
+							id: true,
+							username: true,
+							email: true,
+							displayName: true,
+							avatarUrl: true,
+						},
 					},
 					organization: { select: { id: true, name: true, displayName: true } },
 				},
@@ -93,7 +107,10 @@ export class RuleRepository extends BaseRepository {
 	/**
 	 * ルールを名前とユーザーIDで検索
 	 */
-	async findByNameAndUserId(name: string, userId: string): Promise<RuleWithRelations | null> {
+	async findByNameAndUserId(
+		name: string,
+		userId: string,
+	): Promise<RuleWithRelations | null> {
 		try {
 			// @ts-ignore - Prisma type incompatibility with nullable relations
 			return await this.db.rule.findFirst({
@@ -103,7 +120,13 @@ export class RuleRepository extends BaseRepository {
 				},
 				include: {
 					user: {
-						select: { id: true, username: true, email: true, displayName: true, avatarUrl: true },
+						select: {
+							id: true,
+							username: true,
+							email: true,
+							displayName: true,
+							avatarUrl: true,
+						},
 					},
 					organization: { select: { id: true, name: true, displayName: true } },
 				},
@@ -141,9 +164,17 @@ export class RuleRepository extends BaseRepository {
 					where,
 					include: {
 						user: {
-							select: { id: true, username: true, email: true, displayName: true, avatarUrl: true },
+							select: {
+								id: true,
+								username: true,
+								email: true,
+								displayName: true,
+								avatarUrl: true,
+							},
 						},
-						organization: { select: { id: true, name: true, displayName: true } },
+						organization: {
+							select: { id: true, name: true, displayName: true },
+						},
 					},
 					orderBy: { updatedAt: "desc" },
 					...this.getPaginationParams(page, pageSize),
@@ -172,7 +203,9 @@ export class RuleRepository extends BaseRepository {
 				this.db.rule.findMany({
 					where,
 					include: {
-						organization: { select: { id: true, name: true, displayName: true } },
+						organization: {
+							select: { id: true, name: true, displayName: true },
+						},
 						/* versions: {
 							orderBy: { versionNumber: "desc" },
 							take: 1,
@@ -246,7 +279,9 @@ export class RuleRepository extends BaseRepository {
 	/**
 	 * バージョンを作成
 	 */
-	async createVersion(data: Prisma.RuleVersionUncheckedCreateInput): Promise<RuleVersion> {
+	async createVersion(
+		data: Prisma.RuleVersionUncheckedCreateInput,
+	): Promise<RuleVersion> {
 		try {
 			return await this.db.ruleVersion.create({
 				data: {

@@ -198,9 +198,14 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useRpc } from "~/composables/useRpc";
-import type { OrganizationType, RuleType, UserType, GetOrganizationResponse } from "~/types/orpc";
 import Avatar from "~/components/common/Avatar.vue";
+import { useRpc } from "~/composables/useRpc";
+import type {
+	GetOrganizationResponse,
+	OrganizationType,
+	RuleType,
+	UserType,
+} from "~/types/orpc";
 
 definePageMeta({
 	middleware: "auth",
@@ -240,7 +245,9 @@ const fetchOrganizationDetails = async () => {
 		const organizationId = route.params.id as string;
 
 		// Fetch organization details
-		const organizationData = await $rpc.organizations.get({ id: organizationId });
+		const organizationData = await $rpc.organizations.get({
+			id: organizationId,
+		});
 		organization.value = organizationData;
 
 		// Fetch rules if on rules tab
@@ -281,7 +288,11 @@ const fetchTabData = async (tab: string) => {
 const removeMember = async (member: Member) => {
 	if (
 		!organization.value ||
-		!confirm(t("organizations.detail.confirmRemoveMember", { username: member.username }))
+		!confirm(
+			t("organizations.detail.confirmRemoveMember", {
+				username: member.username,
+			}),
+		)
 	) {
 		return;
 	}
@@ -302,7 +313,9 @@ const removeMember = async (member: Member) => {
 
 		const { showToast } = useToast();
 		showToast({
-			message: t("organizations.detail.memberRemoved", { username: member.username }),
+			message: t("organizations.detail.memberRemoved", {
+				username: member.username,
+			}),
 			type: "success",
 		});
 	} catch (error) {
@@ -315,7 +328,11 @@ const removeMember = async (member: Member) => {
 	}
 };
 
-const handleMemberInvited = (_user: { id: string; username: string; email: string | null }) => {
+const handleMemberInvited = (_user: {
+	id: string;
+	username: string;
+	email: string | null;
+}) => {
 	// 招待が成功したらメンバーリストを再取得
 	if (activeTab.value === "members") {
 		fetchTabData("members");

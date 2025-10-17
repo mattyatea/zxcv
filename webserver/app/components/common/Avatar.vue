@@ -103,9 +103,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 // Emits
-interface Emits {
-	(e: "click"): void;
-}
+type Emits = (e: "click") => void;
 
 defineEmits<Emits>();
 

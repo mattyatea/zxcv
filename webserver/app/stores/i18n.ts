@@ -21,7 +21,8 @@ export const useI18nStore = defineStore("i18n", () => {
 	// Translation function
 	function t(key: string, params?: Record<string, string | number>): string {
 		const keys = key.split(".");
-		let translation: string | Translations | undefined = translations[locale.value];
+		let translation: string | Translations | undefined =
+			translations[locale.value];
 
 		for (const k of keys) {
 			if (translation && typeof translation === "object" && k in translation) {
@@ -29,19 +30,24 @@ export const useI18nStore = defineStore("i18n", () => {
 			} else {
 				// Fallback handling
 				if (process.env.NODE_ENV === "development") {
-					console.warn(`Translation key not found: ${key} (locale: ${locale.value})`);
+					console.warn(
+						`Translation key not found: ${key} (locale: ${locale.value})`,
+					);
 				}
 
 				// Try fallback to English if current locale is not English
 				if (locale.value !== "en") {
-					let fallbackTranslation: string | Translations | undefined = translations.en;
+					let fallbackTranslation: string | Translations | undefined =
+						translations.en;
 					for (const k of keys) {
 						if (
 							fallbackTranslation &&
 							typeof fallbackTranslation === "object" &&
 							k in fallbackTranslation
 						) {
-							fallbackTranslation = fallbackTranslation[k] as string | Translations;
+							fallbackTranslation = fallbackTranslation[k] as
+								| string
+								| Translations;
 						} else {
 							// Return formatted key if translation not found
 							return `[${key}]`;

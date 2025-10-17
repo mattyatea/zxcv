@@ -157,10 +157,14 @@
 import { marked } from "marked";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, reactive, ref } from "vue";
+import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/composables/useRpc";
-import type { RuleType, GetRuleResponse, GetRuleContentResponse } from "~/types/orpc";
+import type {
+	GetRuleContentResponse,
+	GetRuleResponse,
+	RuleType,
+} from "~/types/orpc";
 
 console.log("Edit page loaded - /rules/@[owner]/[name]/edit.vue");
 
@@ -201,7 +205,10 @@ interface CustomRouteParams {
 	name?: string;
 	id?: string;
 }
-const customParams = inject<CustomRouteParams | null>("customRouteParams", null);
+const customParams = inject<CustomRouteParams | null>(
+	"customRouteParams",
+	null,
+);
 const routeParams = computed(() => {
 	if (customParams) {
 		return customParams;
@@ -311,8 +318,14 @@ const fetchRule = async () => {
 	error.value = "";
 
 	try {
-		const owner = typeof routeParams.value.owner === 'string' ? routeParams.value.owner : routeParams.value.owner?.[0];
-		const ruleName = typeof routeParams.value.name === 'string' ? routeParams.value.name : routeParams.value.name?.[0];
+		const owner =
+			typeof routeParams.value.owner === "string"
+				? routeParams.value.owner
+				: routeParams.value.owner?.[0];
+		const ruleName =
+			typeof routeParams.value.name === "string"
+				? routeParams.value.name
+				: routeParams.value.name?.[0];
 
 		if (!owner || !ruleName) {
 			error.value = t("rules.edit.invalidParams");
@@ -364,9 +377,10 @@ const fetchRule = async () => {
 		form.description = ruleData.description || "";
 		form.content = ruleData.content;
 		// Only allow public or private for editing (organization rules can't change to organization visibility in edit form)
-		form.visibility = (ruleData.visibility === 'public' || ruleData.visibility === 'private')
-			? ruleData.visibility
-			: 'private';
+		form.visibility =
+			ruleData.visibility === "public" || ruleData.visibility === "private"
+				? ruleData.visibility
+				: "private";
 		form.tags = ruleData.tags;
 	} catch (err) {
 		console.error("Failed to fetch rule:", err);
@@ -395,7 +409,11 @@ const validateForm = () => {
 	}
 
 	// コンテンツが変更された場合のみchangelogを必須にする
-	if (rule.value && form.content !== rule.value.content && !form.changelog.trim()) {
+	if (
+		rule.value &&
+		form.content !== rule.value.content &&
+		!form.changelog.trim()
+	) {
 		errors.changelog = t("validation.required");
 		valid = false;
 	}

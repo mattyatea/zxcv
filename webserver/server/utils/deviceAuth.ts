@@ -26,7 +26,9 @@ export function generateCliToken(): string {
 }
 
 // Cleanup expired device codes
-export async function cleanupExpiredDeviceCodes(db: PrismaClient): Promise<number> {
+export async function cleanupExpiredDeviceCodes(
+	db: PrismaClient,
+): Promise<number> {
 	const now = Math.floor(Date.now() / 1000);
 	const result = await db.deviceCode.deleteMany({
 		where: {
@@ -39,7 +41,9 @@ export async function cleanupExpiredDeviceCodes(db: PrismaClient): Promise<numbe
 }
 
 // Cleanup expired CLI tokens
-export async function cleanupExpiredCliTokens(db: PrismaClient): Promise<number> {
+export async function cleanupExpiredCliTokens(
+	db: PrismaClient,
+): Promise<number> {
 	const now = Math.floor(Date.now() / 1000);
 	const result = await db.cliToken.deleteMany({
 		where: {
@@ -53,7 +57,10 @@ export async function cleanupExpiredCliTokens(db: PrismaClient): Promise<number>
 }
 
 // Validate device code polling interval
-export function shouldSlowDown(lastAttempt: number | null, interval: number): boolean {
+export function shouldSlowDown(
+	lastAttempt: number | null,
+	interval: number,
+): boolean {
 	if (!lastAttempt) {
 		return false;
 	}
@@ -67,6 +74,9 @@ export async function hashCliToken(token: string): Promise<string> {
 }
 
 // Rate limit check for device code attempts
-export function isRateLimited(attemptCount: number, maxAttempts = 100): boolean {
+export function isRateLimited(
+	attemptCount: number,
+	maxAttempts = 100,
+): boolean {
 	return attemptCount >= maxAttempts;
 }

@@ -7,35 +7,37 @@ const MODERATOR_ROLE = "moderator";
 const USER_ROLE = "user";
 
 export const adminProcedures = {
-	getModerators: os.admin.getModerators.use(dbWithAdminAuth).handler(async ({ context }) => {
-		const { db } = context;
+	getModerators: os.admin.getModerators
+		.use(dbWithAdminAuth)
+		.handler(async ({ context }) => {
+			const { db } = context;
 
-		const moderators = await db.user.findMany({
-			where: {
-				role: {
-					in: [MODERATOR_ROLE, ADMIN_ROLE],
+			const moderators = await db.user.findMany({
+				where: {
+					role: {
+						in: [MODERATOR_ROLE, ADMIN_ROLE],
+					},
 				},
-			},
-			select: {
-				id: true,
-				username: true,
-				email: true,
-				role: true,
-				createdAt: true,
-			},
-			orderBy: {
-				createdAt: "desc",
-			},
-		});
+				select: {
+					id: true,
+					username: true,
+					email: true,
+					role: true,
+					createdAt: true,
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			});
 
-		return moderators.map((user) => ({
-			id: user.id,
-			username: user.username,
-			email: user.email,
-			role: user.role,
-			createdAt: user.createdAt,
-		}));
-	}),
+			return moderators.map((user) => ({
+				id: user.id,
+				username: user.username,
+				email: user.email,
+				role: user.role,
+				createdAt: user.createdAt,
+			}));
+		}),
 
 	assignModerator: os.admin.assignModerator
 		.use(dbWithAdminAuth)
@@ -56,7 +58,9 @@ export const adminProcedures = {
 			}
 
 			if (user.role === ADMIN_ROLE) {
-				throw new ORPCError("FORBIDDEN", { message: "Admins cannot be reassigned" });
+				throw new ORPCError("FORBIDDEN", {
+					message: "Admins cannot be reassigned",
+				});
 			}
 
 			if (user.role !== MODERATOR_ROLE) {
@@ -88,11 +92,15 @@ export const adminProcedures = {
 			}
 
 			if (user.role === ADMIN_ROLE) {
-				throw new ORPCError("FORBIDDEN", { message: "Admin role cannot be removed" });
+				throw new ORPCError("FORBIDDEN", {
+					message: "Admin role cannot be removed",
+				});
 			}
 
 			if (user.role !== MODERATOR_ROLE) {
-				throw new ORPCError("BAD_REQUEST", { message: "User is not a moderator" });
+				throw new ORPCError("BAD_REQUEST", {
+					message: "User is not a moderator",
+				});
 			}
 
 			await db.user.update({

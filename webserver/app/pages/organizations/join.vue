@@ -70,9 +70,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
 import { useAuthStore } from "~/stores/auth";
-import { useRpc } from "~/composables/useRpc";
 import type { AcceptInvitationResponse } from "~/types/orpc";
 
 // Using types from orpc.ts - AcceptInvitationResponse contains organization with all required fields
@@ -108,7 +108,8 @@ const acceptInvitation = async () => {
 		success.value = true;
 		organization.value = response.organization;
 	} catch (err) {
-		const errorMessage = err instanceof Error ? err.message : t("organizations.join.failed");
+		const errorMessage =
+			err instanceof Error ? err.message : t("organizations.join.failed");
 		error.value = errorMessage;
 		toastError(errorMessage);
 	} finally {

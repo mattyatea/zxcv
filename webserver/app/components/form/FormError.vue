@@ -12,13 +12,13 @@
 
 <script setup lang="ts">
 interface Props {
-  error?: string;
-  class?: string;
+	error?: string;
+	class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  error: '',
-  class: ''
+	error: "",
+	class: "",
 });
 
 const className = computed(() => props.class);

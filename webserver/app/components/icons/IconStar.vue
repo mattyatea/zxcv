@@ -22,13 +22,13 @@
 
 <script setup lang="ts">
 interface Props {
-  filled?: boolean;
-  class?: string;
+	filled?: boolean;
+	class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  filled: false,
-  class: 'w-6 h-6'
+	filled: false,
+	class: "w-6 h-6",
 });
 
 const classes = computed(() => props.class);

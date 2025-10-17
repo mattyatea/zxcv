@@ -101,53 +101,51 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from '~/composables/useI18n';
+import { useI18n } from "~/composables/useI18n";
 
 const { t } = useI18n();
 
 // Value icons
 const ShareIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.632 4.684C18.114 16.062 18 16.518 18 17c0 1.657-1.343 3-3 3s-3-1.343-3-3 1.343-3 3-3c.482 0 .938.114 1.342.316m0 0a3 3 0 00-4.684-4.684m4.684 4.684a3 3 0 00-4.684 4.684m-1.342-9.632C12.062 5.886 12.518 6 13 6c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3c0 .482.114.938.316 1.342m0 0a3 3 0 014.684 4.684" />
-  </svg>`
+  </svg>`,
 };
 
 const ShieldIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-  </svg>`
+  </svg>`,
 };
 
 const LightningIcon = {
-  template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	template: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-  </svg>`
+  </svg>`,
 };
 
 const values = [
-  {
-    icon: ShareIcon,
-    titleKey: 'about.values.openness.title',
-    descriptionKey: 'about.values.openness.description'
-  },
-  {
-    icon: ShieldIcon,
-    titleKey: 'about.values.security.title',
-    descriptionKey: 'about.values.security.description'
-  },
-  {
-    icon: LightningIcon,
-    titleKey: 'about.values.efficiency.title',
-    descriptionKey: 'about.values.efficiency.description'
-  }
+	{
+		icon: ShareIcon,
+		titleKey: "about.values.openness.title",
+		descriptionKey: "about.values.openness.description",
+	},
+	{
+		icon: ShieldIcon,
+		titleKey: "about.values.security.title",
+		descriptionKey: "about.values.security.description",
+	},
+	{
+		icon: LightningIcon,
+		titleKey: "about.values.efficiency.title",
+		descriptionKey: "about.values.efficiency.description",
+	},
 ];
 
 // SEO
 useHead({
-  title: t('about.pageTitle'),
-  meta: [
-    { name: 'description', content: t('about.pageDescription') }
-  ]
+	title: t("about.pageTitle"),
+	meta: [{ name: "description", content: t("about.pageDescription") }],
 });
 </script>
 

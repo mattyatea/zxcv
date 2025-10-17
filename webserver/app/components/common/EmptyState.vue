@@ -37,9 +37,9 @@
 import type { Component } from "vue";
 
 interface Props {
-  icon?: Component;
-  title: string;
-  description?: string;
+	icon?: Component;
+	title: string;
+	description?: string;
 }
 
 defineProps<Props>();

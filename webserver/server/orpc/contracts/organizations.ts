@@ -40,9 +40,21 @@ export const organizationsContract = {
 		.input(
 			z.object({
 				name: OrganizationNameSchema,
-				displayName: z.string().min(1).max(100).optional().describe("Display name"),
-				description: z.string().max(500).optional().describe("Organization description"),
-				inviteEmails: z.array(z.string().email()).optional().describe("Email addresses to invite"),
+				displayName: z
+					.string()
+					.min(1)
+					.max(100)
+					.optional()
+					.describe("Display name"),
+				description: z
+					.string()
+					.max(500)
+					.optional()
+					.describe("Organization description"),
+				inviteEmails: z
+					.array(z.string().email())
+					.optional()
+					.describe("Email addresses to invite"),
 			}),
 		)
 		.output(OrganizationSchema),

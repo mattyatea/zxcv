@@ -5,7 +5,11 @@ import { RuleService } from "../../services";
 import { createLogger } from "../../utils/logger";
 import { parseRulePath } from "../../utils/namespace";
 import { os } from "../index";
-import { dbWithAuth, dbWithEmailVerification, dbWithOptionalAuth } from "../middleware/combined";
+import {
+	dbWithAuth,
+	dbWithEmailVerification,
+	dbWithOptionalAuth,
+} from "../middleware/combined";
 
 type RuleVersionWithCreator = RuleVersion & {
 	creator?: { id: string; username: string } | null;
@@ -15,118 +19,133 @@ export const rulesProcedures = {
 	/**
 	 * パスによるルール取得
 	 */
-	getByPath: os.rules.getByPath.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	getByPath: os.rules.getByPath
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		// パスをパース
-		const parsed = parseRulePath(input.path);
+			// パスをパース
+			const parsed = parseRulePath(input.path);
 
-		if (!parsed) {
-			throw new ORPCError("BAD_REQUEST", {
-				message: "Invalid rule path format. Expected @owner/rulename or rulename",
-			});
-		}
+			if (!parsed) {
+				throw new ORPCError("BAD_REQUEST", {
+					message:
+						"Invalid rule path format. Expected @owner/rulename or rulename",
+				});
+			}
 
-		const { owner, ruleName } = parsed;
+			const { owner, ruleName } = parsed;
 
-		const result = await ruleService.getRule(ruleName, owner, user?.id);
-		const { rule, version, content } = result;
+			const result = await ruleService.getRule(ruleName, owner, user?.id);
+			const { rule, version, content } = result;
 
-		// Ensure we have the proper author object
-		const author = rule.user || {
-			id: rule.userId || "",
-			username: "Unknown",
-			email: "",
-			displayName: null,
-			avatarUrl: null,
-		};
+			// Ensure we have the proper author object
+			const author = rule.user || {
+				id: rule.userId || "",
+				username: "Unknown",
+				email: "",
+				displayName: null,
+				avatarUrl: null,
+			};
 
-		return {
-			id: rule.id,
-			name: rule.name,
-			userId: rule.userId || null,
-			type: rule.type,
-			visibility: rule.visibility as "public" | "private" | "organization",
-			description: rule.description,
-			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
-			createdAt: rule.createdAt,
-			updatedAt: rule.updatedAt,
-			publishedAt: rule.publishedAt,
-			version: version.versionNumber || rule.version || "1.0.0",
-			latestVersionId: rule.latestVersionId || version.id,
-			views: rule.views,
-			stars: rule.stars,
-			organizationId: rule.organizationId,
-			user: rule.user || author,
-			organization: rule.organization || null,
-			author,
-		};
-	}),
+			return {
+				id: rule.id,
+				name: rule.name,
+				userId: rule.userId || null,
+				type: rule.type,
+				visibility: rule.visibility as "public" | "private" | "organization",
+				description: rule.description,
+				tags: rule.tags
+					? typeof rule.tags === "string"
+						? JSON.parse(rule.tags)
+						: rule.tags
+					: [],
+				createdAt: rule.createdAt,
+				updatedAt: rule.updatedAt,
+				publishedAt: rule.publishedAt,
+				version: version.versionNumber || rule.version || "1.0.0",
+				latestVersionId: rule.latestVersionId || version.id,
+				views: rule.views,
+				stars: rule.stars,
+				organizationId: rule.organizationId,
+				user: rule.user || author,
+				organization: rule.organization || null,
+				author,
+			};
+		}),
 
 	/**
 	 * ルール作成
 	 */
-	create: os.rules.create.use(dbWithEmailVerification).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	create: os.rules.create
+		.use(dbWithEmailVerification)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		const logger = createLogger(env);
-		logger.debug("Create rule handler - user", { user });
-		const result = await ruleService.createRule(user.id, input);
-		return { id: result.rule.id };
-	}),
+			const logger = createLogger(env);
+			logger.debug("Create rule handler - user", { user });
+			const result = await ruleService.createRule(user.id, input);
+			return { id: result.rule.id };
+		}),
 
 	/**
 	 * ルール更新
 	 */
-	update: os.rules.update.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	update: os.rules.update
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		const { id, ...updateData } = input;
-		await ruleService.updateRule(id, user.id, updateData);
-		return { success: true, message: "Rule updated successfully" };
-	}),
+			const { id, ...updateData } = input;
+			await ruleService.updateRule(id, user.id, updateData);
+			return { success: true, message: "Rule updated successfully" };
+		}),
 
 	/**
 	 * ルール一覧
 	 */
-	list: os.rules.list.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	list: os.rules.list
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		// Map contract inputs to service method
-		return await ruleService.listRules({
-			visibility: input.visibility,
-			tags: input.tags,
-			author: input.author,
-			limit: input.limit,
-			offset: input.offset,
-			userId: user?.id,
-		});
-	}),
+			// Map contract inputs to service method
+			return await ruleService.listRules({
+				visibility: input.visibility,
+				tags: input.tags,
+				author: input.author,
+				limit: input.limit,
+				offset: input.offset,
+				userId: user?.id,
+			});
+		}),
 
 	/**
 	 * ルール検索
 	 */
-	search: os.rules.search.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	search: os.rules.search
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		// Map contract inputs to service method
-		return await ruleService.searchRules({
-			query: input.query,
-			tags: input.tags,
-			author: input.author,
-			type: input.type,
-			visibility: input.visibility,
-			sortBy: input.sortBy,
-			page: input.page,
-			limit: input.limit,
-			userId: user?.id,
-		});
-	}),
+			// Map contract inputs to service method
+			return await ruleService.searchRules({
+				query: input.query,
+				tags: input.tags,
+				author: input.author,
+				type: input.type,
+				visibility: input.visibility,
+				sortBy: input.sortBy,
+				page: input.page,
+				limit: input.limit,
+				userId: user?.id,
+			});
+		}),
 
 	/**
 	 * ルールをLike
@@ -184,197 +203,227 @@ export const rulesProcedures = {
 	/**
 	 * ルールのLikeを解除
 	 */
-	unlike: os.rules.unlike.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user } = context;
+	unlike: os.rules.unlike
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
 
-		// Likeが存在するか確認
-		const existingLike = await db.ruleStar.findUnique({
-			where: {
-				// biome-ignore lint/style/useNamingConvention: Prisma compound key
-				ruleId_userId: {
-					ruleId: input.ruleId,
-					userId: user.id,
+			// Likeが存在するか確認
+			const existingLike = await db.ruleStar.findUnique({
+				where: {
+					// biome-ignore lint/style/useNamingConvention: Prisma compound key
+					ruleId_userId: {
+						ruleId: input.ruleId,
+						userId: user.id,
+					},
 				},
-			},
-		});
-
-		if (!existingLike) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "Like not found",
 			});
-		}
 
-		// Likeを削除
-		await db.ruleStar.delete({
-			where: {
-				// biome-ignore lint/style/useNamingConvention: Prisma compound key
-				ruleId_userId: {
-					ruleId: input.ruleId,
-					userId: user.id,
+			if (!existingLike) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "Like not found",
+				});
+			}
+
+			// Likeを削除
+			await db.ruleStar.delete({
+				where: {
+					// biome-ignore lint/style/useNamingConvention: Prisma compound key
+					ruleId_userId: {
+						ruleId: input.ruleId,
+						userId: user.id,
+					},
 				},
-			},
-		});
+			});
 
-		// スター数を減らす
-		await db.rule.update({
-			where: { id: input.ruleId },
-			data: { stars: { decrement: 1 } },
-		});
+			// スター数を減らす
+			await db.rule.update({
+				where: { id: input.ruleId },
+				data: { stars: { decrement: 1 } },
+			});
 
-		return { success: true, message: "Rule unliked successfully" };
-	}),
+			return { success: true, message: "Rule unliked successfully" };
+		}),
 
 	/**
 	 * ルールをIDで取得
 	 */
-	get: os.rules.get.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	get: os.rules.get
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		const rule = await ruleService.getRuleById(input.id, user?.id);
+			const rule = await ruleService.getRuleById(input.id, user?.id);
 
-		// Ensure we have the proper author object
-		const author = rule.user || {
-			id: rule.userId || "",
-			username: "Unknown",
-			email: "",
-			displayName: null,
-			avatarUrl: null,
-		};
+			// Ensure we have the proper author object
+			const author = rule.user || {
+				id: rule.userId || "",
+				username: "Unknown",
+				email: "",
+				displayName: null,
+				avatarUrl: null,
+			};
 
-		return {
-			id: rule.id,
-			name: rule.name,
-			userId: rule.userId || null,
-			type: rule.type,
-			visibility: rule.visibility as "public" | "private" | "organization",
-			description: rule.description,
-			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
-			createdAt: rule.createdAt,
-			updatedAt: rule.updatedAt,
-			publishedAt: rule.publishedAt,
-			version: rule.version || "1.0.0",
-			latestVersionId: rule.latestVersionId,
-			views: rule.views,
-			stars: rule.stars,
-			organizationId: rule.organizationId,
-			user: rule.user || author,
-			organization: rule.organization || null,
-			author,
-			created_at: rule.createdAt,
-			updated_at: rule.updatedAt,
-		};
-	}),
+			return {
+				id: rule.id,
+				name: rule.name,
+				userId: rule.userId || null,
+				type: rule.type,
+				visibility: rule.visibility as "public" | "private" | "organization",
+				description: rule.description,
+				tags: rule.tags
+					? typeof rule.tags === "string"
+						? JSON.parse(rule.tags)
+						: rule.tags
+					: [],
+				createdAt: rule.createdAt,
+				updatedAt: rule.updatedAt,
+				publishedAt: rule.publishedAt,
+				version: rule.version || "1.0.0",
+				latestVersionId: rule.latestVersionId,
+				views: rule.views,
+				stars: rule.stars,
+				organizationId: rule.organizationId,
+				user: rule.user || author,
+				organization: rule.organization || null,
+				author,
+				created_at: rule.createdAt,
+				updated_at: rule.updatedAt,
+			};
+		}),
 
 	/**
 	 * ルールのコンテンツを取得
 	 */
-	getContent: os.rules.getContent.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	getContent: os.rules.getContent
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		return await ruleService.getRuleContent(input.id, input.version, user?.id);
-	}),
+			return await ruleService.getRuleContent(
+				input.id,
+				input.version,
+				user?.id,
+			);
+		}),
 
 	/**
 	 * ルールのバージョン一覧を取得
 	 */
-	versions: os.rules.versions.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	versions: os.rules.versions
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		const versions = await ruleService.getRuleVersions(input.id, user?.id);
+			const versions = await ruleService.getRuleVersions(input.id, user?.id);
 
-		// Creator information is already included from the repository
-		return versions.map((v: RuleVersionWithCreator) => ({
-			version: v.versionNumber,
-			changelog: v.changelog || "",
-			created_at: v.createdAt,
-			createdBy: v.creator || { id: v.createdBy, username: "Unknown" },
-		}));
-	}),
+			// Creator information is already included from the repository
+			return versions.map((v: RuleVersionWithCreator) => ({
+				version: v.versionNumber,
+				changelog: v.changelog || "",
+				created_at: v.createdAt,
+				createdBy: v.creator || { id: v.createdBy, username: "Unknown" },
+			}));
+		}),
 
 	/**
 	 * ルールの特定バージョンを取得
 	 */
-	getVersion: os.rules.getVersion.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	getVersion: os.rules.getVersion
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		const versionData = await ruleService.getRuleVersion(input.id, input.version, user?.id);
+			const versionData = await ruleService.getRuleVersion(
+				input.id,
+				input.version,
+				user?.id,
+			);
 
-		// Ensure proper format for author and createdBy
-		const author = versionData.author
-			? {
-					id: versionData.author.id,
-					username: versionData.author.username,
-					email: versionData.author.email || "",
-				}
-			: { id: "", username: "Unknown", email: "" };
+			// Ensure proper format for author and createdBy
+			const author = versionData.author
+				? {
+						id: versionData.author.id,
+						username: versionData.author.username,
+						email: versionData.author.email || "",
+					}
+				: { id: "", username: "Unknown", email: "" };
 
-		const createdBy = versionData.createdBy
-			? {
-					id: versionData.createdBy.id,
-					username: versionData.createdBy.username || "Unknown",
-				}
-			: { id: "", username: "Unknown" };
+			const createdBy = versionData.createdBy
+				? {
+						id: versionData.createdBy.id,
+						username: versionData.createdBy.username || "Unknown",
+					}
+				: { id: "", username: "Unknown" };
 
-		return {
-			...versionData,
-			changelog: versionData.changelog || "",
-			tags: Array.isArray(versionData.tags) ? versionData.tags : [],
-			author,
-			createdBy,
-		};
-	}),
+			return {
+				...versionData,
+				changelog: versionData.changelog || "",
+				tags: Array.isArray(versionData.tags) ? versionData.tags : [],
+				author,
+				createdBy,
+			};
+		}),
 
 	/**
 	 * 関連ルールを取得
 	 */
-	related: os.rules.related.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	related: os.rules.related
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		return await ruleService.getRelatedRules(input.id, input.limit, user?.id);
-	}),
+			return await ruleService.getRelatedRules(input.id, input.limit, user?.id);
+		}),
 
 	/**
 	 * ルールの閲覧を記録
 	 */
-	view: os.rules.view.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	view: os.rules.view
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		return await ruleService.recordView(input.ruleId, user?.id);
-	}),
+			return await ruleService.recordView(input.ruleId, user?.id);
+		}),
 
 	/**
 	 * ルールを削除
 	 */
-	delete: os.rules.delete.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	delete: os.rules.delete
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		const result = await ruleService.deleteRule(input.id, user.id);
-		return { success: true, message: result.message };
-	}),
+			const result = await ruleService.deleteRule(input.id, user.id);
+			return { success: true, message: result.message };
+		}),
 
 	/**
 	 * 公開ルール一覧
 	 */
-	listPublic: os.rules.listPublic.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const ruleService = new RuleService(db, env.R2, env);
+	listPublic: os.rules.listPublic
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const ruleService = new RuleService(db, env.R2, env);
 
-		return await ruleService.listRules({
-			visibility: "public",
-			tags: input.tags,
-			author: input.author,
-			limit: input.limit,
-			offset: input.offset,
-			userId: user?.id,
-		});
-	}),
+			return await ruleService.listRules({
+				visibility: "public",
+				tags: input.tags,
+				author: input.author,
+				limit: input.limit,
+				offset: input.offset,
+				userId: user?.id,
+			});
+		}),
 
 	/**
 	 * ルールをスター
@@ -433,46 +482,48 @@ export const rulesProcedures = {
 	/**
 	 * ルールのスターを解除
 	 */
-	unstar: os.rules.unstar.use(dbWithAuth).handler(async ({ input, context }) => {
-		// Re-implement unstar logic instead of calling unlike handler
-		const { db, user } = context;
+	unstar: os.rules.unstar
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			// Re-implement unstar logic instead of calling unlike handler
+			const { db, user } = context;
 
-		// Likeが存在するか確認
-		const existingLike = await db.ruleStar.findUnique({
-			where: {
-				// biome-ignore lint/style/useNamingConvention: Prisma compound key
-				ruleId_userId: {
-					ruleId: input.ruleId,
-					userId: user.id,
+			// Likeが存在するか確認
+			const existingLike = await db.ruleStar.findUnique({
+				where: {
+					// biome-ignore lint/style/useNamingConvention: Prisma compound key
+					ruleId_userId: {
+						ruleId: input.ruleId,
+						userId: user.id,
+					},
 				},
-			},
-		});
-
-		if (!existingLike) {
-			throw new ORPCError("NOT_FOUND", {
-				message: "Like not found",
 			});
-		}
 
-		// Likeを削除
-		await db.ruleStar.delete({
-			where: {
-				// biome-ignore lint/style/useNamingConvention: Prisma compound key
-				ruleId_userId: {
-					ruleId: input.ruleId,
-					userId: user.id,
+			if (!existingLike) {
+				throw new ORPCError("NOT_FOUND", {
+					message: "Like not found",
+				});
+			}
+
+			// Likeを削除
+			await db.ruleStar.delete({
+				where: {
+					// biome-ignore lint/style/useNamingConvention: Prisma compound key
+					ruleId_userId: {
+						ruleId: input.ruleId,
+						userId: user.id,
+					},
 				},
-			},
-		});
+			});
 
-		// スター数を減らす
-		await db.rule.update({
-			where: { id: input.ruleId },
-			data: { stars: { decrement: 1 } },
-		});
+			// スター数を減らす
+			await db.rule.update({
+				where: { id: input.ruleId },
+				data: { stars: { decrement: 1 } },
+			});
 
-		return { success: true, message: "Rule unstarred successfully" };
-	}),
+			return { success: true, message: "Rule unstarred successfully" };
+		}),
 
 	/**
 	 * ルールのバージョン履歴を取得
@@ -483,7 +534,10 @@ export const rulesProcedures = {
 			const { db, user, env } = context;
 			const ruleService = new RuleService(db, env.R2, env);
 
-			const versions = await ruleService.getRuleVersions(input.ruleId, user?.id);
+			const versions = await ruleService.getRuleVersions(
+				input.ruleId,
+				user?.id,
+			);
 
 			// Creator information is already included from the repository
 			return versions.map((v: RuleVersionWithCreator) => ({
@@ -517,7 +571,9 @@ export const rulesProcedures = {
 		});
 
 		// パブリックルールの数をカウント
-		const publicRules = allRules.filter((rule) => rule.visibility === "public").length;
+		const publicRules = allRules.filter(
+			(rule) => rule.visibility === "public",
+		).length;
 
 		return {
 			totalRules: allRules.length,

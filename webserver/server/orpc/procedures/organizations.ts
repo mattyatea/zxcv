@@ -8,94 +8,115 @@ export const organizationsProcedures = {
 	/**
 	 * 組織を作成
 	 */
-	create: os.organizations.create.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const organizationService = new OrganizationService(db, env);
+	create: os.organizations.create
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
-		const org = await organizationService.createOrganization(user.id, {
-			name: input.name,
-			displayName: input.displayName || input.name,
-			description: input.description,
-		});
-		return org;
-	}),
+			const org = await organizationService.createOrganization(user.id, {
+				name: input.name,
+				displayName: input.displayName || input.name,
+				description: input.description,
+			});
+			return org;
+		}),
 
 	/**
 	 * 組織情報を取得
 	 */
-	get: os.organizations.get.use(dbWithOptionalAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const organizationService = new OrganizationService(db, env);
+	get: os.organizations.get
+		.use(dbWithOptionalAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
-		// The contract expects 'id' but we need to handle nameOrId
-		const result = await organizationService.getOrganization(input.id, user?.id);
+			// The contract expects 'id' but we need to handle nameOrId
+			const result = await organizationService.getOrganization(
+				input.id,
+				user?.id,
+			);
 
-		// Get owner info
-		const owner = await db.user.findUnique({
-			where: { id: result.ownerId },
-			select: { id: true, username: true, email: true },
-		});
-
-		// Get member count
-		const memberCount = await db.organizationMember.count({
-			where: { organizationId: result.id },
-		});
-
-		// Get rule count
-		const ruleCount = await db.rule.count({
-			where: { organizationId: result.id },
-		});
-
-		// Get current user's role if authenticated
-		let role: "owner" | "member" = "member";
-		if (user?.id) {
-			const membership = await db.organizationMember.findFirst({
-				where: { organizationId: result.id, userId: user.id },
+			// Get owner info
+			const owner = await db.user.findUnique({
+				where: { id: result.ownerId },
+				select: { id: true, username: true, email: true },
 			});
-			if (membership) {
-				role = membership.role as "owner" | "member";
-			}
-		}
 
-		return {
-			id: result.id,
-			name: result.name,
-			displayName: result.displayName || result.name,
-			description: result.description,
-			owner: owner || { id: "", username: "Unknown", email: "" },
-			role,
-			memberCount,
-			ruleCount,
-			createdAt: result.createdAt,
-		};
-	}),
+			// Get member count
+			const memberCount = await db.organizationMember.count({
+				where: { organizationId: result.id },
+			});
+
+			// Get rule count
+			const ruleCount = await db.rule.count({
+				where: { organizationId: result.id },
+			});
+
+			// Get current user's role if authenticated
+			let role: "owner" | "member" = "member";
+			if (user?.id) {
+				const membership = await db.organizationMember.findFirst({
+					where: { organizationId: result.id, userId: user.id },
+				});
+				if (membership) {
+					role = membership.role as "owner" | "member";
+				}
+			}
+
+			return {
+				id: result.id,
+				name: result.name,
+				displayName: result.displayName || result.name,
+				description: result.description,
+				owner: owner || { id: "", username: "Unknown", email: "" },
+				role,
+				memberCount,
+				ruleCount,
+				createdAt: result.createdAt,
+			};
+		}),
 
 	/**
 	 * 組織を更新
 	 */
-	update: os.organizations.update.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const organizationService = new OrganizationService(db, env);
+	update: os.organizations.update
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
-		const { id, ...updateData } = input;
-		const result = await organizationService.updateOrganization(id, user.id, updateData);
-		return {
-			success: true,
-			message: "Organization updated successfully",
-			organization: result,
-		};
-	}),
+			const { id, ...updateData } = input;
+			const result = await organizationService.updateOrganization(
+				id,
+				user.id,
+				updateData,
+			);
+			return {
+				success: true,
+				message: "Organization updated successfully",
+				organization: result,
+			};
+		}),
 
 	/**
 	 * 組織を削除
 	 */
-	delete: os.organizations.delete.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const organizationService = new OrganizationService(db, env);
+	delete: os.organizations.delete
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
-		const result = await organizationService.deleteOrganization(input.id, user.id);
-		return { success: true, message: result.message || "Organization deleted successfully" };
-	}),
+			const result = await organizationService.deleteOrganization(
+				input.id,
+				user.id,
+			);
+			return {
+				success: true,
+				message: result.message || "Organization deleted successfully",
+			};
+		}),
 
 	/**
 	 * メンバーを招待
@@ -124,7 +145,10 @@ export const organizationsProcedures = {
 			const { db, user, env } = context;
 			const organizationService = new OrganizationService(db, env);
 
-			const result = await organizationService.acceptInvitation(input.token, user.id);
+			const result = await organizationService.acceptInvitation(
+				input.token,
+				user.id,
+			);
 
 			// Get member count
 			const memberCount = await db.organizationMember.count({
@@ -195,80 +219,197 @@ export const organizationsProcedures = {
 	/**
 	 * 組織のメンバーを取得
 	 */
-	listMembers: os.organizations.listMembers.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user } = context;
+	listMembers: os.organizations.listMembers
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
 
-		// メンバーかどうかチェック
-		const isMember = await db.organizationMember.findFirst({
-			where: {
-				organizationId: input.orgId,
-				userId: user.id,
-			},
-		});
-
-		if (!isMember) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "組織のメンバーのみ閲覧可能です",
+			// メンバーかどうかチェック
+			const isMember = await db.organizationMember.findFirst({
+				where: {
+					organizationId: input.orgId,
+					userId: user.id,
+				},
 			});
-		}
 
-		// メンバー一覧を取得
-		const members = await db.organizationMember.findMany({
-			where: { organizationId: input.orgId },
-			include: {
-				user: {
-					select: {
-						id: true,
-						username: true,
-						email: true,
+			if (!isMember) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "組織のメンバーのみ閲覧可能です",
+				});
+			}
+
+			// メンバー一覧を取得
+			const members = await db.organizationMember.findMany({
+				where: { organizationId: input.orgId },
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
 					},
 				},
-			},
-			orderBy: [
-				{ role: "asc" }, // オーナーが先
-				{ joinedAt: "asc" },
-			],
-		});
+				orderBy: [
+					{ role: "asc" }, // オーナーが先
+					{ joinedAt: "asc" },
+				],
+			});
 
-		return {
-			members: members.map((m) => ({
+			return {
+				members: members.map((m) => ({
+					id: m.user.id,
+					username: m.user.username,
+					email: m.user.email,
+					role: m.role as "owner" | "member",
+					joinedAt: m.joinedAt,
+				})),
+			};
+		}),
+
+	/**
+	 * 組織のルールを取得
+	 */
+	listRules: os.organizations.listRules
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+
+			// メンバーかどうかチェック
+			const isMember = await db.organizationMember.findFirst({
+				where: {
+					organizationId: input.orgId,
+					userId: user.id,
+				},
+			});
+
+			if (!isMember) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "組織のメンバーのみ閲覧可能です",
+				});
+			}
+
+			// ページネーション計算
+			const skip = (input.page - 1) * input.pageSize;
+
+			// ルール一覧を取得
+			const [rules, total] = await Promise.all([
+				db.rule.findMany({
+					where: { organizationId: input.orgId },
+					include: {
+						user: {
+							select: {
+								id: true,
+								username: true,
+							},
+						},
+					},
+					orderBy: { updatedAt: "desc" },
+					skip,
+					take: input.pageSize,
+				}),
+				db.rule.count({
+					where: { organizationId: input.orgId },
+				}),
+			]);
+
+			return {
+				rules: rules.map((r) => ({
+					id: r.id,
+					name: r.name,
+					description: r.description,
+					visibility: r.visibility as "public" | "private" | "team",
+					isPublished: r.publishedAt !== null,
+					downloadCount: r.views,
+					starCount: r.stars,
+					createdAt: r.createdAt,
+					updatedAt: r.updatedAt,
+					user: r.user,
+					latestVersion: r.version || "1.0.0",
+				})),
+				total,
+				page: input.page,
+				pageSize: input.pageSize,
+				totalPages: Math.ceil(total / input.pageSize),
+			};
+		}),
+
+	/**
+	 * 組織のメンバーサマリーを取得
+	 */
+	members: os.organizations.members
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
+
+			// メンバーかどうかチェック
+			const isMember = await db.organizationMember.findFirst({
+				where: {
+					organizationId: input.organizationId,
+					userId: user.id,
+				},
+			});
+
+			if (!isMember) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "組織のメンバーのみ閲覧可能です",
+				});
+			}
+
+			// メンバーサマリーを取得
+			const members = await db.organizationMember.findMany({
+				where: { organizationId: input.organizationId },
+				include: {
+					user: {
+						select: {
+							id: true,
+							username: true,
+							email: true,
+						},
+					},
+				},
+			});
+
+			return members.map((m) => ({
 				id: m.user.id,
 				username: m.user.username,
 				email: m.user.email,
 				role: m.role as "owner" | "member",
 				joinedAt: m.joinedAt,
-			})),
-		};
-	}),
+			}));
+		}),
 
 	/**
-	 * 組織のルールを取得
+	 * 組織のルールサマリーを取得
 	 */
-	listRules: os.organizations.listRules.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user } = context;
+	rules: os.organizations.rules
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user } = context;
 
-		// メンバーかどうかチェック
-		const isMember = await db.organizationMember.findFirst({
-			where: {
-				organizationId: input.orgId,
-				userId: user.id,
-			},
-		});
-
-		if (!isMember) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "組織のメンバーのみ閲覧可能です",
+			// メンバーかどうかチェック
+			const isMember = await db.organizationMember.findFirst({
+				where: {
+					organizationId: input.organizationId,
+					userId: user.id,
+				},
 			});
-		}
 
-		// ページネーション計算
-		const skip = (input.page - 1) * input.pageSize;
+			if (!isMember) {
+				throw new ORPCError("FORBIDDEN", {
+					message: "組織のメンバーのみ閲覧可能です",
+				});
+			}
 
-		// ルール一覧を取得
-		const [rules, total] = await Promise.all([
-			db.rule.findMany({
-				where: { organizationId: input.orgId },
-				include: {
+			// ルールサマリーを取得
+			const rules = await db.rule.findMany({
+				where: { organizationId: input.organizationId },
+				select: {
+					id: true,
+					name: true,
+					description: true,
+					version: true,
+					updatedAt: true,
 					user: {
 						select: {
 							id: true,
@@ -277,136 +418,32 @@ export const organizationsProcedures = {
 					},
 				},
 				orderBy: { updatedAt: "desc" },
-				skip,
-				take: input.pageSize,
-			}),
-			db.rule.count({
-				where: { organizationId: input.orgId },
-			}),
-		]);
+			});
 
-		return {
-			rules: rules.map((r) => ({
+			return rules.map((r) => ({
 				id: r.id,
 				name: r.name,
 				description: r.description,
-				visibility: r.visibility as "public" | "private" | "team",
-				isPublished: r.publishedAt !== null,
-				downloadCount: r.views,
-				starCount: r.stars,
-				createdAt: r.createdAt,
+				version: r.version || "1.0.0",
 				updatedAt: r.updatedAt,
-				user: r.user,
-				latestVersion: r.version || "1.0.0",
-			})),
-			total,
-			page: input.page,
-			pageSize: input.pageSize,
-			totalPages: Math.ceil(total / input.pageSize),
-		};
-	}),
-
-	/**
-	 * 組織のメンバーサマリーを取得
-	 */
-	members: os.organizations.members.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user } = context;
-
-		// メンバーかどうかチェック
-		const isMember = await db.organizationMember.findFirst({
-			where: {
-				organizationId: input.organizationId,
-				userId: user.id,
-			},
-		});
-
-		if (!isMember) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "組織のメンバーのみ閲覧可能です",
-			});
-		}
-
-		// メンバーサマリーを取得
-		const members = await db.organizationMember.findMany({
-			where: { organizationId: input.organizationId },
-			include: {
-				user: {
-					select: {
-						id: true,
-						username: true,
-						email: true,
-					},
-				},
-			},
-		});
-
-		return members.map((m) => ({
-			id: m.user.id,
-			username: m.user.username,
-			email: m.user.email,
-			role: m.role as "owner" | "member",
-			joinedAt: m.joinedAt,
-		}));
-	}),
-
-	/**
-	 * 組織のルールサマリーを取得
-	 */
-	rules: os.organizations.rules.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user } = context;
-
-		// メンバーかどうかチェック
-		const isMember = await db.organizationMember.findFirst({
-			where: {
-				organizationId: input.organizationId,
-				userId: user.id,
-			},
-		});
-
-		if (!isMember) {
-			throw new ORPCError("FORBIDDEN", {
-				message: "組織のメンバーのみ閲覧可能です",
-			});
-		}
-
-		// ルールサマリーを取得
-		const rules = await db.rule.findMany({
-			where: { organizationId: input.organizationId },
-			select: {
-				id: true,
-				name: true,
-				description: true,
-				version: true,
-				updatedAt: true,
-				user: {
-					select: {
-						id: true,
-						username: true,
-					},
-				},
-			},
-			orderBy: { updatedAt: "desc" },
-		});
-
-		return rules.map((r) => ({
-			id: r.id,
-			name: r.name,
-			description: r.description,
-			version: r.version || "1.0.0",
-			updatedAt: r.updatedAt,
-			author: r.user,
-		}));
-	}),
+				author: r.user,
+			}));
+		}),
 
 	/**
 	 * 組織から離脱
 	 */
-	leave: os.organizations.leave.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const organizationService = new OrganizationService(db, env);
+	leave: os.organizations.leave
+		.use(dbWithAuth)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const organizationService = new OrganizationService(db, env);
 
-		return await organizationService.leaveOrganization(input.organizationId, user.id);
-	}),
+			return await organizationService.leaveOrganization(
+				input.organizationId,
+				user.id,
+			);
+		}),
 
 	/**
 	 * Get public organization profile

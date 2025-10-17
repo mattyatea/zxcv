@@ -13,7 +13,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 	// ストアの初期化を待つ（最大500ms）
 	let attempts = 0;
 	while (!isReady.value && attempts < 50) {
-		await new Promise(resolve => setTimeout(resolve, 10));
+		await new Promise((resolve) => setTimeout(resolve, 10));
 		attempts++;
 	}
 

@@ -1,1061 +1,1061 @@
 {
-  "app": {
-    "name": "zxcv"
-  },
-  "common": {
-    "loading": "Loading...",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "create": "Create",
-    "update": "Update",
-    "search": "Search",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "confirm": "Confirm",
-    "yes": "Yes",
-    "no": "No",
-    "or": "or",
-    "and": "and",
-    "updatedAt": "Updated",
-    "all": "All",
-    "none": "None",
-    "select": "Select",
-    "close": "Close",
-    "open": "Open",
-    "download": "Download",
-    "upload": "Upload",
-    "share": "Share",
-    "copy": "Copy",
-    "copied": "Copied",
-    "error": "Error",
-    "success": "Success",
-    "warning": "Warning",
-    "info": "Info",
-    "required": "Required",
-    "optional": "Optional",
-    "providers": {
-      "google": "Google",
-      "github": "GitHub"
-    },
-    "dates": {
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "daysAgo": "{days} days ago",
-      "weeksAgo": "{weeks} weeks ago",
-      "monthsAgo": "{months} months ago",
-      "yearsAgo": "{years} years ago"
-    }
-  },
-  "nav": {
-    "home": "Home",
-    "rules": "Rules",
-    "install": "Install",
-    "myRules": "My Rules",
-    "myOrganizations": "My Organizations", 
-    "quickAccess": "Quick Access",
-    "organizations": "Organizations",
-    "profile": "Profile",
-    "settings": "Settings",
-    "logout": "Logout",
-    "login": "Login",
-    "register": "Sign up",
-    "guides": "Guides"
-  },
-  "auth": {
-    "oauth": {
-      "processing": "Processing authentication...",
-      "creatingAccount": "Creating account with {provider}...",
-      "loggingIn": "Signing in with {provider}...",
-      "errorTitle": "Authentication Error",
-      "backToLogin": "Back to Login",
-      "tryAgain": "Try Again",
-      "successTitle": "Authentication Successful",
-      "redirecting": "Redirecting...",
-      "cancelled": "Authentication was cancelled",
-      "missingInfo": "Missing authentication information",
-      "accountCreatedWith": "Account created with {provider}",
-      "loggedInWith": "Signed in with {provider}",
-      "accountAlreadyUsed": "This account is already associated with another user",
-      "emailVerificationRequired": "Email verification is required",
-      "processingError": "An error occurred during authentication",
-      "pageTitle": "Authentication"
-    },
-    "login": {
-      "title": "Sign in to your account",
-      "subtitle": "Don't have an account?",
-      "email": "Email address",
-      "password": "Password",
-      "rememberMe": "Remember me",
-      "forgotPassword": "Forgot your password?",
-      "loginButton": "Sign in",
-      "loggingIn": "Signing in...",
-      "loginWith": "Sign in with {provider}",
-      "errors": {
-        "invalidCredentials": "Invalid email or password",
-        "emailNotVerified": "Please verify your email address before signing in.",
-        "generalError": "Failed to sign in"
-      },
-      "validation": {
-        "emailRequired": "Please enter your email address",
-        "emailInvalid": "Please enter a valid email address",
-        "passwordRequired": "Please enter your password"
-      }
-    },
-    "register": {
-      "title": "Create an account",
-      "subtitle": "Already have an account?",
-      "username": "Username",
-      "email": "Email address",
-      "password": "Password",
-      "confirmPassword": "Confirm password",
-      "agreeToTerms": "I agree to the terms and conditions",
-      "registerButton": "Create account",
-      "registering": "Creating...",
-      "registerWith": "Sign up with {provider}",
-      "errors": {
-        "emailExists": "This email address is already in use",
-        "usernameExists": "This username is already taken",
-        "generalError": "Failed to create account"
-      },
-      "validation": {
-        "usernameRequired": "Please enter a username",
-        "usernameLength": "Username must be between 3 and 20 characters",
-        "usernamePattern": "Username can only contain letters, numbers, and underscores",
-        "emailRequired": "Please enter your email address",
-        "emailInvalid": "Please enter a valid email address",
-        "passwordRequired": "Please enter a password",
-        "passwordLength": "Password must be at least 8 characters long",
-        "passwordMismatch": "Passwords do not match",
-        "termsRequired": "Please agree to the terms and conditions"
-      }
-    },
-    "forgotPassword": {
-      "title": "Reset password",
-      "subtitle": "Enter your registered email address",
-      "email": "Email address",
-      "sendButton": "Send reset link",
-      "sending": "Sending...",
-      "backToLogin": "Back to login",
-      "success": "Password reset email sent",
-      "error": "Failed to send email"
-    },
-    "verifyEmail": {
-      "title": "Verify email address",
-      "verifying": "Verifying...",
-      "success": "Email address verified",
-      "error": "Verification failed",
-      "invalidToken": "Invalid token",
-      "goToLogin": "Go to login"
-    }
-  },
-  "home": {
-    "hero": {
-      "badge": "The new standard for AI coding rule management",
-      "title": "Share, manage, and utilize",
-      "titleHighlight": "coding rules",
-      "description": "Unify coding standards across your organization. Maximize development efficiency with AI-optimized rule management.",
-      "viewRules": "View rules",
-      "getStarted": "Get started free"
-    },
-    "features": {
-      "title": "FEATURES",
-      "subtitle": "All the features you need for organization development",
-      "description": "Providing features to improve development speed while maintaining code quality",
-      "versionControl": {
-        "title": "Version Control",
-        "description": "Automatically record rule change history. Revert to previous versions anytime."
-      },
-      "organizationCollaboration": {
-        "title": "Organization Collaboration",
-        "description": "Easy sharing with organization members. Manage rules safely with permission control."
-      },
-      "aiOptimized": {
-        "title": "AI Optimized",
-        "description": "Output rules in formats optimized for AI development tools. Improve development efficiency."
-      },
-      "export": {
-        "title": "Export Features",
-        "description": "Export rules in various formats. Use immediately with your favorite AI tools."
-      },
-      "search": {
-        "title": "Advanced Search",
-        "description": "Search instantly by tags, content, or creator. Find the rules you need right away."
-      },
-      "accessControl": {
-        "title": "Access Control",
-        "description": "Collaborate while maintaining team security with fine-grained permission settings."
-      },
-      "api": {
-        "title": "API Integration",
-        "description": "Integrate with existing workflows through RESTful API. Achieve automation and efficiency."
-      }
-    },
-    "cta": {
-      "title": "Get started today",
-      "description": "Create a free account and start managing your organization's coding rules",
-      "button": "Get started free"
-    }
-  },
-  "rules": {
-    "pageTitle": "Rules",
-    "title": "Rules",
-    "subtitle": "Search and share AI coding rules",
-    "myRules": "My Rules",
-    "publicRules": "Public Rules",
-    "organizationRules": "Organization Rules",
-    "createRule": "Create new rule",
-    "createNewRule": "Create a New Rule",
-    "createFirstRule": "Create your first rule",
-    "creating": "Creating...",
-    "searchPlaceholder": "Search rules...",
-    "noRulesFound": "No rules found",
-    "popularTags": "Popular Tags",
-    "basicInfo": "Basic Information",
-    "ruleContent": "Rule Content",
-    "agentContent": "Agent Content",
-    "shareWithCommunity": "Share with the community and improve development efficiency together",
-    "visibility": {
-      "all": "All",
-      "public": "Public",
-      "private": "Private",
-      "organization": "Organization only"
-    },
-    "type": {
-      "rule": "Rules",
-      "ccsubagents": "Claude Code Subagents"
-    },
-    "actions": {
-      "view": "View",
-      "edit": "Edit",
-      "delete": "Delete",
-      "share": "Share",
-      "duplicate": "Duplicate",
-      "download": "Download",
-      "version": "Version",
-      "copyRule": "Copy Rule",
-      "copied": "Copied",
-      "star": "Star",
-      "starred": "Starred",
-      "copyUrl": "Copy URL",
-      "shareOnX": "Share on X",
-      "copyMarkdown": "Copy as Markdown"
-    },
-    "template": {
-      "title": "Template Variables Detected",
-      "description": "This rule contains template variables. Fill them in to customize the content.",
-      "placeholder": "Enter value for {name}",
-      "apply": "Apply Template",
-      "clear": "Clear All",
-      "rendered": "Rendered Content",
-      "original": "Original Template",
-      "applied": "Template applied successfully",
-      "applyError": "Failed to apply template"
-    },
-    "form": {
-      "name": "Rule name",
-      "namePlaceholder": "e.g. next-js-best-practices",
-      "nameHint": "This will be used as the URL identifier. Only letters, numbers, and hyphens allowed.",
-      "type": "Type",
-      "typeOptions": {
-        "rule": "AI Coding Rule",
-        "ccsubagents": "Claude Code Subagents"
-      },
-      "typeHint": "Select the type of content to save.",
-      "description": "Description",
-      "descriptionPlaceholder": "Describe the purpose and usage of this rule",
-      "content": "Content",
-      "contentPlaceholder": "# Rule Content\n\nWrite your coding rules here...\n\n## Example\n\n```javascript\n// Code example\n```",
-      "agentContentPlaceholder": "# Subagent Definition\n\nDefine the role and behavior of this subagent...\n\n## Capabilities\n- Task processing\n- Code generation\n\n## Usage Example\n```\n// Agent usage example\n```",
-      "tags": "Tags",
-      "tagsPlaceholder": "Enter a tag and press Enter",
-      "addTag": "Add Tag",
-      "visibility": "Visibility",
-      "visibilityOptions": {
-        "public": "Public - Anyone can view",
-        "private": "Private - Only you can view"
-      },
-      "team": "Team",
-      "organization": "Organization",
-      "noOrganization": "No organization",
-      "organizationHint": "If you select an organization, members can edit the rule.",
-      "urlPreview": "URL Preview:",
-      "markdownSupported": "Markdown format is supported",
-      "ruleHint": "Define rules and guidelines for AI coding",
-      "agentHint": "Define a subagent for Claude Code",
-      "agentTemplateHint": "Please refer to the Claude Code official documentation for subagent templates",
-      "agentTemplate": "Template",
-      "selectTemplate": "Select a template",
-      "templateHint": "Selecting a template will insert sample code",
-      "uploadMarkdown": "Upload Markdown file",
-      "writeDirectly": "Write directly",
-      "basicInfo": "Basic Information"
-    },
-    "messages": {
-      "created": "Rule created successfully",
-      "updated": "Rule updated successfully",
-      "deleted": "Rule deleted successfully",
-      "deleteConfirm": "Are you sure you want to delete this rule?",
-      "deleteError": "Failed to delete rule",
-      "copyError": "Failed to copy",
-      "copied": "Copied",
-      "viewingVersion": "Viewing version {version}",
-      "versionFetchError": "Failed to fetch version",
-      "fetchError": "Failed to fetch rules",
-      "cliCommandCopied": "CLI command copied to clipboard"
-    },
-    "detail": {
-      "notFound": "Rule not found",
-      "backToList": "Back to rules list",
-      "versionHistory": "Version History",
-      "latest": "latest",
-      "currentlyViewing": "Currently viewing",
-      "viewLatestVersion": "View latest version",
-      "viewingOldVersion": "Viewing version {version} (older version)",
-      "relatedRules": "Related Rules",
-      "notFoundDescription": "The rule you are looking for could not be found.",
-      "stars": "Stars",
-      "views": "Views",
-      "actions": "Actions",
-      "tags": "Tags",
-      "author": "Author",
-      "rulesPublished": "{count} rules published",
-      "deleteConfirmDescription": "Are you sure you want to delete this rule? This action cannot be undone.",
-      "raw": "Raw",
-      "preview": "Preview",
-      "viewing": "Viewing",
-      "loginRequired": "Login required to star",
-      "starError": "Failed to add star",
-      "unstarError": "Failed to remove star",
-      "cliCommand": "CLI Command",
-      "cliDescription": "Install this rule using zxcv CLI",
-      "organization": "Organization",
-      "updatedBy": "Updated by"
-    },
-    "edit": {
-      "title": "Edit Rule",
-      "unsavedChanges": "You have unsaved changes",
-      "update": "Update",
-      "showPreview": "Show preview",
-      "hidePreview": "Hide preview",
-      "changeLog": "Change Log",
-      "changeLogPlaceholder": "Describe what changed in this version",
-      "incrementMajorVersion": "Increment major version"
-    },
-    "sort": {
-      "recentlyUpdated": "Recently updated",
-      "recentlyCreated": "Recently created",
-      "alphabetical": "Alphabetical",
-      "views": "Most views",
-      "stars": "Most stars"
-    },
-    "filters": {
-      "visibility": "Visibility",
-      "type": "Type",
-      "sortBy": "Sort by",
-      "author": "Author",
-      "authorPlaceholder": "Filter by username",
-      "popularTags": "Popular Tags",
-      "clearTags": "Clear tags",
-      "activeFilters": "Active filters",
-      "resetAll": "Reset all"
-    },
-    "itemsCount": "({count} items)",
-    "gridView": "Grid view",
-    "listView": "List view",
-    "noRulesMessage": "No rules found matching the current filter criteria. Please try changing the conditions.",
-    "showing": "Showing {start} - {end} of {total} items",
-    "searchHint": "or press {key} to search",
-    "templates": {
-      "codeReviewer": "Code Reviewer",
-      "testGenerator": "Test Generator",
-      "docWriter": "Documentation Writer",
-      "generalHelper": "General Assistant"
-    }
-  },
-  "organizations": {
-    "title": "Organizations",
-    "myOrganizations": "My Organizations",
-    "createOrganization": "Create new organization",
-    "createTeam": "Create Team",
-    "createNewTeam": "Create New Team",
-    "joinOrganization": "Join organization",
-    "members": "Members",
-    "owner": "Owner",
-    "admin": "Admin",
-    "member": "Member",
-    "actions": {
-      "invite": "Invite",
-      "leave": "Leave",
-      "remove": "Remove",
-      "edit": "Edit",
-      "manageMembers": "Manage members"
-    },
-    "form": {
-      "name": "Organization name",
-      "description": "Description",
-      "inviteEmail": "Email address to invite"
-    },
-    "messages": {
-      "created": "Organization created successfully",
-      "joined": "Joined organization successfully",
-      "left": "Left organization successfully",
-      "invited": "Invitation sent successfully",
-      "inviteAccepted": "Invitation accepted"
-    }
-  },
-  "profile": {
-    "title": "Profile",
-    "editProfile": "Edit profile",
-    "username": "Username",
-    "email": "Email address",
-    "bio": "Bio",
-    "website": "Website",
-    "joined": "Joined",
-    "backToHome": "Back to Home",
-    "registeredDate": "Registered",
-    "publicRules": "Public Rules",
-    "totalStars": "Total Stars",
-    "noPublicRules": "No public rules yet",
-    "userProfile": "User Profile",
-    "userNotFound": "User not found",
-    "userNotFoundDesc": "The specified user does not exist or may have been deleted.",
-    "emailVerified": "Email verified",
-    "emailNotVerified": "Email not verified",
-    "createdRules": "Created Rules",
-    "belongingOrganizations": "Organizations",
-    "registrationDate": "Registration Date",
-    "recentActivity": "Recent Activity",
-    "noActivityYet": "No activity yet",
-    "changeAvatar": "Change avatar",
-    "avatarChangeComingSoon": "Avatar image change coming soon",
-    "usernameHint": "Letters, numbers, hyphens, and underscores only",
-    "emailChangeWarning": "Changing your email address will require re-verification",
-    "changePassword": "Change password",
-    "currentPassword": "Current password",
-    "newPassword": "New password",
-    "newPasswordConfirm": "New password (confirm)",
-    "passwordHint": "At least 8 characters",
-    "update": "Update",
-    "change": "Change",
-    "placeholders": {
-      "username": "username",
-      "email": "email@example.com",
-      "currentPassword": "Enter current password",
-      "newPassword": "Enter new password",
-      "newPasswordConfirm": "Re-enter new password"
-    },
-    "errors": {
-      "noUsername": "Username not specified",
-      "loadFailed": "Failed to load profile",
-      "usernameRequired": "Username is required",
-      "usernameInvalid": "Only letters, numbers, hyphens, and underscores allowed",
-      "usernameMinLength": "Must be at least 3 characters",
-      "emailRequired": "Email address is required",
-      "emailInvalid": "Please enter a valid email address",
-      "passwordMinLength": "Password must be at least 8 characters",
-      "passwordMismatch": "Passwords do not match",
-      "usernameOrEmailTaken": "That username or email address is already taken",
-      "updateFailed": "Failed to update profile",
-      "wrongCurrentPassword": "Current password is incorrect",
-      "passwordChangeFailed": "Failed to change password"
-    },
-    "success": {
-      "profileUpdated": "Profile updated successfully",
-      "passwordChanged": "Password changed successfully"
-    },
-    "stats": {
-      "rules": "Rules",
-      "organizations": "Organizations",
-      "contributions": "Contributions"
-    }
-  },
-  "settings": {
-    "title": "Settings",
-    "tabs": {
-      "profile": "Profile",
-      "account": "Account",
-      "security": "Security",
-      "notifications": "Notifications",
-      "preferences": "Preferences"
-    },
-    "profile": {
-      "title": "Profile Information",
-      "avatar": "Avatar Image",
-      "avatarAlt": "Profile avatar image",
-      "changeAvatar": "Change",
-      "avatarHint": "JPG, PNG, GIF, WebP (Max 5MB)",
-      "displayName": "Display Name",
-      "displayNamePlaceholder": "Your name",
-      "bio": "Bio",
-      "bioPlaceholder": "Tell us a little about yourself",
-      "location": "Location",
-      "locationPlaceholder": "Tokyo, Japan",
-      "website": "Website",
-      "websitePlaceholder": "https://example.com",
-      "save": "Save changes",
-      "saving": "Saving...",
-      "errors": {
-        "invalidFileType": "Unsupported file format. Only JPEG, PNG, GIF, and WebP formats are allowed.",
-        "fileTooLarge": "File size is too large. Please upload a file smaller than 5MB."
-      }
-    },
-    "account": {
-      "title": "Account Settings",
-      "placeholder": "Account settings features are coming soon."
-    },
-    "security": {
-      "title": "Security Settings",
-      "placeholder": "Security settings features are coming soon.",
-      "changePassword": "Change password",
-      "twoFactor": "Two-factor authentication",
-      "apiKeys": "API Keys",
-      "deleteAccount": "Delete account"
-    },
-    "success": {
-      "profileUpdated": "Profile updated successfully",
-      "avatarUploaded": "Avatar image updated successfully"
-    },
-    "error": {
-      "fetchProfile": "Failed to fetch profile",
-      "updateProfile": "Failed to update profile",
-      "uploadAvatar": "Failed to upload avatar image",
-      "invalidImageType": "Unsupported image format",
-      "imageTooLarge": "Image size exceeds 5MB"
-    },
-    "language": "Language",
-    "theme": "Theme",
-    "notifications": "Notifications",
-    "preferences": "Preferences"
-  },
-  "errors": {
-    "notFound": "Page not found",
-    "unauthorized": "Authentication required",
-    "forbidden": "Access denied",
-    "serverError": "Server error occurred",
-    "networkError": "Network error occurred",
-    "unknownError": "An error occurred",
-    "oauth": {
-      "authFailed": "OAuth authentication failed",
-      "missingParams": "Required parameters are missing",
-      "invalidCode": "Invalid authentication code",
-      "invalidState": "Invalid state parameter",
-      "accessDenied": "User denied access",
-      "invalidRequest": "Invalid request",
-      "unauthorizedClient": "Unauthorized client",
-      "unsupportedResponseType": "Unsupported response type",
-      "invalidScope": "Invalid scope",
-      "serverError": "Authentication server error",
-      "temporarilyUnavailable": "Temporarily unavailable",
-      "registrationFailed": "Failed to create account with {provider}",
-      "invalidOrExpiredState": "Invalid or expired state",
-      "unsupportedProvider": "Unsupported provider",
-      "codeVerifierNotGenerated": "Code verifier was not generated",
-      "githubEmailNotFound": "GitHub account has no email address",
-      "googleEmailNotFound": "Google account has no email address",
-      "invalidToken": "Invalid token",
-      "tokenExpired": "Token has expired",
-      "usernameAlreadyTaken": "This username is already taken",
-      "registrationCompleteFailed": "Failed to complete registration",
-      "processing": "Processing authentication...",
-      "creatingAccount": "Creating account with {provider}...",
-      "loggingIn": "Logging in with {provider}...",
-      "errorTitle": "Authentication Error",
-      "backToLogin": "Back to login",
-      "tryAgain": "Try again",
-      "successTitle": "Authentication Successful",
-      "redirecting": "Redirecting...",
-      "cancelled": "Authentication was cancelled",
-      "missingInfo": "Missing authentication information",
-      "accountCreatedWith": "Account created with {provider}",
-      "loggedInWith": "Logged in with {provider}",
-      "accountAlreadyUsed": "This account is already used by another user",
-      "emailVerificationRequired": "Email verification required",
-      "processingError": "An error occurred during authentication",
-      "pageTitle": "Authentication"
-    }
-  },
-  "footer": {
-    "copyright": "© 2025 zxcv. All rights reserved.",
-    "about": "About zxcv",
-    "terms": "Terms of Service",
-    "privacy": "Privacy Policy",
-    "contact": "Contact",
-    "tagline": "Platform for sharing, managing, and utilizing AI coding rules",
-    "operatorInfo": "Operator Information",
-    "product": "Product",
-    "features": "Features",
-    "pricing": "Pricing",
-    "enterprise": "Enterprise",
-    "changelog": "Changelog",
-    "resources": "Resources",
-    "docs": "Documentation",
-    "api": "API",
-    "blog": "Blog",
-    "company": "Company",
-    "aboutUs": "About Us",
-    "careers": "Careers",
-    "partners": "Partners",
-    "security": "Security"
-  },
-  "organizations": {
-    "title": "Organizations",
-    "subtitle": "Create organizations and share rules with members",
-    "myOrganizations": "My Organizations",
-    "createOrganization": "New Organization",
-    "joinOrganization": "Join organization",
-    "members": "Members",
-    "rules": "Rules",
-    "owner": "Owner",
-    "admin": "Admin",
-    "member": "Member",
-    "noOrganizations": "No organizations yet",
-    "createFirstOrganization": "Create your first organization and start collaborating with members",
-    "noDescription": "No organization description",
-    "actions": {
-      "invite": "Invite",
-      "leave": "Leave",
-      "remove": "Remove",
-      "edit": "Edit",
-      "manageMembers": "Manage members"
-    },
-    "form": {
-      "name": "Organization name",
-      "namePlaceholder": "e.g. example-company",
-      "description": "Description",
-      "descriptionPlaceholder": "Describe your organization's purpose and activities",
-      "inviteEmail": "Email address to invite",
-      "inviteMembers": "Invite initial members (optional)",
-      "addMember": "Add member"
-    },
-    "validation": {
-      "nameRequired": "Organization name is required",
-      "nameFormat": "Organization name can only contain alphanumeric characters and hyphens",
-      "invalidEmail": "Please enter a valid email address"
-    },
-    "messages": {
-      "created": "Organization created successfully",
-      "joined": "Joined organization successfully",
-      "left": "Left organization successfully",
-      "invited": "Invitation sent successfully",
-      "inviteAccepted": "Invitation accepted",
-      "createError": "Failed to create organization",
-      "fetchError": "Failed to fetch organizations"
-    },
-    "pageTitle": "Organizations - zxcv",
-    "newOrganizationTitle": "Create New Organization - zxcv",
-    "createNewOrganization": "Create a new organization",
-    "inviteAndCollaborate": "Create a organization and invite members",
-    "join": {
-      "verifying": "Verifying invitation...",
-      "failed": "Failed to verify invitation",
-      "backToOrganizations": "Back to organizations",
-      "joined": "Joined organization successfully!",
-      "welcome": "Welcome to the organization",
-      "goToOrganization": "Go to organization page",
-      "loginRequired": "Login required",
-      "loginToJoin": "Please login to join the organization",
-      "login": "Login",
-      "noToken": "Invitation token not found",
-      "invalidToken": "Invalid invitation token"
-    },
-    "detail": {
-      "settings": "Settings",
-      "leaveOrganization": "Leave organization",
-      "members": "Members",
-      "rules": "Rules",
-      "createdAt": "Created",
-      "noRules": "No rules yet",
-      "inviteMembers": "Invite members",
-      "notFound": "Organization not found",
-      "backToList": "Back to organizations",
-      "removeMember": "Remove member",
-      "confirmRemoveMember": "Are you sure you want to remove {{username}} from the organization?",
-      "memberRemoved": "{{username}} has been removed from the organization",
-      "removeMemberError": "Failed to remove member"
-    },
-    "inviteMember": {
-      "title": "Invite Member",
-      "usernameLabel": "Username",
-      "usernamePlaceholder": "Enter username...",
-      "invite": "Send Invitation",
-      "success": "Invitation sent to {{username}}",
-      "error": "Failed to send invitation",
-      "alreadyMember": "This user is already a member",
-      "alreadyInvited": "An invitation has already been sent to this user"
-    }
-  },
-  "auth": {
-    "login": {
-      "title": "Sign in to your account",
-      "subtitle": "Don't have an account?",
-      "email": "Email address",
-      "password": "Password",
-      "rememberMe": "Remember me",
-      "forgotPassword": "Forgot your password?",
-      "loginButton": "Sign in",
-      "loggingIn": "Signing in...",
-      "loginWith": "Sign in with {provider}",
-      "errors": {
-        "invalidCredentials": "Invalid email or password",
-        "emailNotVerified": "Please verify your email address before signing in.",
-        "generalError": "Failed to sign in"
-      },
-      "validation": {
-        "emailRequired": "Please enter your email address",
-        "emailInvalid": "Please enter a valid email address",
-        "passwordRequired": "Please enter your password"
-      }
-    },
-    "register": {
-      "title": "Create an account",
-      "subtitle": "Already have an account?",
-      "username": "Username",
-      "usernameHint": "Letters, numbers, underscores, and hyphens only",
-      "email": "Email address",
-      "password": "Password",
-      "passwordHint": "At least 8 characters",
-      "confirmPassword": "Confirm password",
-      "passwordStrength": {
-        "weak": "Weak",
-        "fair": "Fair",
-        "good": "Good",
-        "strong": "Strong"
-      },
-      "agreeToTerms": "I agree to the",
-      "and": "and",
-      "privacyPolicy": "Privacy Policy",
-      "agreeToTermsText": "Terms of Service",
-      "registerButton": "Create account",
-      "registering": "Creating account...",
-      "registerWith": "Sign up with {provider}",
-      "accountCreated": "Account created! Please check your email to verify your account.",
-      "accountCreatedShort": "Account created successfully",
-      "oauthTermsWarning": "To use social login, please agree to the terms and conditions first",
-      "errors": {
-        "emailExists": "This email address is already in use",
-        "usernameExists": "This username is already taken",
-        "generalError": "Failed to create account",
-        "termsRequired": "Please agree to the terms and conditions"
-      },
-      "validation": {
-        "usernameRequired": "Please enter a username",
-        "usernameLength": "Username must be between 3 and 20 characters",
-        "usernamePattern": "Username can only contain letters, numbers, and underscores",
-        "emailRequired": "Please enter your email address",
-        "emailInvalid": "Please enter a valid email address",
-        "passwordRequired": "Please enter a password",
-        "passwordLength": "Password must be at least 8 characters long",
-        "passwordMismatch": "Passwords do not match",
-        "termsRequired": "Please agree to the terms and conditions"
-      },
-      "pageTitle": "Create Account - ZXCV"
-    },
-    "forgotPassword": {
-      "title": "Reset password",
-      "subtitle": "Enter your registered email address",
-      "email": "Email address",
-      "sendButton": "Send reset link",
-      "sending": "Sending...",
-      "backToLogin": "Back to login",
-      "success": "Password reset email sent",
-      "emailSent": "Email sent",
-      "emailSentMessage": "If an account exists with this email address, we've sent password reset instructions.",
-      "error": "Failed to send email. Please try again.",
-      "pageTitle": "Reset Password - zxcv"
-    },
-    "verifyEmail": {
-      "title": "Verify email address",
-      "verifying": "Verifying your account...",
-      "success": "Verification complete",
-      "successMessage": "Email address verified successfully.",
-      "successDescription": "You can now access your account from the login page.",
-      "error": "Verification error",
-      "errorMessage": "Failed to verify email address.",
-      "invalidToken": "Invalid or expired verification token.",
-      "invalidTokenDescription": "The verification token is invalid or expired. Please request a new verification email.",
-      "goToLogin": "Go to login",
-      "resendEmail": "Resend verification email",
-      "resending": "Sending...",
-      "noToken": "No verification token",
-      "noTokenMessage": "Email verification requires a token.",
-      "noTokenDescription": "Please click the link in the email sent during registration.",
-      "enterEmail": "Please enter your email address:",
-      "emailResent": "Verification email sent. Please check your email.",
-      "resendError": "Failed to send verification email.",
-      "generalError": "An error occurred.",
-      "pageTitle": "Verify Email - zxcv",
-      "register": "Sign up"
-    },
-    "device": {
-      "title": "Device Authorization",
-      "description": "Authorize access from CLI or other applications",
-      "codeLabel": "Authorization Code",
-      "codePlaceholder": "ABCD-1234",
-      "codeHint": "Enter the 8-character code displayed in your CLI",
-      "submit": "Authorize",
-      "success": "Device authorized successfully",
-      "invalidCode": "Invalid code",
-      "expiredCode": "Code has expired",
-      "error": "Error during authorization",
-      "notYourDevice": "Don't recognize this device?",
-      "cancelLink": "Go back home"
-    }
-  },
-  "test": {
-    "orpc": {
-      "title": "oRPC Test Page",
-      "healthCheck": "Test Health Check",
-      "ruleCreate": "Test Rule Create (requires auth)"
-    }
-  },
-  "accessibility": {
-    "changeLanguage": "Change language",
-    "socialLinks": {
-      "twitter": "Twitter",
-      "github": "GitHub",
-      "discord": "Discord"
-    }
-  },
-  "placeholders": {
-    "username": "johndoe",
-    "email": "john@example.com"
-  },
-  "pagination": {
-    "showing": "Showing",
-    "to": "to",
-    "of": "of",
-    "results": "results",
-    "previous": "Previous",
-    "next": "Next"
-  },
-  "email": {
-    "subjects": {
-      "passwordReset": "zxcv - Password Reset",
-      "emailVerification": "zxcv - Email Verification",
-      "organizationInvite": "zxcv - Invitation to {organizationName}"
-    }
-  },
-  "about": {
-    "pageTitle": "About - zxcv",
-    "pageDescription": "Learn about zxcv, a platform for sharing and managing AI coding rules",
-    "hero": {
-      "title": "About zxcv",
-      "subtitle": "Empowering developers to share and manage AI coding rules for better software development"
-    },
-    "mission": {
-      "title": "Our Mission",
-      "content1": "zxcv was born from the need to standardize and share AI coding instructions across development teams. As AI-powered development tools become increasingly prevalent, the need for consistent, high-quality prompts and coding rules has become critical.",
-      "content2": "Our platform enables developers and organizations to create, version, and share their coding rules and AI prompts, ensuring consistency and quality across projects. Whether you're working solo or in a large team, zxcv helps you maintain coding standards and leverage AI tools effectively.",
-      "content3": "We believe in the power of community-driven development. By sharing knowledge and best practices, we can collectively improve the way we write code and interact with AI development tools."
-    },
-    "values": {
-      "title": "Our Values",
-      "openness": {
-        "title": "Open Collaboration",
-        "description": "We foster an environment where developers can freely share their knowledge and learn from each other's experiences."
-      },
-      "security": {
-        "title": "Security First",
-        "description": "Your private rules and organizational data are protected with enterprise-grade security measures."
-      },
-      "efficiency": {
-        "title": "Developer Efficiency",
-        "description": "We're committed to building tools that make developers more productive and help teams work better together."
-      }
-    },
-    "contact": {
-      "title": "Get in Touch",
-      "description": "Have questions or feedback? We'd love to hear from you.",
-      "email": "Send us an email",
-      "github": "Visit our GitHub"
-    }
-  },
-  "install": {
-    "pageTitle": "CLI Installation - zxcv",
-    "pageDescription": "Installation guide and setup instructions for the zxcv CLI tool",
-    "hero": {
-      "title": "Install zxcv CLI",
-      "subtitle": "Manage AI coding rules from the command line. Simple npm/bun-like interface for easy rule management.",
-      "quickInstall": "Quick Install",
-      "viewReleases": "View Releases"
-    },
-    "quickInstall": {
-      "title": "One-liner Installation",
-      "terminal": "Terminal",
-      "description": "This command will auto-detect your platform and install the latest version."
-    },
-    "methods": {
-      "title": "Installation Methods",
-      "script": {
-        "title": "Install Script",
-        "description": "Recommended: Auto-detects platform with checksum verification"
-      },
-      "binary": {
-        "title": "Binary Download",
-        "description": "Direct download from GitHub Releases"
-      }
-    },
-    "platforms": {
-      "title": "Platform-specific Instructions",
-      "auto": {
-        "name": "Auto-detect",
-        "title": "Automatic Installation (Recommended)",
-        "steps": {
-          "1": {
-            "title": "Run the install script",
-            "description": "This command will detect your platform and download the appropriate binary."
-          },
-          "2": {
-            "title": "Verify installation",
-            "description": "Check that the installation was successful by checking the version."
-          }
-        }
-      },
-      "macos": {
-        "name": "macOS",
-        "title": "macOS",
-        "steps": {
-          "1": {
-            "title": "Use the install script",
-            "description": "The easiest and recommended method."
-          },
-          "2": {
-            "title": "Use Homebrew (Coming Soon)",
-            "description": "Homebrew package is in preparation."
-          },
-          "3": {
-            "title": "Security verification",
-            "description": "macOS may show security warnings on first run. Allow it in System Preferences > Security & Privacy."
-          }
-        }
-      },
-      "windows": {
-        "name": "Windows",
-        "title": "Windows",
-        "steps": {
-          "1": {
-            "title": "Download binary",
-            "description": "Download the latest Windows binary from the GitHub Releases page."
-          },
-          "2": {
-            "title": "Use Winget (Coming Soon)",
-            "description": "Winget package is in preparation."
-          },
-          "3": {
-            "title": "Verify installation",
-            "description": "Check the version using PowerShell or Command Prompt."
-          }
-        }
-      },
-      "linux": {
-        "name": "Linux",
-        "title": "Linux",
-        "steps": {
-          "1": {
-            "title": "Use the install script",
-            "description": "The easiest and recommended method."
-          },
-          "2": {
-            "title": "Download binary directly",
-            "description": "Download the latest Linux binary from the GitHub Releases page."
-          },
-          "3": {
-            "title": "Verify installation",
-            "description": "Make the binary executable and check the version."
-          }
-        }
-      }
-    },
-    "verification": {
-      "title": "Verify Installation",
-      "description": "You can verify that zxcv CLI is correctly installed with the following command:"
-    },
-    "nextSteps": {
-      "title": "Next Steps",
-      "init": {
-        "title": "Initialize Project",
-        "description": "To start using zxcv in a new project, first initialize it."
-      },
-      "auth": {
-        "title": "Set up Authentication",
-        "description": "Authentication is required to access private rules and organization rules."
-      },
-      "explore": {
-        "title": "Explore Rules",
-        "description": "Discover public rules created by the community and add them to your project.",
-        "linkText": "Browse Rules"
-      },
-      "help": {
-        "title": "Check Help",
-        "description": "Use the help command to learn about all available commands and options."
-      }
-    },
-    "error": {
-      "copyFailed": "Failed to copy to clipboard"
-    }
-  },
-  "admin": {
-    "title": "Admin Dashboard",
-    "description": "Manage moderators and administrative access across the platform.",
-    "moderators": {
-      "title": "Moderator Management",
-      "list": "Moderator List",
-      "assign": "Assign Moderator",
-      "remove": "Remove Moderator",
-      "noModerators": "No moderators available",
-      "role": "Role",
-      "searchLabel": "Filter members",
-      "searchPlaceholder": "Search by username, email, or role",
-      "total": "{count} of {total} users shown",
-      "emptyHint": "Assign moderator permissions to a user to see them here."
-    },
-    "fields": {
-      "username": "Username",
-      "email": "Email",
-      "roleLabel": "Role: {role}",
-      "createdAt": "Created: {date}",
-      "noEmail": "Email hidden"
-    },
-    "actions": {
-      "assign": "Assign",
-      "remove": "Remove"
-    },
-    "messages": {
-      "assignSuccess": "Moderator assigned successfully",
-      "removeSuccess": "Moderator permissions removed",
-      "assignError": "Failed to assign moderator",
-      "removeError": "Failed to remove moderator",
-      "confirmRemove": "Are you sure you want to remove this user's moderator permissions?",
-      "fetchError": "Failed to load moderators.",
-      "accessDenied": "Administrator access is required.",
-      "searchError": "Failed to search users.",
-      "selectUser": "Select a user before assigning a moderator role.",
-      "userNotFound": "The selected user could not be found.",
-      "assignValidation": "This user cannot be promoted to moderator.",
-      "notModerator": "The user is not a moderator."
-    },
-    "modal": {
-      "assign": {
-        "title": "Assign Moderator",
-        "description": "Search for an account to grant moderator permissions.",
-        "searchLabel": "User",
-        "searchPlaceholder": "Search by username",
-        "submit": "Assign moderator"
-      },
-      "remove": {
-        "title": "Remove Moderator",
-        "description": "Remove moderator access from {username}? They will become a regular user.",
-        "cancel": "Cancel",
-        "confirm": "Remove moderator"
-      }
-    },
-    "roles": {
-      "admin": "Admin",
-      "moderator": "Moderator",
-      "user": "User"
-    }
-  }
+	"app": {
+		"name": "zxcv"
+	},
+	"common": {
+		"loading": "Loading...",
+		"save": "Save",
+		"cancel": "Cancel",
+		"delete": "Delete",
+		"edit": "Edit",
+		"create": "Create",
+		"update": "Update",
+		"search": "Search",
+		"back": "Back",
+		"next": "Next",
+		"previous": "Previous",
+		"confirm": "Confirm",
+		"yes": "Yes",
+		"no": "No",
+		"or": "or",
+		"and": "and",
+		"updatedAt": "Updated",
+		"all": "All",
+		"none": "None",
+		"select": "Select",
+		"close": "Close",
+		"open": "Open",
+		"download": "Download",
+		"upload": "Upload",
+		"share": "Share",
+		"copy": "Copy",
+		"copied": "Copied",
+		"error": "Error",
+		"success": "Success",
+		"warning": "Warning",
+		"info": "Info",
+		"required": "Required",
+		"optional": "Optional",
+		"providers": {
+			"google": "Google",
+			"github": "GitHub"
+		},
+		"dates": {
+			"today": "Today",
+			"yesterday": "Yesterday",
+			"daysAgo": "{days} days ago",
+			"weeksAgo": "{weeks} weeks ago",
+			"monthsAgo": "{months} months ago",
+			"yearsAgo": "{years} years ago"
+		}
+	},
+	"nav": {
+		"home": "Home",
+		"rules": "Rules",
+		"install": "Install",
+		"myRules": "My Rules",
+		"myOrganizations": "My Organizations",
+		"quickAccess": "Quick Access",
+		"organizations": "Organizations",
+		"profile": "Profile",
+		"settings": "Settings",
+		"logout": "Logout",
+		"login": "Login",
+		"register": "Sign up",
+		"guides": "Guides"
+	},
+	"auth": {
+		"oauth": {
+			"processing": "Processing authentication...",
+			"creatingAccount": "Creating account with {provider}...",
+			"loggingIn": "Signing in with {provider}...",
+			"errorTitle": "Authentication Error",
+			"backToLogin": "Back to Login",
+			"tryAgain": "Try Again",
+			"successTitle": "Authentication Successful",
+			"redirecting": "Redirecting...",
+			"cancelled": "Authentication was cancelled",
+			"missingInfo": "Missing authentication information",
+			"accountCreatedWith": "Account created with {provider}",
+			"loggedInWith": "Signed in with {provider}",
+			"accountAlreadyUsed": "This account is already associated with another user",
+			"emailVerificationRequired": "Email verification is required",
+			"processingError": "An error occurred during authentication",
+			"pageTitle": "Authentication"
+		},
+		"login": {
+			"title": "Sign in to your account",
+			"subtitle": "Don't have an account?",
+			"email": "Email address",
+			"password": "Password",
+			"rememberMe": "Remember me",
+			"forgotPassword": "Forgot your password?",
+			"loginButton": "Sign in",
+			"loggingIn": "Signing in...",
+			"loginWith": "Sign in with {provider}",
+			"errors": {
+				"invalidCredentials": "Invalid email or password",
+				"emailNotVerified": "Please verify your email address before signing in.",
+				"generalError": "Failed to sign in"
+			},
+			"validation": {
+				"emailRequired": "Please enter your email address",
+				"emailInvalid": "Please enter a valid email address",
+				"passwordRequired": "Please enter your password"
+			}
+		},
+		"register": {
+			"title": "Create an account",
+			"subtitle": "Already have an account?",
+			"username": "Username",
+			"email": "Email address",
+			"password": "Password",
+			"confirmPassword": "Confirm password",
+			"agreeToTerms": "I agree to the terms and conditions",
+			"registerButton": "Create account",
+			"registering": "Creating...",
+			"registerWith": "Sign up with {provider}",
+			"errors": {
+				"emailExists": "This email address is already in use",
+				"usernameExists": "This username is already taken",
+				"generalError": "Failed to create account"
+			},
+			"validation": {
+				"usernameRequired": "Please enter a username",
+				"usernameLength": "Username must be between 3 and 20 characters",
+				"usernamePattern": "Username can only contain letters, numbers, and underscores",
+				"emailRequired": "Please enter your email address",
+				"emailInvalid": "Please enter a valid email address",
+				"passwordRequired": "Please enter a password",
+				"passwordLength": "Password must be at least 8 characters long",
+				"passwordMismatch": "Passwords do not match",
+				"termsRequired": "Please agree to the terms and conditions"
+			}
+		},
+		"forgotPassword": {
+			"title": "Reset password",
+			"subtitle": "Enter your registered email address",
+			"email": "Email address",
+			"sendButton": "Send reset link",
+			"sending": "Sending...",
+			"backToLogin": "Back to login",
+			"success": "Password reset email sent",
+			"error": "Failed to send email"
+		},
+		"verifyEmail": {
+			"title": "Verify email address",
+			"verifying": "Verifying...",
+			"success": "Email address verified",
+			"error": "Verification failed",
+			"invalidToken": "Invalid token",
+			"goToLogin": "Go to login"
+		}
+	},
+	"home": {
+		"hero": {
+			"badge": "The new standard for AI coding rule management",
+			"title": "Share, manage, and utilize",
+			"titleHighlight": "coding rules",
+			"description": "Unify coding standards across your organization. Maximize development efficiency with AI-optimized rule management.",
+			"viewRules": "View rules",
+			"getStarted": "Get started free"
+		},
+		"features": {
+			"title": "FEATURES",
+			"subtitle": "All the features you need for organization development",
+			"description": "Providing features to improve development speed while maintaining code quality",
+			"versionControl": {
+				"title": "Version Control",
+				"description": "Automatically record rule change history. Revert to previous versions anytime."
+			},
+			"organizationCollaboration": {
+				"title": "Organization Collaboration",
+				"description": "Easy sharing with organization members. Manage rules safely with permission control."
+			},
+			"aiOptimized": {
+				"title": "AI Optimized",
+				"description": "Output rules in formats optimized for AI development tools. Improve development efficiency."
+			},
+			"export": {
+				"title": "Export Features",
+				"description": "Export rules in various formats. Use immediately with your favorite AI tools."
+			},
+			"search": {
+				"title": "Advanced Search",
+				"description": "Search instantly by tags, content, or creator. Find the rules you need right away."
+			},
+			"accessControl": {
+				"title": "Access Control",
+				"description": "Collaborate while maintaining team security with fine-grained permission settings."
+			},
+			"api": {
+				"title": "API Integration",
+				"description": "Integrate with existing workflows through RESTful API. Achieve automation and efficiency."
+			}
+		},
+		"cta": {
+			"title": "Get started today",
+			"description": "Create a free account and start managing your organization's coding rules",
+			"button": "Get started free"
+		}
+	},
+	"rules": {
+		"pageTitle": "Rules",
+		"title": "Rules",
+		"subtitle": "Search and share AI coding rules",
+		"myRules": "My Rules",
+		"publicRules": "Public Rules",
+		"organizationRules": "Organization Rules",
+		"createRule": "Create new rule",
+		"createNewRule": "Create a New Rule",
+		"createFirstRule": "Create your first rule",
+		"creating": "Creating...",
+		"searchPlaceholder": "Search rules...",
+		"noRulesFound": "No rules found",
+		"popularTags": "Popular Tags",
+		"basicInfo": "Basic Information",
+		"ruleContent": "Rule Content",
+		"agentContent": "Agent Content",
+		"shareWithCommunity": "Share with the community and improve development efficiency together",
+		"visibility": {
+			"all": "All",
+			"public": "Public",
+			"private": "Private",
+			"organization": "Organization only"
+		},
+		"type": {
+			"rule": "Rules",
+			"ccsubagents": "Claude Code Subagents"
+		},
+		"actions": {
+			"view": "View",
+			"edit": "Edit",
+			"delete": "Delete",
+			"share": "Share",
+			"duplicate": "Duplicate",
+			"download": "Download",
+			"version": "Version",
+			"copyRule": "Copy Rule",
+			"copied": "Copied",
+			"star": "Star",
+			"starred": "Starred",
+			"copyUrl": "Copy URL",
+			"shareOnX": "Share on X",
+			"copyMarkdown": "Copy as Markdown"
+		},
+		"template": {
+			"title": "Template Variables Detected",
+			"description": "This rule contains template variables. Fill them in to customize the content.",
+			"placeholder": "Enter value for {name}",
+			"apply": "Apply Template",
+			"clear": "Clear All",
+			"rendered": "Rendered Content",
+			"original": "Original Template",
+			"applied": "Template applied successfully",
+			"applyError": "Failed to apply template"
+		},
+		"form": {
+			"name": "Rule name",
+			"namePlaceholder": "e.g. next-js-best-practices",
+			"nameHint": "This will be used as the URL identifier. Only letters, numbers, and hyphens allowed.",
+			"type": "Type",
+			"typeOptions": {
+				"rule": "AI Coding Rule",
+				"ccsubagents": "Claude Code Subagents"
+			},
+			"typeHint": "Select the type of content to save.",
+			"description": "Description",
+			"descriptionPlaceholder": "Describe the purpose and usage of this rule",
+			"content": "Content",
+			"contentPlaceholder": "# Rule Content\n\nWrite your coding rules here...\n\n## Example\n\n```javascript\n// Code example\n```",
+			"agentContentPlaceholder": "# Subagent Definition\n\nDefine the role and behavior of this subagent...\n\n## Capabilities\n- Task processing\n- Code generation\n\n## Usage Example\n```\n// Agent usage example\n```",
+			"tags": "Tags",
+			"tagsPlaceholder": "Enter a tag and press Enter",
+			"addTag": "Add Tag",
+			"visibility": "Visibility",
+			"visibilityOptions": {
+				"public": "Public - Anyone can view",
+				"private": "Private - Only you can view"
+			},
+			"team": "Team",
+			"organization": "Organization",
+			"noOrganization": "No organization",
+			"organizationHint": "If you select an organization, members can edit the rule.",
+			"urlPreview": "URL Preview:",
+			"markdownSupported": "Markdown format is supported",
+			"ruleHint": "Define rules and guidelines for AI coding",
+			"agentHint": "Define a subagent for Claude Code",
+			"agentTemplateHint": "Please refer to the Claude Code official documentation for subagent templates",
+			"agentTemplate": "Template",
+			"selectTemplate": "Select a template",
+			"templateHint": "Selecting a template will insert sample code",
+			"uploadMarkdown": "Upload Markdown file",
+			"writeDirectly": "Write directly",
+			"basicInfo": "Basic Information"
+		},
+		"messages": {
+			"created": "Rule created successfully",
+			"updated": "Rule updated successfully",
+			"deleted": "Rule deleted successfully",
+			"deleteConfirm": "Are you sure you want to delete this rule?",
+			"deleteError": "Failed to delete rule",
+			"copyError": "Failed to copy",
+			"copied": "Copied",
+			"viewingVersion": "Viewing version {version}",
+			"versionFetchError": "Failed to fetch version",
+			"fetchError": "Failed to fetch rules",
+			"cliCommandCopied": "CLI command copied to clipboard"
+		},
+		"detail": {
+			"notFound": "Rule not found",
+			"backToList": "Back to rules list",
+			"versionHistory": "Version History",
+			"latest": "latest",
+			"currentlyViewing": "Currently viewing",
+			"viewLatestVersion": "View latest version",
+			"viewingOldVersion": "Viewing version {version} (older version)",
+			"relatedRules": "Related Rules",
+			"notFoundDescription": "The rule you are looking for could not be found.",
+			"stars": "Stars",
+			"views": "Views",
+			"actions": "Actions",
+			"tags": "Tags",
+			"author": "Author",
+			"rulesPublished": "{count} rules published",
+			"deleteConfirmDescription": "Are you sure you want to delete this rule? This action cannot be undone.",
+			"raw": "Raw",
+			"preview": "Preview",
+			"viewing": "Viewing",
+			"loginRequired": "Login required to star",
+			"starError": "Failed to add star",
+			"unstarError": "Failed to remove star",
+			"cliCommand": "CLI Command",
+			"cliDescription": "Install this rule using zxcv CLI",
+			"organization": "Organization",
+			"updatedBy": "Updated by"
+		},
+		"edit": {
+			"title": "Edit Rule",
+			"unsavedChanges": "You have unsaved changes",
+			"update": "Update",
+			"showPreview": "Show preview",
+			"hidePreview": "Hide preview",
+			"changeLog": "Change Log",
+			"changeLogPlaceholder": "Describe what changed in this version",
+			"incrementMajorVersion": "Increment major version"
+		},
+		"sort": {
+			"recentlyUpdated": "Recently updated",
+			"recentlyCreated": "Recently created",
+			"alphabetical": "Alphabetical",
+			"views": "Most views",
+			"stars": "Most stars"
+		},
+		"filters": {
+			"visibility": "Visibility",
+			"type": "Type",
+			"sortBy": "Sort by",
+			"author": "Author",
+			"authorPlaceholder": "Filter by username",
+			"popularTags": "Popular Tags",
+			"clearTags": "Clear tags",
+			"activeFilters": "Active filters",
+			"resetAll": "Reset all"
+		},
+		"itemsCount": "({count} items)",
+		"gridView": "Grid view",
+		"listView": "List view",
+		"noRulesMessage": "No rules found matching the current filter criteria. Please try changing the conditions.",
+		"showing": "Showing {start} - {end} of {total} items",
+		"searchHint": "or press {key} to search",
+		"templates": {
+			"codeReviewer": "Code Reviewer",
+			"testGenerator": "Test Generator",
+			"docWriter": "Documentation Writer",
+			"generalHelper": "General Assistant"
+		}
+	},
+	"organizations": {
+		"title": "Organizations",
+		"myOrganizations": "My Organizations",
+		"createOrganization": "Create new organization",
+		"createTeam": "Create Team",
+		"createNewTeam": "Create New Team",
+		"joinOrganization": "Join organization",
+		"members": "Members",
+		"owner": "Owner",
+		"admin": "Admin",
+		"member": "Member",
+		"actions": {
+			"invite": "Invite",
+			"leave": "Leave",
+			"remove": "Remove",
+			"edit": "Edit",
+			"manageMembers": "Manage members"
+		},
+		"form": {
+			"name": "Organization name",
+			"description": "Description",
+			"inviteEmail": "Email address to invite"
+		},
+		"messages": {
+			"created": "Organization created successfully",
+			"joined": "Joined organization successfully",
+			"left": "Left organization successfully",
+			"invited": "Invitation sent successfully",
+			"inviteAccepted": "Invitation accepted"
+		}
+	},
+	"profile": {
+		"title": "Profile",
+		"editProfile": "Edit profile",
+		"username": "Username",
+		"email": "Email address",
+		"bio": "Bio",
+		"website": "Website",
+		"joined": "Joined",
+		"backToHome": "Back to Home",
+		"registeredDate": "Registered",
+		"publicRules": "Public Rules",
+		"totalStars": "Total Stars",
+		"noPublicRules": "No public rules yet",
+		"userProfile": "User Profile",
+		"userNotFound": "User not found",
+		"userNotFoundDesc": "The specified user does not exist or may have been deleted.",
+		"emailVerified": "Email verified",
+		"emailNotVerified": "Email not verified",
+		"createdRules": "Created Rules",
+		"belongingOrganizations": "Organizations",
+		"registrationDate": "Registration Date",
+		"recentActivity": "Recent Activity",
+		"noActivityYet": "No activity yet",
+		"changeAvatar": "Change avatar",
+		"avatarChangeComingSoon": "Avatar image change coming soon",
+		"usernameHint": "Letters, numbers, hyphens, and underscores only",
+		"emailChangeWarning": "Changing your email address will require re-verification",
+		"changePassword": "Change password",
+		"currentPassword": "Current password",
+		"newPassword": "New password",
+		"newPasswordConfirm": "New password (confirm)",
+		"passwordHint": "At least 8 characters",
+		"update": "Update",
+		"change": "Change",
+		"placeholders": {
+			"username": "username",
+			"email": "email@example.com",
+			"currentPassword": "Enter current password",
+			"newPassword": "Enter new password",
+			"newPasswordConfirm": "Re-enter new password"
+		},
+		"errors": {
+			"noUsername": "Username not specified",
+			"loadFailed": "Failed to load profile",
+			"usernameRequired": "Username is required",
+			"usernameInvalid": "Only letters, numbers, hyphens, and underscores allowed",
+			"usernameMinLength": "Must be at least 3 characters",
+			"emailRequired": "Email address is required",
+			"emailInvalid": "Please enter a valid email address",
+			"passwordMinLength": "Password must be at least 8 characters",
+			"passwordMismatch": "Passwords do not match",
+			"usernameOrEmailTaken": "That username or email address is already taken",
+			"updateFailed": "Failed to update profile",
+			"wrongCurrentPassword": "Current password is incorrect",
+			"passwordChangeFailed": "Failed to change password"
+		},
+		"success": {
+			"profileUpdated": "Profile updated successfully",
+			"passwordChanged": "Password changed successfully"
+		},
+		"stats": {
+			"rules": "Rules",
+			"organizations": "Organizations",
+			"contributions": "Contributions"
+		}
+	},
+	"settings": {
+		"title": "Settings",
+		"tabs": {
+			"profile": "Profile",
+			"account": "Account",
+			"security": "Security",
+			"notifications": "Notifications",
+			"preferences": "Preferences"
+		},
+		"profile": {
+			"title": "Profile Information",
+			"avatar": "Avatar Image",
+			"avatarAlt": "Profile avatar image",
+			"changeAvatar": "Change",
+			"avatarHint": "JPG, PNG, GIF, WebP (Max 5MB)",
+			"displayName": "Display Name",
+			"displayNamePlaceholder": "Your name",
+			"bio": "Bio",
+			"bioPlaceholder": "Tell us a little about yourself",
+			"location": "Location",
+			"locationPlaceholder": "Tokyo, Japan",
+			"website": "Website",
+			"websitePlaceholder": "https://example.com",
+			"save": "Save changes",
+			"saving": "Saving...",
+			"errors": {
+				"invalidFileType": "Unsupported file format. Only JPEG, PNG, GIF, and WebP formats are allowed.",
+				"fileTooLarge": "File size is too large. Please upload a file smaller than 5MB."
+			}
+		},
+		"account": {
+			"title": "Account Settings",
+			"placeholder": "Account settings features are coming soon."
+		},
+		"security": {
+			"title": "Security Settings",
+			"placeholder": "Security settings features are coming soon.",
+			"changePassword": "Change password",
+			"twoFactor": "Two-factor authentication",
+			"apiKeys": "API Keys",
+			"deleteAccount": "Delete account"
+		},
+		"success": {
+			"profileUpdated": "Profile updated successfully",
+			"avatarUploaded": "Avatar image updated successfully"
+		},
+		"error": {
+			"fetchProfile": "Failed to fetch profile",
+			"updateProfile": "Failed to update profile",
+			"uploadAvatar": "Failed to upload avatar image",
+			"invalidImageType": "Unsupported image format",
+			"imageTooLarge": "Image size exceeds 5MB"
+		},
+		"language": "Language",
+		"theme": "Theme",
+		"notifications": "Notifications",
+		"preferences": "Preferences"
+	},
+	"errors": {
+		"notFound": "Page not found",
+		"unauthorized": "Authentication required",
+		"forbidden": "Access denied",
+		"serverError": "Server error occurred",
+		"networkError": "Network error occurred",
+		"unknownError": "An error occurred",
+		"oauth": {
+			"authFailed": "OAuth authentication failed",
+			"missingParams": "Required parameters are missing",
+			"invalidCode": "Invalid authentication code",
+			"invalidState": "Invalid state parameter",
+			"accessDenied": "User denied access",
+			"invalidRequest": "Invalid request",
+			"unauthorizedClient": "Unauthorized client",
+			"unsupportedResponseType": "Unsupported response type",
+			"invalidScope": "Invalid scope",
+			"serverError": "Authentication server error",
+			"temporarilyUnavailable": "Temporarily unavailable",
+			"registrationFailed": "Failed to create account with {provider}",
+			"invalidOrExpiredState": "Invalid or expired state",
+			"unsupportedProvider": "Unsupported provider",
+			"codeVerifierNotGenerated": "Code verifier was not generated",
+			"githubEmailNotFound": "GitHub account has no email address",
+			"googleEmailNotFound": "Google account has no email address",
+			"invalidToken": "Invalid token",
+			"tokenExpired": "Token has expired",
+			"usernameAlreadyTaken": "This username is already taken",
+			"registrationCompleteFailed": "Failed to complete registration",
+			"processing": "Processing authentication...",
+			"creatingAccount": "Creating account with {provider}...",
+			"loggingIn": "Logging in with {provider}...",
+			"errorTitle": "Authentication Error",
+			"backToLogin": "Back to login",
+			"tryAgain": "Try again",
+			"successTitle": "Authentication Successful",
+			"redirecting": "Redirecting...",
+			"cancelled": "Authentication was cancelled",
+			"missingInfo": "Missing authentication information",
+			"accountCreatedWith": "Account created with {provider}",
+			"loggedInWith": "Logged in with {provider}",
+			"accountAlreadyUsed": "This account is already used by another user",
+			"emailVerificationRequired": "Email verification required",
+			"processingError": "An error occurred during authentication",
+			"pageTitle": "Authentication"
+		}
+	},
+	"footer": {
+		"copyright": "© 2025 zxcv. All rights reserved.",
+		"about": "About zxcv",
+		"terms": "Terms of Service",
+		"privacy": "Privacy Policy",
+		"contact": "Contact",
+		"tagline": "Platform for sharing, managing, and utilizing AI coding rules",
+		"operatorInfo": "Operator Information",
+		"product": "Product",
+		"features": "Features",
+		"pricing": "Pricing",
+		"enterprise": "Enterprise",
+		"changelog": "Changelog",
+		"resources": "Resources",
+		"docs": "Documentation",
+		"api": "API",
+		"blog": "Blog",
+		"company": "Company",
+		"aboutUs": "About Us",
+		"careers": "Careers",
+		"partners": "Partners",
+		"security": "Security"
+	},
+	"organizations": {
+		"title": "Organizations",
+		"subtitle": "Create organizations and share rules with members",
+		"myOrganizations": "My Organizations",
+		"createOrganization": "New Organization",
+		"joinOrganization": "Join organization",
+		"members": "Members",
+		"rules": "Rules",
+		"owner": "Owner",
+		"admin": "Admin",
+		"member": "Member",
+		"noOrganizations": "No organizations yet",
+		"createFirstOrganization": "Create your first organization and start collaborating with members",
+		"noDescription": "No organization description",
+		"actions": {
+			"invite": "Invite",
+			"leave": "Leave",
+			"remove": "Remove",
+			"edit": "Edit",
+			"manageMembers": "Manage members"
+		},
+		"form": {
+			"name": "Organization name",
+			"namePlaceholder": "e.g. example-company",
+			"description": "Description",
+			"descriptionPlaceholder": "Describe your organization's purpose and activities",
+			"inviteEmail": "Email address to invite",
+			"inviteMembers": "Invite initial members (optional)",
+			"addMember": "Add member"
+		},
+		"validation": {
+			"nameRequired": "Organization name is required",
+			"nameFormat": "Organization name can only contain alphanumeric characters and hyphens",
+			"invalidEmail": "Please enter a valid email address"
+		},
+		"messages": {
+			"created": "Organization created successfully",
+			"joined": "Joined organization successfully",
+			"left": "Left organization successfully",
+			"invited": "Invitation sent successfully",
+			"inviteAccepted": "Invitation accepted",
+			"createError": "Failed to create organization",
+			"fetchError": "Failed to fetch organizations"
+		},
+		"pageTitle": "Organizations - zxcv",
+		"newOrganizationTitle": "Create New Organization - zxcv",
+		"createNewOrganization": "Create a new organization",
+		"inviteAndCollaborate": "Create a organization and invite members",
+		"join": {
+			"verifying": "Verifying invitation...",
+			"failed": "Failed to verify invitation",
+			"backToOrganizations": "Back to organizations",
+			"joined": "Joined organization successfully!",
+			"welcome": "Welcome to the organization",
+			"goToOrganization": "Go to organization page",
+			"loginRequired": "Login required",
+			"loginToJoin": "Please login to join the organization",
+			"login": "Login",
+			"noToken": "Invitation token not found",
+			"invalidToken": "Invalid invitation token"
+		},
+		"detail": {
+			"settings": "Settings",
+			"leaveOrganization": "Leave organization",
+			"members": "Members",
+			"rules": "Rules",
+			"createdAt": "Created",
+			"noRules": "No rules yet",
+			"inviteMembers": "Invite members",
+			"notFound": "Organization not found",
+			"backToList": "Back to organizations",
+			"removeMember": "Remove member",
+			"confirmRemoveMember": "Are you sure you want to remove {{username}} from the organization?",
+			"memberRemoved": "{{username}} has been removed from the organization",
+			"removeMemberError": "Failed to remove member"
+		},
+		"inviteMember": {
+			"title": "Invite Member",
+			"usernameLabel": "Username",
+			"usernamePlaceholder": "Enter username...",
+			"invite": "Send Invitation",
+			"success": "Invitation sent to {{username}}",
+			"error": "Failed to send invitation",
+			"alreadyMember": "This user is already a member",
+			"alreadyInvited": "An invitation has already been sent to this user"
+		}
+	},
+	"auth": {
+		"login": {
+			"title": "Sign in to your account",
+			"subtitle": "Don't have an account?",
+			"email": "Email address",
+			"password": "Password",
+			"rememberMe": "Remember me",
+			"forgotPassword": "Forgot your password?",
+			"loginButton": "Sign in",
+			"loggingIn": "Signing in...",
+			"loginWith": "Sign in with {provider}",
+			"errors": {
+				"invalidCredentials": "Invalid email or password",
+				"emailNotVerified": "Please verify your email address before signing in.",
+				"generalError": "Failed to sign in"
+			},
+			"validation": {
+				"emailRequired": "Please enter your email address",
+				"emailInvalid": "Please enter a valid email address",
+				"passwordRequired": "Please enter your password"
+			}
+		},
+		"register": {
+			"title": "Create an account",
+			"subtitle": "Already have an account?",
+			"username": "Username",
+			"usernameHint": "Letters, numbers, underscores, and hyphens only",
+			"email": "Email address",
+			"password": "Password",
+			"passwordHint": "At least 8 characters",
+			"confirmPassword": "Confirm password",
+			"passwordStrength": {
+				"weak": "Weak",
+				"fair": "Fair",
+				"good": "Good",
+				"strong": "Strong"
+			},
+			"agreeToTerms": "I agree to the",
+			"and": "and",
+			"privacyPolicy": "Privacy Policy",
+			"agreeToTermsText": "Terms of Service",
+			"registerButton": "Create account",
+			"registering": "Creating account...",
+			"registerWith": "Sign up with {provider}",
+			"accountCreated": "Account created! Please check your email to verify your account.",
+			"accountCreatedShort": "Account created successfully",
+			"oauthTermsWarning": "To use social login, please agree to the terms and conditions first",
+			"errors": {
+				"emailExists": "This email address is already in use",
+				"usernameExists": "This username is already taken",
+				"generalError": "Failed to create account",
+				"termsRequired": "Please agree to the terms and conditions"
+			},
+			"validation": {
+				"usernameRequired": "Please enter a username",
+				"usernameLength": "Username must be between 3 and 20 characters",
+				"usernamePattern": "Username can only contain letters, numbers, and underscores",
+				"emailRequired": "Please enter your email address",
+				"emailInvalid": "Please enter a valid email address",
+				"passwordRequired": "Please enter a password",
+				"passwordLength": "Password must be at least 8 characters long",
+				"passwordMismatch": "Passwords do not match",
+				"termsRequired": "Please agree to the terms and conditions"
+			},
+			"pageTitle": "Create Account - ZXCV"
+		},
+		"forgotPassword": {
+			"title": "Reset password",
+			"subtitle": "Enter your registered email address",
+			"email": "Email address",
+			"sendButton": "Send reset link",
+			"sending": "Sending...",
+			"backToLogin": "Back to login",
+			"success": "Password reset email sent",
+			"emailSent": "Email sent",
+			"emailSentMessage": "If an account exists with this email address, we've sent password reset instructions.",
+			"error": "Failed to send email. Please try again.",
+			"pageTitle": "Reset Password - zxcv"
+		},
+		"verifyEmail": {
+			"title": "Verify email address",
+			"verifying": "Verifying your account...",
+			"success": "Verification complete",
+			"successMessage": "Email address verified successfully.",
+			"successDescription": "You can now access your account from the login page.",
+			"error": "Verification error",
+			"errorMessage": "Failed to verify email address.",
+			"invalidToken": "Invalid or expired verification token.",
+			"invalidTokenDescription": "The verification token is invalid or expired. Please request a new verification email.",
+			"goToLogin": "Go to login",
+			"resendEmail": "Resend verification email",
+			"resending": "Sending...",
+			"noToken": "No verification token",
+			"noTokenMessage": "Email verification requires a token.",
+			"noTokenDescription": "Please click the link in the email sent during registration.",
+			"enterEmail": "Please enter your email address:",
+			"emailResent": "Verification email sent. Please check your email.",
+			"resendError": "Failed to send verification email.",
+			"generalError": "An error occurred.",
+			"pageTitle": "Verify Email - zxcv",
+			"register": "Sign up"
+		},
+		"device": {
+			"title": "Device Authorization",
+			"description": "Authorize access from CLI or other applications",
+			"codeLabel": "Authorization Code",
+			"codePlaceholder": "ABCD-1234",
+			"codeHint": "Enter the 8-character code displayed in your CLI",
+			"submit": "Authorize",
+			"success": "Device authorized successfully",
+			"invalidCode": "Invalid code",
+			"expiredCode": "Code has expired",
+			"error": "Error during authorization",
+			"notYourDevice": "Don't recognize this device?",
+			"cancelLink": "Go back home"
+		}
+	},
+	"test": {
+		"orpc": {
+			"title": "oRPC Test Page",
+			"healthCheck": "Test Health Check",
+			"ruleCreate": "Test Rule Create (requires auth)"
+		}
+	},
+	"accessibility": {
+		"changeLanguage": "Change language",
+		"socialLinks": {
+			"twitter": "Twitter",
+			"github": "GitHub",
+			"discord": "Discord"
+		}
+	},
+	"placeholders": {
+		"username": "johndoe",
+		"email": "john@example.com"
+	},
+	"pagination": {
+		"showing": "Showing",
+		"to": "to",
+		"of": "of",
+		"results": "results",
+		"previous": "Previous",
+		"next": "Next"
+	},
+	"email": {
+		"subjects": {
+			"passwordReset": "zxcv - Password Reset",
+			"emailVerification": "zxcv - Email Verification",
+			"organizationInvite": "zxcv - Invitation to {organizationName}"
+		}
+	},
+	"about": {
+		"pageTitle": "About - zxcv",
+		"pageDescription": "Learn about zxcv, a platform for sharing and managing AI coding rules",
+		"hero": {
+			"title": "About zxcv",
+			"subtitle": "Empowering developers to share and manage AI coding rules for better software development"
+		},
+		"mission": {
+			"title": "Our Mission",
+			"content1": "zxcv was born from the need to standardize and share AI coding instructions across development teams. As AI-powered development tools become increasingly prevalent, the need for consistent, high-quality prompts and coding rules has become critical.",
+			"content2": "Our platform enables developers and organizations to create, version, and share their coding rules and AI prompts, ensuring consistency and quality across projects. Whether you're working solo or in a large team, zxcv helps you maintain coding standards and leverage AI tools effectively.",
+			"content3": "We believe in the power of community-driven development. By sharing knowledge and best practices, we can collectively improve the way we write code and interact with AI development tools."
+		},
+		"values": {
+			"title": "Our Values",
+			"openness": {
+				"title": "Open Collaboration",
+				"description": "We foster an environment where developers can freely share their knowledge and learn from each other's experiences."
+			},
+			"security": {
+				"title": "Security First",
+				"description": "Your private rules and organizational data are protected with enterprise-grade security measures."
+			},
+			"efficiency": {
+				"title": "Developer Efficiency",
+				"description": "We're committed to building tools that make developers more productive and help teams work better together."
+			}
+		},
+		"contact": {
+			"title": "Get in Touch",
+			"description": "Have questions or feedback? We'd love to hear from you.",
+			"email": "Send us an email",
+			"github": "Visit our GitHub"
+		}
+	},
+	"install": {
+		"pageTitle": "CLI Installation - zxcv",
+		"pageDescription": "Installation guide and setup instructions for the zxcv CLI tool",
+		"hero": {
+			"title": "Install zxcv CLI",
+			"subtitle": "Manage AI coding rules from the command line. Simple npm/bun-like interface for easy rule management.",
+			"quickInstall": "Quick Install",
+			"viewReleases": "View Releases"
+		},
+		"quickInstall": {
+			"title": "One-liner Installation",
+			"terminal": "Terminal",
+			"description": "This command will auto-detect your platform and install the latest version."
+		},
+		"methods": {
+			"title": "Installation Methods",
+			"script": {
+				"title": "Install Script",
+				"description": "Recommended: Auto-detects platform with checksum verification"
+			},
+			"binary": {
+				"title": "Binary Download",
+				"description": "Direct download from GitHub Releases"
+			}
+		},
+		"platforms": {
+			"title": "Platform-specific Instructions",
+			"auto": {
+				"name": "Auto-detect",
+				"title": "Automatic Installation (Recommended)",
+				"steps": {
+					"1": {
+						"title": "Run the install script",
+						"description": "This command will detect your platform and download the appropriate binary."
+					},
+					"2": {
+						"title": "Verify installation",
+						"description": "Check that the installation was successful by checking the version."
+					}
+				}
+			},
+			"macos": {
+				"name": "macOS",
+				"title": "macOS",
+				"steps": {
+					"1": {
+						"title": "Use the install script",
+						"description": "The easiest and recommended method."
+					},
+					"2": {
+						"title": "Use Homebrew (Coming Soon)",
+						"description": "Homebrew package is in preparation."
+					},
+					"3": {
+						"title": "Security verification",
+						"description": "macOS may show security warnings on first run. Allow it in System Preferences > Security & Privacy."
+					}
+				}
+			},
+			"windows": {
+				"name": "Windows",
+				"title": "Windows",
+				"steps": {
+					"1": {
+						"title": "Download binary",
+						"description": "Download the latest Windows binary from the GitHub Releases page."
+					},
+					"2": {
+						"title": "Use Winget (Coming Soon)",
+						"description": "Winget package is in preparation."
+					},
+					"3": {
+						"title": "Verify installation",
+						"description": "Check the version using PowerShell or Command Prompt."
+					}
+				}
+			},
+			"linux": {
+				"name": "Linux",
+				"title": "Linux",
+				"steps": {
+					"1": {
+						"title": "Use the install script",
+						"description": "The easiest and recommended method."
+					},
+					"2": {
+						"title": "Download binary directly",
+						"description": "Download the latest Linux binary from the GitHub Releases page."
+					},
+					"3": {
+						"title": "Verify installation",
+						"description": "Make the binary executable and check the version."
+					}
+				}
+			}
+		},
+		"verification": {
+			"title": "Verify Installation",
+			"description": "You can verify that zxcv CLI is correctly installed with the following command:"
+		},
+		"nextSteps": {
+			"title": "Next Steps",
+			"init": {
+				"title": "Initialize Project",
+				"description": "To start using zxcv in a new project, first initialize it."
+			},
+			"auth": {
+				"title": "Set up Authentication",
+				"description": "Authentication is required to access private rules and organization rules."
+			},
+			"explore": {
+				"title": "Explore Rules",
+				"description": "Discover public rules created by the community and add them to your project.",
+				"linkText": "Browse Rules"
+			},
+			"help": {
+				"title": "Check Help",
+				"description": "Use the help command to learn about all available commands and options."
+			}
+		},
+		"error": {
+			"copyFailed": "Failed to copy to clipboard"
+		}
+	},
+	"admin": {
+		"title": "Admin Dashboard",
+		"description": "Manage moderators and administrative access across the platform.",
+		"moderators": {
+			"title": "Moderator Management",
+			"list": "Moderator List",
+			"assign": "Assign Moderator",
+			"remove": "Remove Moderator",
+			"noModerators": "No moderators available",
+			"role": "Role",
+			"searchLabel": "Filter members",
+			"searchPlaceholder": "Search by username, email, or role",
+			"total": "{count} of {total} users shown",
+			"emptyHint": "Assign moderator permissions to a user to see them here."
+		},
+		"fields": {
+			"username": "Username",
+			"email": "Email",
+			"roleLabel": "Role: {role}",
+			"createdAt": "Created: {date}",
+			"noEmail": "Email hidden"
+		},
+		"actions": {
+			"assign": "Assign",
+			"remove": "Remove"
+		},
+		"messages": {
+			"assignSuccess": "Moderator assigned successfully",
+			"removeSuccess": "Moderator permissions removed",
+			"assignError": "Failed to assign moderator",
+			"removeError": "Failed to remove moderator",
+			"confirmRemove": "Are you sure you want to remove this user's moderator permissions?",
+			"fetchError": "Failed to load moderators.",
+			"accessDenied": "Administrator access is required.",
+			"searchError": "Failed to search users.",
+			"selectUser": "Select a user before assigning a moderator role.",
+			"userNotFound": "The selected user could not be found.",
+			"assignValidation": "This user cannot be promoted to moderator.",
+			"notModerator": "The user is not a moderator."
+		},
+		"modal": {
+			"assign": {
+				"title": "Assign Moderator",
+				"description": "Search for an account to grant moderator permissions.",
+				"searchLabel": "User",
+				"searchPlaceholder": "Search by username",
+				"submit": "Assign moderator"
+			},
+			"remove": {
+				"title": "Remove Moderator",
+				"description": "Remove moderator access from {username}? They will become a regular user.",
+				"cancel": "Cancel",
+				"confirm": "Remove moderator"
+			}
+		},
+		"roles": {
+			"admin": "Admin",
+			"moderator": "Moderator",
+			"user": "User"
+		}
+	}
 }

@@ -234,17 +234,26 @@ export const authContract = {
 		})
 		.input(
 			z.object({
-				clientId: z.string().describe("Client identifier (e.g., 'cli', 'vscode')"),
+				clientId: z
+					.string()
+					.describe("Client identifier (e.g., 'cli', 'vscode')"),
 				scope: z.string().optional().describe("OAuth2 scopes"),
 			}),
 		)
 		.output(
 			z.object({
 				deviceCode: z.string().describe("Device verification code"),
-				userCode: z.string().describe("User-friendly code to enter on the website"),
+				userCode: z
+					.string()
+					.describe("User-friendly code to enter on the website"),
 				verificationUri: z.string().describe("URL where user enters the code"),
-				verificationUriComplete: z.string().optional().describe("URL with pre-filled code"),
-				expiresIn: z.number().describe("Lifetime in seconds of the device code"),
+				verificationUriComplete: z
+					.string()
+					.optional()
+					.describe("URL with pre-filled code"),
+				expiresIn: z
+					.number()
+					.describe("Lifetime in seconds of the device code"),
 				interval: z.number().describe("Minimum polling interval in seconds"),
 			}),
 		),
@@ -270,7 +279,12 @@ export const authContract = {
 					scope: z.string().optional(),
 				}),
 				z.object({
-					error: z.enum(["authorization_pending", "slow_down", "expired_token", "access_denied"]),
+					error: z.enum([
+						"authorization_pending",
+						"slow_down",
+						"expired_token",
+						"access_denied",
+					]),
 					errorDescription: z.string().optional(),
 				}),
 			]),

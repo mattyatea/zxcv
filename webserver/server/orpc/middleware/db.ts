@@ -23,7 +23,9 @@ export const dbProvider = os.middleware(async ({ context, next }) => {
 
 	// If still no db, throw a descriptive error
 	if (!db) {
-		throw new Error("Database not available: neither context.db nor context.env.DB is provided");
+		throw new Error(
+			"Database not available: neither context.db nor context.env.DB is provided",
+		);
 	}
 
 	return next({

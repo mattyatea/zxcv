@@ -265,16 +265,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { debounce } from "lodash-es";
 import type { InferRouterOutputs } from "@orpc/server";
-import type { router } from "~/server/orpc/router";
-import { useToast } from "~/composables/useToast";
+import { debounce } from "lodash-es";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRpc } from "~/composables/useRpc";
+import { useToast } from "~/composables/useToast";
+import type { router } from "~/server/orpc/router";
 
 definePageMeta({
-  middleware: "auth",
-  title: "Admin Dashboard",
+	middleware: "auth",
+	title: "Admin Dashboard",
 });
 
 const { t, formatDate } = useI18n();
@@ -306,202 +306,205 @@ const removeTarget = ref<Moderator | null>(null);
 const removing = ref(false);
 
 const filteredModerators = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase();
-  if (!query) {
-    return moderators.value;
-  }
-  return moderators.value.filter((member) => {
-    const roleLabel = t(`admin.roles.${member.role}` as const);
-    return [member.username, member.email ?? "", member.role, roleLabel]
-      .some((field) => field?.toLowerCase?.().includes(query));
-  });
+	const query = searchQuery.value.trim().toLowerCase();
+	if (!query) {
+		return moderators.value;
+	}
+	return moderators.value.filter((member) => {
+		const roleLabel = t(`admin.roles.${member.role}` as const);
+		return [member.username, member.email ?? "", member.role, roleLabel].some(
+			(field) => field?.toLowerCase?.().includes(query),
+		);
+	});
 });
 
 const hasModerators = computed(() => filteredModerators.value.length > 0);
 
 const removeModalOpen = computed({
-  get: () => removeTarget.value !== null,
-  set: (value) => {
-    if (!value) {
-      removeTarget.value = null;
-    }
-  },
+	get: () => removeTarget.value !== null,
+	set: (value) => {
+		if (!value) {
+			removeTarget.value = null;
+		}
+	},
 });
 
 const parseStatus = (error: unknown): number | null => {
-  if (error && typeof error === "object" && "status" in error) {
-    const status = (error as { status?: number }).status;
-    if (typeof status === "number") {
-      return status;
-    }
-  }
-  if (error && typeof error === "object" && "response" in error) {
-    const response = (error as { response?: { status?: number } }).response;
-    if (response && typeof response.status === "number") {
-      return response.status;
-    }
-  }
-  return null;
+	if (error && typeof error === "object" && "status" in error) {
+		const status = (error as { status?: number }).status;
+		if (typeof status === "number") {
+			return status;
+		}
+	}
+	if (error && typeof error === "object" && "response" in error) {
+		const response = (error as { response?: { status?: number } }).response;
+		if (response && typeof response.status === "number") {
+			return response.status;
+		}
+	}
+	return null;
 };
 
 const resetAssignModal = () => {
-  assignSearchQuery.value = "";
-  assignResults.value = [];
-  assignSelectedUser.value = null;
-  assignErrorMessage.value = "";
-  assignSearching.value = false;
-  showAssignSuggestions.value = false;
+	assignSearchQuery.value = "";
+	assignResults.value = [];
+	assignSelectedUser.value = null;
+	assignErrorMessage.value = "";
+	assignSearching.value = false;
+	showAssignSuggestions.value = false;
 };
 
 const handleUnauthorized = async () => {
-  toastError(t("admin.messages.accessDenied"));
-  await navigateTo("/");
+	toastError(t("admin.messages.accessDenied"));
+	await navigateTo("/");
 };
 
 const fetchModerators = async () => {
-  isLoading.value = true;
-  fetchErrorMessage.value = "";
-  try {
-    const data = await $rpc.admin.getModerators();
-    moderators.value = data;
-  } catch (error) {
-    const status = parseStatus(error);
-    if (status === 401 || status === 403) {
-      await handleUnauthorized();
-      return;
-    }
-    console.error("Failed to fetch moderators:", error);
-    fetchErrorMessage.value = t("admin.messages.fetchError");
-    toastError(t("admin.messages.fetchError"));
-  } finally {
-    isLoading.value = false;
-  }
+	isLoading.value = true;
+	fetchErrorMessage.value = "";
+	try {
+		const data = await $rpc.admin.getModerators();
+		moderators.value = data;
+	} catch (error) {
+		const status = parseStatus(error);
+		if (status === 401 || status === 403) {
+			await handleUnauthorized();
+			return;
+		}
+		console.error("Failed to fetch moderators:", error);
+		fetchErrorMessage.value = t("admin.messages.fetchError");
+		toastError(t("admin.messages.fetchError"));
+	} finally {
+		isLoading.value = false;
+	}
 };
 
 const assignDebouncedSearch = debounce(async (query: string) => {
-  assignErrorMessage.value = "";
-  if (!assignModalOpen.value) {
-    return;
-  }
-  const trimmed = query.trim();
-  if (!trimmed || trimmed.length < 2) {
-    assignResults.value = [];
-    assignSearching.value = false;
-    showAssignSuggestions.value = false;
-    return;
-  }
+	assignErrorMessage.value = "";
+	if (!assignModalOpen.value) {
+		return;
+	}
+	const trimmed = query.trim();
+	if (!trimmed || trimmed.length < 2) {
+		assignResults.value = [];
+		assignSearching.value = false;
+		showAssignSuggestions.value = false;
+		return;
+	}
 
-  assignSearching.value = true;
+	assignSearching.value = true;
 
-  try {
-    const results = await $rpc.users.searchByUsername({
-      username: trimmed,
-      limit: 10,
-    });
-    assignResults.value = results;
-    showAssignSuggestions.value = results.length > 0;
-  } catch (error) {
-    const status = parseStatus(error);
-    if (status === 401 || status === 403) {
-      await handleUnauthorized();
-      return;
-    }
-    console.error("Failed to search users:", error);
-    assignErrorMessage.value = t("admin.messages.searchError");
-    showAssignSuggestions.value = false;
-  } finally {
-    assignSearching.value = false;
-  }
+	try {
+		const results = await $rpc.users.searchByUsername({
+			username: trimmed,
+			limit: 10,
+		});
+		assignResults.value = results;
+		showAssignSuggestions.value = results.length > 0;
+	} catch (error) {
+		const status = parseStatus(error);
+		if (status === 401 || status === 403) {
+			await handleUnauthorized();
+			return;
+		}
+		console.error("Failed to search users:", error);
+		assignErrorMessage.value = t("admin.messages.searchError");
+		showAssignSuggestions.value = false;
+	} finally {
+		assignSearching.value = false;
+	}
 }, 300);
 
 watch(assignSearchQuery, (value) => {
-  assignDebouncedSearch(value);
+	assignDebouncedSearch(value);
 });
 
 watch(assignModalOpen, (open) => {
-  if (!open) {
-    resetAssignModal();
-  } else {
-    assignResults.value = [];
-    assignSelectedUser.value = null;
-    assignErrorMessage.value = "";
-    showAssignSuggestions.value = false;
-  }
+	if (!open) {
+		resetAssignModal();
+	} else {
+		assignResults.value = [];
+		assignSelectedUser.value = null;
+		assignErrorMessage.value = "";
+		showAssignSuggestions.value = false;
+	}
 });
 
 const selectAssignUser = (user: SearchUser) => {
-  assignSelectedUser.value = user;
-  assignSearchQuery.value = user.username;
-  showAssignSuggestions.value = false;
+	assignSelectedUser.value = user;
+	assignSearchQuery.value = user.username;
+	showAssignSuggestions.value = false;
 };
 
 const submitAssign = async () => {
-  if (!assignSelectedUser.value) {
-    assignErrorMessage.value = t("admin.messages.selectUser");
-    return;
-  }
+	if (!assignSelectedUser.value) {
+		assignErrorMessage.value = t("admin.messages.selectUser");
+		return;
+	}
 
-  assignSubmitting.value = true;
-  assignErrorMessage.value = "";
+	assignSubmitting.value = true;
+	assignErrorMessage.value = "";
 
-  try {
-    await $rpc.admin.assignModerator({ userId: assignSelectedUser.value.id });
-    toastSuccess(t("admin.messages.assignSuccess"));
-    assignModalOpen.value = false;
-    resetAssignModal();
-    await fetchModerators();
-  } catch (error) {
-    const status = parseStatus(error);
-    if (status === 401 || status === 403) {
-      await handleUnauthorized();
-      return;
-    }
-    console.error("Failed to assign moderator:", error);
-    const fallback = t("admin.messages.assignError");
-    const message = status === 404
-      ? t("admin.messages.userNotFound")
-      : status === 400
-        ? t("admin.messages.assignValidation")
-        : fallback;
-    assignErrorMessage.value = message;
-    toastError(message);
-  } finally {
-    assignSubmitting.value = false;
-  }
+	try {
+		await $rpc.admin.assignModerator({ userId: assignSelectedUser.value.id });
+		toastSuccess(t("admin.messages.assignSuccess"));
+		assignModalOpen.value = false;
+		resetAssignModal();
+		await fetchModerators();
+	} catch (error) {
+		const status = parseStatus(error);
+		if (status === 401 || status === 403) {
+			await handleUnauthorized();
+			return;
+		}
+		console.error("Failed to assign moderator:", error);
+		const fallback = t("admin.messages.assignError");
+		const message =
+			status === 404
+				? t("admin.messages.userNotFound")
+				: status === 400
+					? t("admin.messages.assignValidation")
+					: fallback;
+		assignErrorMessage.value = message;
+		toastError(message);
+	} finally {
+		assignSubmitting.value = false;
+	}
 };
 
 const openRemoveModal = (moderator: Moderator) => {
-  removeTarget.value = moderator;
+	removeTarget.value = moderator;
 };
 
 const confirmRemove = async () => {
-  if (!removeTarget.value) {
-    return;
-  }
+	if (!removeTarget.value) {
+		return;
+	}
 
-  removing.value = true;
-  try {
-    await $rpc.admin.removeModerator({ userId: removeTarget.value.id });
-    toastSuccess(t("admin.messages.removeSuccess"));
-    removeTarget.value = null;
-    await fetchModerators();
-  } catch (error) {
-    const status = parseStatus(error);
-    if (status === 401 || status === 403) {
-      await handleUnauthorized();
-      return;
-    }
-    console.error("Failed to remove moderator:", error);
-    const message = status === 400
-      ? t("admin.messages.notModerator")
-      : t("admin.messages.removeError");
-    toastError(message);
-  } finally {
-    removing.value = false;
-  }
+	removing.value = true;
+	try {
+		await $rpc.admin.removeModerator({ userId: removeTarget.value.id });
+		toastSuccess(t("admin.messages.removeSuccess"));
+		removeTarget.value = null;
+		await fetchModerators();
+	} catch (error) {
+		const status = parseStatus(error);
+		if (status === 401 || status === 403) {
+			await handleUnauthorized();
+			return;
+		}
+		console.error("Failed to remove moderator:", error);
+		const message =
+			status === 400
+				? t("admin.messages.notModerator")
+				: t("admin.messages.removeError");
+		toastError(message);
+	} finally {
+		removing.value = false;
+	}
 };
 
 onMounted(() => {
-  fetchModerators();
+	fetchModerators();
 });
 </script>

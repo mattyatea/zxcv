@@ -21,7 +21,10 @@ export class UserService {
 	/**
 	 * ユーザーの統計情報を取得
 	 */
-	async getUserStats(userId: string, options: UserStatsOptions = {}): Promise<UserStats> {
+	async getUserStats(
+		userId: string,
+		options: UserStatsOptions = {},
+	): Promise<UserStats> {
 		try {
 			const { publicOnly = false, includeTotalStars = false } = options;
 
@@ -49,7 +52,8 @@ export class UserService {
 
 			const stats: UserStats = {
 				rulesCount: typeof rulesCount === "number" ? rulesCount : 0,
-				organizationsCount: typeof organizationsCount === "number" ? organizationsCount : 0,
+				organizationsCount:
+					typeof organizationsCount === "number" ? organizationsCount : 0,
 			};
 
 			if (includeTotalStars) {

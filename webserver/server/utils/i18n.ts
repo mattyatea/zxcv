@@ -56,13 +56,19 @@ export { detectLocaleFromHeader as getLocaleFromHeader } from "./locale";
 // Common error messages for auth procedures
 export const authErrors = {
 	userExists: (locale: Locale) => t("auth.register.errors.emailExists", locale),
-	usernameExists: (locale: Locale) => t("auth.register.errors.usernameExists", locale),
+	usernameExists: (locale: Locale) =>
+		t("auth.register.errors.usernameExists", locale),
 	usernameNotAvailable: (locale: Locale) =>
-		locale === "ja" ? "このユーザー名は既に使用されています" : "Username is already taken",
-	invalidCredentials: (locale: Locale) => t("auth.login.errors.invalidCredentials", locale),
-	emailNotVerified: (locale: Locale) => t("auth.login.errors.emailNotVerified", locale),
+		locale === "ja"
+			? "このユーザー名は既に使用されています"
+			: "Username is already taken",
+	invalidCredentials: (locale: Locale) =>
+		t("auth.login.errors.invalidCredentials", locale),
+	emailNotVerified: (locale: Locale) =>
+		t("auth.login.errors.emailNotVerified", locale),
 	generalError: (locale: Locale) => t("auth.login.errors.generalError", locale),
-	registrationFailed: (locale: Locale) => t("auth.register.errors.generalError", locale),
+	registrationFailed: (locale: Locale) =>
+		t("auth.register.errors.generalError", locale),
 	registrationFailedEmail: (locale: Locale) =>
 		locale === "ja"
 			? "登録に失敗しました。確認メールを送信できませんでした。サポートにお問い合わせください。"
@@ -71,7 +77,8 @@ export const authErrors = {
 		locale === "ja"
 			? "登録が完了しました。メールアドレスを確認してアカウントを有効化してください。"
 			: "Registration successful. Please check your email to verify your account.",
-	loginFailed: (locale: Locale) => (locale === "ja" ? "ログインに失敗しました" : "Login failed"),
+	loginFailed: (locale: Locale) =>
+		locale === "ja" ? "ログインに失敗しました" : "Login failed",
 	rateLimit: (locale: Locale, seconds?: number) =>
 		locale === "ja"
 			? seconds
@@ -81,11 +88,17 @@ export const authErrors = {
 				? `Rate limit exceeded. Please try again in ${seconds} seconds.`
 				: "Too many requests. Please try again later.",
 	invalidToken: (locale: Locale) =>
-		locale === "ja" ? "無効または期限切れのトークンです" : "Invalid or expired token",
+		locale === "ja"
+			? "無効または期限切れのトークンです"
+			: "Invalid or expired token",
 	invalidState: (locale: Locale) =>
-		locale === "ja" ? "無効または期限切れの状態です" : "Invalid or expired state",
+		locale === "ja"
+			? "無効または期限切れの状態です"
+			: "Invalid or expired state",
 	oauthFailed: (locale: Locale, provider: string) =>
-		locale === "ja" ? `${provider}認証に失敗しました` : `${provider} authentication failed`,
+		locale === "ja"
+			? `${provider}認証に失敗しました`
+			: `${provider} authentication failed`,
 	userNotFound: (locale: Locale) =>
 		locale === "ja" ? "ユーザーが見つかりません" : "User not found",
 	emailVerificationSuccess: (locale: Locale) =>
@@ -97,7 +110,9 @@ export const authErrors = {
 			? "このメールアドレスのアカウントが存在する場合、パスワードリセットリンクが送信されました。"
 			: "If an account exists with this email, a password reset link has been sent.",
 	passwordResetSuccess: (locale: Locale) =>
-		locale === "ja" ? "パスワードがリセットされました" : "Password reset successfully",
+		locale === "ja"
+			? "パスワードがリセットされました"
+			: "Password reset successfully",
 	loginSuccess: (locale: Locale) =>
 		locale === "ja" ? "ログインに成功しました" : "Login successful",
 	logoutSuccess: (locale: Locale) =>
@@ -107,9 +122,13 @@ export const authErrors = {
 	authRequired: (locale: Locale) =>
 		locale === "ja" ? "認証が必要です" : "Authentication required",
 	emailVerificationRequired: (locale: Locale) =>
-		locale === "ja" ? "メールアドレスの確認が必要です" : "Email verification required",
+		locale === "ja"
+			? "メールアドレスの確認が必要です"
+			: "Email verification required",
 	internalServerError: (locale: Locale) =>
-		locale === "ja" ? "内部サーバーエラーが発生しました" : "Internal server error",
+		locale === "ja"
+			? "内部サーバーエラーが発生しました"
+			: "Internal server error",
 	emailResendSuccess: (locale: Locale) =>
 		locale === "ja"
 			? "このメールアドレスが存在し、まだ確認されていない場合、確認メールが送信されました。"
@@ -123,20 +142,30 @@ export const authErrors = {
 			? `${provider}アカウントにメールアドレスが見つかりません`
 			: `No email address found in ${provider} account`,
 	oauthAuthFailed: (locale: Locale, error: string) =>
-		locale === "ja" ? `OAuth認証に失敗しました: ${error}` : `OAuth authentication failed: ${error}`,
+		locale === "ja"
+			? `OAuth認証に失敗しました: ${error}`
+			: `OAuth authentication failed: ${error}`,
 	tooManyOAuthAttempts: (locale: Locale) =>
 		locale === "ja"
 			? "OAuth認証の試行回数が多すぎます。しばらく待ってから再度お試しください。"
 			: "Too many OAuth authentication attempts. Please try again later.",
 	// User management errors
 	emailAlreadyInUse: (locale: Locale) =>
-		locale === "ja" ? "このメールアドレスは既に使用されています" : "Email already in use",
+		locale === "ja"
+			? "このメールアドレスは既に使用されています"
+			: "Email already in use",
 	usernameAlreadyInUse: (locale: Locale) =>
-		locale === "ja" ? "このユーザー名は既に使用されています" : "Username already in use",
+		locale === "ja"
+			? "このユーザー名は既に使用されています"
+			: "Username already in use",
 	currentPasswordRequired: (locale: Locale) =>
-		locale === "ja" ? "現在のパスワードが必要です" : "Current password is required",
+		locale === "ja"
+			? "現在のパスワードが必要です"
+			: "Current password is required",
 	invalidCurrentPassword: (locale: Locale) =>
-		locale === "ja" ? "現在のパスワードが正しくありません" : "Invalid current password",
+		locale === "ja"
+			? "現在のパスワードが正しくありません"
+			: "Invalid current password",
 	invalidConfirmation: (locale: Locale) =>
 		locale === "ja" ? "確認テキストが正しくありません" : "Invalid confirmation",
 	invalidPassword: (locale: Locale) =>
@@ -154,25 +183,38 @@ export const authErrors = {
 			? "OAuthプロバイダーを使用してアカウントを削除してください"
 			: "Please use your OAuth provider to delete your account",
 	accountDeletedSuccess: (locale: Locale) =>
-		locale === "ja" ? "アカウントが正常に削除されました" : "Account deleted successfully",
+		locale === "ja"
+			? "アカウントが正常に削除されました"
+			: "Account deleted successfully",
 	settingsUpdatedSuccess: (locale: Locale) =>
-		locale === "ja" ? "設定が正常に更新されました" : "Settings updated successfully",
+		locale === "ja"
+			? "設定が正常に更新されました"
+			: "Settings updated successfully",
 	passwordChangedSuccess: (locale: Locale) =>
-		locale === "ja" ? "パスワードが正常に変更されました" : "Password changed successfully",
+		locale === "ja"
+			? "パスワードが正常に変更されました"
+			: "Password changed successfully",
 	// OAuth and device flow errors
 	codeVerifierNotGenerated: (locale: Locale) =>
-		locale === "ja" ? "コード検証が生成されませんでした" : "Code verifier not generated",
-	invalidCode: (locale: Locale) => (locale === "ja" ? "無効なコードです" : "Invalid code"),
+		locale === "ja"
+			? "コード検証が生成されませんでした"
+			: "Code verifier not generated",
+	invalidCode: (locale: Locale) =>
+		locale === "ja" ? "無効なコードです" : "Invalid code",
 	codeExpired: (locale: Locale) =>
 		locale === "ja" ? "コードの有効期限が切れています" : "Code has expired",
 	tokenExpired: (locale: Locale) =>
 		locale === "ja" ? "トークンの有効期限が切れています" : "Token has expired",
 	deviceApproved: (locale: Locale) =>
-		locale === "ja" ? "デバイスが正常に承認されました" : "Device approved successfully",
+		locale === "ja"
+			? "デバイスが正常に承認されました"
+			: "Device approved successfully",
 	tokenNotFound: (locale: Locale) =>
 		locale === "ja" ? "トークンが見つかりません" : "Token not found",
 	tokenRevoked: (locale: Locale) =>
 		locale === "ja" ? "トークンが取り消されました" : "Token revoked",
 	unsupportedProvider: (locale: Locale) =>
-		locale === "ja" ? "サポートされていないプロバイダーです" : "Unsupported provider",
+		locale === "ja"
+			? "サポートされていないプロバイダーです"
+			: "Unsupported provider",
 };
