@@ -183,3 +183,10 @@ export const avatarUploadRateLimit = createRateLimitMiddleware({
 	maxRequests: 10, // 10 avatar uploads per hour per user
 	keyPrefix: "avatar:upload",
 });
+
+// Rate limit for reports to prevent abuse (especially for anonymous reports)
+export const reportRateLimit = createRateLimitMiddleware({
+	windowMs: 60 * 60 * 1000, // 1 hour
+	maxRequests: 10, // 10 reports per hour (both authenticated and anonymous)
+	keyPrefix: "report",
+});

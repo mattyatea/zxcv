@@ -22,6 +22,20 @@ enum UserRole {
   admin
 }
 
+enum ReportReason {
+  spam
+  inappropriate
+  copyright
+  other
+}
+
+enum ReportStatus {
+  pending
+  reviewing
+  resolved
+  rejected
+}
+
 model User {
   id           String   @id
   email        String   @unique
@@ -51,6 +65,8 @@ model User {
   organizationInvitations OrganizationInvitation[] @relation("inviter")
   deviceCodes   DeviceCode[]
   cliTokens     CliToken[]
+  reports       Report[] @relation("reporter")
+  reviewedReports Report[] @relation("reviewer")
 
   @@index([email])
   @@index([username])
@@ -79,6 +95,7 @@ model Rule {
   versions      RuleVersion[]
   starredBy     RuleStar[]
   viewedBy      RuleView[]
+  reports       Report[]
 
   // Unique constraint removed - will be handled at application level
   @@index([userId])
@@ -342,4 +359,29 @@ model CliToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("cli_tokens")
+}
+
+model Report {
+  id          String       @id
+  ruleId      String       @map("rule_id")
+  reporterId  String       @map("reporter_id") // Required - anonymous reports not allowed
+  reason      ReportReason
+  description String?
+  status      ReportStatus @default(pending)
+  reviewedBy  String?      @map("reviewed_by")
+  reviewNote  String?      @map("review_note")
+  createdAt   Int          @default(dbgenerated("(unixepoch())")) @map("created_at")
+  updatedAt   Int          @default(dbgenerated("(unixepoch())")) @map("updated_at")
+  resolvedAt  Int?         @map("resolved_at")
+
+  rule     Rule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  reporter User @relation("reporter", fields: [reporterId], references: [id])
+  reviewer User? @relation("reviewer", fields: [reviewedBy], references: [id])
+
+  @@index([ruleId])
+  @@index([reporterId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([reviewedBy])
+  @@map("reports")
 }
