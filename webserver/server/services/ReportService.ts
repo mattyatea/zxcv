@@ -16,10 +16,7 @@ export class ReportService {
 	private userRepository: UserRepository;
 	private logger;
 
-	constructor(
-		db: PrismaClient,
-		env: CloudflareEnv,
-	) {
+	constructor(db: PrismaClient, env: CloudflareEnv) {
 		this.reportRepository = new ReportRepository(db);
 		this.ruleRepository = new RuleRepository(db);
 		this.userRepository = new UserRepository(db);
