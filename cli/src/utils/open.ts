@@ -9,7 +9,7 @@ export async function open(url: string): Promise<void> {
 				? `start "${url}"`
 				: `xdg-open "${url}"`;
 
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve, _reject) => {
 		exec(command, (error) => {
 			if (error) {
 				console.warn("Could not open browser automatically");

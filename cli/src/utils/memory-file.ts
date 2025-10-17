@@ -244,7 +244,7 @@ export class MemoryFileManager {
 
 			// Agents.mdへの相対パスでシンボリックリンクを作成
 			symlinkSync("Agents.md", claudeFilePath);
-		} catch (error) {
+		} catch (_error) {
 			// シンボリックリンク作成に失敗しても処理を続行
 			// （Windows等、シンボリックリンクが作れない環境への対応）
 		}

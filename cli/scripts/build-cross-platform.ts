@@ -26,7 +26,7 @@ const platforms = [
 	},
 ];
 
-const distDir = resolve(import.meta.dir, "..", "dist");
+const _distDir = resolve(import.meta.dir, "..", "dist");
 const releaseDir = resolve(import.meta.dir, "..", "release");
 
 // Read version from package.json

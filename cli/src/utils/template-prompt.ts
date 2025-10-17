@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import type { TemplateVariable } from "./template";
 import {
 	getMissingVariables,
 	parseTemplateVariables,

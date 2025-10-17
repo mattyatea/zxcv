@@ -168,7 +168,7 @@ export class FileManager {
 			const realRulePath = realpathSync(rulePath);
 			const realSymlinkDir = realpathSync(symlinkDir);
 			relativePath = relative(realSymlinkDir, realRulePath);
-		} catch (err) {
+		} catch (_err) {
 			// If realpath fails, fall back to original paths
 			relativePath = relative(symlinkDir, rulePath);
 		}

@@ -18,7 +18,12 @@
 		"typecheck": "tsc --noEmit",
 		"check": "biome check"
 	},
-	"keywords": ["cli", "ai", "rules", "management"],
+	"keywords": [
+		"cli",
+		"ai",
+		"rules",
+		"management"
+	],
 	"author": "",
 	"license": "MIT",
 	"dependencies": {

@@ -2,7 +2,6 @@ import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
 import { ConfigManager } from "../config";
-import type { PulledRule } from "../types";
 import { ApiClient } from "../utils/api";
 import { FileManager } from "../utils/file";
 import { inquirer } from "../utils/prompt.js";
