@@ -16,10 +16,7 @@ export const passwordSchema = z
 	.string()
 	.min(8, "パスワードは8文字以上で入力してください")
 	.max(100, "パスワードは100文字以内で入力してください")
-	.regex(
-		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-		"パスワードは大文字、小文字、数字を含む必要があります",
-	);
+	.regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "パスワードは大文字、小文字、数字を含む必要があります");
 
 /**
  * ユーザー名のバリデーション
@@ -28,10 +25,7 @@ export const usernameSchema = z
 	.string()
 	.min(3, "ユーザー名は3文字以上で入力してください")
 	.max(30, "ユーザー名は30文字以内で入力してください")
-	.regex(
-		/^[a-zA-Z0-9_-]+$/,
-		"ユーザー名は英数字、ハイフン、アンダースコアのみ使用できます",
-	);
+	.regex(/^[a-zA-Z0-9_-]+$/, "ユーザー名は英数字、ハイフン、アンダースコアのみ使用できます");
 
 /**
  * 組織名のバリデーション
@@ -49,10 +43,7 @@ export const ruleNameSchema = z
 	.string()
 	.min(1, "ルール名を入力してください")
 	.max(100, "ルール名は100文字以内で入力してください")
-	.regex(
-		/^[a-zA-Z0-9_-]+$/,
-		"ルール名は英数字、ハイフン、アンダースコアのみ使用できます",
-	);
+	.regex(/^[a-zA-Z0-9_-]+$/, "ルール名は英数字、ハイフン、アンダースコアのみ使用できます");
 
 /**
  * ページネーションのバリデーション
@@ -92,11 +83,7 @@ export const visibilitySchema = z.enum(["public", "private", "team"]);
 /**
  * バリデーションエラーをハンドリング
  */
-export function validateWithError<T>(
-	schema: z.ZodType<T>,
-	data: unknown,
-	fieldName?: string,
-): T {
+export function validateWithError<T>(schema: z.ZodType<T>, data: unknown, fieldName?: string): T {
 	try {
 		return schema.parse(data);
 	} catch (error) {

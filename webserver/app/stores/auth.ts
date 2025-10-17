@@ -231,16 +231,12 @@ export const useAuthStore = defineStore("auth", () => {
 
 			// エラーの種類をチェックして認証エラーの場合はトークンをクリア
 			const isAuthError =
-				(error &&
-					typeof error === "object" &&
-					"status" in error &&
-					error.status === 401) ||
+				(error && typeof error === "object" && "status" in error && error.status === 401) ||
 				(error &&
 					typeof error === "object" &&
 					"message" in error &&
 					typeof error.message === "string" &&
-					(error.message.includes("UNAUTHORIZED") ||
-						error.message.includes("User not found")));
+					(error.message.includes("UNAUTHORIZED") || error.message.includes("User not found")));
 
 			if (isAuthError) {
 				await logout();

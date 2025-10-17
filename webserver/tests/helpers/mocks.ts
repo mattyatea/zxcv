@@ -54,7 +54,7 @@ export function createMockEnv(overrides: Partial<any> = {}): any {
 		FRONTEND_URL: "http://localhost:3000",
 		EMAIL_SEND: {
 			send: vi.fn().mockResolvedValue({ success: true }),
-		// biome-ignore lint/suspicious/noExplicitAny: Mock email service for test environment
+			// biome-ignore lint/suspicious/noExplicitAny: Mock email service for test environment
 		} as any,
 		GITHUB_CLIENT_ID: "test-github-client-id",
 		GITHUB_CLIENT_SECRET: "test-github-client-secret",
@@ -64,7 +64,7 @@ export function createMockEnv(overrides: Partial<any> = {}): any {
 			put: vi.fn(),
 			get: vi.fn(),
 			delete: vi.fn(),
-		// biome-ignore lint/suspicious/noExplicitAny: Mock R2 API for test environment
+			// biome-ignore lint/suspicious/noExplicitAny: Mock R2 API for test environment
 		} as any,
 		...overrides,
 	};
@@ -96,7 +96,7 @@ export function createMockContext(overrides: Partial<Context> = {}): Context {
 			}),
 		},
 		...overrides,
-	// biome-ignore lint/suspicious/noExplicitAny: Context type has complex structure, casting needed for tests
+		// biome-ignore lint/suspicious/noExplicitAny: Context type has complex structure, casting needed for tests
 	} as any;
 }
 

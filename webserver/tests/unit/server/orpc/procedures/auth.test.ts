@@ -1,19 +1,17 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ORPCError } from "@orpc/server";
-import { createMockContext } from "~/tests/helpers/mocks";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthService } from "~/server/services/AuthService";
-import { EmailServiceError } from "~/server/types/errors";
-import { authErrors } from "~/server/utils/i18n";
-import { getLocaleFromRequest } from "~/server/utils/locale";
-import type { Locale } from "~/server/utils/locale";
 import * as cryptoUtils from "~/server/utils/crypto";
 import * as jwtUtils from "~/server/utils/jwt";
+import type { Locale } from "~/server/utils/locale";
+import { getLocaleFromRequest } from "~/server/utils/locale";
+import { createMockContext } from "~/tests/helpers/mocks";
+
 vi.mock("~/server/utils/jwt", () => ({
 	verifyRefreshToken: vi.fn(),
 	createJWT: vi.fn(),
 	createRefreshToken: vi.fn(),
 }));
-import { EmailVerificationService } from "~/server/services/EmailVerificationService";
 
 // Mock dependencies
 vi.mock("~/server/utils/crypto");
@@ -25,9 +23,9 @@ vi.mock("~/server/services/EmailVerificationService", () => ({
 describe("auth procedures", () => {
 	let mockPrisma: any;
 	let mockContext: any;
-	
+
 	// Create simplified procedure handlers that mimic the oRPC pattern
-	async function registerHandler({ input, context }: { input: any, context: any }) {
+	async function registerHandler({ input, context }: { input: any; context: any }) {
 		// Email registration is disabled
 		throw new ORPCError("FORBIDDEN", {
 			message: "Email registration is disabled. Please use Google or GitHub to sign up.",
@@ -58,7 +56,7 @@ describe("auth procedures", () => {
 		// }
 	}
 
-	async function loginHandler({ input, context }: { input: any, context: any }) {
+	async function loginHandler({ input, context }: { input: any; context: any }) {
 		// Email login is disabled
 		throw new ORPCError("FORBIDDEN", {
 			message: "Email login is disabled. Please use Google or GitHub to sign in.",
@@ -77,7 +75,7 @@ describe("auth procedures", () => {
 		// };
 	}
 
-	async function verifyEmailHandler({ input, context }: { input: any, context: any }) {
+	async function verifyEmailHandler({ input, context }: { input: any; context: any }) {
 		const { db, env } = context;
 		const authService = new AuthService(db, env);
 
@@ -85,7 +83,7 @@ describe("auth procedures", () => {
 		return { success: true, message: "Email verified successfully" };
 	}
 
-	async function logoutHandler({ input, context }: { input: any, context: any }) {
+	async function logoutHandler({ input, context }: { input: any; context: any }) {
 		const { env, cloudflare } = context;
 		const { refreshToken } = input;
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
@@ -109,12 +107,14 @@ describe("auth procedures", () => {
 		}
 	}
 
-	async function refreshHandler({ input, context }: { input: any, context: any }) {
+	async function refreshHandler({ input, context }: { input: any; context: any }) {
 		const { refreshToken } = input;
 		const { db, env, cloudflare } = context;
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-		const { verifyRefreshToken, createRefreshToken, createJWT } = await import("~/server/utils/jwt");
+		const { verifyRefreshToken, createRefreshToken, createJWT } = await import(
+			"~/server/utils/jwt"
+		);
 		const userId = await verifyRefreshToken(refreshToken, env);
 
 		if (!userId) {
@@ -156,7 +156,7 @@ describe("auth procedures", () => {
 		return { accessToken, refreshToken: newRefreshToken, user: authUser };
 	}
 
-	async function sendPasswordResetHandler({ input, context }: { input: any, context: any }) {
+	async function sendPasswordResetHandler({ input, context }: { input: any; context: any }) {
 		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
@@ -165,7 +165,7 @@ describe("auth procedures", () => {
 		return { success: true, message: "Password reset email sent" };
 	}
 
-	async function resetPasswordHandler({ input, context }: { input: any, context: any }) {
+	async function resetPasswordHandler({ input, context }: { input: any; context: any }) {
 		const { db, env, cloudflare } = context;
 		const authService = new AuthService(db, env);
 		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
@@ -218,13 +218,13 @@ describe("auth procedures", () => {
 		};
 
 		it("should throw FORBIDDEN error when email registration is disabled", async () => {
-			await expect(
-				registerHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
+			await expect(registerHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				ORPCError,
+			);
 
-			await expect(
-				registerHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow("Email registration is disabled");
+			await expect(registerHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				"Email registration is disabled",
+			);
 		});
 
 		// All other tests are commented out because email registration is disabled
@@ -390,13 +390,13 @@ describe("auth procedures", () => {
 		};
 
 		it("should throw FORBIDDEN error when email login is disabled", async () => {
-			await expect(
-				loginHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
+			await expect(loginHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				ORPCError,
+			);
 
-			await expect(
-				loginHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow("Email login is disabled");
+			await expect(loginHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				"Email login is disabled",
+			);
 		});
 
 		// All other tests are commented out because email login is disabled
@@ -473,14 +473,14 @@ describe("auth procedures", () => {
 
 		it("should throw error for invalid token", async () => {
 			const { AuthService } = await import("~/server/services/AuthService");
-			const mockVerifyEmail = vi.fn().mockRejectedValue(
-				new ORPCError("BAD_REQUEST", { message: "Invalid token" })
-			);
+			const mockVerifyEmail = vi
+				.fn()
+				.mockRejectedValue(new ORPCError("BAD_REQUEST", { message: "Invalid token" }));
 			vi.spyOn(AuthService.prototype, "verifyEmail").mockImplementation(mockVerifyEmail);
 
-			await expect(
-				verifyEmailHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
+			await expect(verifyEmailHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				ORPCError,
+			);
 
 			// Restore original
 			vi.mocked(AuthService.prototype.verifyEmail).mockRestore();
@@ -508,9 +508,9 @@ describe("auth procedures", () => {
 		it("should throw error for invalid refresh token", async () => {
 			vi.mocked(jwtUtils.verifyRefreshToken).mockResolvedValue(null);
 
-			await expect(
-				logoutHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
+			await expect(logoutHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				ORPCError,
+			);
 		});
 	});
 
@@ -563,18 +563,18 @@ describe("auth procedures", () => {
 		it("should throw error for invalid refresh token", async () => {
 			vi.mocked(jwtUtils.verifyRefreshToken).mockResolvedValue(null);
 
-			await expect(
-				refreshHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
+			await expect(refreshHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				ORPCError,
+			);
 		});
 
 		it("should throw error when user not found", async () => {
 			vi.mocked(jwtUtils.verifyRefreshToken).mockResolvedValue("user_123");
 			mockPrisma.user.findUnique.mockResolvedValue(null);
 
-			await expect(
-				refreshHandler({ input: validInput, context: mockContext })
-			).rejects.toThrow(ORPCError);
+			await expect(refreshHandler({ input: validInput, context: mockContext })).rejects.toThrow(
+				ORPCError,
+			);
 		});
 	});
 
@@ -586,7 +586,9 @@ describe("auth procedures", () => {
 		it("should send password reset email successfully", async () => {
 			const { AuthService } = await import("~/server/services/AuthService");
 			const mockRequestPasswordReset = vi.fn().mockResolvedValue(undefined);
-			vi.spyOn(AuthService.prototype, "requestPasswordReset").mockImplementation(mockRequestPasswordReset);
+			vi.spyOn(AuthService.prototype, "requestPasswordReset").mockImplementation(
+				mockRequestPasswordReset,
+			);
 
 			const result = await sendPasswordResetHandler({ input: validInput, context: mockContext });
 

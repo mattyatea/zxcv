@@ -1,16 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createTestORPCClient } from "~/tests/helpers/orpc-client";
-import type { Router } from "~/server/orpc/router";
-import { createMockPrismaClient, setupCommonMocks } from "~/tests/helpers/test-db";
 import { generateId } from "~/server/utils/crypto";
+import { createTestORPCClient } from "~/tests/helpers/orpc-client";
+import { createMockPrismaClient, setupCommonMocks } from "~/tests/helpers/test-db";
 
 // Mock arctic OAuth library completely to avoid arctic internal calls
 vi.mock("arctic", () => {
 	class MockGoogle {
-		constructor(clientId: string, clientSecret: string, redirectUrl: string) {
-			// Store params for verification if needed
-		}
-		
 		createAuthorizationURL(state: string, codeVerifier: string, scopes: string[]) {
 			const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 			url.searchParams.set("state", state);
@@ -18,8 +13,8 @@ vi.mock("arctic", () => {
 			url.searchParams.set("scope", scopes.join(" "));
 			return url;
 		}
-		
-		async validateAuthorizationCode(code: string, codeVerifier: string) {
+
+		async validateAuthorizationCode(_code: string, _codeVerifier: string) {
 			// Return a mock token response
 			return {
 				accessToken: () => "mock-access-token",
@@ -28,18 +23,14 @@ vi.mock("arctic", () => {
 	}
 
 	class MockGitHub {
-		constructor(clientId: string, clientSecret: string) {
-			// Store params for verification if needed
-		}
-		
 		createAuthorizationURL(state: string, scopes: string[]) {
 			const url = new URL("https://github.com/login/oauth/authorize");
 			url.searchParams.set("state", state);
 			url.searchParams.set("scope", scopes.join(" "));
 			return url;
 		}
-		
-		async validateAuthorizationCode(code: string) {
+
+		async validateAuthorizationCode(_code: string) {
 			// Return a mock token response
 			return {
 				accessToken: () => "mock-github-token",
@@ -60,7 +51,7 @@ vi.mock("~/server/utils/oauthCleanup", () => ({
 
 // Mock OAuth security utilities
 vi.mock("~/server/utils/oauthSecurity", () => ({
-	validateRedirectUrl: vi.fn((url, domains) => {
+	validateRedirectUrl: vi.fn((url, _domains) => {
 		// Allow relative URLs that start with /
 		if (url.startsWith("/") && !url.startsWith("//")) {
 			return true;
@@ -110,8 +101,9 @@ const mockOAuthProviders = {
 
 // Mock createOAuthProviders to return our mock providers
 vi.mock("~/server/utils/oauth", async () => {
-	const actual = await vi.importActual<typeof import("~/server/utils/oauth")>("~/server/utils/oauth");
-	
+	const actual =
+		await vi.importActual<typeof import("~/server/utils/oauth")>("~/server/utils/oauth");
+
 	return {
 		...actual,
 		createOAuthProviders: vi.fn(() => mockOAuthProviders),
@@ -125,7 +117,7 @@ describe("OAuth Integration Tests", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		
+
 		// Reset mock providers
 		mockOAuthProviders.google.validateAuthorizationCode.mockResolvedValue({
 			accessToken: () => "mock-access-token",
@@ -133,10 +125,10 @@ describe("OAuth Integration Tests", () => {
 		mockOAuthProviders.github.validateAuthorizationCode.mockResolvedValue({
 			accessToken: () => "mock-github-token",
 		});
-		
+
 		mockDb = createMockPrismaClient();
 		setupCommonMocks(mockDb);
-		
+
 		// Setup rate limit mock to not block requests
 		mockDb.rateLimit.findUnique.mockResolvedValue(null);
 		mockDb.rateLimit.upsert.mockResolvedValue({
@@ -144,7 +136,7 @@ describe("OAuth Integration Tests", () => {
 			count: 1,
 			resetAt: mockNow + 900,
 		});
-		
+
 		const testSetup = createTestORPCClient({ db: mockDb });
 		client = testSetup.client;
 
@@ -302,7 +294,7 @@ describe("OAuth Integration Tests", () => {
 					client.auth.oauthInitialize({
 						provider: "google",
 						action: "login",
-					})
+					}),
 				).rejects.toThrow(/リクエストが多すぎます。\d+秒後にもう一度お試しください。/);
 			});
 		});
@@ -340,7 +332,7 @@ describe("OAuth Integration Tests", () => {
 						provider: "google",
 						code: "test-code",
 						state: "invalid-state",
-					})
+					}),
 				).rejects.toThrow("無効または期限切れの状態です");
 			});
 
@@ -358,7 +350,7 @@ describe("OAuth Integration Tests", () => {
 						provider: "google",
 						code: "test-code",
 						state: fakeState,
-					})
+					}),
 				).rejects.toThrow("無効または期限切れの状態です");
 			});
 
@@ -378,7 +370,7 @@ describe("OAuth Integration Tests", () => {
 						provider: "google",
 						code: "test-code",
 						state: validState,
-					})
+					}),
 				).rejects.toThrow("無効または期限切れの状態です");
 			});
 
@@ -389,7 +381,7 @@ describe("OAuth Integration Tests", () => {
 						provider: "github",
 						code: "test-code",
 						state: validState,
-					})
+					}),
 				).rejects.toThrow("無効または期限切れの状態です");
 			});
 		});
@@ -398,7 +390,7 @@ describe("OAuth Integration Tests", () => {
 			beforeEach(() => {
 				// Mock fetch for user info
 				global.fetch = vi.fn();
-				
+
 				// Update validState to include action: "register" for new user tests
 				const stateData = {
 					random: stateRandom,
@@ -527,7 +519,7 @@ describe("OAuth Integration Tests", () => {
 					action: "register",
 				};
 				validState = Buffer.from(JSON.stringify(stateData)).toString("base64url");
-				
+
 				mockDb.oAuthState.findUnique.mockResolvedValue({
 					id: "test-state",
 					state: stateRandom,
@@ -622,7 +614,7 @@ describe("OAuth Integration Tests", () => {
 						provider: "github",
 						code: "test-code",
 						state: validState,
-					})
+					}),
 				).rejects.toThrow("GitHubアカウントにメールアドレスが見つかりません");
 			});
 		});
@@ -631,7 +623,7 @@ describe("OAuth Integration Tests", () => {
 			it("should handle OAuth provider errors gracefully", async () => {
 				// Mock OAuth validation error
 				mockOAuthProviders.google.validateAuthorizationCode.mockRejectedValueOnce(
-					new Error("Invalid authorization code")
+					new Error("Invalid authorization code"),
 				);
 
 				await expect(
@@ -639,9 +631,9 @@ describe("OAuth Integration Tests", () => {
 						provider: "google",
 						code: "invalid-code",
 						state: validState,
-					})
+					}),
 				).rejects.toThrow("OAuth認証に失敗しました");
-				
+
 				// Reset mock for next tests
 				mockOAuthProviders.google.validateAuthorizationCode.mockResolvedValue({
 					accessToken: () => "mock-access-token",
@@ -661,7 +653,7 @@ describe("OAuth Integration Tests", () => {
 						provider: "google",
 						code: "test-code",
 						state: validState,
-					})
+					}),
 				).rejects.toThrow("Google認証に失敗しました");
 			});
 		});

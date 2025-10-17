@@ -96,7 +96,6 @@ describe("OpenAPI Specification", () => {
 			expect(loginResponses["200"]).toBeDefined();
 			expect(loginResponses["400"]).toBeDefined();
 			expect(loginResponses["500"]).toBeDefined();
-
 		});
 	});
 

@@ -1,6 +1,7 @@
 import { ORPCError } from "@orpc/server";
 import { os } from "../index";
-import { dbWithAdminAuth } from "../middleware/combined";
+import { adminAuthRequiredMiddleware } from "../middleware/auth";
+import { dbProvider } from "../middleware/db";
 
 const ADMIN_ROLE = "admin";
 const MODERATOR_ROLE = "moderator";
@@ -8,7 +9,8 @@ const USER_ROLE = "user";
 
 export const adminProcedures = {
 	getModerators: os.admin.getModerators
-		.use(dbWithAdminAuth)
+		.use(dbProvider)
+		.use(adminAuthRequiredMiddleware)
 		.handler(async ({ context }) => {
 			const { db } = context;
 
@@ -40,7 +42,8 @@ export const adminProcedures = {
 		}),
 
 	assignModerator: os.admin.assignModerator
-		.use(dbWithAdminAuth)
+		.use(dbProvider)
+		.use(adminAuthRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db } = context;
 			const { userId } = input;
@@ -74,7 +77,8 @@ export const adminProcedures = {
 		}),
 
 	removeModerator: os.admin.removeModerator
-		.use(dbWithAdminAuth)
+		.use(dbProvider)
+		.use(adminAuthRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db } = context;
 			const { userId } = input;

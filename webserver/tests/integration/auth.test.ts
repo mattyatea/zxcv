@@ -1,15 +1,12 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { createTestORPCClient, createAuthenticatedTestClient } from "~/tests/helpers/orpc-client";
-import type { Router } from "~/server/orpc/router";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateId, hashPassword } from "~/server/utils/crypto";
-import { createJWT, verifyJWT } from "~/server/utils/jwt";
-import { EmailVerificationService } from "~/server/services/emailVerification";
-import { createMockPrismaClient, setupCommonMocks } from "~/tests/helpers/test-db";
+import { verifyJWT } from "~/server/utils/jwt";
+import { createAuthenticatedTestClient, createTestORPCClient } from "~/tests/helpers/orpc-client";
+import { setupCommonMocks } from "~/tests/helpers/test-db";
 
 // Mock email service
 vi.mock("~/server/utils/email", () => ({
 	EmailService: class MockEmailService {
-		constructor(env: any) {}
 		sendVerificationEmail = vi.fn().mockResolvedValue(true);
 		sendResetPasswordEmail = vi.fn().mockResolvedValue(true);
 	},
@@ -19,13 +16,16 @@ vi.mock("~/server/utils/email", () => ({
 // Mock external dependencies
 vi.mock("~/server/services/emailVerification", () => {
 	class MockEmailVerificationService {
-		constructor(db: any, env: any) {
+		constructor(_db: any, _env: any) {
 			// Mock constructor
 			console.log("[TEST] MockEmailVerificationService constructor called");
 		}
-		
+
 		sendVerificationEmail = vi.fn().mockImplementation(async (userId: string, email: string) => {
-			console.log("[TEST] MockEmailVerificationService.sendVerificationEmail called:", { userId, email });
+			console.log("[TEST] MockEmailVerificationService.sendVerificationEmail called:", {
+				userId,
+				email,
+			});
 			return Promise.resolve();
 		});
 		verifyEmail = vi.fn().mockImplementation(async (token: string) => {
@@ -36,7 +36,7 @@ vi.mock("~/server/services/emailVerification", () => {
 		});
 		resendVerificationEmail = vi.fn().mockResolvedValue(true);
 	}
-	
+
 	return { EmailVerificationService: MockEmailVerificationService };
 });
 
@@ -57,7 +57,7 @@ vi.mock("~/server/utils/jwt", async () => {
 			}
 			return null;
 		}),
-		verifyRefreshToken: vi.fn().mockImplementation((token: string, env?: any) => {
+		verifyRefreshToken: vi.fn().mockImplementation((token: string, _env?: any) => {
 			console.log("[TEST] verifyRefreshToken called with token:", token);
 			// Mock implementation that returns userId for valid tokens
 			if (token.includes("user_123") || token === "valid_refresh_token") {
@@ -65,29 +65,38 @@ vi.mock("~/server/utils/jwt", async () => {
 			}
 			return Promise.resolve(null);
 		}),
-		createRefreshToken: vi.fn().mockImplementation((userId: string, env?: any) => {
+		createRefreshToken: vi.fn().mockImplementation((userId: string, _env?: any) => {
 			console.log("[TEST] createRefreshToken called with userId:", userId);
 			console.log("[TEST] createRefreshToken returning:", `refresh_token_${userId}`);
 			return Promise.resolve(`refresh_token_${userId}`);
 		}),
-		verifyToken: vi.fn().mockImplementation(async (token: string, secret?: string) => {
-			if (token === "valid_verification_token" || token === "valid_token" || token === "test_verification_token") {
+		verifyToken: vi.fn().mockImplementation(async (token: string, _secret?: string) => {
+			if (
+				token === "valid_verification_token" ||
+				token === "valid_token" ||
+				token === "test_verification_token"
+			) {
 				return { userId: "user_123", email: "test@example.com" };
 			}
-			if (token === "valid_reset_token" || token === "test_reset_token" || token === "reset_token") {
+			if (
+				token === "valid_reset_token" ||
+				token === "test_reset_token" ||
+				token === "reset_token"
+			) {
 				return { userId: "user_123" };
 			}
 			throw new Error("Token expired");
 		}),
-		generateToken: vi.fn().mockImplementation(async (payload: any, secret: string, expiresIn: string) => {
-			return "mock_jwt_token";
-		}),
+		generateToken: vi
+			.fn()
+			.mockImplementation(async (_payload: any, _secret: string, _expiresIn: string) => {
+				return "mock_jwt_token";
+			}),
 	};
 });
 
 // Get the global mock Prisma client
 const mockPrismaClient = (globalThis as any).__mockPrismaClient;
-
 
 // Need to unmock first due to hoisting
 vi.unmock("~/server/utils/crypto");
@@ -96,7 +105,9 @@ vi.unmock("~/server/utils/crypto");
 vi.mock("~/server/utils/crypto", () => {
 	console.log("[TEST] Setting up crypto mock");
 	return {
-		generateId: vi.fn().mockImplementation(() => `test_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`),
+		generateId: vi
+			.fn()
+			.mockImplementation(() => `test_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`),
 		hashPassword: vi.fn().mockImplementation(async (password: string) => {
 			console.log("[TEST] hashPassword called with:", password);
 			return `hashed_${password}`;
@@ -108,14 +119,17 @@ vi.mock("~/server/utils/crypto", () => {
 				console.log("[TEST] Password matches, returning true");
 				return true;
 			}
-			if (password === "password123") return true;
-			if (password === "newpassword123") return true;
+			if (password === "password123") {
+				return true;
+			}
+			if (password === "newpassword123") {
+				return true;
+			}
 			console.log("[TEST] Password does not match, returning false");
 			return false;
 		}),
 	};
 });
-
 
 describe("Auth Integration Tests", () => {
 	let client: any;
@@ -125,54 +139,56 @@ describe("Auth Integration Tests", () => {
 	beforeEach(async () => {
 		// Force re-import crypto module to ensure mocks are applied
 		const cryptoModule = await import("~/server/utils/crypto");
-		vi.mocked(cryptoModule.verifyPassword).mockImplementation(async (password: string, hash: string) => {
-			console.log("[TEST BEFORE] verifyPassword called with:", { password, hash });
-			return password === "correctpassword" || password === "password123";
-		});
+		vi.mocked(cryptoModule.verifyPassword).mockImplementation(
+			async (password: string, hash: string) => {
+				console.log("[TEST BEFORE] verifyPassword called with:", { password, hash });
+				return password === "correctpassword" || password === "password123";
+			},
+		);
 		// Use global mock database
 		mockDb = mockPrismaClient;
-		
+
 		// Clear all mocks first
 		vi.clearAllMocks();
-		
+
 		// Reset specific mocks to return expected default values
 		vi.mocked(mockDb.user.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.user.findUnique).mockResolvedValue(null);
 		vi.mocked(mockDb.user.findMany).mockResolvedValue([]);
 		vi.mocked(mockDb.user.count).mockResolvedValue(0);
-		
+
 		vi.mocked(mockDb.rule.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.rule.findUnique).mockResolvedValue(null);
 		vi.mocked(mockDb.rule.findMany).mockResolvedValue([]);
 		vi.mocked(mockDb.rule.count).mockResolvedValue(0);
-		
+
 		vi.mocked(mockDb.organization.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.organization.findUnique).mockResolvedValue(null);
 		vi.mocked(mockDb.organization.findMany).mockResolvedValue([]);
-		
+
 		vi.mocked(mockDb.emailVerification.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.emailVerification.findUnique).mockResolvedValue(null);
-		
+
 		vi.mocked(mockDb.passwordReset.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.passwordReset.findUnique).mockResolvedValue(null);
-		
+
 		vi.mocked(mockDb.team.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.team.findUnique).mockResolvedValue(null);
 		vi.mocked(mockDb.team.findMany).mockResolvedValue([]);
-		
+
 		vi.mocked(mockDb.teamMember.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.teamMember.findUnique).mockResolvedValue(null);
 		vi.mocked(mockDb.teamMember.findMany).mockResolvedValue([]);
-		
+
 		vi.mocked(mockDb.apiKey.findFirst).mockResolvedValue(null);
 		vi.mocked(mockDb.apiKey.findUnique).mockResolvedValue(null);
 		vi.mocked(mockDb.apiKey.findMany).mockResolvedValue([]);
-		
+
 		vi.mocked(mockDb.rateLimit.findFirst).mockResolvedValue(null);
-		
+
 		vi.mocked(mockDb.organizationMember.count).mockResolvedValue(0);
 		vi.mocked(mockDb.organizationMember.findMany).mockResolvedValue([]);
-		
+
 		// Apply common setup mocks after clearing
 		setupCommonMocks(mockDb);
 
@@ -186,14 +202,16 @@ describe("Auth Integration Tests", () => {
 					sub: "user_123",
 					email: "test@example.com",
 					username: "testuser",
-					emailVerified: true
+					emailVerified: true,
 				});
-				vi.mocked(jwtModule.verifyRefreshToken).mockImplementation(async (token: string, env?: any) => {
-					if (token.includes("user_123") || token === "valid_refresh_token") {
-						return "user_123";
-					}
-					return null;
-				});
+				vi.mocked(jwtModule.verifyRefreshToken).mockImplementation(
+					async (token: string, _env?: any) => {
+						if (token.includes("user_123") || token === "valid_refresh_token") {
+							return "user_123";
+						}
+						return null;
+					},
+				);
 				vi.mocked(jwtModule.generateToken).mockResolvedValue("mock_jwt_token");
 			} catch (error) {
 				console.log("[TEST] Failed to setup JWT mocks:", error);
@@ -236,7 +254,7 @@ describe("Auth Integration Tests", () => {
 
 	describe("User Registration Flow", () => {
 		// Email registration is disabled - skipping all registration tests
-		it.skip("Email registration is disabled", async () => {})
+		it.skip("Email registration is disabled", async () => {});
 
 		it.skip("should complete full registration flow", async () => {
 			// Step 1: Register a new user
@@ -249,10 +267,10 @@ describe("Auth Integration Tests", () => {
 			// Mock database responses for registration
 			vi.mocked(mockDb.user.findFirst).mockResolvedValue(null);
 			vi.mocked(mockDb.organization.findUnique).mockResolvedValue(null);
-			
+
 			const userId = generateId();
 			const hashedPassword = await hashPassword(registerInput.password);
-			
+
 			const createdUser = {
 				id: userId,
 				username: registerInput.username.toLowerCase(),
@@ -270,9 +288,9 @@ describe("Auth Integration Tests", () => {
 				twitterUsername: null,
 				githubUsername: null,
 			};
-			
+
 			vi.mocked(mockDb.user.create).mockResolvedValue(createdUser);
-			
+
 			// Mock emailVerification.create
 			vi.mocked(mockDb.emailVerification.create).mockResolvedValue({
 				id: "verification_id",
@@ -328,15 +346,15 @@ describe("Auth Integration Tests", () => {
 				password: "SecurePassword123!",
 			};
 
-			await expect(
-				client.auth.register(registerInput)
-			).rejects.toThrow("このメールアドレスは既に使用されています");
+			await expect(client.auth.register(registerInput)).rejects.toThrow(
+				"このメールアドレスは既に使用されています",
+			);
 		});
 	});
 
 	describe("User Login Flow", () => {
 		// Email login is disabled - skipping all email login tests
-		it.skip("Email login is disabled", async () => {})
+		it.skip("Email login is disabled", async () => {});
 
 		it.skip("should complete full login flow with email", async () => {
 			const existingUser = {
@@ -361,7 +379,10 @@ describe("Auth Integration Tests", () => {
 			vi.mocked(mockDb.user.findUnique).mockImplementation(async (args: any) => {
 				console.log("[TEST] user.findUnique called with:", args);
 				if (args?.where?.email === "test@example.com") {
-					console.log("[TEST] Returning existing user with passwordHash:", existingUser.passwordHash);
+					console.log(
+						"[TEST] Returning existing user with passwordHash:",
+						existingUser.passwordHash,
+					);
 					return existingUser;
 				}
 				return null;
@@ -413,9 +434,9 @@ describe("Auth Integration Tests", () => {
 				password: "wrongpassword",
 			};
 
-			await expect(
-				client.auth.login(loginInput)
-			).rejects.toThrow("メールアドレスまたはパスワードが正しくありません");
+			await expect(client.auth.login(loginInput)).rejects.toThrow(
+				"メールアドレスまたはパスワードが正しくありません",
+			);
 		});
 
 		it.skip("should reject login for unverified email", async () => {
@@ -444,9 +465,7 @@ describe("Auth Integration Tests", () => {
 				password: "password123",
 			};
 
-			await expect(
-				client.auth.login(loginInput)
-			).rejects.toThrow();
+			await expect(client.auth.login(loginInput)).rejects.toThrow();
 		});
 	});
 
@@ -501,7 +520,7 @@ describe("Auth Integration Tests", () => {
 			await expect(
 				client.auth.refresh({
 					refreshToken: "invalid-token",
-				})
+				}),
 			).rejects.toThrow();
 		});
 	});
@@ -511,7 +530,6 @@ describe("Auth Integration Tests", () => {
 			const userId = "user_123";
 			const token = "valid_verification_token";
 			const email = "test@example.com";
-
 
 			// Mock user lookup
 			vi.mocked(mockDb.user.findUnique).mockResolvedValue({
@@ -550,10 +568,7 @@ describe("Auth Integration Tests", () => {
 		it("should reject expired verification token", async () => {
 			const token = "expired_token";
 
-
-			await expect(
-				client.auth.verifyEmail({ token })
-			).rejects.toThrow();
+			await expect(client.auth.verifyEmail({ token })).rejects.toThrow();
 		});
 	});
 
@@ -596,22 +611,21 @@ describe("Auth Integration Tests", () => {
 				createdAt: new Date(),
 			});
 
-			const resetResult = await client.auth.sendPasswordReset({ 
-				email: "test@example.com" 
+			const resetResult = await client.auth.sendPasswordReset({
+				email: "test@example.com",
 			});
 
 			expect(resetResult.success).toBe(true);
 			expect(resetResult.message).toBeDefined();
 
 			// Verify password reset was processed successfully
-			// Note: The actual email sending is handled by EmailVerificationService, 
+			// Note: The actual email sending is handled by EmailVerificationService,
 			// which is already mocked in the module mock
 		});
 
 		it.skip("should reset password with valid token", async () => {
 			const token = "valid_reset_token";
 			const newPassword = "newpassword123";
-
 
 			// Mock finding password reset record
 			vi.mocked(mockDb.passwordReset.findFirst).mockResolvedValue({
@@ -727,7 +741,10 @@ describe("Auth Integration Tests", () => {
 				return 0;
 			});
 			vi.mocked(mockDb.organizationMember.count).mockImplementation(async (args: any) => {
-				console.log("[TEST DEBUG] organizationMember.count called with:", JSON.stringify(args, null, 2));
+				console.log(
+					"[TEST DEBUG] organizationMember.count called with:",
+					JSON.stringify(args, null, 2),
+				);
 				console.log("[TEST DEBUG] returning 0");
 				return 0;
 			});

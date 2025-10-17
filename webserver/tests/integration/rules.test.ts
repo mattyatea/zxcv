@@ -1,21 +1,23 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock crypto functions BEFORE imports
 vi.mock("~/server/utils/crypto", async () => {
-	const actual = await vi.importActual<typeof import("~/server/utils/crypto")>("~/server/utils/crypto");
+	const actual =
+		await vi.importActual<typeof import("~/server/utils/crypto")>("~/server/utils/crypto");
 	return {
 		...actual,
-		generateId: vi.fn().mockImplementation(() => `test_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`),
+		generateId: vi
+			.fn()
+			.mockImplementation(() => `test_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`),
 		hashContent: vi.fn().mockImplementation(async (content: string) => {
 			return `hash_${content.substring(0, 10)}`;
 		}),
 	};
 });
 
-import { createTestORPCClient, createAuthenticatedTestClient } from "~/tests/helpers/orpc-client";
-import { createMockPrismaClient, setupCommonMocks } from "~/tests/helpers/test-db";
 import { generateId } from "~/server/utils/crypto";
-import type { Router } from "~/server/orpc/router";
+import { createAuthenticatedTestClient } from "~/tests/helpers/orpc-client";
+import { setupCommonMocks } from "~/tests/helpers/test-db";
 
 // Get the global mock Prisma client
 const mockPrismaClient = (globalThis as any).__mockPrismaClient;
@@ -36,19 +38,19 @@ describe("Rules Integration Tests", () => {
 	beforeEach(async () => {
 		// Use global mock database
 		mockDb = mockPrismaClient;
-		
+
 		// Don't use vi.clearAllMocks() as it clears the global mock implementations
 		// Instead, reset only the mock calls
 		Object.values(mockDb).forEach((model: any) => {
-			if (model && typeof model === 'object') {
+			if (model && typeof model === "object") {
 				Object.values(model).forEach((method: any) => {
-					if (method && typeof method.mockClear === 'function') {
+					if (method && typeof method.mockClear === "function") {
 						method.mockClear();
 					}
 				});
 			}
 		});
-		
+
 		setupCommonMocks(mockDb);
 
 		// Create mocked R2 bucket
@@ -82,7 +84,9 @@ describe("Rules Integration Tests", () => {
 
 		// Setup crypto mocks for dynamic imports used by procedures
 		const cryptoModule = await import("~/server/utils/crypto");
-		vi.mocked(cryptoModule.generateId).mockImplementation(() => `test_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`);
+		vi.mocked(cryptoModule.generateId).mockImplementation(
+			() => `test_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+		);
 		vi.mocked(cryptoModule.hashContent).mockImplementation(async (content: string) => {
 			return `hash_${content.substring(0, 10)}`;
 		});
@@ -176,7 +180,7 @@ describe("Rules Integration Tests", () => {
 			// Verify R2 operations
 			expect(mockR2.put).toHaveBeenCalledWith(
 				expect.stringMatching(/^rules\/.*\/versions\/.*\/content\.md$/),
-				createInput.content
+				createInput.content,
 			);
 		});
 
@@ -266,7 +270,7 @@ describe("Rules Integration Tests", () => {
 				text: async () => "# Old Content",
 			};
 			mockR2.get.mockResolvedValue(mockR2Response);
-			
+
 			const result = await client.rules.update(updateInput);
 
 			expect(result.success).toBe(true);
@@ -275,7 +279,7 @@ describe("Rules Integration Tests", () => {
 			// Verify R2 operations
 			expect(mockR2.put).toHaveBeenCalledWith(
 				expect.stringMatching(/^rules\/.*\/versions\/.*\/content\.md$/),
-				updateInput.content
+				updateInput.content,
 			);
 		});
 
@@ -342,7 +346,7 @@ describe("Rules Integration Tests", () => {
 			const result = await client.rules.delete({ id: ruleId });
 
 			expect(result.message).toBe("ルールが削除されました");
-			
+
 			// Verify R2 cleanup was performed
 			expect(mockR2.delete).toHaveBeenCalledTimes(2);
 			expect(mockR2.delete).toHaveBeenCalledWith(`rules/${ruleId}/versions/v1/content.md`);
@@ -394,10 +398,10 @@ describe("Rules Integration Tests", () => {
 
 		it("should search rules by query", async () => {
 			const searchQuery = "typescript";
-			
+
 			// Mock organization member query (needed by search procedure)
 			vi.mocked(mockDb.organizationMember.findMany).mockResolvedValue([]);
-			
+
 			vi.mocked(mockDb.rule.findMany).mockResolvedValue([]);
 			vi.mocked(mockDb.rule.count).mockResolvedValue(0);
 
@@ -628,7 +632,7 @@ describe("Rules Integration Tests", () => {
 
 			// Clear any previous mocks
 			vi.mocked(mockDb.rule.findUnique).mockReset();
-			
+
 			// Mock rule exists and is public (complete rule object)
 			vi.mocked(mockDb.rule.findUnique).mockResolvedValue({
 				id: ruleId,
@@ -646,7 +650,7 @@ describe("Rules Integration Tests", () => {
 				stars: 0,
 				organizationId: null,
 			});
-			
+
 			vi.mocked(mockDb.ruleVersion.findMany).mockResolvedValue(versions);
 
 			// Mock user.findUnique for version creators
@@ -730,7 +734,7 @@ describe("Rules Integration Tests", () => {
 				text: async () => content,
 			};
 			mockR2.get.mockResolvedValue(mockR2Response);
-			
+
 			// Also ensure the environment R2 points to our mock
 			mockEnv.R2 = mockR2;
 

@@ -141,8 +141,7 @@ const handleSocialLogin = async (provider: string) => {
 			err && typeof err === "object" && "message" in err
 				? (err as { message?: string }).message
 				: undefined;
-		error.value =
-			errorMessage || t("errors.oauth.registrationFailed", { provider });
+		error.value = errorMessage || t("errors.oauth.registrationFailed", { provider });
 		loading.value = false;
 	}
 };

@@ -51,9 +51,7 @@ export function createListCommand(): Command {
 				console.log(chalk.bold(`\n${rule.name}`));
 				console.log(chalk.gray("─".repeat(60)));
 				console.log(chalk.gray(`Version: ${rule.version}`));
-				console.log(
-					chalk.gray(`Pulled: ${new Date(rule.pulledAt).toLocaleString()}`),
-				);
+				console.log(chalk.gray(`Pulled: ${new Date(rule.pulledAt).toLocaleString()}`));
 				if (rule.description) {
 					console.log(chalk.gray(`Description: ${rule.description}`));
 				}
@@ -81,10 +79,7 @@ export function createListCommand(): Command {
 					const { readFileSync } = await import("node:fs");
 					const { join } = await import("node:path");
 					try {
-						const content = readFileSync(
-							join(config.getRulesDir(), `${selectedRule}.md`),
-							"utf-8",
-						);
+						const content = readFileSync(join(config.getRulesDir(), `${selectedRule}.md`), "utf-8");
 						console.log(`\n${chalk.gray("─".repeat(60))}`);
 						console.log(content);
 						console.log(chalk.gray("─".repeat(60)));
@@ -119,19 +114,13 @@ export function createListCommand(): Command {
 					// rule.name にはすでにフルパス形式が入っている
 					console.log(chalk.cyan(rule.name));
 					console.log(chalk.gray(`  Version: ${rule.version}`));
-					console.log(
-						chalk.gray(`  Pulled: ${new Date(rule.pulledAt).toLocaleString()}`),
-					);
+					console.log(chalk.gray(`  Pulled: ${new Date(rule.pulledAt).toLocaleString()}`));
 					console.log();
 				}
 
 				console.log(chalk.gray("─".repeat(60)));
 				console.log(chalk.gray(`Total: ${metadata.rules.length} rules`));
-				console.log(
-					chalk.gray(
-						`Last sync: ${new Date(metadata.lastSync).toLocaleString()}`,
-					),
-				);
+				console.log(chalk.gray(`Last sync: ${new Date(metadata.lastSync).toLocaleString()}`));
 				console.log(chalk.gray(`\nUse 'zxcv list -i' for interactive mode`));
 			}
 		});

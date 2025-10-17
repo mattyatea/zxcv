@@ -1,7 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import { AuthService } from "../../services/AuthService";
 import { UserPackingService } from "../../services/packing/UserPackingService";
-// import { EmailServiceError } from "../../types/errors";
 import type { AuthUser } from "../../utils/auth";
 import { generateId } from "../../utils/crypto";
 import { authErrors } from "../../utils/i18n";
@@ -9,12 +8,8 @@ import type { Locale } from "../../utils/locale";
 import { getLocaleFromRequest } from "../../utils/locale";
 import { createLogger } from "../../utils/logger";
 import { os } from "../index";
-import { dbProvider } from "../middleware/combined";
-import {
-	authRateLimit,
-	passwordResetRateLimit,
-	registerRateLimit,
-} from "../middleware/rateLimit";
+import { dbProvider } from "../middleware/db";
+import { authRateLimit, passwordResetRateLimit, registerRateLimit } from "../middleware/rateLimit";
 
 export const authProcedures = {
 	/**
@@ -24,8 +19,7 @@ export const authProcedures = {
 	register: os.auth.register.use(registerRateLimit).handler(async () => {
 		// Email registration is disabled
 		throw new ORPCError("FORBIDDEN", {
-			message:
-				"Email registration is disabled. Please use Google or GitHub to sign up.",
+			message: "Email registration is disabled. Please use Google or GitHub to sign up.",
 		});
 
 		// const { db, env, locale } = context;
@@ -61,8 +55,7 @@ export const authProcedures = {
 	login: os.auth.login.use(authRateLimit).handler(async () => {
 		// Email login is disabled
 		throw new ORPCError("FORBIDDEN", {
-			message:
-				"Email login is disabled. Please use Google or GitHub to sign in.",
+			message: "Email login is disabled. Please use Google or GitHub to sign in.",
 		});
 
 		// const { db, env, locale } = context;
@@ -111,43 +104,39 @@ export const authProcedures = {
 	/**
 	 * メール確認トークンの送信
 	 */
-	sendVerification: os.auth.sendVerification
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { db, env, cloudflare } = context;
-			const authService = new AuthService(db, env);
-			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+	sendVerification: os.auth.sendVerification.use(dbProvider).handler(async ({ input, context }) => {
+		const { db, env, cloudflare } = context;
+		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-			// Find user by email
-			const user = await db.user.findUnique({
-				where: { email: input.email },
+		// Find user by email
+		const user = await db.user.findUnique({
+			where: { email: input.email },
+		});
+
+		if (!user) {
+			throw new ORPCError("NOT_FOUND", {
+				message: "User not found",
 			});
+		}
 
-			if (!user) {
-				throw new ORPCError("NOT_FOUND", {
-					message: "User not found",
-				});
-			}
+		// 確認メール送信
+		await authService.resendVerificationEmail(user.id, input.locale || "ja");
 
-			// 確認メール送信
-			await authService.resendVerificationEmail(user.id, input.locale || "ja");
-
-			return { success: true, message: "Verification email sent" };
-		}),
+		return { success: true, message: "Verification email sent" };
+	}),
 
 	/**
 	 * メール確認
 	 */
-	verifyEmail: os.auth.verifyEmail
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { db, env, cloudflare } = context;
-			const authService = new AuthService(db, env);
-			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+	verifyEmail: os.auth.verifyEmail.use(dbProvider).handler(async ({ input, context }) => {
+		const { db, env, cloudflare } = context;
+		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-			await authService.verifyEmail(input.token);
-			return { success: true, message: "Email verified successfully" };
-		}),
+		await authService.verifyEmail(input.token);
+		return { success: true, message: "Email verified successfully" };
+	}),
 
 	/**
 	 * パスワードリセットトークンの送信
@@ -168,62 +157,57 @@ export const authProcedures = {
 	/**
 	 * パスワードリセット
 	 */
-	resetPassword: os.auth.resetPassword
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { db, env, cloudflare } = context;
-			const authService = new AuthService(db, env);
-			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+	resetPassword: os.auth.resetPassword.use(dbProvider).handler(async ({ input, context }) => {
+		const { db, env, cloudflare } = context;
+		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-			await authService.resetPassword(input.token, input.newPassword);
-			return { success: true, message: "Password reset successfully" };
-		}),
+		await authService.resetPassword(input.token, input.newPassword);
+		return { success: true, message: "Password reset successfully" };
+	}),
 
 	/**
 	 * リフレッシュトークン
 	 */
-	refresh: os.auth.refresh
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { refreshToken } = input;
-			const { db, env, locale } = context;
-			const userPackingService = new UserPackingService();
+	refresh: os.auth.refresh.use(dbProvider).handler(async ({ input, context }) => {
+		const { refreshToken } = input;
+		const { db, env, locale } = context;
+		const userPackingService = new UserPackingService();
 
-			// Verify refresh token
-			const { verifyRefreshToken, createRefreshToken, createJWT } =
-				await import("../../utils/jwt");
-			const userId = await verifyRefreshToken(refreshToken, env);
+		// Verify refresh token
+		const { verifyRefreshToken, createRefreshToken, createJWT } = await import("../../utils/jwt");
+		const userId = await verifyRefreshToken(refreshToken, env);
 
-			if (!userId) {
-				throw new ORPCError("UNAUTHORIZED", { message: "Invalid token" });
-			}
+		if (!userId) {
+			throw new ORPCError("UNAUTHORIZED", { message: "Invalid token" });
+		}
 
-			const user = await db.user.findUnique({
-				where: { id: userId },
-			});
+		const user = await db.user.findUnique({
+			where: { id: userId },
+		});
 
-			if (!user) {
-				throw new ORPCError("UNAUTHORIZED", { message: "User not found" });
-			}
+		if (!user) {
+			throw new ORPCError("UNAUTHORIZED", { message: "User not found" });
+		}
 
-			const authUser = userPackingService.packAuthUser(user);
+		const authUser = userPackingService.packAuthUser(user);
 
-			const accessToken = await createJWT(
-				{
-					sub: authUser.id,
-					email: authUser.email,
-					username: authUser.username,
-					role: authUser.role,
-					emailVerified: authUser.emailVerified,
-					displayName: authUser.displayName,
-					avatarUrl: authUser.avatarUrl,
-				},
-				env,
-			);
-			const newRefreshToken = await createRefreshToken(authUser.id, env);
+		const accessToken = await createJWT(
+			{
+				sub: authUser.id,
+				email: authUser.email,
+				username: authUser.username,
+				role: authUser.role,
+				emailVerified: authUser.emailVerified,
+				displayName: authUser.displayName,
+				avatarUrl: authUser.avatarUrl,
+			},
+			env,
+		);
+		const newRefreshToken = await createRefreshToken(authUser.id, env);
 
-			return { accessToken, refreshToken: newRefreshToken, user: authUser };
-		}),
+		return { accessToken, refreshToken: newRefreshToken, user: authUser };
+	}),
 
 	/**
 	 * OAuth初期化
@@ -235,17 +219,14 @@ export const authProcedures = {
 			const { db, env, cloudflare } = context;
 			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-			const { createOAuthProviders, generateState, generateCodeVerifier } =
-				await import("../../utils/oauth");
+			const { createOAuthProviders, generateState, generateCodeVerifier } = await import(
+				"../../utils/oauth"
+			);
 			const providers = createOAuthProviders(env);
 
 			// Import security utilities
-			const {
-				validateRedirectUrl,
-				performOAuthSecurityChecks,
-				generateNonce,
-				OAUTH_CONFIG,
-			} = await import("../../utils/oauthSecurity");
+			const { validateRedirectUrl, performOAuthSecurityChecks, generateNonce, OAUTH_CONFIG } =
+				await import("../../utils/oauthSecurity");
 
 			// Get client IP for security tracking
 			const clientIp =
@@ -262,16 +243,11 @@ export const authProcedures = {
 				action,
 				nonce: generateNonce(), // Additional entropy
 			};
-			const state = Buffer.from(JSON.stringify(stateData)).toString(
-				"base64url",
-			);
-			const codeVerifier =
-				provider === "google" ? generateCodeVerifier() : undefined;
+			const state = Buffer.from(JSON.stringify(stateData)).toString("base64url");
+			const codeVerifier = provider === "google" ? generateCodeVerifier() : undefined;
 
 			// Clean up expired states before creating new one
-			const { cleanupExpiredOAuthStates } = await import(
-				"../../utils/oauthCleanup"
-			);
+			const { cleanupExpiredOAuthStates } = await import("../../utils/oauthCleanup");
 			await cleanupExpiredOAuthStates(db);
 
 			// Store state in database
@@ -293,9 +269,7 @@ export const authProcedures = {
 			// Generate authorization URL
 			let authorizationUrl: string;
 			if (provider === "github") {
-				const url = providers.github.createAuthorizationURL(state, [
-					"user:email",
-				]);
+				const url = providers.github.createAuthorizationURL(state, ["user:email"]);
 				authorizationUrl = url.toString();
 			} else if (provider === "google") {
 				if (!codeVerifier) {
@@ -303,14 +277,10 @@ export const authProcedures = {
 						message: authErrors.codeVerifierNotGenerated(locale),
 					});
 				}
-				const url = providers.google.createAuthorizationURL(
-					state,
-					codeVerifier,
-					[
-						"https://www.googleapis.com/auth/userinfo.email",
-						"https://www.googleapis.com/auth/userinfo.profile",
-					],
-				);
+				const url = providers.google.createAuthorizationURL(state, codeVerifier, [
+					"https://www.googleapis.com/auth/userinfo.email",
+					"https://www.googleapis.com/auth/userinfo.profile",
+				]);
 				authorizationUrl = url.toString();
 			} else {
 				throw new ORPCError("BAD_REQUEST", {
@@ -326,292 +296,274 @@ export const authProcedures = {
 	/**
 	 * OAuthコールバック
 	 */
-	oauthCallback: os.auth.oauthCallback
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { provider, code, state } = input;
-			const { db, env, cloudflare } = context;
-			const authService = new AuthService(db, env);
-			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+	oauthCallback: os.auth.oauthCallback.use(dbProvider).handler(async ({ input, context }) => {
+		const { provider, code, state } = input;
+		const { db, env, cloudflare } = context;
+		const authService = new AuthService(db, env);
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
 
-			const logger = createLogger(env);
-			logger.debug("OAuth callback started", {
+		const logger = createLogger(env);
+		logger.debug("OAuth callback started", {
+			provider,
+			code: `${code?.substring(0, 10)}...`,
+			state,
+		});
+
+		const { createOAuthProviders } = await import("../../utils/oauth");
+		const providers = createOAuthProviders(env);
+
+		// Import security utilities
+		const { validateOAuthResponse } = await import("../../utils/oauthSecurity");
+
+		// Validate OAuth response parameters
+		validateOAuthResponse({ code, state }, locale);
+
+		// Decode state to extract action
+		let stateData: { random: string; action: string };
+		try {
+			stateData = JSON.parse(Buffer.from(state, "base64url").toString());
+		} catch (e) {
+			logger.error("Failed to decode state", e as Error);
+			throw new ORPCError("BAD_REQUEST", {
+				message: "無効または期限切れの状態です",
+			});
+		}
+
+		// Verify state
+		const stateRecord = await db.oAuthState.findUnique({
+			where: { state: stateData.random },
+		});
+
+		logger.debug("State record found", { stateRecord });
+		logger.debug("Action from state", { action: stateData.action });
+
+		if (
+			!stateRecord ||
+			stateRecord.provider !== provider ||
+			stateRecord.expiresAt < Math.floor(Date.now() / 1000)
+		) {
+			logger.error("State validation failed", undefined, {
+				stateRecord,
 				provider,
-				code: `${code?.substring(0, 10)}...`,
-				state,
+				currentTime: Math.floor(Date.now() / 1000),
 			});
-
-			const { createOAuthProviders } = await import("../../utils/oauth");
-			const providers = createOAuthProviders(env);
-
-			// Import security utilities
-			const { validateOAuthResponse } = await import(
-				"../../utils/oauthSecurity"
-			);
-
-			// Validate OAuth response parameters
-			validateOAuthResponse({ code, state }, locale);
-
-			// Decode state to extract action
-			let stateData: { random: string; action: string };
-			try {
-				stateData = JSON.parse(Buffer.from(state, "base64url").toString());
-			} catch (e) {
-				logger.error("Failed to decode state", e as Error);
-				throw new ORPCError("BAD_REQUEST", {
-					message: "無効または期限切れの状態です",
-				});
-			}
-
-			// Verify state
-			const stateRecord = await db.oAuthState.findUnique({
-				where: { state: stateData.random },
+			throw new ORPCError("BAD_REQUEST", {
+				message: "無効または期限切れの状態です",
 			});
+		}
 
-			logger.debug("State record found", { stateRecord });
-			logger.debug("Action from state", { action: stateData.action });
+		// Verify client IP matches (if stored)
+		if (stateRecord.clientIp && stateRecord.clientIp !== "unknown") {
+			const currentClientIp =
+				cloudflare?.request?.headers?.get("CF-Connecting-IP") ||
+				cloudflare?.request?.headers?.get("X-Forwarded-For") ||
+				"unknown";
 
-			if (
-				!stateRecord ||
-				stateRecord.provider !== provider ||
-				stateRecord.expiresAt < Math.floor(Date.now() / 1000)
-			) {
-				logger.error("State validation failed", undefined, {
-					stateRecord,
-					provider,
-					currentTime: Math.floor(Date.now() / 1000),
+			if (stateRecord.clientIp !== currentClientIp) {
+				logger.warn("OAuth callback IP mismatch", {
+					stored: stateRecord.clientIp,
+					current: currentClientIp,
 				});
-				throw new ORPCError("BAD_REQUEST", {
-					message: "無効または期限切れの状態です",
-				});
+				// For now, just log the mismatch but don't block the request
+				// In a high-security environment, you might want to throw an error here
 			}
+		}
 
-			// Verify client IP matches (if stored)
-			if (stateRecord.clientIp && stateRecord.clientIp !== "unknown") {
-				const currentClientIp =
-					cloudflare?.request?.headers?.get("CF-Connecting-IP") ||
-					cloudflare?.request?.headers?.get("X-Forwarded-For") ||
-					"unknown";
+		// Clean up state
+		await db.oAuthState.delete({ where: { id: stateRecord.id } });
 
-				if (stateRecord.clientIp !== currentClientIp) {
-					logger.warn("OAuth callback IP mismatch", {
-						stored: stateRecord.clientIp,
-						current: currentClientIp,
-					});
-					// For now, just log the mismatch but don't block the request
-					// In a high-security environment, you might want to throw an error here
-				}
-			}
+		try {
+			let tokens: { accessToken: () => string };
+			let userInfo: { id: string; email: string; username?: string };
 
-			// Clean up state
-			await db.oAuthState.delete({ where: { id: stateRecord.id } });
+			if (provider === "github") {
+				logger.debug("Validating GitHub authorization code");
+				tokens = await providers.github.validateAuthorizationCode(code);
+				logger.debug("GitHub token obtained");
 
-			try {
-				let tokens: { accessToken: () => string };
-				let userInfo: { id: string; email: string; username?: string };
-
-				if (provider === "github") {
-					logger.debug("Validating GitHub authorization code");
-					tokens = await providers.github.validateAuthorizationCode(code);
-					logger.debug("GitHub token obtained");
-
-					// Fetch user info from GitHub
-					const [userResponse, emailResponse] = await Promise.all([
-						fetch("https://api.github.com/user", {
-							headers: {
-								Authorization: `Bearer ${tokens.accessToken()}`,
-								"User-Agent": "zxcv-app",
-							},
-						}),
-						fetch("https://api.github.com/user/emails", {
-							headers: {
-								Authorization: `Bearer ${tokens.accessToken()}`,
-								"User-Agent": "zxcv-app",
-							},
-						}),
-					]);
-
-					logger.debug("GitHub API responses", {
-						userStatus: userResponse.status,
-						emailStatus: emailResponse.status,
-					});
-
-					if (!userResponse.ok || !emailResponse.ok) {
-						logger.error("GitHub API error", undefined, {
-							userStatus: userResponse.status,
-							userText: await userResponse.text(),
-							emailStatus: emailResponse.status,
-							emailText: await emailResponse.text(),
-						});
-						throw new ORPCError("INTERNAL_SERVER_ERROR", {
-							message: "GitHub認証に失敗しました",
-						});
-					}
-
-					const githubUser = (await userResponse.json()) as {
-						id: number;
-						login: string;
-						name?: string;
-					};
-					const emails = (await emailResponse.json()) as Array<{
-						email: string;
-						primary: boolean;
-						verified: boolean;
-					}>;
-					const primaryEmail =
-						emails.find((e) => e.primary)?.email || emails[0]?.email;
-
-					if (!primaryEmail) {
-						throw new ORPCError("BAD_REQUEST", {
-							message: authErrors.oauthNoEmail(locale, "GitHub"),
-						});
-					}
-
-					userInfo = {
-						id: githubUser.id.toString(),
-						email: primaryEmail,
-						username: githubUser.login,
-					};
-				} else if (provider === "google") {
-					logger.debug("Validating Google authorization code");
-
-					// Get code verifier from state record
-					if (!stateRecord.codeVerifier) {
-						throw new ORPCError("BAD_REQUEST", {
-							message: "Code verifier not found for Google OAuth",
-						});
-					}
-
-					tokens = await providers.google.validateAuthorizationCode(
-						code,
-						stateRecord.codeVerifier,
-					);
-					logger.debug("Google token obtained");
-
-					// Fetch user info from Google
-					const googleUserResponse = await fetch(
-						"https://www.googleapis.com/oauth2/v2/userinfo",
-						{
-							headers: {
-								Authorization: `Bearer ${tokens.accessToken()}`,
-							},
+				// Fetch user info from GitHub
+				const [userResponse, emailResponse] = await Promise.all([
+					fetch("https://api.github.com/user", {
+						headers: {
+							Authorization: `Bearer ${tokens.accessToken()}`,
+							"User-Agent": "zxcv-app",
 						},
-					);
+					}),
+					fetch("https://api.github.com/user/emails", {
+						headers: {
+							Authorization: `Bearer ${tokens.accessToken()}`,
+							"User-Agent": "zxcv-app",
+						},
+					}),
+				]);
 
-					logger.debug("Google API response", {
-						status: googleUserResponse.status,
-					});
-
-					if (!googleUserResponse.ok) {
-						logger.error("Google API error", undefined, {
-							status: googleUserResponse.status,
-							text: await googleUserResponse.text(),
-						});
-						throw new ORPCError("INTERNAL_SERVER_ERROR", {
-							message: "Google認証に失敗しました",
-						});
-					}
-
-					const googleUser = (await googleUserResponse.json()) as {
-						id: string;
-						email: string;
-						name?: string;
-						verified_email: boolean;
-					};
-
-					if (!googleUser.email) {
-						throw new ORPCError("BAD_REQUEST", {
-							message: authErrors.oauthNoEmail(locale, "Google"),
-						});
-					}
-
-					userInfo = {
-						id: googleUser.id,
-						email: googleUser.email,
-						username: googleUser.email.split("@")[0], // Use email prefix as username
-					};
-				} else {
-					throw new ORPCError("BAD_REQUEST", {
-						message: authErrors.unsupportedProvider(locale),
-					});
-				}
-
-				// Use AuthService to handle OAuth login
-				const result = await authService.handleOAuthLogin(
-					provider,
-					userInfo,
-					stateData.action,
-				);
-
-				// Check if username is required
-				if ("requiresUsername" in result && result.requiresUsername) {
-					return {
-						tempToken: result.tempToken,
-						provider: result.provider,
-						requiresUsername: true as const,
-					};
-				}
-
-				return {
-					accessToken: (
-						result as {
-							accessToken: string;
-							refreshToken: string;
-							user: AuthUser;
-						}
-					).accessToken,
-					refreshToken: (
-						result as {
-							accessToken: string;
-							refreshToken: string;
-							user: AuthUser;
-						}
-					).refreshToken,
-					user: (
-						result as {
-							accessToken: string;
-							refreshToken: string;
-							user: AuthUser;
-						}
-					).user,
-					redirectUrl: stateRecord.redirectUrl || "/",
-				};
-			} catch (error) {
-				logger.error("OAuth callback error", error as Error);
-				if (error instanceof ORPCError) {
-					throw error;
-				}
-
-				// Provide more detailed error information for debugging
-				const errorMessage =
-					error instanceof Error ? error.message : "Unknown error";
-				logger.error("Detailed error", undefined, {
-					message: errorMessage,
-					stack: error instanceof Error ? error.stack : undefined,
-					error: error,
+				logger.debug("GitHub API responses", {
+					userStatus: userResponse.status,
+					emailStatus: emailResponse.status,
 				});
 
-				throw new ORPCError("INTERNAL_SERVER_ERROR", {
-					message: `OAuth認証に失敗しました: ${errorMessage}`,
+				if (!userResponse.ok || !emailResponse.ok) {
+					logger.error("GitHub API error", undefined, {
+						userStatus: userResponse.status,
+						userText: await userResponse.text(),
+						emailStatus: emailResponse.status,
+						emailText: await emailResponse.text(),
+					});
+					throw new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: "GitHub認証に失敗しました",
+					});
+				}
+
+				const githubUser = (await userResponse.json()) as {
+					id: number;
+					login: string;
+					name?: string;
+				};
+				const emails = (await emailResponse.json()) as Array<{
+					email: string;
+					primary: boolean;
+					verified: boolean;
+				}>;
+				const primaryEmail = emails.find((e) => e.primary)?.email || emails[0]?.email;
+
+				if (!primaryEmail) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: authErrors.oauthNoEmail(locale, "GitHub"),
+					});
+				}
+
+				userInfo = {
+					id: githubUser.id.toString(),
+					email: primaryEmail,
+					username: githubUser.login,
+				};
+			} else if (provider === "google") {
+				logger.debug("Validating Google authorization code");
+
+				// Get code verifier from state record
+				if (!stateRecord.codeVerifier) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: "Code verifier not found for Google OAuth",
+					});
+				}
+
+				tokens = await providers.google.validateAuthorizationCode(code, stateRecord.codeVerifier);
+				logger.debug("Google token obtained");
+
+				// Fetch user info from Google
+				const googleUserResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+					headers: {
+						Authorization: `Bearer ${tokens.accessToken()}`,
+					},
+				});
+
+				logger.debug("Google API response", {
+					status: googleUserResponse.status,
+				});
+
+				if (!googleUserResponse.ok) {
+					logger.error("Google API error", undefined, {
+						status: googleUserResponse.status,
+						text: await googleUserResponse.text(),
+					});
+					throw new ORPCError("INTERNAL_SERVER_ERROR", {
+						message: "Google認証に失敗しました",
+					});
+				}
+
+				const googleUser = (await googleUserResponse.json()) as {
+					id: string;
+					email: string;
+					name?: string;
+					verified_email: boolean;
+				};
+
+				if (!googleUser.email) {
+					throw new ORPCError("BAD_REQUEST", {
+						message: authErrors.oauthNoEmail(locale, "Google"),
+					});
+				}
+
+				userInfo = {
+					id: googleUser.id,
+					email: googleUser.email,
+					username: googleUser.email.split("@")[0], // Use email prefix as username
+				};
+			} else {
+				throw new ORPCError("BAD_REQUEST", {
+					message: authErrors.unsupportedProvider(locale),
 				});
 			}
-		}),
 
-	checkUsername: os.auth.checkUsername
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { username } = input;
-			const db = context.db;
+			// Use AuthService to handle OAuth login
+			const result = await authService.handleOAuthLogin(provider, userInfo, stateData.action);
 
-			// Check if username is already taken
-			const existingUser = await db.user.findUnique({
-				where: { username: username.toLowerCase() },
-			});
+			// Check if username is required
+			if ("requiresUsername" in result && result.requiresUsername) {
+				return {
+					tempToken: result.tempToken,
+					provider: result.provider,
+					requiresUsername: true as const,
+				};
+			}
 
 			return {
-				available: !existingUser,
+				accessToken: (
+					result as {
+						accessToken: string;
+						refreshToken: string;
+						user: AuthUser;
+					}
+				).accessToken,
+				refreshToken: (
+					result as {
+						accessToken: string;
+						refreshToken: string;
+						user: AuthUser;
+					}
+				).refreshToken,
+				user: (
+					result as {
+						accessToken: string;
+						refreshToken: string;
+						user: AuthUser;
+					}
+				).user,
+				redirectUrl: stateRecord.redirectUrl || "/",
 			};
-		}),
+		} catch (error) {
+			logger.error("OAuth callback error", error as Error);
+			if (error instanceof ORPCError) {
+				throw error;
+			}
+
+			// Provide more detailed error information for debugging
+			const errorMessage = error instanceof Error ? error.message : "Unknown error";
+			logger.error("Detailed error", undefined, {
+				message: errorMessage,
+				stack: error instanceof Error ? error.stack : undefined,
+				error: error,
+			});
+
+			throw new ORPCError("INTERNAL_SERVER_ERROR", {
+				message: `OAuth認証に失敗しました: ${errorMessage}`,
+			});
+		}
+	}),
+
+	checkUsername: os.auth.checkUsername.use(dbProvider).handler(async ({ input, context }) => {
+		const { username } = input;
+		const db = context.db;
+
+		// Check if username is already taken
+		const existingUser = await db.user.findUnique({
+			where: { username: username.toLowerCase() },
+		});
+
+		return {
+			available: !existingUser,
+		};
+	}),
 
 	completeOAuthRegistration: os.auth.completeOAuthRegistration
 		.use(dbProvider)
@@ -714,130 +666,109 @@ export const authProcedures = {
 	/**
 	 * Device Authorization Grant - Initialize
 	 */
-	deviceAuthorize: os.auth.deviceAuthorize
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { clientId, scope } = input;
-			const { db, env, cloudflare } = context;
-			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
-			const logger = createLogger(env);
+	deviceAuthorize: os.auth.deviceAuthorize.use(dbProvider).handler(async ({ input, context }) => {
+		const { clientId, scope } = input;
+		const { db, env, cloudflare } = context;
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		const logger = createLogger(env);
 
-			const {
-				generateDeviceCode,
-				generateUserCode,
-				cleanupExpiredDeviceCodes,
-			} = await import("../../utils/deviceAuth");
+		const { generateDeviceCode, generateUserCode, cleanupExpiredDeviceCodes } = await import(
+			"../../utils/deviceAuth"
+		);
 
-			// Cleanup expired codes
-			await cleanupExpiredDeviceCodes(db);
+		// Cleanup expired codes
+		await cleanupExpiredDeviceCodes(db);
 
-			// Generate codes
-			const deviceCode = generateDeviceCode();
-			const userCode = generateUserCode();
-			const expiresIn = 900; // 15 minutes
-			const interval = 5; // 5 seconds polling interval
+		// Generate codes
+		const deviceCode = generateDeviceCode();
+		const userCode = generateUserCode();
+		const expiresIn = 900; // 15 minutes
+		const interval = 5; // 5 seconds polling interval
 
-			// Store device code
-			const now = Math.floor(Date.now() / 1000);
-			const deviceCodeRecord = await db.deviceCode.create({
-				data: {
-					id: generateId(),
-					deviceCode,
-					userCode,
-					clientId,
-					scope,
-					expiresAt: now + expiresIn,
-					interval,
-					createdAt: now,
-				},
-			});
-
-			logger.info("Device authorization initialized", {
-				userCode,
-				clientId,
-			});
-
-			const baseUrl = env.APP_URL || "http://localhost:3000";
-
-			return {
+		// Store device code
+		const now = Math.floor(Date.now() / 1000);
+		const deviceCodeRecord = await db.deviceCode.create({
+			data: {
+				id: generateId(),
 				deviceCode,
 				userCode,
-				verificationUri: `${baseUrl}/device`,
-				verificationUriComplete: `${baseUrl}/device?code=${userCode}`,
-				expiresIn,
+				clientId,
+				scope,
+				expiresAt: now + expiresIn,
 				interval,
-			};
-		}),
+				createdAt: now,
+			},
+		});
+
+		logger.info("Device authorization initialized", {
+			userCode,
+			clientId,
+		});
+
+		const baseUrl = env.APP_URL || "http://localhost:3000";
+
+		return {
+			deviceCode,
+			userCode,
+			verificationUri: `${baseUrl}/device`,
+			verificationUriComplete: `${baseUrl}/device?code=${userCode}`,
+			expiresIn,
+			interval,
+		};
+	}),
 
 	/**
 	 * Device Authorization Grant - Token Exchange
 	 */
-	deviceToken: os.auth.deviceToken
-		.use(dbProvider)
-		.handler(async ({ input, context }) => {
-			const { deviceCode, clientId } = input;
-			const { db, env, cloudflare } = context;
-			const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
-			const logger = createLogger(env);
+	deviceToken: os.auth.deviceToken.use(dbProvider).handler(async ({ input, context }) => {
+		const { deviceCode, clientId } = input;
+		const { db, env, cloudflare } = context;
+		const locale = getLocaleFromRequest(cloudflare?.request) as Locale;
+		const logger = createLogger(env);
 
-			const { shouldSlowDown, isRateLimited, generateCliToken, hashCliToken } =
-				await import("../../utils/deviceAuth");
+		const { shouldSlowDown, isRateLimited, generateCliToken, hashCliToken } = await import(
+			"../../utils/deviceAuth"
+		);
 
-			// Find device code
-			const deviceCodeRecord = await db.deviceCode.findUnique({
-				where: { deviceCode },
-				include: { user: true },
+		// Find device code
+		const deviceCodeRecord = await db.deviceCode.findUnique({
+			where: { deviceCode },
+			include: { user: true },
+		});
+
+		if (!deviceCodeRecord || deviceCodeRecord.clientId !== clientId) {
+			logger.warn("Invalid device code", { deviceCode, clientId });
+			return {
+				error: "access_denied" as const,
+				errorDescription: "Invalid device code or client ID",
+			};
+		}
+
+		const now = Math.floor(Date.now() / 1000);
+
+		// Check if expired
+		if (deviceCodeRecord.expiresAt < now) {
+			await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
+			return {
+				error: "expired_token" as const,
+				errorDescription: "Device code has expired",
+			};
+		}
+
+		// Check rate limiting
+		if (isRateLimited(deviceCodeRecord.attemptCount)) {
+			logger.warn("Device code rate limited", {
+				deviceCode,
+				attemptCount: deviceCodeRecord.attemptCount,
 			});
+			return {
+				error: "access_denied" as const,
+				errorDescription: "Too many attempts",
+			};
+		}
 
-			if (!deviceCodeRecord || deviceCodeRecord.clientId !== clientId) {
-				logger.warn("Invalid device code", { deviceCode, clientId });
-				return {
-					error: "access_denied" as const,
-					errorDescription: "Invalid device code or client ID",
-				};
-			}
-
-			const now = Math.floor(Date.now() / 1000);
-
-			// Check if expired
-			if (deviceCodeRecord.expiresAt < now) {
-				await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
-				return {
-					error: "expired_token" as const,
-					errorDescription: "Device code has expired",
-				};
-			}
-
-			// Check rate limiting
-			if (isRateLimited(deviceCodeRecord.attemptCount)) {
-				logger.warn("Device code rate limited", {
-					deviceCode,
-					attemptCount: deviceCodeRecord.attemptCount,
-				});
-				return {
-					error: "access_denied" as const,
-					errorDescription: "Too many attempts",
-				};
-			}
-
-			// Check polling interval
-			if (
-				shouldSlowDown(deviceCodeRecord.lastAttempt, deviceCodeRecord.interval)
-			) {
-				await db.deviceCode.update({
-					where: { id: deviceCodeRecord.id },
-					data: {
-						attemptCount: deviceCodeRecord.attemptCount + 1,
-						lastAttempt: now,
-					},
-				});
-				return {
-					error: "slow_down" as const,
-					errorDescription: "Polling too frequently",
-				};
-			}
-
-			// Update attempt
+		// Check polling interval
+		if (shouldSlowDown(deviceCodeRecord.lastAttempt, deviceCodeRecord.interval)) {
 			await db.deviceCode.update({
 				where: { id: deviceCodeRecord.id },
 				data: {
@@ -845,45 +776,59 @@ export const authProcedures = {
 					lastAttempt: now,
 				},
 			});
-
-			// Check if approved
-			if (!deviceCodeRecord.isApproved || !deviceCodeRecord.userId) {
-				return {
-					error: "authorization_pending" as const,
-					errorDescription: "Authorization pending",
-				};
-			}
-
-			// Generate CLI token
-			const token = generateCliToken();
-			const tokenHash = await hashCliToken(token);
-
-			// Store CLI token
-			const cliToken = await db.cliToken.create({
-				data: {
-					id: generateId(),
-					userId: deviceCodeRecord.userId,
-					tokenHash,
-					clientId,
-					scope: deviceCodeRecord.scope,
-					createdAt: now,
-				},
-			});
-
-			// Clean up device code
-			await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
-
-			logger.info("CLI token issued", {
-				userId: deviceCodeRecord.userId,
-				clientId,
-			});
-
 			return {
-				accessToken: token,
-				tokenType: "Bearer" as const,
-				scope: deviceCodeRecord.scope || undefined,
+				error: "slow_down" as const,
+				errorDescription: "Polling too frequently",
 			};
-		}),
+		}
+
+		// Update attempt
+		await db.deviceCode.update({
+			where: { id: deviceCodeRecord.id },
+			data: {
+				attemptCount: deviceCodeRecord.attemptCount + 1,
+				lastAttempt: now,
+			},
+		});
+
+		// Check if approved
+		if (!deviceCodeRecord.isApproved || !deviceCodeRecord.userId) {
+			return {
+				error: "authorization_pending" as const,
+				errorDescription: "Authorization pending",
+			};
+		}
+
+		// Generate CLI token
+		const token = generateCliToken();
+		const tokenHash = await hashCliToken(token);
+
+		// Store CLI token
+		const cliToken = await db.cliToken.create({
+			data: {
+				id: generateId(),
+				userId: deviceCodeRecord.userId,
+				tokenHash,
+				clientId,
+				scope: deviceCodeRecord.scope,
+				createdAt: now,
+			},
+		});
+
+		// Clean up device code
+		await db.deviceCode.delete({ where: { id: deviceCodeRecord.id } });
+
+		logger.info("CLI token issued", {
+			userId: deviceCodeRecord.userId,
+			clientId,
+		});
+
+		return {
+			accessToken: token,
+			tokenType: "Bearer" as const,
+			scope: deviceCodeRecord.scope || undefined,
+		};
+	}),
 
 	/**
 	 * Device Authorization Grant - Verify User Code
@@ -892,11 +837,8 @@ export const authProcedures = {
 		.use(dbProvider)
 		.use(async ({ context, next }) => {
 			// Verify user is authenticated
-			const locale = getLocaleFromRequest(
-				context.cloudflare?.request,
-			) as Locale;
-			const authHeader =
-				context.cloudflare?.request?.headers?.get("Authorization");
+			const locale = getLocaleFromRequest(context.cloudflare?.request) as Locale;
+			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
 			if (!authHeader?.startsWith("Bearer ")) {
 				throw new ORPCError("UNAUTHORIZED", {
 					message: authErrors.authRequired(locale),
@@ -984,11 +926,8 @@ export const authProcedures = {
 		.use(dbProvider)
 		.use(async ({ context, next }) => {
 			// Verify user is authenticated
-			const locale = getLocaleFromRequest(
-				context.cloudflare?.request,
-			) as Locale;
-			const authHeader =
-				context.cloudflare?.request?.headers?.get("Authorization");
+			const locale = getLocaleFromRequest(context.cloudflare?.request) as Locale;
+			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
 			if (!authHeader?.startsWith("Bearer ")) {
 				throw new ORPCError("UNAUTHORIZED", {
 					message: authErrors.authRequired(locale),
@@ -1035,11 +974,8 @@ export const authProcedures = {
 		.use(dbProvider)
 		.use(async ({ context, next }) => {
 			// Verify user is authenticated
-			const locale = getLocaleFromRequest(
-				context.cloudflare?.request,
-			) as Locale;
-			const authHeader =
-				context.cloudflare?.request?.headers?.get("Authorization");
+			const locale = getLocaleFromRequest(context.cloudflare?.request) as Locale;
+			const authHeader = context.cloudflare?.request?.headers?.get("Authorization");
 			if (!authHeader?.startsWith("Bearer ")) {
 				throw new ORPCError("UNAUTHORIZED", {
 					message: authErrors.authRequired(locale),

@@ -8,7 +8,7 @@ export async function waitForToast(page: Page, message: string, type?: "success"
 	const toastSelector = type
 		? `[data-testid="toast-${type}"]:has-text("${message}")`
 		: `[data-testid^="toast-"]:has-text("${message}")`;
-	
+
 	await page.waitForSelector(toastSelector, { timeout: 5000 });
 }
 
@@ -24,7 +24,7 @@ export async function checkAccessibility(page: Page) {
 	const violations = await page.evaluate(() => {
 		const headings = Array.from(document.querySelectorAll("h1, h2, h3, h4, h5, h6"));
 		const issues: string[] = [];
-		
+
 		let lastLevel = 0;
 		headings.forEach((heading) => {
 			const level = Number.parseInt(heading.tagName[1]);
@@ -33,24 +33,24 @@ export async function checkAccessibility(page: Page) {
 			}
 			lastLevel = level;
 		});
-		
+
 		const images = Array.from(document.querySelectorAll("img"));
 		images.forEach((img) => {
 			if (!img.alt && !img.getAttribute("aria-label")) {
 				issues.push(`Image without alt text: ${img.src}`);
 			}
 		});
-		
+
 		const buttons = Array.from(document.querySelectorAll("button"));
 		buttons.forEach((button) => {
 			if (!button.textContent?.trim() && !button.getAttribute("aria-label")) {
 				issues.push("Button without accessible text");
 			}
 		});
-		
+
 		return issues;
 	});
-	
+
 	expect(violations).toHaveLength(0);
 }
 

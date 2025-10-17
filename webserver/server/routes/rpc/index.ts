@@ -2,18 +2,13 @@ import type { ORPCErrorCode } from "@orpc/client";
 import { ORPCError, onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
-import {
-	defineEventHandler,
-	getHeader,
-	readRawBody,
-	setHeader,
-	setResponseStatus,
-} from "h3";
+import { defineEventHandler, getHeader, readRawBody, setHeader, setResponseStatus } from "h3";
 import { router } from "../../orpc/router";
 import type { H3EventContext } from "../../types/bindings";
 import type { Env } from "../../types/env";
 import type { AuthUser } from "../../utils/auth";
 import { verifyJWT } from "../../utils/jwt";
+import { getLocaleFromRequest } from "../../utils/locale";
 import { createLogger } from "../../utils/logger";
 
 // Extend globalThis for test environment
@@ -144,10 +139,7 @@ export default defineEventHandler(async (event: H3Event) => {
 		// Copy headers from the H3 event
 		for (const [key, value] of Object.entries(event.node.req.headers)) {
 			if (value) {
-				headers.set(
-					key,
-					Array.isArray(value) ? value.join(", ") : String(value),
-				);
+				headers.set(key, Array.isArray(value) ? value.join(", ") : String(value));
 			}
 		}
 
@@ -170,6 +162,7 @@ export default defineEventHandler(async (event: H3Event) => {
 		});
 
 		let response: Awaited<ReturnType<typeof handler.handle>>;
+		const locale = getLocaleFromRequest(request);
 		try {
 			response = await handler.handle(request, {
 				prefix: "/rpc",
@@ -177,6 +170,7 @@ export default defineEventHandler(async (event: H3Event) => {
 					user,
 					env: context.cloudflare.env,
 					cloudflare: context.cloudflare,
+					locale,
 				},
 			});
 		} catch (handlerError) {
@@ -249,10 +243,7 @@ export default defineEventHandler(async (event: H3Event) => {
 		// Handle ORPCError specifically to preserve status codes
 		if (
 			error instanceof ORPCError ||
-			(error &&
-				typeof error === "object" &&
-				"code" in error &&
-				"__isORPCError" in error)
+			(error && typeof error === "object" && "code" in error && "__isORPCError" in error)
 		) {
 			const orpcError = error as ORPCError<ORPCErrorCode, unknown>;
 			logger.error("Handling ORPCError", undefined, {

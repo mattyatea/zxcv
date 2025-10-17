@@ -14,17 +14,10 @@ export function createPublishCommand(): Command {
 		.description("Publish a new rule to remote server")
 		.argument("<file>", "Path to the markdown file to publish")
 		.option("-n, --name <name>", "Rule name")
-		.option(
-			"-v, --visibility <visibility>",
-			"Rule visibility (public/private)",
-			"public",
-		)
+		.option("-v, --visibility <visibility>", "Rule visibility (public/private)", "public")
 		.option("-t, --tags <tags>", "Comma-separated tags")
 		.action(
-			async (
-				file: string,
-				options: { name?: string; visibility?: string; tags?: string },
-			) => {
+			async (file: string, options: { name?: string; visibility?: string; tags?: string }) => {
 				const spinner = ora("Publishing rule...").start();
 				const config = new ConfigManager();
 				const api = new ApiClient(config);
@@ -33,9 +26,7 @@ export function createPublishCommand(): Command {
 				try {
 					// Check authentication
 					if (!config.getAuthToken()) {
-						spinner.fail(
-							chalk.red("Authentication required. Please login first."),
-						);
+						spinner.fail(chalk.red("Authentication required. Please login first."));
 						process.exit(1);
 					}
 
@@ -67,8 +58,7 @@ export function createPublishCommand(): Command {
 								message: "Rule name:",
 								default: defaultName,
 								validate: (input) =>
-									(typeof input === "string" &&
-										/^[a-zA-Z0-9-_]+$/.test(input)) ||
+									(typeof input === "string" && /^[a-zA-Z0-9-_]+$/.test(input)) ||
 									"Invalid rule name format",
 							},
 						]);
@@ -78,16 +68,12 @@ export function createPublishCommand(): Command {
 					// Validate visibility
 					const visibility = options.visibility as "public" | "private";
 					if (visibility !== "public" && visibility !== "private") {
-						spinner.fail(
-							chalk.red("Invalid visibility. Must be 'public' or 'private'"),
-						);
+						spinner.fail(chalk.red("Invalid visibility. Must be 'public' or 'private'"));
 						process.exit(1);
 					}
 
 					// Parse tags
-					const tags = options.tags
-						? options.tags.split(",").map((t) => t.trim())
-						: [];
+					const tags = options.tags ? options.tags.split(",").map((t) => t.trim()) : [];
 
 					// Create rule on server
 					spinner.text("Creating rule on server...");
@@ -125,9 +111,7 @@ export function createPublishCommand(): Command {
 						if (error.response?.status === 409) {
 							console.error(chalk.red("Rule with this name already exists"));
 						} else {
-							console.error(
-								chalk.red(error.response?.data?.message || error.message),
-							);
+							console.error(chalk.red(error.response?.data?.message || error.message));
 						}
 					} else {
 						console.error(chalk.red("An unexpected error occurred"));

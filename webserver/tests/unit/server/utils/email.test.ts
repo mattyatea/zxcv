@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { EmailService } from "~/server/utils/email";
-import type { Env } from "~/server/types/env";
 import { createMimeMessage } from "mimetext";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { Env } from "~/server/types/env";
+import { EmailService } from "~/server/utils/email";
 
 // Mock mimetext
 vi.mock("mimetext", () => ({
@@ -66,15 +66,15 @@ describe("EmailService", () => {
 	describe("constructor", () => {
 		it("should use provided email and URL from environment", () => {
 			const service = new EmailService(mockEnv);
-			expect(service["fromEmail"]).toBe("noreply@example.com");
-			expect(service["baseUrl"]).toBe("https://example.com");
+			expect(service.fromEmail).toBe("noreply@example.com");
+			expect(service.baseUrl).toBe("https://example.com");
 		});
 
 		it("should use default values when not provided", () => {
 			const envWithoutConfig = {} as Env;
 			const service = new EmailService(envWithoutConfig);
-			expect(service["fromEmail"]).toBe("noreply@prism-project.net");
-			expect(service["baseUrl"]).toBe("https://zxcv.dev");
+			expect(service.fromEmail).toBe("noreply@prism-project.net");
+			expect(service.baseUrl).toBe("https://zxcv.dev");
 		});
 
 		it("should prefer FRONTEND_URL over default", () => {
@@ -82,7 +82,7 @@ describe("EmailService", () => {
 				FRONTEND_URL: "https://frontend.example.com",
 			} as Env;
 			const service = new EmailService(envWithFrontendUrl);
-			expect(service["baseUrl"]).toBe("https://frontend.example.com");
+			expect(service.baseUrl).toBe("https://frontend.example.com");
 		});
 	});
 
@@ -160,10 +160,10 @@ describe("EmailService", () => {
 
 		it("should handle email sending errors", async () => {
 			vi.stubEnv("NODE_ENV", "production");
-			
+
 			// Mock globalThis.EmailMessage to trigger Cloudflare Workers path
 			(globalThis as any).EmailMessage = vi.fn();
-			
+
 			// Make createMimeMessage throw an error
 			vi.mocked(createMimeMessage).mockImplementation(() => {
 				throw new Error("Failed to create message");
@@ -179,11 +179,8 @@ describe("EmailService", () => {
 			const result = await emailService.sendEmail(template);
 
 			expect(result).toBe(false);
-			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				"Email sending error:",
-				expect.any(Error),
-			);
-			
+			expect(consoleErrorSpy).toHaveBeenCalledWith("Email sending error:", expect.any(Error));
+
 			// Cleanup
 			delete (globalThis as any).EmailMessage;
 			// Reset mock
@@ -222,9 +219,7 @@ describe("EmailService", () => {
 			expect(result.to).toBe("user@example.com");
 			expect(result.subject).toBe("【zxcv】パスワードリセットのお知らせ");
 			expect(result.html).toContain("パスワードリセット");
-			expect(result.html).toContain(
-				`https://example.com/reset-password?token=reset-token-123`,
-			);
+			expect(result.html).toContain("https://example.com/reset-password?token=reset-token-123");
 			expect(result.text).toContain("パスワードリセットのリクエストを受け付けました");
 		});
 
@@ -241,9 +236,7 @@ describe("EmailService", () => {
 			expect(result.to).toBe("user@example.com");
 			expect(result.subject).toBe("zxcv - Password Reset");
 			expect(result.html).toContain("Password Reset");
-			expect(result.html).toContain(
-				`https://example.com/reset-password?token=reset-token-123`,
-			);
+			expect(result.html).toContain("https://example.com/reset-password?token=reset-token-123");
 			expect(result.text).toContain("We received a request to reset your password");
 		});
 
@@ -274,9 +267,7 @@ describe("EmailService", () => {
 			expect(result.to).toBe("user@example.com");
 			expect(result.subject).toBe("【zxcv】メールアドレスの確認");
 			expect(result.html).toContain("メールアドレスの確認");
-			expect(result.html).toContain(
-				`https://example.com/verifyemail?token=verify-token-123`,
-			);
+			expect(result.html).toContain("https://example.com/verifyemail?token=verify-token-123");
 			expect(result.text).toContain("zxcvへのご登録ありがとうございます");
 		});
 
@@ -293,9 +284,7 @@ describe("EmailService", () => {
 			expect(result.to).toBe("user@example.com");
 			expect(result.subject).toBe("zxcv - Email Verification");
 			expect(result.html).toContain("Email Verification");
-			expect(result.html).toContain(
-				`https://example.com/verifyemail?token=verify-token-123`,
-			);
+			expect(result.html).toContain("https://example.com/verifyemail?token=verify-token-123");
 			expect(result.text).toContain("Thank you for signing up for zxcv!");
 		});
 	});
@@ -316,7 +305,7 @@ describe("EmailService", () => {
 			expect(result.subject).toBe("【zxcv】Test Organizationへの招待");
 			expect(result.html).toContain("Test Userさんから「Test Organization」組織への招待");
 			expect(result.html).toContain(
-				`https://example.com/organizations/join?token=invite-token-123`,
+				"https://example.com/organizations/join?token=invite-token-123",
 			);
 			expect(result.text).toContain("組織への招待が届きました");
 		});
@@ -336,7 +325,7 @@ describe("EmailService", () => {
 			expect(result.subject).toBe("zxcv - Invitation to Test Organization");
 			expect(result.html).toContain('Test User has invited you to join the "Test Organization"');
 			expect(result.html).toContain(
-				`https://example.com/organizations/join?token=invite-token-123`,
+				"https://example.com/organizations/join?token=invite-token-123",
 			);
 			expect(result.text).toContain("has invited you to join");
 		});
@@ -359,31 +348,31 @@ describe("EmailService", () => {
 		it("should detect test environment by NODE_ENV", () => {
 			vi.stubEnv("NODE_ENV", "test");
 			const service = new EmailService(mockEnv);
-			expect(service["isTestEnvironment"]()).toBe(true);
+			expect(service.isTestEnvironment()).toBe(true);
 		});
 
 		it("should detect test environment by VITEST", () => {
 			vi.stubEnv("VITEST", "true");
 			const service = new EmailService(mockEnv);
-			expect(service["isTestEnvironment"]()).toBe(true);
+			expect(service.isTestEnvironment()).toBe(true);
 		});
 
 		it("should detect test environment by email", () => {
 			mockEnv.EMAIL_FROM = "test@example.com";
 			const service = new EmailService(mockEnv);
-			expect(service["isTestEnvironment"]()).toBe(true);
+			expect(service.isTestEnvironment()).toBe(true);
 		});
 
 		it("should detect test environment by baseUrl", () => {
 			mockEnv.APP_URL = "http://localhost:3000";
 			const service = new EmailService(mockEnv);
-			expect(service["isTestEnvironment"]()).toBe(true);
+			expect(service.isTestEnvironment()).toBe(true);
 		});
 
 		it("should not detect test environment in production", () => {
 			vi.stubEnv("NODE_ENV", "production");
 			const service = new EmailService(mockEnv);
-			expect(service["isTestEnvironment"]()).toBe(false);
+			expect(service.isTestEnvironment()).toBe(false);
 		});
 	});
 });

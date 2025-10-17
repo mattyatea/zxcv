@@ -16,9 +16,7 @@ export default defineNuxtPlugin((_nuxtApp) => {
 	const openAPILink = new OpenAPILink(contract, {
 		url: `${baseURL}/api`,
 		headers: () => {
-			const token = import.meta.client
-				? localStorage.getItem("access_token")
-				: null;
+			const token = import.meta.client ? localStorage.getItem("access_token") : null;
 			return token ? { Authorization: `Bearer ${token}` } : {};
 		},
 		fetch: async (request, init) => {

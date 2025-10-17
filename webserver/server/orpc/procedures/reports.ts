@@ -1,6 +1,7 @@
 import { ReportService } from "../../services";
 import { os } from "../index";
-import { dbWithAuth, dbWithOptionalAuth } from "../middleware/combined";
+import { authRequiredMiddleware } from "../middleware/auth";
+import { dbProvider } from "../middleware/db";
 import { reportRateLimit } from "../middleware/rateLimit";
 
 export const reportsProcedures = {
@@ -11,7 +12,8 @@ export const reportsProcedures = {
 	 */
 	create: os.reports.create
 		.use(reportRateLimit) // Apply rate limit first
-		.use(dbWithAuth) // Then check authentication
+		.use(dbProvider)
+		.use(authRequiredMiddleware) // Then check authentication
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const reportService = new ReportService(db, env);
@@ -29,61 +31,62 @@ export const reportsProcedures = {
 	/**
 	 * List reports (admin only)
 	 */
-	list: os.reports.list.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const reportService = new ReportService(db, env);
+	list: os.reports.list
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const reportService = new ReportService(db, env);
 
-		const result = await reportService.listReports({
-			status: input.status,
-			ruleId: input.ruleId,
-			limit: input.limit,
-			offset: input.offset,
-			userId: user.id,
-		});
+			const result = await reportService.listReports({
+				status: input.status,
+				ruleId: input.ruleId,
+				limit: input.limit,
+				offset: input.offset,
+				userId: user.id,
+			});
 
-		return {
-			reports: result.reports.map((report) => ({
-				...report,
-				rule: {
-					...report.rule,
-					visibility: report.rule.visibility as
-						| "public"
-						| "private"
-						| "organization",
-				},
-			})),
-			total: result.total,
-			limit: input.limit,
-			offset: input.offset,
-		};
-	}),
+			return {
+				reports: result.reports.map((report) => ({
+					...report,
+					rule: {
+						...report.rule,
+						visibility: report.rule.visibility as "public" | "private" | "organization",
+					},
+				})),
+				total: result.total,
+				limit: input.limit,
+				offset: input.offset,
+			};
+		}),
 
 	/**
 	 * Get a specific report (admin only)
 	 */
-	get: os.reports.get.use(dbWithAuth).handler(async ({ input, context }) => {
-		const { db, user, env } = context;
-		const reportService = new ReportService(db, env);
+	get: os.reports.get
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
+		.handler(async ({ input, context }) => {
+			const { db, user, env } = context;
+			const reportService = new ReportService(db, env);
 
-		const report = await reportService.getReport(input.id, user.id);
+			const report = await reportService.getReport(input.id, user.id);
 
-		return {
-			...report,
-			rule: {
-				...report.rule,
-				visibility: report.rule.visibility as
-					| "public"
-					| "private"
-					| "organization",
-			},
-		};
-	}),
+			return {
+				...report,
+				rule: {
+					...report.rule,
+					visibility: report.rule.visibility as "public" | "private" | "organization",
+				},
+			};
+		}),
 
 	/**
 	 * Update report status (admin only)
 	 */
 	updateStatus: os.reports.updateStatus
-		.use(dbWithAuth)
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
 		.handler(async ({ input, context }) => {
 			const { db, user, env } = context;
 			const reportService = new ReportService(db, env);
@@ -100,8 +103,9 @@ export const reportsProcedures = {
 	 * Get report statistics (admin only)
 	 */
 	stats: os.reports.stats
-		.use(dbWithAuth)
-		.handler(async ({ input, context }) => {
+		.use(dbProvider)
+		.use(authRequiredMiddleware)
+		.handler(async ({ context }) => {
 			const { db, user, env } = context;
 			const reportService = new ReportService(db, env);
 

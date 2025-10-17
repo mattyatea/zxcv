@@ -32,10 +32,7 @@ export async function hashPassword(password: string): Promise<string> {
 	return btoa(String.fromCharCode(...combined));
 }
 
-export async function verifyPassword(
-	password: string,
-	storedHash: string,
-): Promise<boolean> {
+export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
 	try {
 		const encoder = new TextEncoder();
 		const combined = new Uint8Array(

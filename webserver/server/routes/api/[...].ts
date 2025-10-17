@@ -3,6 +3,7 @@ import type { H3EventContext as BaseH3EventContext, H3Event } from "h3";
 import { defineEventHandler, setResponseStatus } from "h3";
 import { router } from "../../orpc/router";
 import type { H3EventContext } from "../../types/bindings";
+import { getLocaleFromRequest } from "../../utils/locale";
 import {
 	createRequestFromEvent,
 	ensureCloudflareContext,
@@ -25,6 +26,7 @@ export default defineEventHandler(async (event: H3Event) => {
 		// リクエスト情報のログは削除（必要最小限に）
 
 		let response: Awaited<ReturnType<typeof handler.handle>>;
+		const locale = getLocaleFromRequest(request);
 		try {
 			response = await handler.handle(request, {
 				prefix: "/api",
@@ -32,15 +34,12 @@ export default defineEventHandler(async (event: H3Event) => {
 					user,
 					env: context.cloudflare.env,
 					cloudflare: context.cloudflare,
+					locale,
 				},
 			});
 		} catch (handlerError) {
 			// エラー時のみ簡潔にログ出力
-			console.error(
-				"[API Error]",
-				event.path,
-				(handlerError as { message?: string })?.message,
-			);
+			console.error("[API Error]", event.path, (handlerError as { message?: string })?.message);
 			throw handlerError;
 		}
 

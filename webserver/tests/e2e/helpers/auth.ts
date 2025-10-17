@@ -24,7 +24,7 @@ export async function login(page: Page, user: TestUser) {
 	await page.fill('input[name="username"]', user.username);
 	await page.fill('input[name="password"]', user.password);
 	await page.click('button[type="submit"]');
-	
+
 	await page.waitForURL("/");
 	await page.waitForSelector('[data-testid="user-menu"]', { timeout: 10000 });
 }
@@ -36,7 +36,7 @@ export async function register(page: Page, user: TestUser) {
 	await page.fill('input[name="password"]', user.password);
 	await page.fill('input[name="confirmPassword"]', user.password);
 	await page.click('button[type="submit"]');
-	
+
 	await page.waitForURL("/verify-email");
 }
 

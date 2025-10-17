@@ -137,10 +137,6 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import Avatar from "~/components/common/Avatar.vue";
-import Button from "~/components/common/Button.vue";
-import Input from "~/components/common/Input.vue";
-import Textarea from "~/components/common/Textarea.vue";
 import type { MeResponse } from "~/types/orpc";
 
 // Props
@@ -232,7 +228,9 @@ watch(() => props.user, initializeForm, { immediate: true });
 
 // Handle form submission
 const handleSubmit = () => {
-	if (!isFormValid.value || !hasChanges.value) return;
+	if (!isFormValid.value || !hasChanges.value) {
+		return;
+	}
 
 	const updateData: ProfileUpdateData = {};
 
@@ -263,15 +261,12 @@ const handleAvatarChange = (event: Event) => {
 	const target = event.target as HTMLInputElement;
 	const file = target.files?.[0];
 
-	if (!file) return;
+	if (!file) {
+		return;
+	}
 
 	// Define allowed MIME types for images
-	const allowedMimeTypes = [
-		"image/jpeg",
-		"image/png",
-		"image/gif",
-		"image/webp",
-	];
+	const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 	// Validate file type with specific MIME types
 	if (!allowedMimeTypes.includes(file.type)) {

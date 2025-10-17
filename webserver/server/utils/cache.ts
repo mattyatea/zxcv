@@ -47,11 +47,7 @@ export class Cache {
 		}
 	}
 
-	async getOrSet<T>(
-		key: string,
-		fetchFn: () => Promise<T>,
-		ttl?: number,
-	): Promise<T> {
+	async getOrSet<T>(key: string, fetchFn: () => Promise<T>, ttl?: number): Promise<T> {
 		const cached = await this.get<T>(key);
 		if (cached !== null) {
 			return cached;
@@ -87,10 +83,7 @@ export class Cache {
 	}
 
 	// Generate cache key for organization membership
-	static generateOrganizationMembershipKey(
-		userId: string,
-		organizationId: string,
-	): string {
+	static generateOrganizationMembershipKey(userId: string, organizationId: string): string {
 		return `organization_membership:${userId}:${organizationId}`;
 	}
 

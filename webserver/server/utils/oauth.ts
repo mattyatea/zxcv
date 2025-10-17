@@ -22,16 +22,11 @@ export function createOAuthProviders(env: CloudflareEnv) {
 export function generateState(): string {
 	const array = new Uint8Array(32);
 	crypto.getRandomValues(array);
-	return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
-		"",
-	);
+	return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 // Generate HMAC signature for state validation
-export async function generateStateSignature(
-	state: string,
-	secret: string,
-): Promise<string> {
+export async function generateStateSignature(state: string, secret: string): Promise<string> {
 	const encoder = new TextEncoder();
 	const key = await crypto.subtle.importKey(
 		"raw",
@@ -40,11 +35,7 @@ export async function generateStateSignature(
 		false,
 		["sign"],
 	);
-	const signature = await crypto.subtle.sign(
-		"HMAC",
-		key,
-		encoder.encode(state),
-	);
+	const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(state));
 	return btoa(String.fromCharCode(...new Uint8Array(signature)))
 		.replace(/=/g, "")
 		.replace(/\+/g, "-")

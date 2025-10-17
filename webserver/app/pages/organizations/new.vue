@@ -88,7 +88,6 @@
 import { ref } from "vue";
 import { useRpc } from "~/composables/useRpc";
 import { useToast } from "~/composables/useToast";
-import type { CreateOrganizationResponse } from "~/types/orpc";
 
 definePageMeta({
 	middleware: "auth",
@@ -137,9 +136,7 @@ const validateForm = (): boolean => {
 	// Validate emails
 	inviteEmails.value.forEach((email, index) => {
 		if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-			errors.value[`email_${index}`] = t(
-				"organizations.validation.invalidEmail",
-			);
+			errors.value[`email_${index}`] = t("organizations.validation.invalidEmail");
 		}
 	});
 

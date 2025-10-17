@@ -58,9 +58,7 @@ export abstract class BaseRepository {
 	 * 重複エラーかどうかをチェック
 	 */
 	protected isDuplicateError(error: unknown): boolean {
-		return (
-			this.isPrismaError(error) && (error as { code: string }).code === "P2002"
-		);
+		return this.isPrismaError(error) && (error as { code: string }).code === "P2002";
 	}
 
 	/**

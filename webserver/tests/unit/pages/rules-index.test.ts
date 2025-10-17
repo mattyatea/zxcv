@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the composables and external dependencies
 const mockT = vi.fn((key: string) => key);
@@ -206,7 +205,7 @@ describe("Rules Index Page - URL Generation", () => {
 			];
 
 			const urls = rules.map(getRuleUrl);
-			
+
 			expect(urls[0]).toBe("/rules/@awesome-project/contributing");
 			expect(urls[1]).toBe("/rules/@awesome-project/code-review-process");
 		});
@@ -228,7 +227,7 @@ describe("Rules Index Page - URL Generation", () => {
 			];
 
 			const urls = rules.map(getRuleUrl);
-			
+
 			expect(urls[0]).toBe("/rules/@productive_dev/daily-workflow");
 			expect(urls[1]).toBe("/rules/@productive_dev/debugging-checklist");
 		});
@@ -250,7 +249,7 @@ describe("Rules Index Page - URL Generation", () => {
 			];
 
 			const urls = rules.map(getRuleUrl);
-			
+
 			expect(urls[0]).toBe("/rules/@backend-team/api-design-standards");
 			expect(urls[1]).toBe("/rules/@security-team/security-guidelines");
 		});
@@ -266,7 +265,7 @@ describe("Rules Index Page - URL Generation", () => {
 					organization: null,
 				},
 				{
-					id: "rule_2", 
+					id: "rule_2",
 					name: "test2",
 					author: { username: "user2" },
 					organization: { name: "org1" },
@@ -288,12 +287,12 @@ describe("Rules Index Page - URL Generation", () => {
 			const urls = testRules.map(getRuleUrl);
 
 			// All URLs should start with /rules/
-			urls.forEach(url => {
+			urls.forEach((url) => {
 				expect(url).toMatch(/^\/rules\//);
 			});
 
 			// All URLs should have the @owner format
-			urls.forEach(url => {
+			urls.forEach((url) => {
 				expect(url).toMatch(/\/rules\/@[\w-]+\/[\w-]+/);
 			});
 
@@ -323,17 +322,17 @@ describe("Rules Index Page - URL Generation", () => {
 			const urls = testRules.map(getRuleUrl);
 
 			// Should not contain double slashes
-			urls.forEach(url => {
+			urls.forEach((url) => {
 				expect(url).not.toMatch(/\/\//);
 			});
 
 			// Should not miss the @ prefix
-			urls.forEach(url => {
+			urls.forEach((url) => {
 				expect(url).not.toMatch(/\/rules\/[^@]/);
 			});
 
 			// Should not have trailing slashes
-			urls.forEach(url => {
+			urls.forEach((url) => {
 				expect(url).not.toMatch(/\/$/);
 			});
 		});

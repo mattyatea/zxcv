@@ -271,7 +271,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import Button from "~/components/common/Button.vue";
 import { useI18n } from "~/composables/useI18n";
 import { useToast } from "~/composables/useToast";
 
@@ -282,11 +281,9 @@ const selectedPlatform = ref("auto");
 
 // Install commands - centralized
 const INSTALL_COMMANDS = {
-	script:
-		"curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash",
+	script: "curl -fsSL https://raw.githubusercontent.com/mattyatea/zxcv/main/install.sh | bash",
 	version: "zxcv --version",
-	binaryLinux:
-		"wget https://github.com/mattyatea/zxcv/releases/latest/download/zxcv-linux-x64",
+	binaryLinux: "wget https://github.com/mattyatea/zxcv/releases/latest/download/zxcv-linux-x64",
 };
 
 // Install command

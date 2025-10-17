@@ -312,8 +312,8 @@ const filteredModerators = computed(() => {
 	}
 	return moderators.value.filter((member) => {
 		const roleLabel = t(`admin.roles.${member.role}` as const);
-		return [member.username, member.email ?? "", member.role, roleLabel].some(
-			(field) => field?.toLowerCase?.().includes(query),
+		return [member.username, member.email ?? "", member.role, roleLabel].some((field) =>
+			field?.toLowerCase?.().includes(query),
 		);
 	});
 });
@@ -495,9 +495,7 @@ const confirmRemove = async () => {
 		}
 		console.error("Failed to remove moderator:", error);
 		const message =
-			status === 400
-				? t("admin.messages.notModerator")
-				: t("admin.messages.removeError");
+			status === 400 ? t("admin.messages.notModerator") : t("admin.messages.removeError");
 		toastError(message);
 	} finally {
 		removing.value = false;

@@ -61,14 +61,7 @@ import { type Component, computed, ref } from "vue";
 import { useAnimation } from "~/composables/useAnimation";
 
 interface Props {
-	variant?:
-		| "primary"
-		| "secondary"
-		| "ghost"
-		| "danger"
-		| "success"
-		| "outline"
-		| "gradient";
+	variant?: "primary" | "secondary" | "ghost" | "danger" | "success" | "outline" | "gradient";
 	size?: "xs" | "sm" | "md" | "lg" | "xl";
 	loading?: boolean;
 	disabled?: boolean;

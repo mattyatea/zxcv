@@ -1,6 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { Logger, LogLevel, createLogger, requestTimingMiddleware } from "~/server/utils/logger";
 import type { Context } from "hono";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createLogger, Logger, LogLevel, requestTimingMiddleware } from "~/server/utils/logger";
 
 describe("Logger", () => {
 	let consoleLogSpy: any;
@@ -19,35 +19,35 @@ describe("Logger", () => {
 	describe("constructor", () => {
 		it("should use default log level INFO", () => {
 			const l = new Logger();
-			expect(l["minLevel"]).toBe(LogLevel.INFO);
+			expect(l.minLevel).toBe(LogLevel.INFO);
 		});
 
 		it("should accept custom log level", () => {
 			const l = new Logger(LogLevel.DEBUG);
-			expect(l["minLevel"]).toBe(LogLevel.DEBUG);
+			expect(l.minLevel).toBe(LogLevel.DEBUG);
 		});
 	});
 
 	describe("shouldLog", () => {
 		it("should log when level is equal to minLevel", () => {
 			const l = new Logger(LogLevel.INFO);
-			expect(l["shouldLog"](LogLevel.INFO)).toBe(true);
+			expect(l.shouldLog(LogLevel.INFO)).toBe(true);
 		});
 
 		it("should log when level is greater than minLevel", () => {
 			const l = new Logger(LogLevel.INFO);
-			expect(l["shouldLog"](LogLevel.ERROR)).toBe(true);
+			expect(l.shouldLog(LogLevel.ERROR)).toBe(true);
 		});
 
 		it("should not log when level is less than minLevel", () => {
 			const l = new Logger(LogLevel.WARN);
-			expect(l["shouldLog"](LogLevel.INFO)).toBe(false);
+			expect(l.shouldLog(LogLevel.INFO)).toBe(false);
 		});
 	});
 
 	describe("createLogEntry", () => {
 		it("should create basic log entry", () => {
-			const entry = logger["createLogEntry"](LogLevel.INFO, "Test message");
+			const entry = logger.createLogEntry(LogLevel.INFO, "Test message");
 
 			expect(entry.level).toBe("INFO");
 			expect(entry.message).toBe("Test message");
@@ -56,7 +56,7 @@ describe("Logger", () => {
 
 		it("should include context when provided", () => {
 			const context = { userId: "123", action: "login" };
-			const entry = logger["createLogEntry"](LogLevel.INFO, "Test message", context);
+			const entry = logger.createLogEntry(LogLevel.INFO, "Test message", context);
 
 			expect(entry.context).toEqual(context);
 		});
@@ -64,7 +64,7 @@ describe("Logger", () => {
 		it("should include error details when provided", () => {
 			const error = new Error("Test error");
 			error.stack = "Error stack trace";
-			const entry = logger["createLogEntry"](LogLevel.ERROR, "Error occurred", undefined, error);
+			const entry = logger.createLogEntry(LogLevel.ERROR, "Error occurred", undefined, error);
 
 			expect(entry.error).toEqual({
 				name: "Error",
@@ -74,8 +74,8 @@ describe("Logger", () => {
 		});
 
 		it("should include logger context", () => {
-			logger["context"] = { requestId: "req-123" };
-			const entry = logger["createLogEntry"](LogLevel.INFO, "Test message");
+			logger.context = { requestId: "req-123" };
+			const entry = logger.createLogEntry(LogLevel.INFO, "Test message");
 
 			expect(entry.requestId).toBe("req-123");
 		});
@@ -132,7 +132,7 @@ describe("Logger", () => {
 
 	describe("child", () => {
 		it("should create child logger with additional context", () => {
-			logger["context"] = { parentId: "parent-123" };
+			logger.context = { parentId: "parent-123" };
 			const childLogger = logger.child({ childId: "child-456" });
 
 			childLogger.info("Child message");
@@ -146,7 +146,7 @@ describe("Logger", () => {
 			const parentLogger = new Logger(LogLevel.WARN);
 			const childLogger = parentLogger.child({ childId: "123" });
 
-			expect(childLogger["minLevel"]).toBe(LogLevel.WARN);
+			expect(childLogger.minLevel).toBe(LogLevel.WARN);
 		});
 	});
 
@@ -177,7 +177,9 @@ describe("Logger", () => {
 
 		it("should generate requestId if not provided", () => {
 			const mockUUID = "generated-uuid-1234-5678-90ab-cdef01234567";
-			vi.spyOn(crypto, "randomUUID").mockReturnValue(mockUUID as `${string}-${string}-${string}-${string}-${string}`);
+			vi.spyOn(crypto, "randomUUID").mockReturnValue(
+				mockUUID as `${string}-${string}-${string}-${string}-${string}`,
+			);
 
 			const mockContext = {
 				req: {
@@ -189,7 +191,7 @@ describe("Logger", () => {
 
 			logger.setRequestContext(mockContext);
 
-			expect(logger["context"].requestId).toBe(mockUUID);
+			expect(logger.context.requestId).toBe(mockUUID);
 		});
 
 		it("should prefer cf-connecting-ip over x-forwarded-for", () => {
@@ -206,7 +208,7 @@ describe("Logger", () => {
 
 			logger.setRequestContext(mockContext);
 
-			expect(logger["context"].ip).toBe("192.168.1.1");
+			expect(logger.context.ip).toBe("192.168.1.1");
 		});
 	});
 
@@ -285,7 +287,7 @@ describe("Logger", () => {
 describe("createLogger", () => {
 	it("should create logger with DEBUG level in test environment", () => {
 		const logger = createLogger();
-		expect(logger["minLevel"]).toBe(LogLevel.DEBUG);
+		expect(logger.minLevel).toBe(LogLevel.DEBUG);
 	});
 });
 
@@ -334,7 +336,7 @@ describe("requestTimingMiddleware", () => {
 
 	it("should log request completion with timing", async () => {
 		const middleware = requestTimingMiddleware();
-		
+
 		// Add delay to ensure measurable duration
 		nextFn.mockImplementation(async () => {
 			await new Promise((resolve) => setTimeout(resolve, 50));
@@ -344,7 +346,7 @@ describe("requestTimingMiddleware", () => {
 
 		// Should log twice: once for setting context, once for completion
 		expect(consoleLogSpy).toHaveBeenCalledTimes(2);
-		
+
 		const loggedData = JSON.parse(consoleLogSpy.mock.calls[1][0]);
 		expect(loggedData.message).toBe("API request completed");
 		expect(loggedData.context.status).toBe(200);

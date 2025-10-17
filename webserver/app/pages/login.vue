@@ -268,8 +268,7 @@ const handleSocialLogin = async (provider: string) => {
 			err && typeof err === "object" && "message" in err
 				? (err as { message?: string }).message
 				: undefined;
-		error.value =
-			errorMessage || t("auth.login.errors.generalError", { provider });
+		error.value = errorMessage || t("auth.login.errors.generalError", { provider });
 		loading.value = false;
 	}
 };

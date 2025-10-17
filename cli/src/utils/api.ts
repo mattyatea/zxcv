@@ -54,11 +54,7 @@ export class ApiClient {
 		return response.data;
 	}
 
-	async register(
-		username: string,
-		email: string,
-		password: string,
-	): Promise<void> {
+	async register(username: string, email: string, password: string): Promise<void> {
 		await this.client.post("/auth/register", {
 			username,
 			email,
@@ -154,9 +150,7 @@ export class ApiClient {
 		let currentInterval = interval;
 
 		while (Date.now() - startTime < expiresIn * 1000) {
-			await new Promise((resolve) =>
-				setTimeout(resolve, currentInterval * 1000),
-			);
+			await new Promise((resolve) => setTimeout(resolve, currentInterval * 1000));
 
 			try {
 				const response = await this.client.post("/auth/device/token", {
@@ -179,9 +173,7 @@ export class ApiClient {
 						case "access_denied":
 							throw new Error("Authorization was denied.");
 						default:
-							throw new Error(
-								response.data.errorDescription || "Unknown error occurred",
-							);
+							throw new Error(response.data.errorDescription || "Unknown error occurred");
 					}
 				}
 

@@ -83,9 +83,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import Button from "~/components/common/Button.vue";
-import Card from "~/components/common/Card.vue";
-import Input from "~/components/common/Input.vue";
 import { useI18n } from "~/composables/useI18n";
 import { useRpc } from "~/composables/useRpc";
 import { useAuthStore } from "~/stores/auth";
@@ -117,7 +114,7 @@ onMounted(() => {
 const formatCode = () => {
 	let value = userCode.value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
 	if (value.length > 4) {
-		value = value.slice(0, 4) + "-" + value.slice(4, 8);
+		value = `${value.slice(0, 4)}-${value.slice(4, 8)}`;
 	}
 	userCode.value = value;
 };
@@ -129,7 +126,9 @@ const isValidCode = computed(() => {
 });
 
 const handleSubmit = async () => {
-	if (!isValidCode.value || loading.value || !authStore.isAuthenticated) return;
+	if (!isValidCode.value || loading.value || !authStore.isAuthenticated) {
+		return;
+	}
 
 	loading.value = true;
 	errorMessage.value = "";

@@ -4,9 +4,7 @@ import type { PrismaClient } from "@prisma/client";
  * Clean up expired OAuth states to prevent database bloat
  * This should be called periodically (e.g., via a cron job or before each OAuth flow)
  */
-export async function cleanupExpiredOAuthStates(
-	db: PrismaClient,
-): Promise<number> {
+export async function cleanupExpiredOAuthStates(db: PrismaClient): Promise<number> {
 	const now = Math.floor(Date.now() / 1000);
 
 	try {

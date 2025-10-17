@@ -5,12 +5,7 @@
 interface SubagentTemplateOptions {
 	name: string;
 	description: string;
-	type:
-		| "general"
-		| "code-reviewer"
-		| "test-generator"
-		| "documentation"
-		| "custom";
+	type: "general" | "code-reviewer" | "test-generator" | "documentation" | "custom";
 	capabilities?: string[];
 	tools?: string[];
 	language?: string;
@@ -19,17 +14,8 @@ interface SubagentTemplateOptions {
 /**
  * Subagentテンプレートを生成
  */
-export function generateSubagentTemplate(
-	options: SubagentTemplateOptions,
-): string {
-	const {
-		name,
-		description,
-		type,
-		capabilities = [],
-		tools = [],
-		language = "en",
-	} = options;
+export function generateSubagentTemplate(options: SubagentTemplateOptions): string {
+	const { name, description, type, capabilities = [], tools = [], language = "en" } = options;
 
 	// 基本テンプレート
 	let template = `# ${name}
@@ -193,12 +179,7 @@ export function validateSubagentContent(content: string): {
 	const warnings: string[] = [];
 
 	// 必須セクションのチェック
-	const requiredSections = [
-		"#",
-		"## Type",
-		"## Capabilities",
-		"## Instructions",
-	];
+	const requiredSections = ["#", "## Type", "## Capabilities", "## Instructions"];
 	for (const section of requiredSections) {
 		if (!content.includes(section)) {
 			errors.push(`Missing required section: ${section}`);
@@ -207,16 +188,12 @@ export function validateSubagentContent(content: string): {
 
 	// 最小文字数チェック
 	if (content.length < 100) {
-		errors.push(
-			"Content is too short. Subagent definitions should be at least 100 characters.",
-		);
+		errors.push("Content is too short. Subagent definitions should be at least 100 characters.");
 	}
 
 	// 最大文字数チェック
 	if (content.length > 50000) {
-		warnings.push(
-			"Content is very long. Consider splitting into multiple agents.",
-		);
+		warnings.push("Content is very long. Consider splitting into multiple agents.");
 	}
 
 	// Markdownフォーマットの基本チェック
@@ -250,15 +227,11 @@ export function validateSubagentContent(content: string): {
 /**
  * サンプルSubagentテンプレートを取得
  */
-export function getSampleSubagentTemplates(): Record<
-	string,
-	SubagentTemplateOptions
-> {
+export function getSampleSubagentTemplates(): Record<string, SubagentTemplateOptions> {
 	return {
 		codeReviewer: {
 			name: "Code Review Expert",
-			description:
-				"An expert agent for comprehensive code review and quality assessment",
+			description: "An expert agent for comprehensive code review and quality assessment",
 			type: "code-reviewer",
 			capabilities: [
 				"Security vulnerability detection",

@@ -2,19 +2,9 @@ import { oc } from "@orpc/contract";
 import * as z from "zod";
 import { SuccessResponseSchema } from "../schemas/common";
 
-export const ReportReasonSchema = z.enum([
-	"spam",
-	"inappropriate",
-	"copyright",
-	"other",
-]);
+export const ReportReasonSchema = z.enum(["spam", "inappropriate", "copyright", "other"]);
 
-export const ReportStatusSchema = z.enum([
-	"pending",
-	"reviewing",
-	"resolved",
-	"rejected",
-]);
+export const ReportStatusSchema = z.enum(["pending", "reviewing", "resolved", "rejected"]);
 
 export const ReportSchema = z.object({
 	id: z.string(),

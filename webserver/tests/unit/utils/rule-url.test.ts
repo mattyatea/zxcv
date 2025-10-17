@@ -146,7 +146,7 @@ describe("Rule URL Generation Utility", () => {
 		});
 
 		it("should handle very long rule names", () => {
-			const longRuleName = "very-long-rule-name-that-might-cause-issues-" + "a".repeat(100);
+			const longRuleName = `very-long-rule-name-that-might-cause-issues-${"a".repeat(100)}`;
 			const rule: MockRule = {
 				id: "rule_9",
 				name: longRuleName,
@@ -161,7 +161,7 @@ describe("Rule URL Generation Utility", () => {
 		});
 
 		it("should handle very long usernames", () => {
-			const longUsername = "very-long-username-" + "b".repeat(50);
+			const longUsername = `very-long-username-${"b".repeat(50)}`;
 			const rule: MockRule = {
 				id: "rule_10",
 				name: "normal-rule",
@@ -176,7 +176,7 @@ describe("Rule URL Generation Utility", () => {
 		});
 
 		it("should handle very long organization names", () => {
-			const longOrgName = "very-long-organization-name-" + "c".repeat(50);
+			const longOrgName = `very-long-organization-name-${"c".repeat(50)}`;
 			const rule: MockRule = {
 				id: "rule_11",
 				name: "org-rule",
@@ -258,7 +258,7 @@ describe("Rule URL Generation Utility", () => {
 				},
 			];
 
-			testCases.forEach(rule => {
+			testCases.forEach((rule) => {
 				const url = getRuleUrl(rule);
 				expect(url).toMatch(/^\/rules\//);
 			});
@@ -280,7 +280,7 @@ describe("Rule URL Generation Utility", () => {
 				},
 			];
 
-			testCases.forEach(rule => {
+			testCases.forEach((rule) => {
 				const url = getRuleUrl(rule);
 				expect(url).toMatch(/\/rules\/@\w+\//);
 			});
@@ -302,7 +302,7 @@ describe("Rule URL Generation Utility", () => {
 				},
 			];
 
-			testCases.forEach(rule => {
+			testCases.forEach((rule) => {
 				const url = getRuleUrl(rule);
 				expect(url).toMatch(/^\/rules\/@[\w-]+\/[\w-]+$/);
 			});

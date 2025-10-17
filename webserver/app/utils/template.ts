@@ -51,10 +51,7 @@ function escapeRegex(str: string): string {
 /**
  * Render template with provided values
  */
-export function renderTemplate(
-	content: string,
-	values: TemplateRenderOptions,
-): string {
+export function renderTemplate(content: string, values: TemplateRenderOptions): string {
 	let rendered = content;
 
 	for (const [key, value] of Object.entries(values)) {
@@ -98,9 +95,7 @@ export function isValidVariableName(name: string): boolean {
  * Extract template metadata from content
  * Looks for special comments like: <!-- template: language = "english" -->
  */
-export function extractTemplateMetadata(
-	content: string,
-): Record<string, string> {
+export function extractTemplateMetadata(content: string): Record<string, string> {
 	const metadata: Record<string, string> = {};
 	const regex = /<!--\s*template:\s*(\w+)\s*=\s*"([^"]+)"\s*-->/g;
 	let match: RegExpExecArray | null = regex.exec(content);

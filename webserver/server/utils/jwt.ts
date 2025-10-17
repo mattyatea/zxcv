@@ -28,10 +28,7 @@ export async function createJWT(
 	return jwt;
 }
 
-export async function verifyJWT(
-	token: string,
-	env: Env,
-): Promise<JWTPayload | null> {
+export async function verifyJWT(token: string, env: Env): Promise<JWTPayload | null> {
 	try {
 		const secret = new TextEncoder().encode(env.JWT_SECRET);
 		const { payload } = await jwtVerify(token, secret, {
@@ -39,11 +36,7 @@ export async function verifyJWT(
 		});
 
 		// Ensure payload has required fields
-		if (
-			payload.sub &&
-			typeof payload.email === "string" &&
-			typeof payload.username === "string"
-		) {
+		if (payload.sub && typeof payload.email === "string" && typeof payload.username === "string") {
 			return {
 				sub: payload.sub,
 				email: payload.email,
@@ -63,10 +56,7 @@ export async function verifyJWT(
 	}
 }
 
-export async function createRefreshToken(
-	userId: string,
-	env: Env,
-): Promise<string> {
+export async function createRefreshToken(userId: string, env: Env): Promise<string> {
 	const secret = new TextEncoder().encode(env.JWT_SECRET);
 
 	const refreshToken = await new SignJWT({ sub: userId, type: "refresh" })
@@ -78,10 +68,7 @@ export async function createRefreshToken(
 	return refreshToken;
 }
 
-export async function verifyRefreshToken(
-	token: string,
-	env: Env,
-): Promise<string | null> {
+export async function verifyRefreshToken(token: string, env: Env): Promise<string | null> {
 	try {
 		const secret = new TextEncoder().encode(env.JWT_SECRET);
 		const { payload } = await jwtVerify(token, secret, {
@@ -119,10 +106,7 @@ export async function generateToken(
 }
 
 // 新しい汎用的なトークン検証関数
-export async function verifyToken(
-	token: string,
-	secret: string,
-): Promise<Record<string, unknown>> {
+export async function verifyToken(token: string, secret: string): Promise<Record<string, unknown>> {
 	const secretKey = new TextEncoder().encode(secret);
 	const { payload } = await jwtVerify(token, secretKey, {
 		algorithms: ["HS256"],

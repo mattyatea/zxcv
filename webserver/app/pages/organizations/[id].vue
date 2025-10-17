@@ -198,14 +198,8 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import Avatar from "~/components/common/Avatar.vue";
 import { useRpc } from "~/composables/useRpc";
-import type {
-	GetOrganizationResponse,
-	OrganizationType,
-	RuleType,
-	UserType,
-} from "~/types/orpc";
+import type { GetOrganizationResponse, RuleType, UserType } from "~/types/orpc";
 
 definePageMeta({
 	middleware: "auth",
@@ -328,11 +322,7 @@ const removeMember = async (member: Member) => {
 	}
 };
 
-const handleMemberInvited = (_user: {
-	id: string;
-	username: string;
-	email: string | null;
-}) => {
+const handleMemberInvited = (_user: { id: string; username: string; email: string | null }) => {
 	// 招待が成功したらメンバーリストを再取得
 	if (activeTab.value === "members") {
 		fetchTabData("members");

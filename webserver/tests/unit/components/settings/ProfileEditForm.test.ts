@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfileEditForm from "~/app/components/settings/ProfileEditForm.vue";
 import type { UserProfile } from "~/app/types/user";
 
@@ -61,7 +61,7 @@ describe("ProfileEditForm", () => {
 
 		it("should initialize form with user data", () => {
 			wrapper = mountComponent();
-			
+
 			// Check if form inputs are initialized with user data
 			expect(wrapper.vm.form.displayName).toBe("Test User");
 			expect(wrapper.vm.form.bio).toBe("This is a test bio");
@@ -79,7 +79,7 @@ describe("ProfileEditForm", () => {
 			});
 
 			wrapper = mountComponent({ user: userWithNulls });
-			
+
 			expect(wrapper.vm.form.displayName).toBe("");
 			expect(wrapper.vm.form.bio).toBe("");
 			expect(wrapper.vm.form.location).toBe("");
@@ -226,9 +226,11 @@ describe("ProfileEditForm", () => {
 
 		it("should not emit event for oversized files", () => {
 			// Create a mock file that appears to be over 5MB
-			const mockFile = new File(["x".repeat(6 * 1024 * 1024)], "large-avatar.jpg", { type: "image/jpeg" });
-			Object.defineProperty(mockFile, 'size', { value: 6 * 1024 * 1024 });
-			
+			const mockFile = new File(["x".repeat(6 * 1024 * 1024)], "large-avatar.jpg", {
+				type: "image/jpeg",
+			});
+			Object.defineProperty(mockFile, "size", { value: 6 * 1024 * 1024 });
+
 			const mockEvent = {
 				target: {
 					files: [mockFile],
@@ -274,7 +276,7 @@ describe("ProfileEditForm", () => {
 
 			// Form inputs should be disabled
 			expect(wrapper.props("loading")).toBe(true);
-			
+
 			// Check if submit button shows loading state
 			expect(wrapper.vm.loading).toBe(true);
 		});
@@ -349,7 +351,7 @@ describe("ProfileEditForm", () => {
 			wrapper = mountComponent();
 
 			const specialChars = "特殊文字 & émojis 🎉 <script>alert('test')</script>";
-			
+
 			wrapper.vm.form.displayName = specialChars;
 			wrapper.vm.form.bio = specialChars;
 			wrapper.vm.form.location = specialChars;

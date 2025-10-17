@@ -1,12 +1,11 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-	checkOrganizationMembership,
-	canViewOrganizationRule,
-	canEditOrganizationRule,
 	canDeleteOrganizationRule,
+	canEditOrganizationRule,
+	canViewOrganizationRule,
+	checkOrganizationMembership,
 	isOrganizationOwner,
 } from "~/server/utils/organizations";
-import type { PrismaClient } from "@prisma/client";
 
 describe("organizations utilities", () => {
 	let mockPrisma: {
@@ -37,11 +36,7 @@ describe("organizations utilities", () => {
 
 			mockPrisma.organizationMember.findUnique.mockResolvedValue(mockMember);
 
-			const result = await checkOrganizationMembership(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await checkOrganizationMembership(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toEqual(mockMember);
 			expect(mockPrisma.organizationMember.findUnique).toHaveBeenCalledWith({
@@ -57,11 +52,7 @@ describe("organizations utilities", () => {
 		it("should return null when user is not a member", async () => {
 			mockPrisma.organizationMember.findUnique.mockResolvedValue(null);
 
-			const result = await checkOrganizationMembership(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await checkOrganizationMembership(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toBeNull();
 		});
@@ -78,11 +69,7 @@ describe("organizations utilities", () => {
 					joinedAt: 1234567890,
 				});
 
-				const result = await checkOrganizationMembership(
-					mockPrisma as any,
-					"user_123",
-					"org_123",
-				);
+				const result = await checkOrganizationMembership(mockPrisma as any, "user_123", "org_123");
 
 				expect(result?.role).toBe(role);
 			}
@@ -102,11 +89,7 @@ describe("organizations utilities", () => {
 					joinedAt: 1234567890,
 				});
 
-				const result = await canViewOrganizationRule(
-					mockPrisma as any,
-					"user_123",
-					"org_123",
-				);
+				const result = await canViewOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 				expect(result).toBe(true);
 			}
@@ -115,11 +98,7 @@ describe("organizations utilities", () => {
 		it("should return false when user is not a member", async () => {
 			mockPrisma.organizationMember.findUnique.mockResolvedValue(null);
 
-			const result = await canViewOrganizationRule(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await canViewOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toBe(false);
 		});
@@ -138,11 +117,7 @@ describe("organizations utilities", () => {
 					joinedAt: 1234567890,
 				});
 
-				const result = await canEditOrganizationRule(
-					mockPrisma as any,
-					"user_123",
-					"org_123",
-				);
+				const result = await canEditOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 				expect(result).toBe(true);
 			}
@@ -157,11 +132,7 @@ describe("organizations utilities", () => {
 				joinedAt: 1234567890,
 			});
 
-			const result = await canEditOrganizationRule(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await canEditOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toBe(false);
 		});
@@ -169,11 +140,7 @@ describe("organizations utilities", () => {
 		it("should return false when user is not a member", async () => {
 			mockPrisma.organizationMember.findUnique.mockResolvedValue(null);
 
-			const result = await canEditOrganizationRule(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await canEditOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toBe(false);
 		});
@@ -192,11 +159,7 @@ describe("organizations utilities", () => {
 					joinedAt: 1234567890,
 				});
 
-				const result = await canDeleteOrganizationRule(
-					mockPrisma as any,
-					"user_123",
-					"org_123",
-				);
+				const result = await canDeleteOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 				expect(result).toBe(true);
 			}
@@ -214,11 +177,7 @@ describe("organizations utilities", () => {
 					joinedAt: 1234567890,
 				});
 
-				const result = await canDeleteOrganizationRule(
-					mockPrisma as any,
-					"user_123",
-					"org_123",
-				);
+				const result = await canDeleteOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 				expect(result).toBe(false);
 			}
@@ -227,11 +186,7 @@ describe("organizations utilities", () => {
 		it("should return false when user is not a member", async () => {
 			mockPrisma.organizationMember.findUnique.mockResolvedValue(null);
 
-			const result = await canDeleteOrganizationRule(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await canDeleteOrganizationRule(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toBe(false);
 		});
@@ -247,11 +202,7 @@ describe("organizations utilities", () => {
 				joinedAt: 1234567890,
 			});
 
-			const result = await isOrganizationOwner(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await isOrganizationOwner(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toBe(true);
 		});
@@ -268,11 +219,7 @@ describe("organizations utilities", () => {
 					joinedAt: 1234567890,
 				});
 
-				const result = await isOrganizationOwner(
-					mockPrisma as any,
-					"user_123",
-					"org_123",
-				);
+				const result = await isOrganizationOwner(mockPrisma as any, "user_123", "org_123");
 
 				expect(result).toBe(false);
 			}
@@ -281,11 +228,7 @@ describe("organizations utilities", () => {
 		it("should return false when user is not a member", async () => {
 			mockPrisma.organizationMember.findUnique.mockResolvedValue(null);
 
-			const result = await isOrganizationOwner(
-				mockPrisma as any,
-				"user_123",
-				"org_123",
-			);
+			const result = await isOrganizationOwner(mockPrisma as any, "user_123", "org_123");
 
 			expect(result).toBe(false);
 		});

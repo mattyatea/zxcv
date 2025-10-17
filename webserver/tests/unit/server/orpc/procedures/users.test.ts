@@ -1,8 +1,7 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { ORPCError, call } from "@orpc/server";
+import { call, ORPCError } from "@orpc/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getPublicProfile, searchByUsername } from "~/server/orpc/procedures/users";
 import { createMockContext } from "~/tests/helpers/mocks";
-import { getPublicProfile } from "~/server/orpc/procedures/users";
-import { searchByUsername } from "~/server/orpc/procedures/users";
 
 // Helper to create mock user
 function createMockUser(overrides: Partial<any> = {}) {
@@ -198,9 +197,7 @@ describe("users procedures", () => {
 			mockPrisma.user.findUnique.mockResolvedValue(null);
 
 			// Call the procedure and expect error - using expect().rejects pattern from docs
-			await expect(
-				call(getPublicProfile, validInput)
-			).rejects.toThrow(ORPCError);
+			await expect(call(getPublicProfile, validInput)).rejects.toThrow(ORPCError);
 
 			// Verify database call (select clause removed as UserPackingService doesn't use it)
 			expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({

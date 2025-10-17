@@ -6,9 +6,9 @@ import { applyD1Migrations, env } from "cloudflare:test";
 // applied, therefore it is safe to call this function here.
 console.log("Applying migrations...");
 try {
-  await applyD1Migrations(env.DB, env.MIGRATIONS);
-  console.log("Migrations applied successfully");
+	await applyD1Migrations(env.DB, env.MIGRATIONS);
+	console.log("Migrations applied successfully");
 } catch (error) {
-  console.error("Failed to apply migrations:", error);
-  throw error;
+	console.error("Failed to apply migrations:", error);
+	throw error;
 }

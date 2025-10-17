@@ -47,8 +47,7 @@ export class EmailVerificationService {
 				userLocale,
 			};
 
-			const emailTemplate =
-				this.emailService.generateEmailVerificationEmail(emailData);
+			const emailTemplate = this.emailService.generateEmailVerificationEmail(emailData);
 
 			// Send email
 			return await this.emailService.sendEmail(emailTemplate);
@@ -105,10 +104,7 @@ export class EmailVerificationService {
 		}
 	}
 
-	async resendVerificationEmail(
-		email: string,
-		userLocale?: string,
-	): Promise<boolean> {
+	async resendVerificationEmail(email: string, userLocale?: string): Promise<boolean> {
 		try {
 			// Find user by email
 			const user = await this.prisma.user.findUnique({
