@@ -54,7 +54,9 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 		let content = "";
 		if (existsSync(targetFile)) {
 			content = readFileSync(targetFile, "utf-8");
+		// biome-ignore lint/style/useCollapsedElseIf: Nested condition checks different variable
 		} else {
+		} else 
 			// .git/info/exclude の場合、ディレクトリを作成
 			if (ignoreType === "exclude") {
 				const infoDir = dirname(targetFile);
@@ -62,7 +64,6 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 					mkdirSync(infoDir, { recursive: true });
 				}
 			}
-		}
 
 		// 既存のエントリをチェック
 		const lines = content.split("\n");

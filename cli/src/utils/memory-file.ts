@@ -123,6 +123,7 @@ export class MemoryFileManager {
 		let skipMode = false;
 		let ruleFound = false;
 
+		// biome-ignore lint/style/useForOf: Index iteration is clearer for this use case
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
 

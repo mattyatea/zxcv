@@ -1,7 +1,6 @@
 import { ORPCError } from "@orpc/server";
 import type { PrismaClient, ReportReason, ReportStatus } from "@prisma/client";
 import {
-	type CreateReportInput,
 	type ListReportsFilter,
 	ReportRepository,
 	RuleRepository,
@@ -18,7 +17,7 @@ export class ReportService {
 	private logger;
 
 	constructor(
-		private db: PrismaClient,
+		db: PrismaClient,
 		env: CloudflareEnv,
 	) {
 		this.reportRepository = new ReportRepository(db);

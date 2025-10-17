@@ -111,7 +111,6 @@ export class OrganizationRepository extends BaseRepository {
 		try {
 			await this.db.organizationMember.delete({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					organizationId_userId: {
 						organizationId: orgId,
 						userId,
@@ -134,7 +133,6 @@ export class OrganizationRepository extends BaseRepository {
 		try {
 			return await this.db.organizationMember.update({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					organizationId_userId: {
 						organizationId: orgId,
 						userId,
@@ -190,7 +188,6 @@ export class OrganizationRepository extends BaseRepository {
 		try {
 			const member = await this.db.organizationMember.findUnique({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					organizationId_userId: {
 						organizationId: orgId,
 						userId,
@@ -210,7 +207,6 @@ export class OrganizationRepository extends BaseRepository {
 		try {
 			return await this.db.organizationMember.findUnique({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma composite key format
 					organizationId_userId: {
 						organizationId: orgId,
 						userId,
@@ -229,7 +225,6 @@ export class OrganizationRepository extends BaseRepository {
 		try {
 			const member = await this.db.organizationMember.findUnique({
 				where: {
-					// biome-ignore lint/style/useNamingConvention: Prisma compound key
 					organizationId_userId: {
 						organizationId: orgId,
 						userId,

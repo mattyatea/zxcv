@@ -412,7 +412,6 @@ export class AuthService {
 		// OAuthアカウントが既に存在するかチェック
 		const existingOAuth = await this.db.oAuthAccount.findUnique({
 			where: {
-				// biome-ignore lint/style/useNamingConvention: Prisma compound key
 				provider_providerId: {
 					provider,
 					providerId: userInfo.id,
