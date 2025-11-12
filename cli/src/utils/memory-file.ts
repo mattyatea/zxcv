@@ -111,7 +111,9 @@ export class MemoryFileManager {
 
 	// ルールをメモリファイルから削除
 	public async removeRule(filePath: string, ruleName: string): Promise<void> {
-		if (!existsSync(filePath)) return;
+		if (!existsSync(filePath)) {
+			return;
+		}
 
 		const content = readFileSync(filePath, "utf-8");
 
@@ -121,6 +123,7 @@ export class MemoryFileManager {
 		let skipMode = false;
 		let ruleFound = false;
 
+		// biome-ignore lint/style/useForOf: Index iteration is clearer for this use case
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
 
@@ -235,7 +238,7 @@ export class MemoryFileManager {
 
 			// Agents.mdへの相対パスでシンボリックリンクを作成
 			symlinkSync("Agents.md", claudeFilePath);
-		} catch (error) {
+		} catch (_error) {
 			// シンボリックリンク作成に失敗しても処理を続行
 			// （Windows等、シンボリックリンクが作れない環境への対応）
 		}

@@ -1,0 +1,1 @@
+Root packages: `webserver/` (Nuxt 4 app + Cloudflare Worker with Prisma migrations under `prisma/`, tests under `tests/`), `cli/` (Bun-based CLI source in `src/`, scripts in `scripts/`, tests under `tests/`), `server/` (legacy/experimental worker build artifacts). Monorepo config via pnpm workspace; shared configs in root (.biome.json, etc.).

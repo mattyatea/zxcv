@@ -54,13 +54,11 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 		let content = "";
 		if (existsSync(targetFile)) {
 			content = readFileSync(targetFile, "utf-8");
-		} else {
+		} else if (ignoreType === "exclude") {
 			// .git/info/exclude の場合、ディレクトリを作成
-			if (ignoreType === "exclude") {
-				const infoDir = dirname(targetFile);
-				if (!existsSync(infoDir)) {
-					mkdirSync(infoDir, { recursive: true });
-				}
+			const infoDir = dirname(targetFile);
+			if (!existsSync(infoDir)) {
+				mkdirSync(infoDir, { recursive: true });
 			}
 		}
 

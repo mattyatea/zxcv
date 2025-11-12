@@ -11,7 +11,9 @@ export class Spinner {
 	}
 
 	start(): Spinner {
-		if (this.interval) return this;
+		if (this.interval) {
+			return this;
+		}
 
 		process.stdout.write("\x1B[?25l"); // Hide cursor
 		this.interval = setInterval(() => {

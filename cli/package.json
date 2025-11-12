@@ -1,6 +1,6 @@
 {
   "name": "cli",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "AI coding rules management CLI tool",
   "main": "dist/index.js",
   "bin": {
@@ -35,7 +35,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "2.1.2",
     "@types/bun": "latest",
     "@types/node": "^20.19.9",
     "typescript": "^5.8.3"

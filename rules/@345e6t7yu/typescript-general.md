@@ -1,1 +1,0 @@
-../../../../.zxcv/rules/@345e6t7yu/typescript-general.md

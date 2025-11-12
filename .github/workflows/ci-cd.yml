@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main, dev ]
   pull_request:
-    branches: [main, dev]
+    branches: [ main, dev ]
   workflow_dispatch:
 
 jobs:
@@ -50,27 +50,6 @@ jobs:
           APP_URL: http://localhost:3000
           ENVIRONMENT: test
 
-      - name: Security audit
-        run: |
-          echo "🔍 Running security audit..."
-          
-          # Run security audit and capture results
-          if pnpm audit --audit-level moderate --json > audit-results.json 2>&1; then
-            echo "✅ No security vulnerabilities found at moderate level or above"
-          else
-            echo "⚠️ Security vulnerabilities detected:"
-            cat audit-results.json | jq -r '.vulnerabilities | to_entries[] | "- \(.key): \(.value.severity) severity"' || echo "Failed to parse audit results"
-          fi
-          
-          # Count vulnerabilities
-          VULN_COUNT=$(pnpm audit --json 2>/dev/null | jq '.vulnerabilities | length' 2>/dev/null || echo "0")
-          echo "Total vulnerabilities found: $VULN_COUNT"
-          
-          # Create audit summary
-          echo "Security audit completed at $(date)" >> security-audit.log
-          echo "Vulnerabilities: $VULN_COUNT" >> security-audit.log
-        continue-on-error: true
-
   # Build verification
   build:
     name: Build Verification
@@ -89,12 +68,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            .nuxt
-            .output
-            server/.nuxt
-            server/.output
+            webserver/.nuxt
+            webserver/.output
             node_modules/.cache
-          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml', 'server/**/*.ts', 'server/**/*.vue') }}
+          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml', 'webserver/**/*.ts', 'webserver/**/*.vue') }}
           restore-keys: |
             ${{ runner.os }}-nuxt-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
             ${{ runner.os }}-nuxt-build-
@@ -104,9 +81,9 @@ jobs:
 
       - name: Verify build output
         run: |
-          if [ -d "server/.output" ]; then
+          if [ -d "webserver/.output" ]; then
             echo "✅ Build output directory exists"
-            ls -la server/.output/
+            ls -la webserver/.output/
           else
             echo "❌ Build output directory not found"
             exit 1
@@ -116,7 +93,7 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [quality, build]
+    needs: [ quality, build ]
     if: github.ref == 'refs/heads/dev'
     environment:
       name: staging
@@ -130,7 +107,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build for staging
-        run: pnpm run build:server
+        run: pnpm --filter webserver run build:staging
 
       - name: Run database migrations
         uses: cloudflare/wrangler-action@v3
@@ -138,7 +115,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply zxcv-staging --remote --env staging
-          workingDirectory: server
+          workingDirectory: webserver
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
@@ -146,7 +123,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --env staging
-          workingDirectory: server
+          workingDirectory: webserver
           secrets: |
             JWT_SECRET
             GOOGLE_CLIENT_ID
@@ -164,9 +141,9 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [quality, build]
+    needs: [ quality, build ]
     if: github.ref == 'refs/heads/main'
-    environment: 
+    environment:
       name: production
       url: https://zxcv.nanasi-apps.xyz
 
@@ -178,23 +155,23 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build for production
-        run: pnpm run build:server
+        run: pnpm --filter webserver run build
 
       - name: Run database migrations
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply zxcv-db --remote
-          workingDirectory: server
+          command: d1 migrations apply zxcv-db --remote --env=""
+          workingDirectory: webserver
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
-          workingDirectory: server
+          command: deploy --env=""
+          workingDirectory: webserver
           secrets: |
             JWT_SECRET
             GOOGLE_CLIENT_ID

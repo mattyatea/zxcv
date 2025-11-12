@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { createHash } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { $ } from "bun";
 
@@ -26,8 +26,27 @@ const platforms = [
 	},
 ];
 
-const distDir = resolve(import.meta.dir, "..", "dist");
+const _distDir = resolve(import.meta.dir, "..", "dist");
 const releaseDir = resolve(import.meta.dir, "..", "release");
+
+// Read version from package.json
+const packageJsonPath = resolve(import.meta.dir, "..", "package.json");
+const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+const version = packageJson.version;
+
+// Update version in src/index.ts
+const indexPath = resolve(import.meta.dir, "..", "src", "index.ts");
+let indexContent = readFileSync(indexPath, "utf-8");
+const versionRegex = /const VERSION = "[\d.]+(-[a-zA-Z0-9.]+)?";/;
+const newVersionLine = `const VERSION = "${version}";`;
+
+if (versionRegex.test(indexContent)) {
+	indexContent = indexContent.replace(versionRegex, newVersionLine);
+	writeFileSync(indexPath, indexContent, "utf-8");
+	console.log(`✅ Updated version in src/index.ts to ${version}`);
+} else {
+	console.warn("⚠️  Could not find VERSION constant in src/index.ts");
+}
 
 // Create directories if they don't exist
 if (!existsSync(releaseDir)) {
@@ -35,6 +54,7 @@ if (!existsSync(releaseDir)) {
 }
 
 console.log("🚀 Building zxcv CLI for multiple platforms...");
+console.log(`Version: ${version}`);
 console.log("Source: src/index.ts");
 console.log(`Output directory: ${releaseDir}\n`);
 

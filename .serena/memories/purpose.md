@@ -1,0 +1,1 @@
+zxcv is a pnpm-managed monorepo for tooling that centralizes AI coding rules. It ships a Cloudflare-hosted Nuxt web app for browsing/sharing rules and a Bun-compiled CLI for managing rules locally.

@@ -8,6 +8,8 @@ import { promptGitIgnoreOnInstall } from "../utils/gitignore";
 import { MemoryFileManager } from "../utils/memory-file";
 import { promptMemoryFile } from "../utils/prompt";
 import { ora } from "../utils/spinner.js";
+import { hasTemplateVariables } from "../utils/template";
+import { processTemplateContent } from "../utils/template-prompt";
 
 export function createInstallCommand(): Command {
 	return new Command("install")
@@ -18,15 +20,46 @@ export function createInstallCommand(): Command {
 		.option("-f, --force", "Force install even if rule already exists")
 		.option("--file <path>", "Specify memory file to record the rule")
 		.option("--no-warn", "Don't show warnings for non-project files")
+		.option("--no-template", "Skip template processing and keep variables as is")
+		.allowUnknownOption() // Allow dynamic template variables like --language, --format, etc.
 		.action(
 			async (
 				path?: string,
-				options?: { frozenLockfile?: boolean; force?: boolean; file?: string; noWarn?: boolean },
+				options?: {
+					frozenLockfile?: boolean;
+					force?: boolean;
+					file?: string;
+					noWarn?: boolean;
+					template?: boolean;
+					// Template variable options (dynamic key-value pairs)
+					[key: string]: string | boolean | undefined;
+				},
 			) => {
 				const config = new ConfigManager();
 				const api = new ApiClient(config);
 				const fileManager = new FileManager(config);
 				const memoryManager = new MemoryFileManager(config);
+
+				// Parse raw arguments for template variables (Commander drops unknown options)
+				const rawArgs = process.argv.slice(2);
+				const templateOptions: Record<string, string> = {};
+
+				// Extract --key value pairs that aren't reserved options
+				const reservedOptions = ["frozen-lockfile", "force", "file", "no-warn", "no-template"];
+				for (let i = 0; i < rawArgs.length; i++) {
+					const arg = rawArgs[i];
+					if (arg.startsWith("--") && !arg.startsWith("--no-")) {
+						const key = arg.substring(2);
+						if (
+							!reservedOptions.includes(key) &&
+							i + 1 < rawArgs.length &&
+							!rawArgs[i + 1].startsWith("-")
+						) {
+							templateOptions[key] = rawArgs[i + 1];
+							i++; // Skip next arg as it's the value
+						}
+					}
+				}
 
 				// If path is provided, install single rule
 				if (path) {
@@ -89,15 +122,36 @@ export function createInstallCommand(): Command {
 						// Get rule content with specific version if requested
 						const targetVersion = requestedVersion || rule.version;
 						spinner.text(`Downloading rule content (version ${targetVersion})...`);
-						const { content, version } = await api.getRuleContent(rule.id, requestedVersion);
+						let { content, version } = await api.getRuleContent(rule.id, requestedVersion);
 
 						// Update rule object with the actual version from content response
 						if (requestedVersion) {
 							rule.version = version;
 						}
 
-						// Save rule
-						spinner.text("Saving rule...");
+						// Process template variables if enabled
+						if (options?.template !== false && hasTemplateVariables(content)) {
+							spinner.stop();
+
+							try {
+								// Process template content (prompt for missing variables)
+								// Use templateOptions parsed from raw args above
+								content = await processTemplateContent(content, templateOptions, true);
+							} catch (error) {
+								// Handle user cancellation
+								if (error instanceof Error && error.message.includes("cancelled")) {
+									spinner.fail(chalk.yellow("Installation cancelled"));
+									return;
+								}
+								throw error;
+							}
+
+							spinner.text("Saving rule...");
+							spinner.start();
+						} else {
+							spinner.text("Saving rule...");
+						}
+
 						const pulledRule = fileManager.saveRule(rule, content);
 
 						// Update metadata

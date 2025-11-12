@@ -15,7 +15,9 @@ const testFile = join(testDir, "CLAUDE.md");
 
 // Helper to access private methods for testing
 const getPrivateMethods = (manager: MemoryFileManager) =>
-	manager as unknown as { parseRuleName: (name: string) => { name: string; owner?: string } };
+	manager as unknown as {
+		parseRuleName: (name: string) => { name: string; owner?: string };
+	};
 
 describe("MemoryFileManager", () => {
 	let memoryManager: MemoryFileManager;

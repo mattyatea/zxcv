@@ -1,0 +1,1 @@
+Primary language is TypeScript. Web app uses Nuxt 4, Hono end-points, Prisma with Cloudflare D1, Pinia, Tailwind, deployed via Cloudflare Workers (wrangler). CLI is a Bun-based TypeScript binary compiled with `bun build`. Monorepo tooling relies on pnpm and Vitest/Playwright for tests.

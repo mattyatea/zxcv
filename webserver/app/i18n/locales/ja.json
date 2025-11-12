@@ -1,0 +1,1031 @@
+{
+	"app": {
+		"name": "zxcv"
+	},
+	"common": {
+		"loading": "読み込み中...",
+		"save": "保存",
+		"cancel": "キャンセル",
+		"delete": "削除",
+		"edit": "編集",
+		"create": "作成",
+		"update": "更新",
+		"search": "検索",
+		"back": "戻る",
+		"next": "次へ",
+		"previous": "前へ",
+		"confirm": "確認",
+		"yes": "はい",
+		"no": "いいえ",
+		"or": "または",
+		"and": "と",
+		"all": "すべて",
+		"none": "なし",
+		"select": "選択",
+		"close": "閉じる",
+		"open": "開く",
+		"download": "ダウンロード",
+		"upload": "アップロード",
+		"share": "共有",
+		"copy": "コピー",
+		"copied": "コピーしました",
+		"error": "エラー",
+		"success": "成功",
+		"warning": "警告",
+		"info": "情報",
+		"required": "必須",
+		"optional": "任意",
+		"updatedAt": "更新日",
+		"providers": {
+			"google": "Google",
+			"github": "GitHub"
+		},
+		"dates": {
+			"today": "今日",
+			"yesterday": "昨日",
+			"daysAgo": "{days}日前",
+			"weeksAgo": "{weeks}週間前",
+			"monthsAgo": "{months}ヶ月前",
+			"yearsAgo": "{years}年前"
+		}
+	},
+	"nav": {
+		"home": "ホーム",
+		"rules": "ルール",
+		"install": "インストール",
+		"myRules": "マイルール",
+		"myOrganizations": "マイ組織",
+		"quickAccess": "クイックアクセス",
+		"organizations": "組織",
+		"profile": "プロフィール",
+		"settings": "設定",
+		"logout": "ログアウト",
+		"login": "ログイン",
+		"register": "新規登録",
+		"guides": "ガイド"
+	},
+	"auth": {
+		"login": {
+			"title": "アカウントにログイン",
+			"subtitle": "まだアカウントをお持ちでない方は",
+			"email": "メールアドレス",
+			"password": "パスワード",
+			"rememberMe": "ログイン状態を保持",
+			"forgotPassword": "パスワードを忘れた方",
+			"loginButton": "ログイン",
+			"loggingIn": "ログイン中...",
+			"loginWith": "{provider}でログイン",
+			"errors": {
+				"invalidCredentials": "メールアドレスまたはパスワードが正しくありません",
+				"emailNotVerified": "メールアドレスを確認してからログインしてください。",
+				"generalError": "ログインに失敗しました"
+			},
+			"validation": {
+				"emailRequired": "メールアドレスを入力してください",
+				"emailInvalid": "有効なメールアドレスを入力してください",
+				"passwordRequired": "パスワードを入力してください"
+			}
+		},
+		"register": {
+			"title": "アカウントを作成",
+			"subtitle": "すでにアカウントをお持ちの方は",
+			"username": "ユーザー名",
+			"email": "メールアドレス",
+			"password": "パスワード",
+			"confirmPassword": "パスワード（確認）",
+			"agreeToTerms": "利用規約に同意します",
+			"registerButton": "アカウントを作成",
+			"registering": "作成中...",
+			"registerWith": "{provider}で登録",
+			"errors": {
+				"emailExists": "このメールアドレスは既に使用されています",
+				"usernameExists": "このユーザー名は既に使用されています",
+				"generalError": "アカウントの作成に失敗しました",
+				"emailSendFailed": "登録に失敗しました。確認メールを送信できませんでした。サポートにお問い合わせください。"
+			},
+			"validation": {
+				"usernameRequired": "ユーザー名を入力してください",
+				"usernameLength": "ユーザー名は3文字以上20文字以下で入力してください",
+				"usernamePattern": "ユーザー名は英数字とアンダースコアのみ使用できます",
+				"emailRequired": "メールアドレスを入力してください",
+				"emailInvalid": "有効なメールアドレスを入力してください",
+				"passwordRequired": "パスワードを入力してください",
+				"passwordLength": "パスワードは8文字以上で入力してください",
+				"passwordMismatch": "パスワードが一致しません",
+				"termsRequired": "利用規約に同意してください"
+			},
+			"success": "登録が完了しました。メールを確認してアカウントを有効化してください。"
+		},
+		"forgotPassword": {
+			"title": "パスワードリセット",
+			"subtitle": "登録したメールアドレスを入力してください",
+			"email": "メールアドレス",
+			"sendButton": "リセットリンクを送信",
+			"sending": "送信中...",
+			"backToLogin": "ログインに戻る",
+			"success": "パスワードリセットのメールを送信しました",
+			"error": "メールの送信に失敗しました"
+		},
+		"verifyEmail": {
+			"title": "メールアドレスの確認",
+			"verifying": "確認中...",
+			"success": "メールアドレスが確認されました",
+			"error": "確認に失敗しました",
+			"invalidToken": "無効なトークンです",
+			"goToLogin": "ログインへ"
+		}
+	},
+	"home": {
+		"hero": {
+			"badge": "AIコーディングルール管理の新しいスタンダード",
+			"title": "コーディングルールを",
+			"titleHighlight": "共有・管理・活用",
+			"description": "組織全体でコーディング規約を統一。AIに最適化されたルール管理で、開発効率を最大化します。",
+			"viewRules": "ルールを見る",
+			"getStarted": "無料で始める"
+		},
+		"features": {
+			"title": "FEATURES",
+			"subtitle": "組織開発に必要なすべての機能",
+			"description": "コード品質を保ちながら、開発スピードを向上させる機能を提供",
+			"versionControl": {
+				"title": "バージョン管理",
+				"description": "ルールの変更履歴を自動的に記録。いつでも過去のバージョンに戻すことができます。"
+			},
+			"organizationCollaboration": {
+				"title": "組織連携",
+				"description": "組織メンバーと簡単に共有。権限管理で安全にルールを管理できます。"
+			},
+			"aiOptimized": {
+				"title": "AI最適化",
+				"description": "AI開発ツールに最適化された形式でルールを出力。開発効率を向上させます。"
+			},
+			"search": {
+				"title": "高度な検索",
+				"description": "タグ、内容、作成者で瞬時に検索。必要なルールをすぐに見つけられます。"
+			},
+			"accessControl": {
+				"title": "アクセス制御",
+				"description": "きめ細かな権限設定で、チームのセキュリティを保ちながら協力できます。"
+			},
+			"api": {
+				"title": "API連携",
+				"description": "RESTful APIで既存のワークフローに統合。自動化と効率化を実現します。"
+			}
+		},
+		"cta": {
+			"title": "今すぐ始めよう",
+			"description": "無料アカウントを作成して、組織のコーディングルールを管理しましょう",
+			"button": "無料で始める"
+		}
+	},
+	"rules": {
+		"pageTitle": "ルール一覧",
+		"title": "ルール",
+		"subtitle": "AIコーディングルールを検索・共有",
+		"myRules": "マイルール",
+		"publicRules": "公開ルール",
+		"organizationRules": "組織ルール",
+		"createRule": "新規ルール作成",
+		"createNewRule": "新しいルールを作成",
+		"createFirstRule": "最初のルールを作成しましょう",
+		"creating": "作成中...",
+		"searchPlaceholder": "ルールを検索...",
+		"noRulesFound": "ルールが見つかりません",
+		"popularTags": "人気のタグ",
+		"basicInfo": "基本情報",
+		"ruleContent": "ルールの内容",
+		"agentContent": "エージェントの内容",
+		"shareWithCommunity": "コミュニティと共有して、みんなで開発効率を向上させましょう",
+		"visibility": {
+			"all": "すべて",
+			"public": "公開",
+			"private": "非公開",
+			"organization": "組織限定"
+		},
+		"type": {
+			"rule": "ルール",
+			"ccsubagents": "Claude Code Subagents"
+		},
+		"actions": {
+			"view": "表示",
+			"edit": "編集",
+			"delete": "削除",
+			"share": "共有",
+			"duplicate": "複製",
+			"download": "ダウンロード",
+			"version": "バージョン",
+			"copyRule": "ルールをコピー",
+			"copied": "コピーしました",
+			"star": "スター",
+			"starred": "スター済み",
+			"copyUrl": "URLをコピー",
+			"shareOnX": "Xでシェア",
+			"copyMarkdown": "Markdownでコピー"
+		},
+		"template": {
+			"title": "テンプレート変数が検出されました",
+			"description": "このルールにはテンプレート変数が含まれています。値を入力してカスタマイズできます。",
+			"placeholder": "{name} の値を入力",
+			"apply": "テンプレートを適用",
+			"clear": "すべてクリア",
+			"rendered": "レンダリング済みコンテンツ",
+			"original": "元のテンプレート",
+			"applied": "テンプレートを適用しました",
+			"applyError": "テンプレートの適用に失敗しました"
+		},
+		"form": {
+			"name": "ルール名",
+			"namePlaceholder": "例: next-js-best-practices",
+			"nameHint": "URLに使用される識別子です。英数字とハイフンのみ使用可能。",
+			"type": "タイプ",
+			"typeOptions": {
+				"rule": "AIコーディングルール",
+				"ccsubagents": "Claude Code Subagents"
+			},
+			"typeHint": "保存するコンテンツの種類を選択してください。",
+			"description": "説明",
+			"descriptionPlaceholder": "このルールの目的や使い方を説明してください",
+			"content": "内容",
+			"contentPlaceholder": "# ルールの内容\n\nここにコーディングルールを記述します...\n\n## 例\n\n```javascript\n// コード例\n```",
+			"agentContentPlaceholder": "# Subagent定義\n\nこのSubagentの役割と動作を定義します...\n\n## 能力\n- タスク処理\n- コード生成\n\n## 使用例\n```\n// エージェントの使用例\n```",
+			"tags": "タグ",
+			"tagsPlaceholder": "タグを入力してEnter",
+			"addTag": "タグを追加",
+			"visibility": "公開設定",
+			"visibilityOptions": {
+				"public": "公開 - 誰でも閲覧可能",
+				"private": "非公開 - 自分だけが閲覧可能"
+			},
+			"team": "組織",
+			"organization": "組織",
+			"noOrganization": "組織なし",
+			"organizationHint": "組織を選択すると、その組織のメンバーがルールを編集できます。",
+			"urlPreview": "URL プレビュー:",
+			"markdownSupported": "Markdown形式をサポートしています",
+			"ruleHint": "AIコーディング用のルールやガイドラインを定義します",
+			"agentHint": "Claude Code用のSubagentを定義します",
+			"agentTemplateHint": "Subagentテンプレートについては、Claude Code公式ドキュメントをご参照ください",
+			"agentTemplate": "テンプレート",
+			"selectTemplate": "テンプレートを選択",
+			"templateHint": "テンプレートを選択すると、サンプルコードが挿入されます",
+			"uploadMarkdown": "Markdownファイルをアップロード",
+			"writeDirectly": "直接入力する",
+			"basicInfo": "基本情報"
+		},
+		"messages": {
+			"created": "ルールを作成しました",
+			"updated": "ルールを更新しました",
+			"deleted": "ルールを削除しました",
+			"deleteConfirm": "このルールを削除してもよろしいですか？",
+			"deleteError": "ルールの削除に失敗しました",
+			"copyError": "コピーに失敗しました",
+			"copied": "コピーしました",
+			"viewingVersion": "バージョン {version} を表示しています",
+			"versionFetchError": "バージョンの取得に失敗しました",
+			"fetchError": "ルールの取得に失敗しました",
+			"cliCommandCopied": "CLIコマンドをコピーしました"
+		},
+		"detail": {
+			"notFound": "ルールが見つかりません",
+			"backToList": "ルール一覧に戻る",
+			"versionHistory": "バージョン履歴",
+			"latest": "最新",
+			"currentlyViewing": "現在表示中",
+			"viewLatestVersion": "最新バージョンを表示",
+			"viewingOldVersion": "バージョン {version} を表示しています（古いバージョン）",
+			"relatedRules": "関連するルール",
+			"notFoundDescription": "お探しのルールが見つかりませんでした。",
+			"stars": "スター",
+			"views": "ビュー",
+			"actions": "アクション",
+			"tags": "タグ",
+			"author": "作成者",
+			"rulesPublished": "{count} ルール公開",
+			"deleteConfirmDescription": "このルールを削除してもよろしいですか？この操作は取り消せません。",
+			"raw": "Raw",
+			"preview": "Preview",
+			"viewing": "表示中",
+			"loginRequired": "スターを付けるにはログインが必要です",
+			"starError": "スターの追加に失敗しました",
+			"unstarError": "スターの解除に失敗しました",
+			"cliCommand": "CLIコマンド",
+			"cliDescription": "zxcv CLIを使用してこのルールをインストールできます",
+			"organization": "組織",
+			"updatedBy": "更新者"
+		},
+		"edit": {
+			"title": "ルールを編集",
+			"unsavedChanges": "未保存の変更があります",
+			"update": "更新する",
+			"showPreview": "プレビューを表示",
+			"hidePreview": "プレビューを非表示",
+			"changeLog": "変更履歴",
+			"changeLogPlaceholder": "このバージョンでの変更内容を記述してください",
+			"incrementMajorVersion": "メジャーバージョンを上げる"
+		},
+		"sort": {
+			"recentlyUpdated": "最近更新された順",
+			"recentlyCreated": "最近作成された順",
+			"alphabetical": "名前順",
+			"views": "ビュー数順",
+			"stars": "スター数順"
+		},
+		"filters": {
+			"visibility": "公開範囲",
+			"type": "タイプ",
+			"sortBy": "並び順",
+			"author": "作成者",
+			"authorPlaceholder": "ユーザー名で絞り込み",
+			"popularTags": "人気のタグ",
+			"clearTags": "タグをクリア",
+			"activeFilters": "アクティブなフィルター",
+			"resetAll": "すべてリセット"
+		},
+		"itemsCount": "({count}件)",
+		"gridView": "グリッドビュー",
+		"listView": "リストビュー",
+		"noRulesMessage": "現在のフィルター条件に一致するルールが見つかりませんでした。条件を変更してお試しください。",
+		"showing": "全{total}件中 {start} - {end}件を表示",
+		"searchHint": "または {key} で検索",
+		"templates": {
+			"codeReviewer": "コードレビュー",
+			"testGenerator": "テスト生成",
+			"docWriter": "ドキュメント作成",
+			"generalHelper": "汎用アシスタント"
+		}
+	},
+	"profile": {
+		"title": "プロフィール",
+		"editProfile": "プロフィールを編集",
+		"username": "ユーザー名",
+		"email": "メールアドレス",
+		"bio": "自己紹介",
+		"website": "ウェブサイト",
+		"joined": "登録日",
+		"backToHome": "ホームに戻る",
+		"registeredDate": "登録日",
+		"publicRules": "公開ルール",
+		"totalStars": "獲得スター",
+		"noPublicRules": "まだ公開されたルールはありません",
+		"userProfile": "ユーザープロフィール",
+		"userNotFound": "ユーザーが見つかりません",
+		"userNotFoundDesc": "指定されたユーザーは存在しないか、削除された可能性があります。",
+		"emailVerified": "メール認証済み",
+		"emailNotVerified": "メール未認証",
+		"createdRules": "作成したルール",
+		"belongingOrganizations": "所属組織",
+		"registrationDate": "登録日",
+		"recentActivity": "最近のアクティビティ",
+		"noActivityYet": "まだアクティビティがありません",
+		"changeAvatar": "アバターを変更",
+		"avatarChangeComingSoon": "アバター画像の変更は近日実装予定",
+		"usernameHint": "英数字、ハイフン、アンダースコアのみ使用可能",
+		"emailChangeWarning": "メールアドレスを変更すると再認証が必要になります",
+		"changePassword": "パスワードを変更",
+		"currentPassword": "現在のパスワード",
+		"newPassword": "新しいパスワード",
+		"newPasswordConfirm": "新しいパスワード（確認）",
+		"passwordHint": "8文字以上で設定してください",
+		"update": "更新",
+		"change": "変更",
+		"placeholders": {
+			"username": "username",
+			"email": "email@example.com",
+			"currentPassword": "現在のパスワードを入力",
+			"newPassword": "新しいパスワードを入力",
+			"newPasswordConfirm": "新しいパスワードを再入力"
+		},
+		"errors": {
+			"noUsername": "ユーザー名が指定されていません",
+			"loadFailed": "プロフィールの読み込みに失敗しました",
+			"usernameRequired": "ユーザー名は必須です",
+			"usernameInvalid": "英数字、ハイフン、アンダースコアのみ使用可能です",
+			"usernameMinLength": "3文字以上で入力してください",
+			"emailRequired": "メールアドレスは必須です",
+			"emailInvalid": "有効なメールアドレスを入力してください",
+			"passwordMinLength": "パスワードは8文字以上で設定してください",
+			"passwordMismatch": "パスワードが一致しません",
+			"usernameOrEmailTaken": "そのユーザー名またはメールアドレスは既に使用されています",
+			"updateFailed": "プロフィールの更新に失敗しました",
+			"wrongCurrentPassword": "現在のパスワードが正しくありません",
+			"passwordChangeFailed": "パスワードの変更に失敗しました"
+		},
+		"success": {
+			"profileUpdated": "プロフィールを更新しました",
+			"passwordChanged": "パスワードを変更しました"
+		},
+		"stats": {
+			"rules": "ルール",
+			"organizations": "組織",
+			"contributions": "貢献"
+		}
+	},
+	"settings": {
+		"title": "設定",
+		"tabs": {
+			"profile": "プロフィール",
+			"account": "アカウント",
+			"security": "セキュリティ",
+			"notifications": "通知",
+			"preferences": "環境設定"
+		},
+		"profile": {
+			"title": "プロフィール情報",
+			"avatar": "アバター画像",
+			"avatarAlt": "プロフィールのアバター画像",
+			"changeAvatar": "変更",
+			"avatarHint": "JPG、PNG、GIF、WebP（最大5MB）",
+			"displayName": "表示名",
+			"displayNamePlaceholder": "あなたの名前",
+			"bio": "自己紹介",
+			"bioPlaceholder": "あなたについて少し教えてください",
+			"location": "場所",
+			"locationPlaceholder": "東京, 日本",
+			"website": "ウェブサイト",
+			"websitePlaceholder": "https://example.com",
+			"save": "変更を保存",
+			"saving": "保存中...",
+			"errors": {
+				"invalidFileType": "サポートされていないファイル形式です。JPEG、PNG、GIF、WebP形式のみアップロード可能です。",
+				"fileTooLarge": "ファイルサイズが大きすぎます。5MB以下のファイルをアップロードしてください。"
+			}
+		},
+		"account": {
+			"title": "アカウント設定",
+			"placeholder": "アカウント設定機能は近日実装予定です。"
+		},
+		"security": {
+			"title": "セキュリティ設定",
+			"placeholder": "セキュリティ設定機能は近日実装予定です。",
+			"changePassword": "パスワードを変更",
+			"twoFactor": "二要素認証",
+			"apiKeys": "APIキー",
+			"deleteAccount": "アカウントを削除"
+		},
+		"success": {
+			"profileUpdated": "プロフィールを更新しました",
+			"avatarUploaded": "アバター画像を更新しました"
+		},
+		"error": {
+			"fetchProfile": "プロフィールの取得に失敗しました",
+			"updateProfile": "プロフィールの更新に失敗しました",
+			"uploadAvatar": "アバター画像のアップロードに失敗しました",
+			"invalidImageType": "サポートされていない画像形式です",
+			"imageTooLarge": "画像サイズが5MBを超えています"
+		},
+		"language": "言語",
+		"theme": "テーマ",
+		"notifications": "通知",
+		"preferences": "環境設定"
+	},
+	"errors": {
+		"notFound": "ページが見つかりません",
+		"unauthorized": "認証が必要です",
+		"forbidden": "アクセス権限がありません",
+		"serverError": "サーバーエラーが発生しました",
+		"networkError": "ネットワークエラーが発生しました",
+		"unknownError": "エラーが発生しました",
+		"oauth": {
+			"authFailed": "OAuth認証に失敗しました",
+			"missingParams": "必要なパラメータが不足しています",
+			"invalidCode": "無効な認証コードです",
+			"invalidState": "無効なstateパラメータです",
+			"accessDenied": "ユーザーがアクセスを拒否しました",
+			"invalidRequest": "無効なリクエストです",
+			"unauthorizedClient": "認証されていないクライアントです",
+			"unsupportedResponseType": "サポートされていないレスポンスタイプです",
+			"invalidScope": "無効なスコープです",
+			"serverError": "認証サーバーでエラーが発生しました",
+			"temporarilyUnavailable": "一時的に利用できません",
+			"registrationFailed": "{provider}でのアカウント作成に失敗しました",
+			"invalidOrExpiredState": "無効または期限切れの状態です",
+			"unsupportedProvider": "サポートされていないプロバイダーです",
+			"codeVerifierNotGenerated": "コード検証が生成されませんでした",
+			"githubEmailNotFound": "GitHubアカウントにメールアドレスが見つかりません",
+			"googleEmailNotFound": "Googleアカウントにメールアドレスが見つかりません",
+			"invalidToken": "無効なトークンです",
+			"tokenExpired": "トークンの有効期限が切れています",
+			"usernameAlreadyTaken": "このユーザー名は既に使用されています",
+			"registrationCompleteFailed": "登録の完了に失敗しました",
+			"processing": "認証処理中...",
+			"creatingAccount": "{provider}アカウントでアカウントを作成しています...",
+			"loggingIn": "{provider}アカウントでログインしています...",
+			"errorTitle": "認証エラー",
+			"backToLogin": "ログインページに戻る",
+			"tryAgain": "もう一度試す",
+			"successTitle": "認証成功",
+			"redirecting": "リダイレクトしています...",
+			"cancelled": "認証がキャンセルされました",
+			"missingInfo": "認証情報が不足しています",
+			"accountCreatedWith": "{provider}でアカウントを作成しました",
+			"loggedInWith": "{provider}でログインしました",
+			"accountAlreadyUsed": "このアカウントは既に別のユーザーに使用されています",
+			"emailVerificationRequired": "メールアドレスの確認が必要です",
+			"processingError": "認証処理中にエラーが発生しました",
+			"pageTitle": "認証"
+		}
+	},
+	"footer": {
+		"copyright": "© 2025 zxcv. All rights reserved.",
+		"about": "zxcvについて",
+		"terms": "利用規約",
+		"privacy": "プライバシーポリシー",
+		"contact": "お問い合わせ",
+		"tagline": "AIコーディングルールを共有・管理・活用するプラットフォーム",
+		"operatorInfo": "運営者情報",
+		"product": "プロダクト",
+		"features": "機能",
+		"pricing": "料金",
+		"enterprise": "エンタープライズ",
+		"changelog": "更新履歴",
+		"resources": "リソース",
+		"docs": "ドキュメント",
+		"api": "API",
+		"blog": "ブログ",
+		"company": "会社情報",
+		"aboutUs": "会社概要",
+		"careers": "採用情報",
+		"partners": "パートナー",
+		"security": "セキュリティ"
+	},
+	"organizations": {
+		"title": "組織",
+		"subtitle": "組織を作成してメンバーとルールを共有しましょう",
+		"myOrganizations": "マイ組織",
+		"createOrganization": "新しい組織",
+		"createTeam": "チームを作成",
+		"createNewTeam": "新しいチームを作成",
+		"joinOrganization": "組織に参加",
+		"members": "メンバー",
+		"rules": "ルール",
+		"owner": "オーナー",
+		"admin": "管理者",
+		"member": "メンバー",
+		"noOrganizations": "まだ組織がありません",
+		"createFirstOrganization": "最初の組織を作成して、メンバーとコラボレーションを始めましょう",
+		"noDescription": "組織の説明はありません",
+		"actions": {
+			"invite": "招待",
+			"leave": "退出",
+			"remove": "削除",
+			"edit": "編集",
+			"manageMembers": "メンバー管理"
+		},
+		"form": {
+			"name": "組織名",
+			"namePlaceholder": "例: example-company",
+			"description": "説明",
+			"descriptionPlaceholder": "組織の目的や活動内容を記載してください",
+			"inviteEmail": "招待するメールアドレス",
+			"inviteMembers": "初期メンバーを招待（オプション）",
+			"addMember": "メンバーを追加"
+		},
+		"validation": {
+			"nameRequired": "組織名は必須です",
+			"nameFormat": "組織名は英数字とハイフンのみ使用できます",
+			"invalidEmail": "有効なメールアドレスを入力してください"
+		},
+		"messages": {
+			"created": "組織を作成しました",
+			"joined": "組織に参加しました",
+			"left": "組織から退出しました",
+			"invited": "招待を送信しました",
+			"inviteAccepted": "招待を承認しました",
+			"createError": "組織の作成に失敗しました",
+			"fetchError": "組織一覧の取得に失敗しました"
+		},
+		"pageTitle": "組織 - zxcv",
+		"newOrganizationTitle": "新しい組織作成 - zxcv",
+		"createNewOrganization": "新しい組織を作成",
+		"inviteAndCollaborate": "組織を作成してメンバーを招待しましょう",
+		"join": {
+			"verifying": "招待を確認しています...",
+			"failed": "招待の確認に失敗しました",
+			"backToOrganizations": "組織一覧へ",
+			"joined": "組織に参加しました！",
+			"welcome": "組織へようこそ",
+			"goToOrganization": "組織ページへ",
+			"loginRequired": "ログインが必要です",
+			"loginToJoinOrganization": "組織に参加するにはログインが必要です",
+			"loginToJoin": "組織に参加するにはログインしてください",
+			"login": "ログイン",
+			"noToken": "招待トークンが見つかりません",
+			"invalidToken": "無効な招待トークンです"
+		},
+		"detail": {
+			"settings": "設定",
+			"leaveOrganization": "組織を離れる",
+			"members": "メンバー",
+			"rules": "ルール",
+			"createdAt": "作成日",
+			"noRules": "まだルールがありません",
+			"inviteMembers": "メンバーを招待",
+			"notFound": "組織が見つかりませんでした",
+			"backToList": "組織一覧に戻る",
+			"removeMember": "メンバーを削除",
+			"confirmRemoveMember": "{{username}}さんを組織から削除してよろしいですか？",
+			"memberRemoved": "{{username}}さんを組織から削除しました",
+			"removeMemberError": "メンバーの削除に失敗しました"
+		},
+		"inviteMember": {
+			"title": "メンバーを招待",
+			"usernameLabel": "ユーザー名",
+			"usernamePlaceholder": "ユーザー名を入力...",
+			"invite": "招待を送信",
+			"success": "{{username}}さんに招待を送信しました",
+			"error": "招待の送信に失敗しました",
+			"alreadyMember": "このユーザーは既にメンバーです",
+			"alreadyInvited": "このユーザーには既に招待を送信済みです"
+		}
+	},
+	"auth": {
+		"oauth": {
+			"processing": "認証処理中...",
+			"creatingAccount": "{provider}アカウントでアカウントを作成しています...",
+			"loggingIn": "{provider}アカウントでログインしています...",
+			"errorTitle": "認証エラー",
+			"backToLogin": "ログインページに戻る",
+			"tryAgain": "もう一度試す",
+			"successTitle": "認証成功",
+			"redirecting": "リダイレクトしています...",
+			"cancelled": "認証がキャンセルされました",
+			"missingInfo": "認証情報が不足しています",
+			"accountCreatedWith": "{provider}でアカウントを作成しました",
+			"loggedInWith": "{provider}でログインしました",
+			"accountAlreadyUsed": "このアカウントは既に別のユーザーに使用されています",
+			"emailVerificationRequired": "メールアドレスの確認が必要です",
+			"processingError": "認証処理中にエラーが発生しました",
+			"pageTitle": "認証"
+		},
+		"login": {
+			"title": "アカウントにログイン",
+			"subtitle": "まだアカウントをお持ちでない方は",
+			"email": "メールアドレス",
+			"password": "パスワード",
+			"rememberMe": "ログイン状態を保持",
+			"forgotPassword": "パスワードを忘れた方",
+			"loginButton": "ログイン",
+			"loggingIn": "ログイン中...",
+			"loginWith": "{provider}でログイン",
+			"errors": {
+				"invalidCredentials": "メールアドレスまたはパスワードが正しくありません",
+				"emailNotVerified": "メールアドレスを確認してからログインしてください。",
+				"generalError": "ログインに失敗しました"
+			},
+			"validation": {
+				"emailRequired": "メールアドレスを入力してください",
+				"emailInvalid": "有効なメールアドレスを入力してください",
+				"passwordRequired": "パスワードを入力してください"
+			}
+		},
+		"register": {
+			"title": "アカウントを作成",
+			"subtitle": "すでにアカウントをお持ちの方は",
+			"username": "ユーザー名",
+			"usernameHint": "英数字、アンダースコア、ハイフンのみ",
+			"email": "メールアドレス",
+			"password": "パスワード",
+			"passwordHint": "8文字以上",
+			"confirmPassword": "パスワード（確認）",
+			"passwordStrength": {
+				"weak": "弱い",
+				"fair": "普通",
+				"good": "強い",
+				"strong": "とても強い"
+			},
+			"agreeToTerms": "利用規約",
+			"and": "と",
+			"privacyPolicy": "プライバシーポリシー",
+			"agreeToTermsText": "に同意します",
+			"registerButton": "アカウントを作成",
+			"registering": "アカウント作成中...",
+			"registerWith": "{provider}で登録",
+			"accountCreated": "アカウントが作成されました！メールを確認してアカウントを有効化してください。",
+			"accountCreatedShort": "アカウントを作成しました",
+			"oauthTermsWarning": "ソーシャルログインを使用するには、先に利用規約に同意してください",
+			"errors": {
+				"emailExists": "このメールアドレスは既に使用されています",
+				"usernameExists": "このユーザー名は既に使用されています",
+				"generalError": "アカウントの作成に失敗しました",
+				"termsRequired": "利用規約に同意してください"
+			},
+			"validation": {
+				"usernameRequired": "ユーザー名を入力してください",
+				"usernameLength": "ユーザー名は3文字以上20文字以下で入力してください",
+				"usernamePattern": "ユーザー名は英数字とアンダースコアのみ使用できます",
+				"emailRequired": "メールアドレスを入力してください",
+				"emailInvalid": "有効なメールアドレスを入力してください",
+				"passwordRequired": "パスワードを入力してください",
+				"passwordLength": "パスワードは8文字以上で入力してください",
+				"passwordMismatch": "パスワードが一致しません",
+				"termsRequired": "利用規約に同意してください"
+			},
+			"pageTitle": "アカウント作成 - ZXCV"
+		},
+		"forgotPassword": {
+			"title": "パスワードをリセット",
+			"subtitle": "登録したメールアドレスを入力してください",
+			"email": "メールアドレス",
+			"sendButton": "パスワードリセットメールを送信",
+			"sending": "送信中...",
+			"backToLogin": "ログインに戻る",
+			"success": "パスワードリセットメールを送信しました",
+			"emailSent": "メールを送信しました",
+			"emailSentMessage": "入力されたメールアドレスがアカウントに登録されている場合、パスワードリセットの手順を記載したメールをお送りしました。",
+			"error": "メールの送信に失敗しました。もう一度お試しください。",
+			"pageTitle": "パスワードリセット - zxcv"
+		},
+		"verifyEmail": {
+			"title": "メールアドレスの確認",
+			"verifying": "アカウントを有効化しています...",
+			"success": "確認完了",
+			"successMessage": "メールアドレスの確認が完了しました。",
+			"successDescription": "ログインページからアカウントにアクセスできます。",
+			"error": "確認エラー",
+			"errorMessage": "メールアドレスの確認に失敗しました。",
+			"invalidToken": "無効または期限切れの確認トークンです。",
+			"invalidTokenDescription": "確認トークンが無効または期限切れです。新しい確認メールを送信してください。",
+			"goToLogin": "ログインページへ",
+			"resendEmail": "確認メールを再送信",
+			"resending": "送信中...",
+			"noToken": "確認トークンがありません",
+			"noTokenMessage": "メールアドレスの確認にはトークンが必要です。",
+			"noTokenDescription": "登録時に送信されたメールのリンクをクリックしてください。",
+			"enterEmail": "メールアドレスを入力してください:",
+			"emailResent": "確認メールを送信しました。メールをご確認ください。",
+			"resendError": "確認メールの送信に失敗しました。",
+			"generalError": "エラーが発生しました。",
+			"pageTitle": "メールアドレスの確認 - zxcv",
+			"register": "新規登録"
+		},
+		"device": {
+			"title": "デバイスの承認",
+			"description": "CLIまたは他のアプリケーションからのアクセスを承認します",
+			"codeLabel": "承認コード",
+			"codePlaceholder": "ABCD-1234",
+			"codeHint": "CLIに表示された8文字のコードを入力してください",
+			"submit": "承認する",
+			"success": "デバイスが正常に承認されました",
+			"invalidCode": "無効なコードです",
+			"expiredCode": "コードの有効期限が切れています",
+			"error": "承認中にエラーが発生しました",
+			"notYourDevice": "このデバイスを認識できませんか？",
+			"cancelLink": "ホームに戻る"
+		}
+	},
+	"test": {
+		"orpc": {
+			"title": "oRPC テストページ",
+			"healthCheck": "ヘルスチェックテスト",
+			"ruleCreate": "ルール作成テスト（認証必須）"
+		}
+	},
+	"accessibility": {
+		"changeLanguage": "言語を変更",
+		"socialLinks": {
+			"twitter": "Twitter",
+			"github": "GitHub",
+			"discord": "Discord"
+		}
+	},
+	"placeholders": {
+		"username": "johndoe",
+		"email": "john@example.com"
+	},
+	"pagination": {
+		"showing": "表示中",
+		"to": "から",
+		"of": "件中",
+		"results": "件",
+		"previous": "前へ",
+		"next": "次へ"
+	},
+	"email": {
+		"subjects": {
+			"passwordReset": "【zxcv】パスワードリセットのお知らせ",
+			"emailVerification": "【zxcv】メールアドレスの確認",
+			"organizationInvite": "【zxcv】{organizationName}への招待"
+		}
+	},
+	"about": {
+		"pageTitle": "zxcvについて - zxcv",
+		"pageDescription": "AIコーディングルールを共有・管理するプラットフォーム、zxcvについて",
+		"hero": {
+			"title": "zxcvについて",
+			"subtitle": "AIコーディングルールの共有と管理を通じて、より良いソフトウェア開発を実現します"
+		},
+		"mission": {
+			"title": "私たちのミッション",
+			"content1": "zxcvは、開発チーム間でAIコーディング指示を標準化・共有する必要性から生まれました。AIを活用した開発ツールが普及する中、一貫性のある高品質なプロンプトやコーディングルールの必要性が重要になっています。",
+			"content2": "当プラットフォームは、開発者や組織がコーディングルールやAIプロンプトを作成、バージョン管理、共有できるようにし、プロジェクト全体での一貫性と品質を確保します。個人での作業でも大規模チームでも、zxcvはコーディングスタンダードの維持とAIツールの効果的な活用をサポートします。",
+			"content3": "私たちはコミュニティ主導の開発の力を信じています。知識とベストプラクティスを共有することで、コードの書き方やAI開発ツールとの対話方法を集団として改善できます。"
+		},
+		"values": {
+			"title": "私たちの価値観",
+			"openness": {
+				"title": "オープンなコラボレーション",
+				"description": "開発者が自由に知識を共有し、互いの経験から学べる環境を育んでいます。"
+			},
+			"security": {
+				"title": "セキュリティファースト",
+				"description": "プライベートルールや組織のデータは、エンタープライズグレードのセキュリティ対策で保護されています。"
+			},
+			"efficiency": {
+				"title": "開発者の効率性",
+				"description": "開発者の生産性を向上させ、チームがより良く協働できるツールの構築に取り組んでいます。"
+			}
+		},
+		"contact": {
+			"title": "お問い合わせ",
+			"description": "ご質問やご意見がありましたら、お気軽にお問い合わせください。",
+			"email": "メールでお問い合わせ",
+			"github": "GitHubを訪問"
+		}
+	},
+	"install": {
+		"pageTitle": "CLIインストール - zxcv",
+		"pageDescription": "zxcv CLIツールのインストール方法とセットアップガイド",
+		"hero": {
+			"title": "zxcv CLIをインストール",
+			"subtitle": "コマンドラインからAIコーディングルールを管理しよう。npm/bunライクなインターフェースで簡単操作。",
+			"quickInstall": "すぐにインストール",
+			"viewReleases": "リリースを見る"
+		},
+		"quickInstall": {
+			"title": "ワンライナーインストール",
+			"terminal": "ターミナル",
+			"description": "このコマンドはあなたのプラットフォームを自動検出し、最新版をインストールします。"
+		},
+		"methods": {
+			"title": "インストール方法",
+			"script": {
+				"title": "インストールスクリプト",
+				"description": "推奨：自動プラットフォーム検出とチェックサム検証付き"
+			},
+			"binary": {
+				"title": "バイナリダウンロード",
+				"description": "GitHub Releasesから直接ダウンロード"
+			}
+		},
+		"platforms": {
+			"title": "プラットフォーム別手順",
+			"auto": {
+				"name": "自動検出",
+				"title": "自動インストール（推奨）",
+				"steps": {
+					"1": {
+						"title": "インストールスクリプトを実行",
+						"description": "このコマンドがプラットフォームを検出し、適切なバイナリをダウンロード・インストールします。"
+					},
+					"2": {
+						"title": "インストールを確認",
+						"description": "正常にインストールされたかバージョンを確認してください。"
+					}
+				}
+			},
+			"macos": {
+				"name": "macOS",
+				"title": "macOS",
+				"steps": {
+					"1": {
+						"title": "インストールスクリプトを使用",
+						"description": "最も簡単で推奨される方法です。"
+					},
+					"2": {
+						"title": "Homebrewを使用（将来対応予定）",
+						"description": "Homebrewパッケージは準備中です。"
+					},
+					"3": {
+						"title": "セキュリティ確認",
+						"description": "macOSでは初回実行時にセキュリティ警告が表示される場合があります。システム環境設定のセキュリティとプライバシーで許可してください。"
+					}
+				}
+			},
+			"windows": {
+				"name": "Windows",
+				"title": "Windows",
+				"steps": {
+					"1": {
+						"title": "バイナリをダウンロード",
+						"description": "GitHub Releasesページから最新のWindows用バイナリをダウンロードしてください。"
+					},
+					"2": {
+						"title": "Wingetを使用（将来対応予定）",
+						"description": "Wingetパッケージは準備中です。"
+					},
+					"3": {
+						"title": "インストールを確認",
+						"description": "PowerShellまたはコマンドプロンプトでバージョンを確認してください。"
+					}
+				}
+			},
+			"linux": {
+				"name": "Linux",
+				"title": "Linux",
+				"steps": {
+					"1": {
+						"title": "インストールスクリプトを使用",
+						"description": "最も簡単で推奨される方法です。"
+					},
+					"2": {
+						"title": "バイナリを直接ダウンロード",
+						"description": "GitHub Releasesページから最新のLinux用バイナリをダウンロードしてください。"
+					},
+					"3": {
+						"title": "インストールを確認",
+						"description": "バイナリに実行権限を付与し、バージョンを確認してください。"
+					}
+				}
+			}
+		},
+		"verification": {
+			"title": "インストールを確認",
+			"description": "以下のコマンドでzxcv CLIが正しくインストールされているか確認できます："
+		},
+		"nextSteps": {
+			"title": "次のステップ",
+			"init": {
+				"title": "プロジェクトを初期化",
+				"description": "新しいプロジェクトでzxcvを使い始めるには、まず初期化を行います。"
+			},
+			"auth": {
+				"title": "認証を設定",
+				"description": "プライベートルールや組織のルールにアクセスするには認証が必要です。"
+			},
+			"explore": {
+				"title": "ルールを探索",
+				"description": "コミュニティが作成した公開ルールを発見し、プロジェクトに追加しましょう。",
+				"linkText": "ルール一覧を見る"
+			},
+			"help": {
+				"title": "ヘルプを確認",
+				"description": "すべてのコマンドとオプションについて詳しく知りたい場合は、ヘルプコマンドを使用してください。"
+			}
+		},
+		"error": {
+			"copyFailed": "クリップボードへのコピーに失敗しました"
+		}
+	},
+	"admin": {
+		"title": "管理者ダッシュボード",
+		"description": "プラットフォーム全体のモデレーターと管理権限を管理します。",
+		"moderators": {
+			"title": "モデレーター管理",
+			"list": "モデレーター一覧",
+			"assign": "モデレーターを割り当て",
+			"remove": "モデレーターを削除",
+			"noModerators": "モデレーターはいません",
+			"role": "ロール",
+			"searchLabel": "メンバーを検索",
+			"searchPlaceholder": "ユーザー名・メール・ロールで検索",
+			"total": "{total}件中{count}件を表示",
+			"emptyHint": "モデレーター権限を割り当てるとここに表示されます。"
+		},
+		"fields": {
+			"username": "ユーザー名",
+			"email": "メールアドレス",
+			"roleLabel": "ロール: {role}",
+			"createdAt": "作成日: {date}",
+			"noEmail": "メールは非公開"
+		},
+		"actions": {
+			"assign": "割り当て",
+			"remove": "削除"
+		},
+		"messages": {
+			"assignSuccess": "モデレーターを割り当てました",
+			"removeSuccess": "モデレーターの権限を削除しました",
+			"assignError": "モデレーターの割り当てに失敗しました",
+			"removeError": "モデレーターの削除に失敗しました",
+			"confirmRemove": "このユーザーのモデレーター権限を削除してもよろしいですか？",
+			"fetchError": "モデレーターの取得に失敗しました。",
+			"accessDenied": "管理者権限が必要です。",
+			"searchError": "ユーザーの検索に失敗しました。",
+			"selectUser": "割り当てるユーザーを選択してください。",
+			"userNotFound": "ユーザーが見つかりませんでした。",
+			"assignValidation": "このユーザーにはモデレーター権限を付与できません。",
+			"notModerator": "このユーザーはモデレーターではありません。"
+		},
+		"modal": {
+			"assign": {
+				"title": "モデレーターを割り当て",
+				"description": "モデレーター権限を付与するユーザーを検索してください。",
+				"searchLabel": "ユーザー",
+				"searchPlaceholder": "ユーザー名で検索",
+				"submit": "割り当てる"
+			},
+			"remove": {
+				"title": "モデレーターを削除",
+				"description": "{username} のモデレーター権限を削除しますか？削除すると一般ユーザーになります。",
+				"cancel": "キャンセル",
+				"confirm": "削除する"
+			}
+		},
+		"roles": {
+			"admin": "管理者",
+			"moderator": "モデレーター",
+			"user": "ユーザー"
+		}
+	}
+}

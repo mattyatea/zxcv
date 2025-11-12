@@ -333,7 +333,7 @@ pnpm install some-package@github:user/repo#branch
     AuthService.ts    # Authentication service
     OrganizationService.ts # Organization management service
     RuleService.ts    # Rule management service
-    emailVerification.ts # Email verification service
+    EmailVerificationService.ts # Email verification service
   
   /repositories/      # Data access layer
     index.ts          # Repository exports
@@ -918,7 +918,7 @@ Feat: Implement team functionality
   - `AuthService.ts`: Authentication service
   - `OrganizationService.ts`: Organization management service
   - `RuleService.ts`: Rule management service
-  - `emailVerification.ts`: Email verification service
+  - `EmailVerificationService.ts`: Email verification service
 - **`/server/repositories`**: Data access layer (repository pattern)
   - `BaseRepository.ts`: Base repository
   - `UserRepository.ts`, `RuleRepository.ts`, `OrganizationRepository.ts`: Entity repositories
@@ -1300,5 +1300,13 @@ curl http://localhost:3000/api/health
    - # Overview (summary section)
    - # What we want to achieve (goals section) - with checklist items
    - # Required packages if needed (packages if necessary)
+
+If available, use Codex MCP for the actual implementation.
+As an option,
+use Codex MCP with `workspace-write` for the workspace
+and `never` for the approval policy.
+Also, break down tasks assigned to Codex into smaller pieces and submit them incrementally to make progress easier to track.
+
 ## @345e6t7yu/typescript-general
 @~/.zxcv/rules/@345e6t7yu/typescript-general.md
+

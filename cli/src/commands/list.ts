@@ -83,7 +83,7 @@ export function createListCommand(): Command {
 						console.log(`\n${chalk.gray("─".repeat(60))}`);
 						console.log(content);
 						console.log(chalk.gray("─".repeat(60)));
-					} catch (error) {
+					} catch (_error) {
 						console.error(chalk.red("Failed to read rule content"));
 					}
 				} else if (action === "update") {
@@ -92,7 +92,7 @@ export function createListCommand(): Command {
 					const execAsync = promisify(exec);
 					try {
 						await execAsync(`zxcv update ${selectedRule}`);
-					} catch (error) {
+					} catch (_error) {
 						console.error(chalk.red("Failed to update rule"));
 					}
 				} else if (action === "remove") {
@@ -101,7 +101,7 @@ export function createListCommand(): Command {
 					const execAsync = promisify(exec);
 					try {
 						await execAsync(`zxcv remove ${selectedRule}`);
-					} catch (error) {
+					} catch (_error) {
 						console.error(chalk.red("Failed to remove rule"));
 					}
 				}
