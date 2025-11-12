@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, dev]
+    branches: [ main, dev ]
   pull_request:
-    branches: [main, dev]
+    branches: [ main, dev ]
   workflow_dispatch:
 
 jobs:
@@ -50,27 +50,6 @@ jobs:
           APP_URL: http://localhost:3000
           ENVIRONMENT: test
 
-      - name: Security audit
-        run: |
-          echo "🔍 Running security audit..."
-          
-          # Run security audit and capture results
-          if pnpm audit --audit-level moderate --json > audit-results.json 2>&1; then
-            echo "✅ No security vulnerabilities found at moderate level or above"
-          else
-            echo "⚠️ Security vulnerabilities detected:"
-            cat audit-results.json | jq -r '.vulnerabilities | to_entries[] | "- \(.key): \(.value.severity) severity"' || echo "Failed to parse audit results"
-          fi
-          
-          # Count vulnerabilities
-          VULN_COUNT=$(pnpm audit --json 2>/dev/null | jq '.vulnerabilities | length' 2>/dev/null || echo "0")
-          echo "Total vulnerabilities found: $VULN_COUNT"
-          
-          # Create audit summary
-          echo "Security audit completed at $(date)" >> security-audit.log
-          echo "Vulnerabilities: $VULN_COUNT" >> security-audit.log
-        continue-on-error: true
-
   # Build verification
   build:
     name: Build Verification
@@ -114,7 +93,7 @@ jobs:
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [quality, build]
+    needs: [ quality, build ]
     if: github.ref == 'refs/heads/dev'
     environment:
       name: staging
@@ -162,9 +141,9 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [quality, build]
+    needs: [ quality, build ]
     if: github.ref == 'refs/heads/main'
-    environment: 
+    environment:
       name: production
       url: https://zxcv.nanasi-apps.xyz
 
@@ -183,7 +162,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: d1 migrations apply zxcv-db --remote
+          command: d1 migrations apply zxcv-db --remote --env=""
           workingDirectory: webserver
 
       - name: Deploy to Cloudflare Workers
@@ -191,7 +170,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+          command: deploy --env=""
           workingDirectory: webserver
           secrets: |
             JWT_SECRET
