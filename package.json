@@ -1,39 +1,39 @@
 {
-	"name": "zxcv-monorepo",
-	"private": true,
-	"packageManager": "pnpm@10.12.1",
-	"scripts": {
-		"dev:server": "pnpm -F webserver dev",
-		"dev:cli": "pnpm -F cli dev",
-		"build:server": "pnpm -F webserver build",
-		"build:cli": "pnpm -F cli build",
-		"preview:server": "pnpm -F webserver preview",
-		"deploy:server": "pnpm -F webserver deploy",
-		"test": "pnpm -F webserver test",
-		"test:server": "pnpm -F webserver test",
-		"lint": "pnpm -r lint",
-		"lint:fix": "pnpm -r lint:fix",
-		"format": "pnpm -r format",
-		"format:check": "pnpm -r format:check",
-		"typecheck": "pnpm -r typecheck",
-		"typecheck:server": "pnpm -F webserver typecheck",
-		"check": "pnpm -r check",
-		"check:fix": "pnpm -r check:fix",
-		"prisma:generate": "pnpm -F webserver prisma:generate",
-		"migrate:local": "pnpm -F webserver migrate:local",
-		"migrate:prod": "pnpm -F webserver migrate:prod",
-		"prepare": "husky",
-		"cf-typegen": "pnpm -F webserver cf-typegen"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.1.2",
-		"husky": "^9.1.7",
-		"lint-staged": "^16.1.2"
-	},
-	"lint-staged": {
-		"*.{ts,tsx,js,jsx,vue}": [
-			"biome format --write"
-		]
-	},
-	"version": "1.2.3"
+  "name": "zxcv-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "dev:server": "pnpm -F webserver dev",
+    "dev:cli": "pnpm -F cli dev",
+    "build:server": "pnpm -F webserver build",
+    "build:cli": "pnpm -F cli build",
+    "preview:server": "pnpm -F webserver preview",
+    "deploy:server": "pnpm -F webserver deploy",
+    "test": "pnpm -F webserver test",
+    "test:server": "pnpm -F webserver test",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "pnpm -r format",
+    "format:check": "pnpm -r format:check",
+    "typecheck": "pnpm -r typecheck",
+    "typecheck:server": "pnpm -F webserver typecheck",
+    "check": "pnpm -r check",
+    "check:fix": "pnpm -r check:fix",
+    "prisma:generate": "pnpm -F webserver prisma:generate",
+    "migrate:local": "pnpm -F webserver migrate:local",
+    "migrate:prod": "pnpm -F webserver migrate:prod",
+    "prepare": "husky",
+    "cf-typegen": "pnpm -F webserver cf-typegen"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,vue}": [
+      "biome format --write"
+    ]
+  },
+  "version": "1.2.4"
 }
