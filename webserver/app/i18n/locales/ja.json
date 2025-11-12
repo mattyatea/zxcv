@@ -203,10 +203,11 @@
 			"private": "非公開",
 			"organization": "組織限定"
 		},
-		"type": {
-			"rule": "ルール",
-			"ccsubagents": "Claude Code Subagents"
-		},
+                "type": {
+                        "rule": "ルール",
+                        "ccsubagents": "Claude Code Subagents",
+                        "config": "設定"
+                },
 		"actions": {
 			"view": "表示",
 			"edit": "編集",
@@ -238,13 +239,19 @@
 			"name": "ルール名",
 			"namePlaceholder": "例: next-js-best-practices",
 			"nameHint": "URLに使用される識別子です。英数字とハイフンのみ使用可能。",
-			"type": "タイプ",
-			"typeOptions": {
-				"rule": "AIコーディングルール",
-				"ccsubagents": "Claude Code Subagents"
-			},
-			"typeHint": "保存するコンテンツの種類を選択してください。",
-			"description": "説明",
+                        "type": "タイプ",
+                        "typeOptions": {
+                                "rule": "AIコーディングルール",
+                                "ccsubagents": "Claude Code Subagents",
+                                "config": "設定ファイル"
+                        },
+                        "typeHint": "保存するコンテンツの種類を選択してください。",
+                        "subType": "設定の種類",
+                        "subTypeHint": "この設定が対象とするツールを選択してください。",
+                        "subTypeOptions": {
+                                "codex": "Codex"
+                        },
+                        "description": "説明",
 			"descriptionPlaceholder": "このルールの目的や使い方を説明してください",
 			"content": "内容",
 			"contentPlaceholder": "# ルールの内容\n\nここにコーディングルールを記述します...\n\n## 例\n\n```javascript\n// コード例\n```",
@@ -252,11 +259,12 @@
 			"tags": "タグ",
 			"tagsPlaceholder": "タグを入力してEnter",
 			"addTag": "タグを追加",
-			"visibility": "公開設定",
-			"visibilityOptions": {
-				"public": "公開 - 誰でも閲覧可能",
-				"private": "非公開 - 自分だけが閲覧可能"
-			},
+                        "visibility": "公開設定",
+                        "visibilityOptions": {
+                                "public": "公開 - 誰でも閲覧可能",
+                                "private": "非公開 - 自分だけが閲覧可能",
+                                "organization": "組織限定 - メンバーのみ閲覧可能"
+                        },
 			"team": "組織",
 			"organization": "組織",
 			"noOrganization": "組織なし",

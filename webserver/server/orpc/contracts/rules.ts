@@ -28,8 +28,8 @@ export const rulesContract = {
 				query: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
-				type: z.enum(["rule", "ccsubagents"]).optional(),
-				visibility: z.string().optional(),
+				type: z.enum(["rule", "ccsubagents", "config"]).optional(),
+				visibility: z.enum(["public", "private", "organization", "all"]).optional(),
 				sortBy: z.string().optional(),
 				page: z.number().default(1),
 				limit: z.number().default(20),
@@ -76,9 +76,10 @@ export const rulesContract = {
 		.input(
 			z.object({
 				name: RuleNameSchema,
-				type: z.enum(["rule", "ccsubagents"]).default("rule"),
+				type: z.enum(["rule", "ccsubagents", "config"]).default("rule"),
+				subType: z.string().optional(),
 				description: z.string().optional(),
-				visibility: z.enum(["public", "private"]),
+				visibility: z.enum(["public", "private", "organization"]),
 				organizationId: z.string().optional(),
 				tags: z.array(z.string()),
 				content: z.string(),
@@ -101,7 +102,9 @@ export const rulesContract = {
 				id: z.string(),
 				name: RuleNameSchema.optional(),
 				description: z.string().optional(),
-				visibility: z.enum(["public", "private"]).optional(),
+				visibility: z.enum(["public", "private", "organization"]).optional(),
+				type: z.enum(["rule", "ccsubagents", "config"]).optional(),
+				subType: z.string().optional(),
 				organizationId: z.string().optional(),
 				tags: z.array(z.string()).optional(),
 				content: z.string().optional(),
@@ -249,8 +252,11 @@ export const rulesContract = {
 		})
 		.input(
 			z.object({
-				visibility: z.enum(["public", "private", "all"]).optional().default("public"),
-				type: z.enum(["rule", "ccsubagents"]).optional(),
+				visibility: z
+					.enum(["public", "private", "organization", "all"])
+					.optional()
+					.default("public"),
+				type: z.enum(["rule", "ccsubagents", "config"]).optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
 				limit: z.number().min(1).max(100).default(20),
@@ -313,7 +319,7 @@ export const rulesContract = {
 		})
 		.input(
 			z.object({
-				type: z.enum(["rule", "ccsubagents"]).optional(),
+				type: z.enum(["rule", "ccsubagents", "config"]).optional(),
 				tags: z.array(z.string()).optional(),
 				author: z.string().optional(),
 				limit: z.number().min(1).max(100).default(20),

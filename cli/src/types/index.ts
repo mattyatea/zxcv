@@ -3,9 +3,11 @@ export interface Rule {
 	name: string;
 	content: string;
 	description?: string;
-	visibility: "public" | "private";
+	visibility: "public" | "private" | "organization";
+	type?: "rule" | "ccsubagents" | "config";
+	subType?: string | null;
 	owner?: string;
-	organization?: string;
+	organization?: string | { id?: string; name?: string };
 	tags: string[];
 	version: string;
 	createdAt: string;
