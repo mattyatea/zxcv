@@ -1,8 +1,8 @@
-import axios from "axios";
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import axios from "axios";
 import chalk from "chalk";
 import { Command } from "commander";
 import { ConfigManager } from "../config";
@@ -206,31 +206,28 @@ export function createShareConfigCommand(): Command {
 					}
 				}
 
-				const existingOrganizationId = existingRule
-					? typeof existingRule.organization === "string"
-						? existingRule.organization
-						: existingRule.organization &&
-								typeof existingRule.organization === "object" &&
-								"id" in existingRule.organization
-							? (existingRule.organization as { id?: string }).id
-							: undefined
-					: undefined;
+                                const organizationData = existingRule?.organization;
+                                let existingOrganizationId: string | undefined;
+                                let existingOrganizationSlug: string | undefined;
 
-				const organizationSlug = organizationName
-					? organizationName
-					: existingRule &&
-							existingRule.organization &&
-							typeof existingRule.organization === "object" &&
-							"name" in existingRule.organization
-						? ((existingRule.organization as { name?: string }).name ?? undefined)
-						: typeof existingRule?.organization === "string"
-							? existingRule.organization
-							: undefined;
+                                if (typeof organizationData === "string") {
+                                        existingOrganizationId = organizationData;
+                                        existingOrganizationSlug = organizationData;
+                                } else if (organizationData && typeof organizationData === "object") {
+                                        if ("id" in organizationData) {
+                                                existingOrganizationId = (organizationData as { id?: string }).id;
+                                        }
+                                        if ("name" in organizationData) {
+                                                existingOrganizationSlug = (organizationData as { name?: string }).name ?? undefined;
+                                        }
+                                }
 
-				const targetOrganizationId =
-					organizationId !== undefined && organizationId !== null
-						? organizationId
-						: existingOrganizationId;
+                                const organizationSlug = organizationName ?? existingOrganizationSlug;
+
+                                const targetOrganizationId =
+                                        organizationId !== undefined && organizationId !== null
+                                                ? organizationId
+                                                : existingOrganizationId;
 
 				if (existingRule) {
 					await api.updateRule(existingRule.id, {

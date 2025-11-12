@@ -9,9 +9,9 @@ import { createInstallCommand } from "./commands/install";
 import { createListCommand } from "./commands/list";
 import { createPublishCommand } from "./commands/publish";
 import { createPushCommand } from "./commands/push";
-import { createShareConfigCommand } from "./commands/share-config";
 import { createRemoveCommand } from "./commands/remove";
 import { createSearchCommand } from "./commands/search";
+import { createShareConfigCommand } from "./commands/share-config";
 import { createUpdateCommand } from "./commands/update";
 import { debugLogger } from "./utils/debug";
 
