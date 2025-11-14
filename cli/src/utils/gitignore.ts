@@ -105,6 +105,57 @@ export async function addToGitIgnore(options: GitIgnoreOptions): Promise<void> {
 }
 
 /**
+ * ファイルがgitignoreまたはexcludeに記載されているかチェック
+ */
+function isIgnoredByGit(projectRoot: string, filesToCheck: string[]): boolean {
+	const gitDir = join(projectRoot, ".git");
+	if (!existsSync(gitDir)) {
+		return false; // Gitリポジトリではない
+	}
+
+	const gitignorePath = join(projectRoot, ".gitignore");
+	const excludePath = join(gitDir, "info", "exclude");
+
+	// .gitignoreと.git/info/excludeの内容を取得
+	const contents: string[] = [];
+
+	if (existsSync(gitignorePath)) {
+		contents.push(readFileSync(gitignorePath, "utf-8"));
+	}
+
+	if (existsSync(excludePath)) {
+		contents.push(readFileSync(excludePath, "utf-8"));
+	}
+
+	if (contents.length === 0) {
+		return false; // どちらも存在しない
+	}
+
+	// すべての行を集めて、パターンマッチング
+	const allLines = contents.join("\n").split("\n");
+	const patterns = allLines
+		.map((line) => line.trim())
+		.filter((line) => line && !line.startsWith("#"));
+
+	// すべてのファイルがいずれかのパターンにマッチするかチェック
+	return filesToCheck.every((file) =>
+		patterns.some((pattern) => {
+			// 完全一致
+			if (pattern === file) {
+				return true;
+			}
+
+			// ディレクトリパターン（trailing slash）
+			if (pattern.endsWith("/") && file.endsWith("/")) {
+				return pattern === file;
+			}
+
+			return false;
+		}),
+	);
+}
+
+/**
  * インストール時のgitignore設定を促す
  */
 export async function promptGitIgnoreOnInstall(projectRoot: string): Promise<void> {
@@ -115,6 +166,11 @@ export async function promptGitIgnoreOnInstall(projectRoot: string): Promise<voi
 		"CLAUDE.local.md", // CLAUDE.local.md
 		"COPILOT.md", // COPILOT.md
 	];
+
+	// すでにgitignoreまたはexcludeに記載されているかチェック
+	if (isIgnoredByGit(projectRoot, filesToIgnore)) {
+		return; // すでに記載されている場合は何もしない
+	}
 
 	await addToGitIgnore({
 		filesToIgnore,

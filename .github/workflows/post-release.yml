@@ -13,11 +13,6 @@ on:
         description: 'Release version (e.g., v1.2.0, v1.2.0-beta.1)'
         required: true
         type: string
-      include_cli:
-        description: 'Include CLI release assets'
-        required: false
-        default: false
-        type: boolean
       branch:
         description: 'Branch to create release from'
         required: false
@@ -36,7 +31,6 @@ jobs:
     outputs:
       is_release: ${{ steps.check.outputs.is_release }}
       version: ${{ steps.check.outputs.version }}
-      include_cli: ${{ steps.check.outputs.include_cli }}
     
     steps:
       - name: Checkout code
@@ -55,11 +49,9 @@ jobs:
             echo "✅ Manual workflow dispatch detected"
             IS_RELEASE=true
             VERSION="${{ github.event.inputs.version }}"
-            INCLUDE_CLI="${{ github.event.inputs.include_cli }}"
-            
+
             echo "Manual release settings:"
             echo "  Version: $VERSION"
-            echo "  Include CLI: $INCLUDE_CLI"
             echo "  Branch: ${{ github.event.inputs.branch || github.ref }}"
           else
             # Get commit message and PR information
@@ -67,10 +59,9 @@ jobs:
             PR_BODY=$(git log -1 --pretty=format:"%b")
             
             echo "Commit message: $COMMIT_MSG"
-            
+
             IS_RELEASE=false
             VERSION=""
-            INCLUDE_CLI=false
           
             # Method 1: Check commit message for version bump pattern (including prerelease)
             if [[ "$COMMIT_MSG" =~ ^chore:\ bump\ version\ to\ v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)? ]]; then
@@ -132,17 +123,8 @@ jobs:
               fi
             fi
             
-            # Determine CLI inclusion (for automatic detection)
+            # Validate version format (support prerelease versions)
             if [ "$IS_RELEASE" = true ]; then
-              # Check if CLI package.json was updated
-              if echo "$CHANGED_FILES" | grep -q "cli/package.json"; then
-                INCLUDE_CLI=true
-                echo "✅ CLI release included"
-              else
-                echo "ℹ️ CLI release not included"
-              fi
-              
-              # Validate version format (support prerelease versions)
               if [ -z "$VERSION" ] || [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
                 echo "⚠️ Invalid version format detected: '$VERSION'"
                 echo "Supported formats: v1.2.3, v1.2.3-alpha.1, v1.2.3-beta.1, v1.2.3-rc.1"
@@ -154,10 +136,9 @@ jobs:
           # Set outputs
           echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "include_cli=$INCLUDE_CLI" >> $GITHUB_OUTPUT
-          
+
           if [ "$IS_RELEASE" = true ]; then
-            echo "🎉 Release detected: $VERSION (CLI: $INCLUDE_CLI)"
+            echo "🎉 Release detected: $VERSION (CLI: Always included)"
           else
             echo "ℹ️ No release detected in this commit"
           fi
@@ -281,7 +262,16 @@ jobs:
           - **Production**: https://zxcv.nanasi-apps.xyz
           - **Staging**: https://zxcv-staging.mattyatea.me
           
-          $(if [ "${{ needs.check-release.outputs.include_cli }}" == "true" ]; then echo "## 📦 CLI Tool"; echo ""; echo "Download the appropriate binary for your platform from the assets below."; echo ""; echo '```bash'; echo '# Install CLI (replace with actual download URL)'; echo 'curl -L https://github.com/mattyatea/zxcv/releases/download/$VERSION/zxcv-[platform] -o zxcv'; echo 'chmod +x zxcv'; echo 'sudo mv zxcv /usr/local/bin/'; echo '```'; fi)
+          ## 📦 CLI Tool
+
+          Download the appropriate binary for your platform from the assets below.
+
+          ```bash
+          # Install CLI (replace with actual download URL)
+          curl -L https://github.com/mattyatea/zxcv/releases/download/$VERSION/zxcv-[platform] -o zxcv
+          chmod +x zxcv
+          sudo mv zxcv /usr/local/bin/
+          ```
           
           $(if [[ "$VERSION" =~ -[a-zA-Z]+ ]]; then echo ""; echo "⚠️ **This is a prerelease version** - Use for testing purposes only."; echo "Stable releases are available at: https://github.com/mattyatea/zxcv/releases"; fi)
           
@@ -314,8 +304,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build CLI release assets (if needed)
-        if: needs.check-release.outputs.include_cli == 'true'
+      - name: Build CLI release assets
         run: |
           echo "🔨 Building CLI release assets..."
           
@@ -434,7 +423,6 @@ jobs:
           fi
 
       - name: Upload CLI assets to release
-        if: needs.check-release.outputs.include_cli == 'true'
         run: |
           VERSION="${{ needs.check-release.outputs.version }}"
           cd cli
@@ -539,9 +527,7 @@ jobs:
           echo "  - ✅ GitHub release published"
           echo "  - ✅ Changes merged back to dev branch"
           echo "  - ✅ Release branch cleaned up"
-          if [ "${{ needs.check-release.outputs.include_cli }}" == "true" ]; then
-            echo "  - ✅ CLI assets uploaded"
-          fi
+          echo "  - ✅ CLI assets uploaded"
           echo ""
           echo "🌐 Live at: https://zxcv.nanasi-apps.xyz"
           echo "📦 Release: https://github.com/mattyatea/zxcv/releases/tag/${{ needs.check-release.outputs.version }}"

@@ -7,23 +7,6 @@ on:
         description: 'Release version (e.g., v1.2.0, v1.2.0-beta.1, v1.2.0-alpha.1)'
         required: true
         type: string
-      release_type:
-        description: 'Type of release'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-          - alpha
-          - beta
-          - rc
-      include_cli:
-        description: 'Include CLI release'
-        required: false
-        default: false
-        type: boolean
 
 # Prevent multiple release preparations from running simultaneously
 concurrency:
@@ -129,8 +112,8 @@ jobs:
             echo "✅ Updated server/package.json to $VERSION_NUMBER"
           fi
           
-          # Update CLI package.json if CLI release is included
-          if [ "${{ inputs.include_cli }}" == "true" ] && [ -f "cli/package.json" ]; then
+          # Update CLI package.json - always included
+          if [ -f "cli/package.json" ]; then
             jq ".version = \"$VERSION_NUMBER\"" cli/package.json > cli/package.json.tmp
             mv cli/package.json.tmp cli/package.json
             echo "✅ Updated cli/package.json to $VERSION_NUMBER"
@@ -170,10 +153,10 @@ jobs:
           $CHANGELOG
           
           ## Release Notes
-          
+
           This release includes:
           - Server application updates
-          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- CLI tool updates"; fi)
+          - CLI tool updates
           - Bug fixes and improvements
           - Performance optimizations
           
@@ -201,10 +184,9 @@ jobs:
           fi
           
           echo "✅ Server build successful!"
-          
-          # Build CLI if included
-          if [ "${{ inputs.include_cli }}" == "true" ]; then
-            echo "🔨 Building CLI application..."
+
+          # Build CLI - always included
+          echo "🔨 Building CLI application..."
             
             # Setup Bun for CLI builds with error handling
             if ! curl -fsSL https://bun.sh/install | bash; then
@@ -266,11 +248,10 @@ jobs:
               cd ..
               exit 1
             fi
-            
+
             cd ..
             echo "✅ CLI build successful!"
-          fi
-          
+
           echo "✅ All builds completed successfully!"
 
       - name: Run tests after build
@@ -292,11 +273,10 @@ jobs:
             git commit -m "chore: bump version to ${{ inputs.version }}
 
           - Update package.json versions
-          - Prepare for ${{ inputs.release_type }} release
-          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- Include CLI release"; fi)
-          
+          - Include CLI release
+
           🤖 Generated with [Claude Code](https://claude.ai/code)
-          
+
           Co-Authored-By: Claude <noreply@anthropic.com>"
             
             echo "✅ Committed version updates"
@@ -369,16 +349,15 @@ jobs:
           4. **Tag**: GitHub release will be created after successful deployment
           
           ### 🛠️ Release Contents
-          
+
           - **Server**: ✅ Included
-          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- **CLI**: ✅ Included"; else echo "- **CLI**: ❌ Not included"; fi)
-          - **Type**: ${{ inputs.release_type }} release
+          - **CLI**: ✅ Included
           $(if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then echo "- **Prerelease**: This is a prerelease version"; fi)
-          
+
           ---
-          
+
           🤖 Generated with [Claude Code](https://claude.ai/code)
-          
+
           /cc @${{ github.actor }}
           EOF
           )"
@@ -417,16 +396,15 @@ jobs:
           4. **Tag**: GitHub release will be created after successful deployment
           
           ### 🛠️ Release Contents
-          
+
           - **Server**: ✅ Included
-          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "- **CLI**: ✅ Included"; else echo "- **CLI**: ❌ Not included"; fi)
-          - **Type**: ${{ inputs.release_type }} release
+          - **CLI**: ✅ Included
           $(if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then echo "- **Prerelease**: This is a prerelease version"; fi)
-          
+
           ---
-          
+
           🤖 Generated with [Claude Code](https://claude.ai/code)
-          
+
           /cc @${{ github.actor }}
           EOF
           )" \
@@ -456,8 +434,7 @@ jobs:
           echo "🎯 Release preparation completed!"
           echo "📋 PR URL: ${{ steps.pr.outputs.pr_url }}"
           echo "🏷️ Version: ${{ inputs.version }}"
-          echo "📦 Release Type: ${{ inputs.release_type }}"
-          echo "🛠️ CLI Included: ${{ inputs.include_cli }}"
+          echo "🛠️ CLI Included: Always"
           
           echo "### Next Steps:"
           if [[ "${{ steps.pr.outputs.pr_url }}" == *"compare"* ]]; then
@@ -498,7 +475,9 @@ jobs:
           - **Production**: https://zxcv.nanasi-apps.xyz
           - **Staging**: https://zxcv-staging.mattyatea.me
           
-          $(if [ "${{ inputs.include_cli }}" == "true" ]; then echo "### CLI Tool"; echo ""; echo "Download the appropriate binary for your platform from the assets below."; fi)
+          ### CLI Tool
+
+          Download the appropriate binary for your platform from the assets below.
           
           $(if [[ "${{ inputs.version }}" =~ -[a-zA-Z]+ ]]; then echo ""; echo "⚠️ **This is a prerelease version** - Use for testing purposes only."; fi)
           EOF
