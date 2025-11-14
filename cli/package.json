@@ -1,6 +1,6 @@
 {
 	"name": "cli",
-	"version": "1.2.6",
+	"version": "1.2.7",
 	"description": "AI coding rules management CLI tool",
 	"main": "dist/index.js",
 	"bin": {
