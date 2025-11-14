@@ -14,58 +14,56 @@ type RuleVersionWithCreator = RuleVersion & {
 export const rulesProcedures = {
 	/**
 	 * パスによるルール取得
+	 * Public rules can be accessed without authentication
 	 */
-	getByPath: os.rules.getByPath
-		.use(dbProvider)
-		.use(authRequiredMiddleware)
-		.handler(async ({ input, context }) => {
-			const { db, user, env } = context;
-			const ruleService = new RuleService(db, env.R2, env);
+	getByPath: os.rules.getByPath.use(dbProvider).handler(async ({ input, context }) => {
+		const { db, user, env } = context;
+		const ruleService = new RuleService(db, env.R2, env);
 
-			// パスをパース
-			const parsed = parseRulePath(input.path);
+		// パスをパース
+		const parsed = parseRulePath(input.path);
 
-			if (!parsed) {
-				throw new ORPCError("BAD_REQUEST", {
-					message: "Invalid rule path format. Expected @owner/rulename or rulename",
-				});
-			}
+		if (!parsed) {
+			throw new ORPCError("BAD_REQUEST", {
+				message: "Invalid rule path format. Expected @owner/rulename or rulename",
+			});
+		}
 
-			const { owner, ruleName } = parsed;
+		const { owner, ruleName } = parsed;
 
-			const result = await ruleService.getRule(ruleName, owner, user?.id);
-			const { rule, version } = result;
+		const result = await ruleService.getRule(ruleName, owner, user?.id);
+		const { rule, version } = result;
 
-			// Ensure we have the proper author object
-			const author = rule.user || {
-				id: rule.userId || "",
-				username: "Unknown",
-				email: "",
-				displayName: null,
-				avatarUrl: null,
-			};
+		// Ensure we have the proper author object
+		const author = rule.user || {
+			id: rule.userId || "",
+			username: "Unknown",
+			email: "",
+			displayName: null,
+			avatarUrl: null,
+		};
 
-			return {
-				id: rule.id,
-				name: rule.name,
-				userId: rule.userId || null,
-				type: rule.type,
-				visibility: rule.visibility as "public" | "private" | "organization",
-				description: rule.description,
-				tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
-				createdAt: rule.createdAt,
-				updatedAt: rule.updatedAt,
-				publishedAt: rule.publishedAt,
-				version: version.versionNumber || rule.version || "1.0.0",
-				latestVersionId: rule.latestVersionId || version.id,
-				views: rule.views,
-				stars: rule.stars,
-				organizationId: rule.organizationId,
-				user: rule.user || author,
-				organization: rule.organization || null,
-				author,
-			};
-		}),
+		return {
+			id: rule.id,
+			name: rule.name,
+			userId: rule.userId || null,
+			type: rule.type,
+			visibility: rule.visibility as "public" | "private" | "organization",
+			description: rule.description,
+			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
+			createdAt: rule.createdAt,
+			updatedAt: rule.updatedAt,
+			publishedAt: rule.publishedAt,
+			version: version.versionNumber || rule.version || "1.0.0",
+			latestVersionId: rule.latestVersionId || version.id,
+			views: rule.views,
+			stars: rule.stars,
+			organizationId: rule.organizationId,
+			user: rule.user || author,
+			organization: rule.organization || null,
+			author,
+		};
+	}),
 
 	/**
 	 * ルール作成
