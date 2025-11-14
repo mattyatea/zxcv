@@ -1,43 +1,43 @@
 {
-	"name": "cli",
-	"version": "1.2.6",
-	"description": "AI coding rules management CLI tool",
-	"main": "dist/index.js",
-	"bin": {
-		"zxcv": "./dist/index.js"
-	},
-	"type": "module",
-	"scripts": {
-		"dev": "bun run src/index.ts",
-		"build": "bun build src/index.ts --compile --outfile dist/zxcv",
-		"build:cross": "bun run scripts/build-cross-platform.ts",
-		"test": "bun test",
-		"test:watch": "bun test --watch",
-		"lint": "biome check --write",
-		"format": "biome format --write",
-		"typecheck": "tsc --noEmit",
-		"check": "biome check"
-	},
-	"keywords": [
-		"cli",
-		"ai",
-		"rules",
-		"management"
-	],
-	"author": "",
-	"license": "MIT",
-	"dependencies": {
-		"@types/inquirer": "^9.0.9",
-		"axios": "^1.11.0",
-		"chalk": "^5.4.1",
-		"commander": "^12.1.0",
-		"inquirer": "^12.9.4",
-		"zod": "^3.25.76"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "2.1.2",
-		"@types/bun": "latest",
-		"@types/node": "^20.19.9",
-		"typescript": "^5.8.3"
-	}
+  "name": "cli",
+  "version": "1.2.7",
+  "description": "AI coding rules management CLI tool",
+  "main": "dist/index.js",
+  "bin": {
+    "zxcv": "./dist/index.js"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --compile --outfile dist/zxcv",
+    "build:cross": "bun run scripts/build-cross-platform.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "lint": "biome check --write",
+    "format": "biome format --write",
+    "typecheck": "tsc --noEmit",
+    "check": "biome check"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "rules",
+    "management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/inquirer": "^9.0.9",
+    "axios": "^1.11.0",
+    "chalk": "^5.4.1",
+    "commander": "^12.1.0",
+    "inquirer": "^12.9.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.1.2",
+    "@types/bun": "latest",
+    "@types/node": "^20.19.9",
+    "typescript": "^5.8.3"
+  }
 }
