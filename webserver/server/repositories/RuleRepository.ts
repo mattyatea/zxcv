@@ -217,7 +217,7 @@ export class RuleRepository extends BaseRepository {
 	/**
 	 * ルールを更新
 	 */
-	async update(id: string, data: Prisma.RuleUpdateInput): Promise<Rule> {
+	async update(id: string, data: Prisma.RuleUncheckedUpdateInput): Promise<Rule> {
 		try {
 			return await this.db.rule.update({
 				where: { id },

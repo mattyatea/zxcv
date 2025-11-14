@@ -83,8 +83,11 @@ export class ApiClient {
 	async createRule(rule: {
 		name: string;
 		content: string;
-		visibility: "public" | "private";
+		visibility: "public" | "private" | "organization";
 		tags: string[];
+		type?: "rule" | "ccsubagents" | "config";
+		subType?: string | null;
+		organizationId?: string;
 	}): Promise<Rule> {
 		const response = await this.client.post("/rules/create", rule);
 		return response.data;
@@ -95,15 +98,28 @@ export class ApiClient {
 		updates: {
 			name?: string;
 			content?: string;
-			visibility?: "public" | "private";
+			visibility?: "public" | "private" | "organization";
 			tags?: string[];
 			changelog?: string;
+			type?: "rule" | "ccsubagents" | "config";
+			subType?: string | null;
+			organizationId?: string | null;
 		},
 	): Promise<Rule> {
 		const response = await this.client.post("/rules/update", {
 			ruleId,
 			...updates,
 		});
+		return response.data;
+	}
+
+	async getCurrentUser(): Promise<{ id: string; username: string }> {
+		const response = await this.client.get("/users/me");
+		return response.data;
+	}
+
+	async listOrganizations(): Promise<Array<{ id: string; name: string; displayName: string }>> {
+		const response = await this.client.get("/organizations/list");
 		return response.data;
 	}
 

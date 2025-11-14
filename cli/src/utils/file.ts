@@ -90,15 +90,12 @@ export class FileManager {
 		}
 
 		// フルパス形式の名前を構築（@プレフィックス付き、ただし組織やユーザーがある場合のみ）
+		const organizationName =
+			typeof rule.organization === "string" ? rule.organization : rule.organization?.name;
+
 		let fullName = rule.name;
-		// Check for actual values, not just property existence
-		if (
-			rule.organization &&
-			typeof rule.organization === "string" &&
-			rule.organization.length > 0 &&
-			rule.organization !== "undefined"
-		) {
-			fullName = `@${rule.organization}/${rule.name}`;
+		if (organizationName && organizationName !== "undefined") {
+			fullName = `@${organizationName}/${rule.name}`;
 		} else if (
 			rule.user?.username &&
 			typeof rule.user.username === "string" &&

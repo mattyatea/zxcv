@@ -1,8 +1,14 @@
+import fs from "node:fs";
 import path from "node:path";
 import { defineWorkersConfig, readD1Migrations } from "@cloudflare/vitest-pool-workers/config";
 
 const migrationsPath = path.join(__dirname, "migrations");
 const migrations = await readD1Migrations(migrationsPath);
+
+const assetsDirectory = path.join(__dirname, "tests", "mocks", "assets");
+if (!fs.existsSync(assetsDirectory)) {
+        fs.mkdirSync(assetsDirectory, { recursive: true });
+}
 
 export default defineWorkersConfig({
 	esbuild: {
@@ -32,12 +38,12 @@ export default defineWorkersConfig({
 		external: ["@prisma/adapter-d1"],
 	},
 	test: {
-		setupFiles: [
-			"./vitest.setup.mts",
-			"./tests/apply-migrations.ts",
-			"./tests/helpers/setup-env.ts",
-			"./tests/helpers/setup.ts",
-		],
+                setupFiles: [
+                        "./vitest.setup.mts",
+                        "./tests/helpers/setup-env.ts",
+                        "./tests/apply-migrations.ts",
+                        "./tests/helpers/setup.ts",
+                ],
 		exclude: [
 			"**/node_modules/**",
 			"**/dist/**",
@@ -51,9 +57,9 @@ export default defineWorkersConfig({
 		poolOptions: {
 			workers: {
 				singleWorker: true,
-				wrangler: {
-					configPath: "./wrangler.toml",
-				},
+                                wrangler: {
+                                        configPath: "./wrangler.test.toml",
+                                },
 				miniflare: {
 					compatibilityFlags: ["experimental", "nodejs_compat"],
 					compatibilityDate: "2025-07-15",

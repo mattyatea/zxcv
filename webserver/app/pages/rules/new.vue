@@ -39,9 +39,24 @@
             >
               <option value="rule">{{ t('rules.form.typeOptions.rule') }}</option>
               <option value="ccsubagents">{{ t('rules.form.typeOptions.ccsubagents') }}</option>
+              <option value="config">{{ t('rules.form.typeOptions.config') }}</option>
             </select>
             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
               {{ t('rules.form.typeHint') }}
+            </p>
+          </div>
+
+          <div v-if="form.type === 'config'">
+            <label for="subType" class="label">{{ t('rules.form.subType') }}</label>
+            <select
+              id="subType"
+              v-model="form.subType"
+              class="input"
+            >
+              <option value="codex">{{ t('rules.form.subTypeOptions.codex') }}</option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {{ t('rules.form.subTypeHint') }}
             </p>
           </div>
 
@@ -84,6 +99,7 @@
             >
               <option value="public">{{ t('rules.form.visibilityOptions.public') }}</option>
               <option value="private">{{ t('rules.form.visibilityOptions.private') }}</option>
+              <option value="organization">{{ t('rules.form.visibilityOptions.organization') }}</option>
             </select>
           </div>
 
@@ -226,8 +242,8 @@
   </div>
 </template>
 
-<script setup>
-import { onMounted, ref } from "vue";
+<script setup lang="ts">
+import { onMounted, ref, watch, resolveComponent } from "vue";
 import { useRpc } from "~/composables/useRpc";
 import { useAuthStore } from "~/stores/auth";
 
@@ -241,36 +257,61 @@ useHead({
 	title: t("rules.newRuleTitle"),
 });
 
-const form = ref({
-	name: "",
-	type: "rule",
-	org: "",
-	description: "",
-	visibility: "public",
-	organizationId: "",
-	tags: [],
-	content: "",
+interface RuleFormState {
+        name: string;
+        type: "rule" | "ccsubagents" | "config";
+        subType?: string;
+        org: string;
+        description: string;
+        visibility: "public" | "private" | "organization";
+        organizationId: string;
+        tags: string[];
+        content: string;
+}
+
+const form = ref<RuleFormState>({
+        name: "",
+        type: "rule",
+        subType: undefined,
+        org: "",
+        description: "",
+        visibility: "public",
+        organizationId: "",
+        tags: [],
+        content: "",
 });
 
 const tagInput = ref("");
-const organizations = ref([]);
+interface OrganizationOption {
+        id: string;
+        name: string;
+        displayName: string;
+}
+const organizations = ref<OrganizationOption[]>([]);
 const loading = ref(false);
 const error = ref("");
-const selectedOrganizationId = ref("");
+const selectedOrganizationId = ref<string>("");
 const showFileUpload = ref(false);
-const selectedTemplate = ref("");
+type TemplateKey = "codeReviewer" | "testGenerator" | "docWriter" | "generalHelper";
+const selectedTemplate = ref<TemplateKey | "">("");
 
-const handleFileUpload = (event) => {
-	const file = event.target.files[0];
-	if (file && (file.name.endsWith(".md") || file.name.endsWith(".markdown"))) {
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			form.value.content = e.target.result;
-		};
-		reader.readAsText(file);
-	} else {
-		error.value = t("rules.messages.invalidFileType");
-	}
+const NuxtLink = resolveComponent("NuxtLink");
+
+const handleFileUpload = (event: Event) => {
+        const input = event.target as HTMLInputElement | null;
+        const file = input?.files?.[0];
+        if (file && (file.name.endsWith(".md") || file.name.endsWith(".markdown"))) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                        const result = e.target?.result;
+                        if (typeof result === "string") {
+                                form.value.content = result;
+                        }
+                };
+                reader.readAsText(file);
+        } else {
+                error.value = t("rules.messages.invalidFileType");
+        }
 };
 
 const addTag = () => {
@@ -281,17 +322,17 @@ const addTag = () => {
 	}
 };
 
-const removeTag = (index) => {
-	form.value.tags.splice(index, 1);
+const removeTag = (index: number) => {
+        form.value.tags.splice(index, 1);
 };
 
 const updateOrganization = () => {
-	const selected = organizations.value.find(
-		(org) => org.id === selectedOrganizationId.value,
-	);
-	if (selected) {
-		form.value.org = selected.name;
-		form.value.organizationId = selected.id;
+        const selected = organizations.value.find(
+                (org) => org.id === selectedOrganizationId.value,
+        );
+        if (selected) {
+                form.value.org = selected.name;
+                form.value.organizationId = selected.id;
 	} else {
 		form.value.org = "";
 		form.value.organizationId = "";
@@ -301,11 +342,17 @@ const updateOrganization = () => {
 const $rpc = useRpc();
 
 const handleSubmit = async () => {
-	loading.value = true;
-	error.value = "";
+        loading.value = true;
+        error.value = "";
 
-	try {
-		const response = await $rpc.rules.create(form.value);
+        try {
+                if (form.value.type === "config" && !form.value.subType) {
+                        error.value = t("rules.messages.createError");
+                        loading.value = false;
+                        return;
+                }
+
+        const response = await $rpc.rules.create(form.value);
 		// If posted to an organization, redirect to the organization-scoped URL
 		if (form.value.org) {
 			await navigateTo(`/rules/@${form.value.org}/${form.value.name}`);
@@ -321,28 +368,37 @@ const handleSubmit = async () => {
 				error.value = t("rules.messages.createError");
 			}
 		}
-	} catch (err) {
-		error.value = err.message || t("rules.messages.createError");
-	} finally {
-		loading.value = false;
-	}
+        } catch (err) {
+                error.value = err instanceof Error ? err.message : t("rules.messages.createError");
+        } finally {
+                loading.value = false;
+        }
 };
 
 const fetchOrganizations = async () => {
-	try {
-		const response = await $rpc.organizations.list();
-		organizations.value = response;
-	} catch (error) {
-		console.error("Failed to fetch organizations:", error);
-	}
+        try {
+                const response = await $rpc.organizations.list();
+                organizations.value = response as OrganizationOption[];
+        } catch (fetchError) {
+                console.error("Failed to fetch organizations:", fetchError);
+        }
 };
 
-const applyTemplate = () => {
-	if (!selectedTemplate.value) return;
+watch(
+        () => form.value.type,
+        (newType) => {
+                if (newType === "config" && !form.value.subType) {
+                        form.value.subType = "codex";
+                }
 
-	// Subagentテンプレートを適用
-	const templates = {
-		codeReviewer: `# Code Review Expert
+                if (newType !== "config") {
+                        form.value.subType = undefined;
+                }
+        },
+);
+
+const templateContent: Record<TemplateKey, string> = {
+        codeReviewer: `# Code Review Expert
 
 An expert agent for comprehensive code review and quality assessment
 
@@ -377,8 +433,7 @@ This agent specializes in code review and quality assessment.
 3. Verify error handling and edge cases
 4. Assess code readability and maintainability
 5. Provide constructive feedback with examples`,
-
-		testGenerator: `# Test Suite Generator
+        testGenerator: `# Test Suite Generator
 
 Generates comprehensive test suites for your codebase
 
@@ -406,8 +461,7 @@ This agent specializes in generating comprehensive test suites.
 3. Design edge case scenarios
 4. Generate test data and fixtures
 5. Ensure adequate test coverage`,
-
-		docWriter: `# Documentation Specialist
+        docWriter: `# Documentation Specialist
 
 Creates and maintains high-quality technical documentation
 
@@ -435,8 +489,7 @@ This agent specializes in creating and maintaining documentation.
 3. Write code comments and docstrings
 4. Maintain README files
 5. Create architectural documentation`,
-
-		generalHelper: `# Development Assistant
+        generalHelper: `# Development Assistant
 
 A versatile assistant for various development tasks
 
@@ -462,11 +515,14 @@ This is a general-purpose agent for various development tasks.
 3. Refactor and optimize code
 4. Answer technical questions
 5. Provide development guidance`,
-	};
+};
 
-	if (templates[selectedTemplate.value]) {
-		form.value.content = templates[selectedTemplate.value];
-	}
+const applyTemplate = () => {
+        if (!selectedTemplate.value) return;
+        const template = templateContent[selectedTemplate.value];
+        if (template) {
+                form.value.content = template;
+        }
 };
 
 onMounted(() => {

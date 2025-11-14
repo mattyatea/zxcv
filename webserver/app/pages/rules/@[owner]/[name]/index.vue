@@ -596,19 +596,20 @@ type Organization = {
 };
 
 type Rule = {
-	id: string;
-	name: string;
-	description: string;
-	content: string;
-	visibility: "public" | "private" | "organization";
-	author: Author;
-	organization: Organization | null;
-	tags: string[];
-	version: string;
-	updatedAt: number;
-	views?: number;
-	stars?: number;
-	type?: "rule" | "ccsubagents";
+        id: string;
+        name: string;
+        description: string;
+        content: string;
+        visibility: "public" | "private" | "organization";
+        author: Author;
+        organization: Organization | null;
+        tags: string[];
+        version: string;
+        updatedAt: number;
+        views?: number;
+        stars?: number;
+        type?: "rule" | "ccsubagents" | "config";
+        subType?: string | null;
 };
 
 type Version = RuleVersionType;

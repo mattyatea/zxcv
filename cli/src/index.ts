@@ -3,6 +3,7 @@
 import { Command } from "commander";
 import { createAddCommand } from "./commands/add";
 import { createAuthCommand } from "./commands/auth";
+import { createConfigInstallCommand } from "./commands/config-install";
 import { createInitCommand } from "./commands/init";
 import { createInstallCommand } from "./commands/install";
 import { createListCommand } from "./commands/list";
@@ -10,6 +11,7 @@ import { createPublishCommand } from "./commands/publish";
 import { createPushCommand } from "./commands/push";
 import { createRemoveCommand } from "./commands/remove";
 import { createSearchCommand } from "./commands/search";
+import { createShareConfigCommand } from "./commands/share-config";
 import { createUpdateCommand } from "./commands/update";
 import { debugLogger } from "./utils/debug";
 
@@ -42,6 +44,8 @@ program.addCommand(createSearchCommand());
 program.addCommand(createPublishCommand());
 program.addCommand(createPushCommand());
 program.addCommand(createAuthCommand());
+program.addCommand(createShareConfigCommand());
+program.addCommand(createConfigInstallCommand());
 
 // Parse arguments
 program.parse(process.argv);

@@ -223,10 +223,11 @@
 			"private": "Private",
 			"organization": "Organization only"
 		},
-		"type": {
-			"rule": "Rules",
-			"ccsubagents": "Claude Code Subagents"
-		},
+                "type": {
+                        "rule": "Rules",
+                        "ccsubagents": "Claude Code Subagents",
+                        "config": "Configuration"
+                },
 		"actions": {
 			"view": "View",
 			"edit": "Edit",
@@ -258,13 +259,19 @@
 			"name": "Rule name",
 			"namePlaceholder": "e.g. next-js-best-practices",
 			"nameHint": "This will be used as the URL identifier. Only letters, numbers, and hyphens allowed.",
-			"type": "Type",
-			"typeOptions": {
-				"rule": "AI Coding Rule",
-				"ccsubagents": "Claude Code Subagents"
-			},
-			"typeHint": "Select the type of content to save.",
-			"description": "Description",
+                        "type": "Type",
+                        "typeOptions": {
+                                "rule": "AI Coding Rule",
+                                "ccsubagents": "Claude Code Subagents",
+                                "config": "Configuration"
+                        },
+                        "typeHint": "Select the type of content to save.",
+                        "subType": "Configuration subtype",
+                        "subTypeHint": "Choose the target tool for this configuration.",
+                        "subTypeOptions": {
+                                "codex": "Codex"
+                        },
+                        "description": "Description",
 			"descriptionPlaceholder": "Describe the purpose and usage of this rule",
 			"content": "Content",
 			"contentPlaceholder": "# Rule Content\n\nWrite your coding rules here...\n\n## Example\n\n```javascript\n// Code example\n```",
@@ -272,11 +279,12 @@
 			"tags": "Tags",
 			"tagsPlaceholder": "Enter a tag and press Enter",
 			"addTag": "Add Tag",
-			"visibility": "Visibility",
-			"visibilityOptions": {
-				"public": "Public - Anyone can view",
-				"private": "Private - Only you can view"
-			},
+                        "visibility": "Visibility",
+                        "visibilityOptions": {
+                                "public": "Public - Anyone can view",
+                                "private": "Private - Only you can view",
+                                "organization": "Private - Organization members only"
+                        },
 			"team": "Team",
 			"organization": "Organization",
 			"noOrganization": "No organization",

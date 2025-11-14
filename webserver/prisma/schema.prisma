@@ -14,6 +14,7 @@ datasource db {
 enum RuleType {
   rule
   ccsubagents
+  config
 }
 
 enum UserRole {
@@ -78,6 +79,7 @@ model Rule {
   name            String
   userId          String  @map("user_id")
   type            RuleType @default(rule)
+  subType         String?  @map("sub_type")
   visibility      String
   description     String?
   tags            String? // JSON array stored as text

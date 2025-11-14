@@ -100,6 +100,7 @@ describe("Rule Type Field Tests", () => {
 				views: 0,
 				stars: 0,
 				organizationId: null,
+				subType: null,
 			};
 
 			mockDb.rule.create.mockResolvedValue(agentData);
@@ -112,6 +113,42 @@ describe("Rule Type Field Tests", () => {
 			expect(mockDb.rule.create).toHaveBeenCalledWith({
 				data: expect.objectContaining({
 					type: "ccsubagents",
+				}),
+			});
+		});
+
+		it("should support 'config' type with subtype", async () => {
+			const configData = {
+				id: "config_123",
+				name: "codex-config",
+				userId: "user_123",
+				type: "config",
+				subType: "codex",
+				visibility: "private",
+				description: "Masked Codex config",
+				tags: JSON.stringify(["config", "codex"]),
+				createdAt: Math.floor(Date.now() / 1000),
+				updatedAt: Math.floor(Date.now() / 1000),
+				publishedAt: null,
+				version: "1.0.0",
+				latestVersionId: null,
+				views: 0,
+				stars: 0,
+				organizationId: null,
+			};
+
+			mockDb.rule.create.mockResolvedValue(configData);
+
+			const result = await mockDb.rule.create({
+				data: configData,
+			});
+
+			expect(result.type).toBe("config");
+			expect(result.subType).toBe("codex");
+			expect(mockDb.rule.create).toHaveBeenCalledWith({
+				data: expect.objectContaining({
+					type: "config",
+					subType: "codex",
 				}),
 			});
 		});
@@ -275,18 +312,36 @@ describe("Rule Type Field Tests", () => {
 					stars: 0,
 					organizationId: null,
 				},
+				{
+					id: "config_1",
+					name: "codex-config",
+					type: "config",
+					userId: "user_123",
+					visibility: "private",
+					description: "Codex config",
+					tags: JSON.stringify(["config"]),
+					createdAt: Math.floor(Date.now() / 1000),
+					updatedAt: Math.floor(Date.now() / 1000),
+					publishedAt: null,
+					version: "1.0.0",
+					latestVersionId: null,
+					views: 0,
+					stars: 0,
+					organizationId: null,
+				},
 			];
 
 			mockDb.rule.findMany.mockResolvedValue(allRules);
-			mockDb.rule.count.mockResolvedValue(2);
+			mockDb.rule.count.mockResolvedValue(3);
 
 			const result = await mockDb.rule.findMany({
 				where: {},
 			});
 
-			expect(result).toHaveLength(2);
+			expect(result).toHaveLength(3);
 			expect(result.some((r) => r.type === "rule")).toBe(true);
 			expect(result.some((r) => r.type === "ccsubagents")).toBe(true);
+			expect(result.some((r) => r.type === "config")).toBe(true);
 		});
 	});
 
@@ -347,7 +402,9 @@ describe("Rule Type Field Tests", () => {
 
 			// Simulate Prisma validation error
 			mockDb.rule.create.mockRejectedValue(
-				new Error("Invalid enum value. Expected 'rule' | 'ccsubagents', received 'invalid_type'"),
+				new Error(
+					"Invalid enum value. Expected 'rule' | 'ccsubagents' | 'config', received 'invalid_type'",
+				),
 			);
 
 			await expect(

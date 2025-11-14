@@ -29,9 +29,10 @@ export class RuleService {
 		data: {
 			name: string;
 			type?: $Enums.RuleType;
+			subType?: string | null;
 			description?: string;
 			content: string;
-			visibility: "public" | "private" | "team";
+			visibility: "public" | "private" | "organization";
 			tags?: string[];
 			organizationId?: string;
 		},
@@ -95,6 +96,7 @@ export class RuleService {
 				version: "1.0.0",
 				latestVersionId: versionId, // 最初から設定
 				organizationId: data.organizationId || null,
+				subType: data.subType || null,
 			});
 
 			// 初期バージョンを作成
@@ -253,6 +255,10 @@ export class RuleService {
 			description?: string;
 			tags?: string[];
 			changelog?: string;
+			visibility?: "public" | "private" | "organization";
+			type?: $Enums.RuleType;
+			subType?: string | null;
+			organizationId?: string | null;
 		},
 	) {
 		const rule = await this.ruleRepository.findById(ruleId);
@@ -270,10 +276,21 @@ export class RuleService {
 		}
 
 		// メタデータの更新
-		if (data.description !== undefined || data.tags !== undefined) {
+		if (
+			data.description !== undefined ||
+			data.tags !== undefined ||
+			data.visibility !== undefined ||
+			data.type !== undefined ||
+			data.subType !== undefined ||
+			data.organizationId !== undefined
+		) {
 			await this.ruleRepository.update(ruleId, {
 				description: data.description,
 				tags: data.tags ? JSON.stringify(data.tags) : undefined,
+				visibility: data.visibility,
+				type: data.type,
+				subType: data.subType,
+				organizationId: data.organizationId === undefined ? undefined : data.organizationId,
 			});
 		}
 
@@ -769,6 +786,8 @@ export class RuleService {
 			where.visibility = "public";
 		} else if (params.visibility === "private" && params.userId) {
 			where.AND = [{ visibility: "private" }, { userId: params.userId }];
+		} else if (params.visibility === "organization") {
+			where.visibility = "organization";
 		} else if (params.visibility === "all" && params.userId) {
 			// 認証済みユーザーは自分のルール＋公開ルールを見れる
 			where.OR = [{ userId: params.userId }, { visibility: "public" }];
@@ -830,6 +849,7 @@ export class RuleService {
 			},
 			visibility: rule.visibility as "public" | "private" | "organization",
 			type: rule.type || "rule",
+			subType: rule.subType || null,
 			tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],
 			version: rule.version || "1.0.0",
 			created_at: rule.createdAt,
@@ -869,8 +889,14 @@ export class RuleService {
 		}
 
 		// 可視性フィルタ
-		if (params.visibility) {
-			where.visibility = params.visibility;
+		if (params.visibility === "public") {
+			where.visibility = "public";
+		} else if (params.visibility === "private" && params.userId) {
+			where.AND = [{ visibility: "private" }, { userId: params.userId }];
+		} else if (params.visibility === "organization") {
+			where.visibility = "organization";
+		} else if (params.visibility === "all" && params.userId) {
+			where.OR = [{ userId: params.userId }, { visibility: "public" }];
 		} else if (!params.userId) {
 			// 未認証ユーザーは公開ルールのみ
 			where.visibility = "public";
@@ -990,6 +1016,7 @@ export class RuleService {
 				name: rule.name,
 				userId: rule.userId,
 				type: rule.type,
+				subType: rule.subType || null,
 				visibility: rule.visibility as "public" | "private" | "organization",
 				description: rule.description,
 				tags: rule.tags ? (typeof rule.tags === "string" ? JSON.parse(rule.tags) : rule.tags) : [],

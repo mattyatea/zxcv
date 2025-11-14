@@ -612,10 +612,10 @@ const viewMode = ref<"grid" | "list">("grid");
 // 検索・フィルター
 const searchQuery = ref("");
 const filters = ref({
-	visibility: "all",
-	type: "rule" as "rule" | "ccsubagents",
-	sort: "updated",
-	author: "",
+        visibility: "all" as "all" | "public" | "private" | "organization",
+        type: "rule" as "rule" | "ccsubagents" | "config",
+        sort: "updated",
+        author: "",
 });
 const selectedTags = ref<string[]>([]);
 const popularTags = ref([

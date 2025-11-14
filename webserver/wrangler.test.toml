@@ -1,0 +1,31 @@
+name = "zxcv-vitest"
+main = "./tests/mocks/server-entry.mjs"
+compatibility_date = "2025-06-17"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "tests/mocks/assets"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "zxcv-vitest-db"
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "zxcv-vitest"
+
+[[send_email]]
+name = "EMAIL_SENDER"
+
+[vars]
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRES_IN = "7d"
+RATE_LIMIT_ANONYMOUS = "100"
+RATE_LIMIT_AUTHENTICATED = "1000"
+RATE_LIMIT_API_KEY = "5000"
+EMAIL_FROM = "test@example.com"
+FRONTEND_URL = "http://localhost:3000"
+APP_URL = "http://localhost:3000"
+ENVIRONMENT = "test"
