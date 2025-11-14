@@ -107,21 +107,21 @@ jobs:
           
           # Update server package.json if it exists
           if [ -f "server/package.json" ]; then
-            jq ".version = \"$VERSION_NUMBER\"" server/package.json > server/package.json.tmp
+            jq --indent 1 --tab ".version = \"$VERSION_NUMBER\"" server/package.json > server/package.json.tmp
             mv server/package.json.tmp server/package.json
             echo "✅ Updated server/package.json to $VERSION_NUMBER"
           fi
-          
+
           # Update CLI package.json - always included
           if [ -f "cli/package.json" ]; then
-            jq ".version = \"$VERSION_NUMBER\"" cli/package.json > cli/package.json.tmp
+            jq --indent 1 --tab ".version = \"$VERSION_NUMBER\"" cli/package.json > cli/package.json.tmp
             mv cli/package.json.tmp cli/package.json
             echo "✅ Updated cli/package.json to $VERSION_NUMBER"
           fi
-          
+
           # Update root package.json if it exists
           if [ -f "package.json" ]; then
-            jq ".version = \"$VERSION_NUMBER\"" package.json > package.json.tmp
+            jq --indent 1 --tab ".version = \"$VERSION_NUMBER\"" package.json > package.json.tmp
             mv package.json.tmp package.json
             echo "✅ Updated root package.json to $VERSION_NUMBER"
           fi
