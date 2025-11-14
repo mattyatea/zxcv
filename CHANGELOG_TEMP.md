@@ -1,14 +1,15 @@
-# Release v1.2.5
+# Release v1.2.6
 
 ## Changes
 
-- fix: align cli package json with biome formatting (c18f8c6)
+- Refactor: Remove include_cli and release_type options from release workflows (7dc17f9)
+- いい感じに (6001e88)
 
 ## Release Notes
 
 This release includes:
 - Server application updates
-
+- CLI tool updates
 - Bug fixes and improvements
 - Performance optimizations
 
