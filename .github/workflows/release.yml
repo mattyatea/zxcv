@@ -111,21 +111,26 @@ jobs:
             mv server/package.json.tmp server/package.json
             echo "✅ Updated server/package.json to $VERSION_NUMBER"
           fi
-          
+
           # Update CLI package.json - always included
           if [ -f "cli/package.json" ]; then
             jq ".version = \"$VERSION_NUMBER\"" cli/package.json > cli/package.json.tmp
             mv cli/package.json.tmp cli/package.json
             echo "✅ Updated cli/package.json to $VERSION_NUMBER"
           fi
-          
+
           # Update root package.json if it exists
           if [ -f "package.json" ]; then
             jq ".version = \"$VERSION_NUMBER\"" package.json > package.json.tmp
             mv package.json.tmp package.json
             echo "✅ Updated root package.json to $VERSION_NUMBER"
           fi
-          
+
+          # Format all package.json files with Biome
+          echo "🔧 Formatting package.json files with Biome..."
+          pnpm biome check --write --files-ignore-unknown=true server/package.json cli/package.json package.json || true
+          echo "✅ Formatted package.json files"
+
           echo "version_number=$VERSION_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Generate changelog
